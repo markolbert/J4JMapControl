@@ -3,7 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "J4JMapControl", "J4JMapControl\J4JMapControl.csproj", "{8CDD50A1-E5B2-4D15-8DDC-2086D86BFB32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "J4JMapControl", "J4JMapControl\J4JMapControl.csproj", "{8CDD50A1-E5B2-4D15-8DDC-2086D86BFB32}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "externals", "externals", "{5F2111DC-F064-450F-A72B-234864BAA5FB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "J4JLogging", "..\J4JLogging\J4JLogging\J4JLogging.csproj", "{500A6950-8512-4F8A-B2D4-383D0A0A9C71}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeusEx", "..\ProgrammingUtilities\DeusEx\DeusEx.csproj", "{66DBA4DE-85B5-4E95-9B07-A3BBC2936703}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapLibrary", "MapLibrary\MapLibrary.csproj", "{C23B9C7C-FCDF-4EA3-94CD-E2088DC1D430}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapLibraryWinApp", "MapLibraryWinApp\MapLibraryWinApp.csproj", "{FCE35171-B72C-49E9-B6AE-36EC1EEA7C84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +25,29 @@ Global
 		{8CDD50A1-E5B2-4D15-8DDC-2086D86BFB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8CDD50A1-E5B2-4D15-8DDC-2086D86BFB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8CDD50A1-E5B2-4D15-8DDC-2086D86BFB32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{500A6950-8512-4F8A-B2D4-383D0A0A9C71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{500A6950-8512-4F8A-B2D4-383D0A0A9C71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{500A6950-8512-4F8A-B2D4-383D0A0A9C71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{500A6950-8512-4F8A-B2D4-383D0A0A9C71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66DBA4DE-85B5-4E95-9B07-A3BBC2936703}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66DBA4DE-85B5-4E95-9B07-A3BBC2936703}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66DBA4DE-85B5-4E95-9B07-A3BBC2936703}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66DBA4DE-85B5-4E95-9B07-A3BBC2936703}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C23B9C7C-FCDF-4EA3-94CD-E2088DC1D430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C23B9C7C-FCDF-4EA3-94CD-E2088DC1D430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C23B9C7C-FCDF-4EA3-94CD-E2088DC1D430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C23B9C7C-FCDF-4EA3-94CD-E2088DC1D430}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCE35171-B72C-49E9-B6AE-36EC1EEA7C84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCE35171-B72C-49E9-B6AE-36EC1EEA7C84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCE35171-B72C-49E9-B6AE-36EC1EEA7C84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCE35171-B72C-49E9-B6AE-36EC1EEA7C84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{500A6950-8512-4F8A-B2D4-383D0A0A9C71} = {5F2111DC-F064-450F-A72B-234864BAA5FB}
+		{66DBA4DE-85B5-4E95-9B07-A3BBC2936703} = {5F2111DC-F064-450F-A72B-234864BAA5FB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C9712D49-C067-47D1-B986-7DC822E247FB}

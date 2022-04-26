@@ -2,15 +2,13 @@
 	<PropertyGroup>
 		<TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-		<UseWinUI>true</UseWinUI>
 		<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
-		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWinUI>true</UseWinUI>
 
-		<Nullable>Enable</Nullable>
-		<RootNamespace>J4JSoftware.J4JMapControl</RootNamespace>
-		<AssemblyName>J4JSoftware.J4JMapControl</AssemblyName>
-		<AssemblyTitle>Map Control for WinUI</AssemblyTitle>
-		<Product>Map Control</Product>
+		<Nullable>enable</Nullable>
+		<RootNamespace>J4JSoftware.MapLibrary</RootNamespace>
+		<AssemblyName>J4JSoftware.MapLibraryWinApp</AssemblyName>
+		<AssemblyTitle>Map Library (Windows Apps)</AssemblyTitle>
 		<Version>0.5.0</Version>
 		<Copyright>Copyright © Mark A. Olbert</Copyright>
 	</PropertyGroup>
@@ -22,13 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
-		<ProjectReference Include="..\MapLibraryWinApp\MapLibraryWinApp.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Page Update="Themes\Generic.xaml">
-			<Generator>MSBuild:Compile</Generator>
-		</Page>
+	  <ProjectReference Include="..\..\J4JLogging\J4JLogging\J4JLogging.csproj" />
+	  <ProjectReference Include="..\MapLibrary\MapLibrary.csproj" />
 	</ItemGroup>
 </Project>
