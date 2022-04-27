@@ -12,4 +12,8 @@
 	<Copyright>Copyright © Mark A. Olbert</Copyright>
 </PropertyGroup>
 
+<ItemGroup>
+  <ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
+</ItemGroup>
+
 </Project>

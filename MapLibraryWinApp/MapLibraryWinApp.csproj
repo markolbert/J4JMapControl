@@ -13,9 +13,6 @@
 		<Copyright>Copyright © Mark A. Olbert</Copyright>
 		<UserSecretsId>700b50fb-fe5a-4cbf-b85f-e783e85ee6ac</UserSecretsId>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Compile Remove="img-retrieval\ImageRetrievalResult.cs" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.3" />
