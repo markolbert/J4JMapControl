@@ -1,7 +1,9 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public record MapSourceParameters(
-    double MaxLatitude = GlobalConstants.Wgs84MaxLatitude,
-    int MaxDetailLevel = GlobalConstants.MaxDetailLevel,
-    int EarthRadius = GlobalConstants.EarthRadius
-) : IMapSourceParameters;
+public record MapSourceParameters( double MaxLatitude, int MaxDetailLevel, int EarthRadius ) : IMapSourceParameters
+{
+    public static MapSourceParameters Default =
+        new( GlobalConstants.Wgs84MaxLatitude,
+             GlobalConstants.DefaultMaxDetailLevel,
+             GlobalConstants.EarthRadius );
+}

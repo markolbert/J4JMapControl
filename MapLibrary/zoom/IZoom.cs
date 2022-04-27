@@ -1,10 +1,11 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public interface IZoom
+public interface IZoom : IPointValueLimits<int>
 {
     int Level { get; }
     int MaxLevel { get; }
 
+    int RetrievalBitmapWidthHeight { get; }
     int WidthHeight { get; }
     int NumTiles { get; }
 

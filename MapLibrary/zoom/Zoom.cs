@@ -1,41 +1,64 @@
-﻿namespace J4JSoftware.MapLibrary;
+﻿using J4JSoftware.DeusEx;
+using Microsoft.Extensions.DependencyInjection;
 
-public abstract record Zoom : IZoom
+namespace J4JSoftware.MapLibrary;
+
+public record Zoom : IZoom
 {
-    private readonly IMapSourceParameters _mapSrcParams;
-
-    protected Zoom(
-        int level,
-        int maxLevel,
-        IMapSourceParameters mapSrcParams
-    )
+    public Zoom()
     {
-        _mapSrcParams = mapSrcParams;
+        var mapContext = J4JDeusEx.ServiceProvider.GetRequiredService<IMapContext>();
+        Initialize( mapContext.MapImageRetriever.MapRetrieverInfo );
 
-        MaxLevel = maxLevel <= 1 ? GlobalConstants.MaxDetailLevel : maxLevel;
+        Level = MinLevel;
+    }
 
-        if( level <= 1 )
-            level = 1;
+    public Zoom( 
+        MapRetrieverInfo mapRetrieverInfo
+        )
+    {
+        Initialize(mapRetrieverInfo);
+        Level = MinLevel;
+    }
 
-        Level = level > MaxLevel ? MaxLevel : level;
-        WidthHeight = 256 * 2 ^ Level;
+    public Zoom(
+        int level
+        )
+    {
+        var mapContext = J4JDeusEx.ServiceProvider.GetRequiredService<IMapContext>();
+        Initialize(mapContext.MapImageRetriever.MapRetrieverInfo);
+
+        Level = level <= MinLevel ? MinLevel : level;
+    }
+
+    private void Initialize( MapRetrieverInfo mapRetrieverInfo )
+    {
+        MaxLevel = mapRetrieverInfo.MaximumZoom;
+        MinLevel = mapRetrieverInfo.MinimumZoom;
+
+        RetrievalBitmapWidthHeight = mapRetrieverInfo.DefaultBitmapWidthHeight;
+
+        WidthHeight = RetrievalBitmapWidthHeight * 2 ^ Level;
         NumTiles = 2 ^ Level;
     }
 
     public int Level { get; }
-    public int MaxLevel { get; }
+    public int MaxLevel { get; private set; }
+    public int MinLevel { get; private set; }
 
-    public int WidthHeight { get; }
-    public int NumTiles { get; }
+    public int WidthHeight { get; private set; }
+    public int RetrievalBitmapWidthHeight { get; private set; }
+    public int NumTiles { get; private set; }
 
     public LatLong ToLatLong( IntPoint screenPoint )
     {
         var adjX = Clip( screenPoint.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
         var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
 
-        return new LatLong( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI,
-                            360 * adjX,
-                            _mapSrcParams );
+        var retVal = new LatLong();
+        retVal.Set( new DoublePoint( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX ) );
+
+        return retVal;
     }
 
     public IntPoint LatLongToScreen( LatLong latLong )
@@ -51,6 +74,11 @@ public abstract record Zoom : IZoom
     private double Clip(double n, double minValue, double maxValue) =>
         Math.Min(Math.Max(n, minValue), maxValue);
 
-    public abstract IntPoint TileToScreen( IntPoint tilePoint );
-    public abstract IntPoint ScreenToTile( IntPoint screenPoint );
+    public IntPoint ScreenToTile(IntPoint screenPoint) =>
+        new(screenPoint.X / RetrievalBitmapWidthHeight, screenPoint.Y / RetrievalBitmapWidthHeight);
+
+    public IntPoint TileToScreen(IntPoint tilePoint) => new(tilePoint.X * RetrievalBitmapWidthHeight, tilePoint.Y * RetrievalBitmapWidthHeight);
+
+    public int Minimum { get; set; }
+    public int Maximum => RetrievalBitmapWidthHeight;
 }
