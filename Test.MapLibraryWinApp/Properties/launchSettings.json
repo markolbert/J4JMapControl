@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Test.MapLibraryWinApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Test.MapLibraryWinApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
