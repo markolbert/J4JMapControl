@@ -15,13 +15,12 @@ public abstract class TileBasedImageRetriever<TMultiTile> : MapImageRetriever<TM
     where TMultiTile : MultiTileCoordinates
 {
     protected TileBasedImageRetriever(
+        MapRetrieverInfo mapRetrieverInfo,
         string retrievalUriTemplate,
-        string description,
-        string copyrightText,
-        Uri copyrightUri,
+        IApplicationInfo appInfo,
         IJ4JLogger? logger
     )
-        : base( description, copyrightText, copyrightUri, logger )
+        : base( mapRetrieverInfo, appInfo, logger )
     {
         RetrievalUriTemplate = retrievalUriTemplate;
     }

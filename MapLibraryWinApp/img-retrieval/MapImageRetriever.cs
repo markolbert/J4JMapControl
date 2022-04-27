@@ -1,62 +1,50 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
+using Windows.Storage.Streams;
+using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class MapImageRetriever<TTile> : IRetrieveMapImage
+public abstract class MapImageRetriever<TTile> : IMapImageRetriever
     where TTile : TileCoordinates
 {
     protected MapImageRetriever(
-        string description,
-        string copyrightText,
-        Uri copyrightUri,
+        MapRetrieverInfo mapRetrieverInfo,
+        IApplicationInfo appInfo,
         IJ4JLogger? logger
     )
     {
-        Description = description;
-        CopyrightText = copyrightText;
-        CopyrightUri = copyrightUri;
+        MapRetrieverInfo = mapRetrieverInfo;
+        AppInfo = appInfo;
 
         Logger = logger;
         Logger?.SetLoggedType( GetType() );
     }
 
     protected IJ4JLogger? Logger { get; }
+    protected IApplicationInfo AppInfo { get; }
 
-    public string Description { get; }
-    public string CopyrightText { get; }
-    public Uri CopyrightUri { get; }
+    public MapRetrieverInfo MapRetrieverInfo { get; }
 
-    public async Task<ImageSource?> GetImageSourceAsync( TTile tile )
+    public async Task<ImageRetrievalResult> GetImageSourceAsync( TTile tile )
     {
         Logger?.Information("Beginning image retrieval from web");
 
-        if (!TryGetClientHandler(out var clientHandler))
-        {
-            Logger?.Error("Failed to create HttpClientHandler");
-            return null;
-        }
+        if( !TryGetRequest( tile, out var request ) )
+            return new ImageRetrievalResult(null, "Could not create HttpRequestMessage for tile");
 
-        if( !TryGetRequestUri( tile, out var requestUri ) )
-        {
-            Logger?.Error( "Failed to create request Uri" );
-            return null;
-        }
-
-        var uriText = requestUri!.AbsoluteUri;
-
-        var httpClient = new HttpClient(clientHandler!);
+        var uriText = request!.RequestUri?.AbsoluteUri ?? "*** undefined Uri ***";
+        var httpClient = new HttpClient();
 
         Logger?.Information<string>("Querying {0}", uriText);
 
@@ -64,7 +52,7 @@ public abstract class MapImageRetriever<TTile> : IRetrieveMapImage
 
         try
         {
-            response = await httpClient.GetAsync(requestUri);
+            response = await httpClient.SendRequestAsync( request );
             Logger?.Information<string>("Got response from {0}", uriText);
         }
         catch (Exception ex)
@@ -72,50 +60,59 @@ public abstract class MapImageRetriever<TTile> : IRetrieveMapImage
             Logger?.Error<string, string>("Image request from {0} failed, message was '{1}'",
                                            uriText,
                                            ex.Message);
-            return null;
+
+            return new ImageRetrievalResult( null, $"Image request from {uriText} failed, message was '{ex.Message}'" );
+        }
+
+        if ( response.StatusCode != HttpStatusCode.Ok )
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Logger?.Error<string, HttpStatusCode, string>( "Invalid response code from {0} ({1}), message was '{2}'",
+                                                           uriText,
+                                                           response.StatusCode,
+                                                           error );
+
+            return new ImageRetrievalResult( null,
+                                             $"Image request from {uriText} failed with response code {response.StatusCode}, message was '{error}'" );
         }
 
         Logger?.Information<string>("Reading response from {0}", uriText);
 
         try
         {
-            // thanx to lindexi for this
-            // https://stackoverflow.com/questions/42523593/convert-byte-to-windows-ui-xaml-media-imaging-bitmapimage
-            var imageBytes = await response.Content.ReadAsByteArrayAsync();
-            var imageStream = imageBytes.AsBuffer().AsStream().AsRandomAccessStream();
+            using var responseStream = await response.Content.ReadAsInputStreamAsync();
+            var randomAccessStream = new InMemoryRandomAccessStream();
 
-            var decoder = await BitmapDecoder.CreateAsync(imageStream);
-            imageStream.Seek(0);
+            await RandomAccessStream.CopyAsync(responseStream, randomAccessStream);
+            randomAccessStream.Seek(0);
 
-            var retVal = new WriteableBitmap((int)decoder.PixelWidth, (int)decoder.PixelHeight);
-            await retVal.SetSourceAsync(imageStream);
+            var retVal = new BitmapImage();
 
-            return retVal;
+            await retVal.SetSourceAsync(randomAccessStream);
+
+            return new ImageRetrievalResult( retVal, null );
         }
         catch (Exception ex)
         {
             Logger?.Error<string>("Could not set bitmap image, message was '{0}'", ex.Message);
-            return null;
+
+            return new ImageRetrievalResult(null, $"Could not set bitmap image, message was '{ex.Message}'");
         }
     }
 
 
-    protected abstract bool TryGetRequestUri(TTile tile, out Uri? result);
+    protected abstract Uri GetRequestUri(TTile tile);
 
-    protected virtual bool TryGetClientHandler(out HttpClientHandler? result)
-    {
-        result = new HttpClientHandler();
+    protected abstract bool TryGetRequest(TTile tile, out HttpRequestMessage? result);
 
-        return true;
-    }
-
-    async Task<ImageSource?> IRetrieveMapImage.GetImageSourceAsync( object tile )
+    async Task<ImageRetrievalResult> IMapImageRetriever.GetImageSourceAsync( object tile )
     {
         if( tile is TTile castTile )
             return await GetImageSourceAsync( castTile );
 
         Logger?.Error( "GetMapImage requires a {0} but was provided a {1}", typeof( TTile ), tile.GetType() );
 
-        return null;
+        return new ImageRetrievalResult( null,
+                                         $"GetMapImage requires a {typeof( TTile )} but was provided a {tile.GetType()}" );
     }
 }

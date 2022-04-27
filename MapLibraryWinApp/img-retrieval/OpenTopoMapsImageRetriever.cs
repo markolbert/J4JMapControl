@@ -1,4 +1,5 @@
 ﻿using System;
+using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 using Microsoft.UI.Xaml.Media;
@@ -7,22 +8,43 @@ namespace J4JSoftware.J4JMapControl;
 
 public class OpenTopoMapsImageRetriever : TileBasedImageRetriever<MultiTileCoordinates>
 {
+    public static MapRetrieverInfo RetrieverInfo { get; } = new MapRetrieverInfo( "OpenTopoMap",
+        "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
+        new Uri( "http://opentopomap.org/" ),
+        GlobalConstants.Wgs84MaxLatitude,
+        180,
+        1,
+        20,
+        256 );
+
     public OpenTopoMapsImageRetriever(
+        IApplicationInfo appInfo,
         IJ4JLogger? logger
     )
-        : base( "https://tile.opentopomap.org/{ZoomLevel}/{XTile}/{YTile}.png",
-                "OpenTopoMap",
-                "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
-                new Uri( "http://opentopomap.org/" ),
+        : base( RetrieverInfo,
+                "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
+                appInfo,
                 logger )
     {
     }
 
-    protected override bool TryGetRequestUri(MultiTileCoordinates tile, out Uri? result)
+    protected override Uri GetRequestUri( MultiTileCoordinates tile ) =>
+        new( RetrievalUriTemplate.Replace( "ZoomLevel", tile.Zoom.Level.ToString() )
+                                 .Replace( "XTile", tile.TileCoordinates.X.ToString() )
+                                 .Replace( "YTile", tile.TileCoordinates.Y.ToString() ) );
+
+    protected override bool TryGetRequest(MultiTileCoordinates tile, out HttpRequestMessage? result)
     {
-        result = new Uri(RetrievalUriTemplate.Replace("ZoomLevel", tile.Zoom.Level.ToString())
-                                             .Replace("XTile", tile.TileCoordinates.X.ToString())
-                                             .Replace("YTile", tile.TileCoordinates.Y.ToString()));
+        result = null;
+
+        if (string.IsNullOrEmpty(AppInfo.UserAgent))
+        {
+            Logger?.Error("Undefined or empty User-Agent");
+            return false;
+        }
+
+        result = new HttpRequestMessage( HttpMethod.Get, GetRequestUri( tile ) );
+        result.Headers.Add("User-Agent", AppInfo.UserAgent);
 
         return true;
     }
