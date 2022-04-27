@@ -11,11 +11,15 @@
 		<AssemblyTitle>Map Library (Windows Apps)</AssemblyTitle>
 		<Version>0.5.0</Version>
 		<Copyright>Copyright © Mark A. Olbert</Copyright>
+		<UserSecretsId>700b50fb-fe5a-4cbf-b85f-e783e85ee6ac</UserSecretsId>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="img-retrieval\ImageRetrievalResult.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.0" />
-		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22000.194" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.3" />
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22000.197" />
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
 	</ItemGroup>
 
