@@ -1,16 +1,9 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;

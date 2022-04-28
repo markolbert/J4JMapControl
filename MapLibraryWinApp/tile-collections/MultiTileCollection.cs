@@ -1,12 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.ApplicationModel.DataTransfer;
+﻿using System.Collections.Generic;
 using Windows.Foundation;
-using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;

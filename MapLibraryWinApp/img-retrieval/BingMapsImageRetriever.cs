@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
-using Microsoft.UI.Xaml.Media;
 
 namespace J4JSoftware.J4JMapControl;
 

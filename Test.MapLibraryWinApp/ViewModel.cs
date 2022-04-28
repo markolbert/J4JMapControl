@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using J4JSoftware.J4JMapControl;
+﻿using System.Collections.Generic;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
