@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Storage.Streams;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
-using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
@@ -26,7 +21,7 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordin
         BingMapType mapType,
         IJ4JLogger? logger
     )
-        : base( logger )
+        : base( new MultiTileCollection(), logger )
     {
         _apiKey = apiKey;
         MapType = mapType;
@@ -84,7 +79,7 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordin
         return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
 
-    private async Task<bool> GetMetadata()
+    private async Task GetMetadata()
     {
         var temp = await BingMapMetadataRetriever.GetBingMetadata( MapType, _apiKey );
 
@@ -96,13 +91,13 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordin
                 temp.HttpStatusCode,
                 temp.Message );
 
-            return false;
+            return;
         }
 
         if( !temp.ReturnValue?.IsValid ?? true )
         {
             Logger?.Error( "Bing metadata does not include required Resource object" );
-            return false;
+            return;
         }
 
         Metadata = temp.ReturnValue!;
@@ -111,7 +106,7 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordin
         if( resource.ImageHeight != resource.ImageWidth )
         {
             Logger?.Error( "Bing metadata indicates non-square image dimensions, which is not supported" );
-            return false;
+            return;
         }
 
         SetRetrieverInfo( new BingMapRetrieverInfo( resource.ImageUrl,
@@ -124,7 +119,5 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordin
                                                     resource.ZoomMin,
                                                     resource.ZoomMax,
                                                     resource.ImageHeight ) );
-
-        return true;
     }
 }

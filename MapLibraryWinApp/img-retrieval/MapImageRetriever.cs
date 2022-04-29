@@ -8,16 +8,19 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class MapImageRetriever<TTile> : IMapImageRetriever
+public abstract class MapImageRetriever<TTile> : IMapImageRetriever<TTile>
     where TTile : TileCoordinates
 {
     private MapRetrieverInfo? _retrieverInfo;
     private IZoom? _zoom;
 
     protected MapImageRetriever(
+        ITileCollection tileCollection,
         IJ4JLogger? logger
     )
     {
+        TileCollection = tileCollection;
+
         Logger = logger;
         Logger?.SetLoggedType( GetType() );
     }
@@ -50,6 +53,8 @@ public abstract class MapImageRetriever<TTile> : IMapImageRetriever
 
         private set => _zoom = value;
     }
+
+    public ITileCollection TileCollection { get; }
 
     public async Task<AsyncWebResult<BitmapImage, HttpStatusCode>> GetImageSourceAsync( TTile tile )
     {
@@ -127,4 +132,6 @@ public abstract class MapImageRetriever<TTile> : IMapImageRetriever
                                                 Message:
                                                 $"GetMapImage requires a {typeof( TTile )} but was provided a {tile.GetType()}" );
     }
+
+    object IMapImageRetriever.GetTileCollection() => TileCollection;
 }

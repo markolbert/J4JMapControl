@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -14,7 +13,7 @@ public class OpenTopoMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoo
         IApplicationInfo appInfo,
         IJ4JLogger? logger
     )
-        : base( logger )
+        : base( new MultiTileCollection(), logger )
     {
         _userAgent = appInfo.UserAgent;
 

@@ -5,9 +5,11 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl
 {
-    public interface IRetrieveMapImage<in TTile> : IMapImageRetriever
+    public interface IMapImageRetriever<in TTile> : IMapImageRetriever
         where TTile : TileCoordinates
     {
+        ITileCollection? TileCollection { get; }
+
         Task<AsyncWebResult<BitmapImage, HttpStatusCode>> GetImageSourceAsync( TTile tile );
     }
 }

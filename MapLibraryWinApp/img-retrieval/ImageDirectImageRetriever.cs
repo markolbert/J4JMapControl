@@ -12,9 +12,10 @@ public abstract class ImageDirectImageRetriever<TMultiTile> : MapImageRetriever<
     where TMultiTile : MultiTileCoordinates
 {
     protected ImageDirectImageRetriever(
+        ITileCollection tileCollection,
         IJ4JLogger? logger
     )
-        : base( logger )
+        : base( tileCollection, logger )
     {
     }
 

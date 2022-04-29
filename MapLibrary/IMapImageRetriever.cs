@@ -6,5 +6,6 @@
         IZoom? Zoom { get; }
 
         Task<AsyncWebResult<object, int>> GetImageSourceAsync(object tile);
+        object GetTileCollection();
     }
 }
