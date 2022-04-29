@@ -6,6 +6,7 @@ using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Serilog.Core;
 
 namespace Test.MapLibraryWinApp
 {
@@ -30,17 +31,19 @@ namespace Test.MapLibraryWinApp
         {
             _dQueue = DispatcherQueue.GetForCurrentThread();
 
+            _logger = logger;
+            _logger.SetLoggedType(GetType());
+            
             var temp = new List<RetrieverInfo>();
 
             foreach( var retriever in retrievers )
             {
-                temp.Add(new RetrieverInfo(retriever.MapRetrieverInfo.Description, retriever)  );
+                if( retriever.MapRetrieverInfo != null )
+                    temp.Add( new RetrieverInfo( retriever.MapRetrieverInfo.Description, retriever ) );
+                else _logger?.Error( "Could not initialize {0}", retriever.GetType() );
             }
 
             Retrievers = temp;
-
-            _logger = logger;
-            _logger.SetLoggedType(GetType());
 
             LoadMapTileCommand = new RelayCommand( LoadMapTileHandler );
         }
@@ -111,7 +114,7 @@ namespace Test.MapLibraryWinApp
             _selectedRetriever.Retriever.GetImageSourceAsync(tile)
                       .ContinueWith((t) => _dQueue.TryEnqueue(() =>
                        {
-                           TileImage = t.Result.ImageSource as BitmapSource;
+                           TileImage = t.Result.ReturnValue as BitmapSource;
                            ErrorMessage = t.Result.Message;
                        }));
         }
