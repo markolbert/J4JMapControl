@@ -1,7 +1,5 @@
 ﻿using J4JSoftware.DeusEx;
 
-#pragma warning disable CS8618
-
 namespace J4JSoftware.MapLibrary;
 
 public class MapContext : IMapContext
