@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Autofac;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapControl;
@@ -31,9 +32,11 @@ public class DeusEx : J4JDeusExWinApp
         J4JLoggerConfiguration loggerConfig
     )
     {
+        var logFilePath = Path.Combine( hostConfig.ApplicationConfigurationFolder, "log.txt" );
+
         loggerConfig.SerilogConfiguration
                     .WriteTo
-                    .File( path: "log.txt", rollingInterval: RollingInterval.Day );
+                    .File( path: logFilePath, rollingInterval: RollingInterval.Day );
     }
 
     private void InitializeDependencyInjection( HostBuilderContext hbc, ContainerBuilder builder )
@@ -52,7 +55,7 @@ public class DeusEx : J4JDeusExWinApp
                     var mapRetriever = x.Context.Resolve<OpenStreetMapsImageRetriever>();
 
                     x.Instance.MapImageRetriever = mapRetriever;
-                    x.Instance.Zoom = new Zoom( mapRetriever.MapRetrieverInfo );
+                    x.Instance.Zoom = new Zoom( mapRetriever.MapRetrieverInfo! );
                 })
                .AsImplementedInterfaces()
                .SingleInstance();
@@ -70,7 +73,7 @@ public class DeusEx : J4JDeusExWinApp
                .AsImplementedInterfaces()
                .SingleInstance();
 
-        foreach( var mapType in Enum.GetValues<BingMapsImageRetriever.BingMapType>() )
+        foreach( var mapType in Enum.GetValues<BingMapType>() )
         {
             builder.Register( c =>
                     {
@@ -78,7 +81,7 @@ public class DeusEx : J4JDeusExWinApp
                         var config = c.Resolve<Configuration>();
                         var logger = c.Resolve<IJ4JLogger>();
 
-                        return new BingMapsImageRetriever( config.BingMapsApiKey, mapType, appInfo, logger );
+                        return new BingMapsImageRetriever( config.BingMapsApiKey, mapType, logger );
                     } )
                    .AsImplementedInterfaces()
                    .SingleInstance();
