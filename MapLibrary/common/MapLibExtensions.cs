@@ -26,11 +26,11 @@ public static class MapLibExtensions
         return new IntPoint(x, y);
     }
 
-    public static string GetBingMapsQuadKey( this IZoom zoom, MultiTileCoordinates multiTile )
+    public static string GetBingMapsQuadKey( this MultiTileCoordinates multiTile )
     {
         var retVal = new StringBuilder();
 
-        for (var i = zoom.Level; i > 0; i--)
+        for (var i = multiTile.Zoom.Level; i > 0; i--)
         {
             var digit = '0';
             var mask = 1 << (i - 1);
