@@ -1,50 +1,98 @@
 ﻿using J4JSoftware.DeusEx;
+using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace J4JSoftware.MapLibrary;
 
-public record Zoom : IZoom
+public class Zoom : IZoom
 {
-    public Zoom()
-    {
-        var mapContext = J4JDeusEx.ServiceProvider.GetRequiredService<IMapContext>();
-        Initialize( mapContext.MapImageRetriever.MapRetrieverInfo );
+    public event EventHandler<int>? Changed;
+    
+    private int _level;
+    private IJ4JLogger? _logger;
 
-        Level = MinLevel;
+    public Zoom( IMapContext mapContext )
+    {
+        Initialize(mapContext);
     }
 
     public Zoom( 
         MapRetrieverInfo mapRetrieverInfo
         )
     {
-        Initialize(mapRetrieverInfo);
-        Level = MinLevel;
+        MapRetrieverInfo = mapRetrieverInfo;
+        Initialize();
     }
 
     public Zoom(
-        int level
+        int level,
+        MapRetrieverInfo mapRetrieverInfo
         )
     {
-        var mapContext = J4JDeusEx.ServiceProvider.GetRequiredService<IMapContext>();
-        Initialize(mapContext.MapImageRetriever.MapRetrieverInfo);
+        MapRetrieverInfo = mapRetrieverInfo;
+        Initialize();
 
-        Level = level <= MinLevel ? MinLevel : level;
+        Level = level;
     }
 
-    private void Initialize( MapRetrieverInfo mapRetrieverInfo )
+    private void Initialize( IMapContext mapContext )
     {
-        MaxLevel = mapRetrieverInfo.MaximumZoom;
-        MinLevel = mapRetrieverInfo.MinimumZoom;
+        MapRetrieverInfo = mapContext.MapRetriever.MapRetrieverInfo;
 
-        RetrievalBitmapWidthHeight = mapRetrieverInfo.DefaultBitmapWidthHeight;
+        if( MapRetrieverInfo != null )
+            Initialize();
+
+        var msg =
+            $"Attempting to create instance of {nameof(Zoom)} from an undefined {nameof(MapLibrary.MapRetrieverInfo)}";
+
+        J4JDeusEx.Logger?.Fatal(msg);
+
+        throw new J4JDeusExException(msg);
+    }
+
+    private void Initialize()
+    {
+        _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
+        _logger?.SetLoggedType(GetType());
+
+        Maximum = MapRetrieverInfo!.MaximumZoom;
+        Minimum = MapRetrieverInfo.MinimumZoom;
+        _level = MapRetrieverInfo.MinimumZoom;
+
+        RetrievalBitmapWidthHeight = MapRetrieverInfo.DefaultBitmapWidthHeight;
 
         WidthHeight = RetrievalBitmapWidthHeight * 2 ^ Level;
         NumTiles = 2 ^ Level;
+
+        Changed?.Invoke( this, Level );
     }
 
-    public int Level { get; }
-    public int MaxLevel { get; private set; }
-    public int MinLevel { get; private set; }
+    public MapRetrieverInfo? MapRetrieverInfo { get; private set; }
+
+    public int Level
+    {
+        get => GetLimitedValue( _level );
+
+        set
+        {
+            var limitedValue = GetLimitedValue( value );
+
+            _level = value;
+
+            if( limitedValue != value )
+                Changed?.Invoke( this, _level );
+        }
+    }
+
+    private int GetLimitedValue( int value ) =>
+        value < Minimum
+            ? Minimum
+            : value > Maximum
+                ? Maximum
+                : value;
+
+    public int Maximum { get; private set; }
+    public int Minimum { get; private set; }
 
     public int WidthHeight { get; private set; }
     public int RetrievalBitmapWidthHeight { get; private set; }
@@ -55,7 +103,7 @@ public record Zoom : IZoom
         var adjX = Clip( screenPoint.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
         var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
 
-        var retVal = new LatLong();
+        var retVal = new LatLong( MapRetrieverInfo! );
         retVal.Set( new DoublePoint( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX ) );
 
         return retVal;
@@ -78,7 +126,4 @@ public record Zoom : IZoom
         new(screenPoint.X / RetrievalBitmapWidthHeight, screenPoint.Y / RetrievalBitmapWidthHeight);
 
     public IntPoint TileToScreen(IntPoint tilePoint) => new(tilePoint.X * RetrievalBitmapWidthHeight, tilePoint.Y * RetrievalBitmapWidthHeight);
-
-    public int Minimum { get; set; }
-    public int Maximum => RetrievalBitmapWidthHeight;
 }

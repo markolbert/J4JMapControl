@@ -49,16 +49,16 @@ public class DeusEx : J4JDeusExWinApp
                .AsSelf()
                .SingleInstance();
 
-        builder.RegisterType<MapContext>()
-               .OnActivated( x =>
-                {
-                    var mapRetriever = x.Context.Resolve<OpenStreetMapsImageRetriever>();
+        //builder.RegisterType<MapContext>()
+        //       .OnActivated( x =>
+        //        {
+        //            var mapRetriever = x.Context.Resolve<OpenStreetMapsImageRetriever>();
 
-                    x.Instance.MapImageRetriever = mapRetriever;
-                    x.Instance.Zoom = new Zoom( mapRetriever.MapRetrieverInfo! );
-                })
-               .AsImplementedInterfaces()
-               .SingleInstance();
+        //            x.Instance.CurrentRetriever = mapRetriever;
+        //            x.Instance.Zoom = new Zoom( mapRetriever.MapRetrieverInfo! );
+        //        })
+        //       .AsImplementedInterfaces()
+        //       .SingleInstance();
 
         builder.RegisterType<ViewModel>()
                .AsSelf()

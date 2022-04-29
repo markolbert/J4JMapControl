@@ -13,7 +13,11 @@ public class MapPoint
     {
         _zoom = zoom;
 
-        UpperLeftLatLong = new LatLong();
+        if( zoom.MapRetrieverInfo == null )
+            throw new ArgumentException(
+                $"Attempting to create {typeof( MapPoint )} with an undefined {nameof( MapRetrieverInfo )}" );
+
+        UpperLeftLatLong = new LatLong( zoom.MapRetrieverInfo );
         UpperLeftLatLong.ValueChanged += UpperLeftLatLongOnValueChanged;
 
         Screen = new ScreenPoint();
@@ -22,7 +26,7 @@ public class MapPoint
         Tile = new TilePoint( zoom );
         Tile.ValueChanged += TileOnValueChanged;
 
-        LowerRightLatLong = new LatLong();
+        LowerRightLatLong = new LatLong( zoom.MapRetrieverInfo );
         LowerRightLatLong.Set( GetLowerRightLatLong() );
     }
 

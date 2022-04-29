@@ -2,8 +2,10 @@
 
 public interface IZoom : IPointValueLimits<int>
 {
-    int Level { get; }
-    int MaxLevel { get; }
+    event EventHandler<int>? Changed;
+
+    MapRetrieverInfo? MapRetrieverInfo { get; }
+    int Level { get; set; }
 
     int RetrievalBitmapWidthHeight { get; }
     int WidthHeight { get; }

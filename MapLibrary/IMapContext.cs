@@ -1,9 +1,11 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-#pragma warning disable CS8618
 public interface IMapContext
 {
-    IMapImageRetriever MapImageRetriever { get; }
+    event EventHandler? UpdateMap;
+
+    IMapImageRetriever MapRetriever { get; }
     IZoom Zoom { get; }
-    MapRect? ViewRect { get; }
+    double Height { get; }
+    double Width { get; }
 }
