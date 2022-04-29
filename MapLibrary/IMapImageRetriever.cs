@@ -2,8 +2,9 @@
 {
     public interface IMapImageRetriever
     {
-        MapRetrieverInfo MapRetrieverInfo { get; }
+        MapRetrieverInfo? MapRetrieverInfo { get; }
+        IZoom? Zoom { get; }
 
-        Task<ImageRetrievalResult> GetImageSourceAsync(object tile);
+        Task<AsyncWebResult<object, int>> GetImageSourceAsync(object tile);
     }
 }
