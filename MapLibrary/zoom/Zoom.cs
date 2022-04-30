@@ -98,7 +98,7 @@ public class Zoom : IZoom
     public int RetrievalBitmapWidthHeight { get; private set; }
     public int NumTiles { get; private set; }
 
-    public LatLong ToLatLong( DoublePoint screenPoint )
+    public LatLong ScreenToLatLong( DoublePoint screenPoint )
     {
         var adjX = Clip( screenPoint.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
         var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
