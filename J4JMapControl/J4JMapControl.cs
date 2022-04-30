@@ -70,8 +70,6 @@ public sealed class J4JMapControl : Panel, IMapContext
                                        temp.GetType(),
                                        typeof( ITileCollection ) );
         else mapControl.MapTiles = tileCollection;
-
-        mapControl.UpdateMap?.Invoke( mapControl, EventArgs.Empty );
     }
 
     #endregion
@@ -117,8 +115,6 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     #endregion
 
-    public event EventHandler? UpdateMap;
-
     private readonly IJ4JLogger? _logger;
 
     public J4JMapControl()
@@ -136,7 +132,6 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private void OnZoomLevelChanged( object? sender, int e )
     {
-        UpdateMap?.Invoke(this, EventArgs.Empty  );
     }
 
     private void OnMapCenterChanged(MapPoint? center)
@@ -146,8 +141,6 @@ public sealed class J4JMapControl : Panel, IMapContext
             Visibility= Visibility.Collapsed;
             return;
         }
-
-        UpdateMap?.Invoke(this, EventArgs.Empty);
     }
 
     public ITileCollection? MapTiles { get; private set; }

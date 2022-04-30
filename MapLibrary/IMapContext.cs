@@ -2,8 +2,6 @@
 
 public interface IMapContext
 {
-    event EventHandler? UpdateMap;
-
     IMapImageRetriever MapRetriever { get; }
     IZoom Zoom { get; }
     double Height { get; }
