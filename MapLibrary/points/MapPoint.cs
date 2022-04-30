@@ -24,6 +24,18 @@ public class MapPoint
         Tile.ValueChanged += TileOnValueChanged;
     }
 
+    private MapPoint(
+        MapPoint toCopy
+    )
+    {
+        Zoom = toCopy.Zoom;
+        LatLong = toCopy.LatLong;
+        Screen = toCopy.Screen;
+        Tile = toCopy.Tile;
+    }
+
+    public MapPoint Copy() => new( this );
+
     public IZoom Zoom { get; }
 
     public LatLong LatLong { get; }
@@ -89,5 +101,15 @@ public class MapPoint
 
             _ignoreChangeEvents = false;
         }
+    }
+
+    public MapPoint OffsetByScreen( double xOffset, double yOffset )
+    {
+        var retVal = this.Copy();
+
+        var newScreenPt = new DoublePoint(retVal.Screen.X + xOffset, retVal.Screen.Y + yOffset);
+        retVal.Screen.Set( newScreenPt );
+
+        return retVal;
     }
 }

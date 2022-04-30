@@ -53,10 +53,10 @@ public class DeusEx : J4JDeusExWinApp
                .AsSelf()
                .SingleInstance();
 
-        builder.RegisterType<MultiTileCollection>()
+        builder.RegisterType<ScreenTileGlobalTiles>()
                .AsSelf();
 
-        builder.RegisterType<SingleTileCollection>()
+        builder.RegisterType<ScreenGlobalTiles>()
                .AsSelf();
 
         builder.RegisterType<OpenStreetMapsImageRetriever>()
@@ -75,7 +75,7 @@ public class DeusEx : J4JDeusExWinApp
                         var appInfo = c.Resolve<IApplicationInfo>();
                         var config = c.Resolve<Configuration>();
                         var logger = c.Resolve<IJ4JLogger>();
-                        var tiles = c.Resolve<MultiTileCollection>();
+                        var tiles = c.Resolve<ScreenTileGlobalTiles>();
 
                         return new BingMapsImageRetriever( config.BingMapsApiKey, mapType, tiles, logger );
                     } )

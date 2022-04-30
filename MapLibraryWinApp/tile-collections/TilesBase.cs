@@ -20,9 +20,20 @@ public abstract class TilesBase<TCoord> : ITileCollection<TCoord>
     protected List<TCoord> TilesInternal { get; private set; } = new();
 
     public ReadOnlyCollection<TCoord> Tiles => TilesInternal.AsReadOnly();
+
+    public Coordinates? this[ int row, int column ] => TryGetTile( row, column, out var retVal ) ? retVal : null;
+
     public int NumTiles => Tiles.Count;
     public virtual int NumRows { get; protected set; }
     public virtual int NumColumns { get; protected set; }
+
+    public double ScreenWidth => UpperLeft == null || LowerRight == null 
+        ? 0 
+        : LowerRight.Screen.X - UpperLeft.Screen.X;
+
+    public double ScreenHeight => UpperLeft == null || LowerRight == null
+        ? 0
+        : LowerRight.Screen.Y - UpperLeft.Screen.Y;
 
     public void Update( MapRect viewPort )
     {

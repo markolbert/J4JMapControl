@@ -14,6 +14,15 @@ public class MapRect
         LowerRight = new MapPoint( zoom );
     }
 
+    public MapRect(
+        MapPoint upperLeft,
+        MapPoint lowerRight
+    )
+    {
+        UpperLeft = upperLeft;
+        LowerRight = lowerRight;
+    }
+
     public MapPoint UpperLeft { get; }
     public MapPoint LowerRight { get; }
 }

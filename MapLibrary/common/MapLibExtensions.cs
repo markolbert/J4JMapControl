@@ -58,6 +58,17 @@ public static class MapLibExtensions
         return new ScreenTileGlobalCoordinates( screenPt, tilePt, latLongPt, zoom );
     }
 
+    public static MapRect GetScreenMapRect( this IZoom zoom, LatLong center, double width, double height )
+    {
+        var centerMapPt = new MapPoint( zoom );
+        centerMapPt.LatLong.Set( center );
+
+        var upperLeft = centerMapPt.OffsetByScreen( -width / 2, -height / 2 );
+        var lowerRight = centerMapPt.OffsetByScreen( width / 2, height / 2 );
+
+        return new MapRect( upperLeft, lowerRight );
+    }
+
     public static string GetDescription<TEnum>(this TEnum enumValue)
     {
         if( !typeof( TEnum ).IsEnum )

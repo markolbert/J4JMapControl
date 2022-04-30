@@ -3,9 +3,9 @@
     public interface IMapImageRetriever
     {
         MapRetrieverInfo? MapRetrieverInfo { get; }
-        IZoom? Zoom { get; }
+        IZoom? Zoom { get; set; }
 
-        Task<AsyncWebResult<object, int>> GetImageSourceAsync(object tile);
-        object GetTileCollection();
+        Task<AsyncWebResult<object, int>> GetImageStreamAsync(object tile);
+        ITileCollection GetTileCollection();
     }
 }
