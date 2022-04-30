@@ -13,7 +13,7 @@ public static class MapLibExtensions
       * GlobalConstants.EarthRadius
       / zoom.WidthHeight;
 
-    public static IntPoint GetScreenCoordinates(this IZoom zoom, LatLong globeCoord)
+    public static DoublePoint GetScreenCoordinates(this IZoom zoom, LatLong globeCoord)
     {
         var sinLatitude = Math.Sin(globeCoord.Latitude * Math.PI / 180);
 
@@ -23,7 +23,7 @@ public static class MapLibExtensions
           * 256
           * Math.Pow(2, zoom.Level);
 
-        return new IntPoint(x, y);
+        return new DoublePoint(x, y);
     }
 
     public static string GetBingMapsQuadKey( this MultiTileCoordinates multiTile )

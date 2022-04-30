@@ -98,13 +98,13 @@ public class Zoom : IZoom
     public int RetrievalBitmapWidthHeight { get; private set; }
     public int NumTiles { get; private set; }
 
-    public LatLong ToLatLong( IntPoint screenPoint )
+    public LatLong ToLatLong( DoublePoint screenPoint )
     {
         var adjX = Clip( screenPoint.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
         var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
 
         var retVal = new LatLong( MapRetrieverInfo! );
-        retVal.Set( new DoublePoint( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX ) );
+        retVal.Set( new GeoPoint( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX ) );
 
         return retVal;
     }
@@ -122,8 +122,9 @@ public class Zoom : IZoom
     private double Clip(double n, double minValue, double maxValue) =>
         Math.Min(Math.Max(n, minValue), maxValue);
 
-    public IntPoint ScreenToTile(IntPoint screenPoint) =>
-        new(screenPoint.X / RetrievalBitmapWidthHeight, screenPoint.Y / RetrievalBitmapWidthHeight);
+    public IntPoint ScreenToTile( DoublePoint screenPoint ) =>
+        new( screenPoint.X / RetrievalBitmapWidthHeight, screenPoint.Y / RetrievalBitmapWidthHeight );
 
-    public IntPoint TileToScreen(IntPoint tilePoint) => new(tilePoint.X * RetrievalBitmapWidthHeight, tilePoint.Y * RetrievalBitmapWidthHeight);
+    public DoublePoint TileToScreen( IntPoint tilePoint ) =>
+        new( tilePoint.X * RetrievalBitmapWidthHeight, tilePoint.Y * RetrievalBitmapWidthHeight );
 }
