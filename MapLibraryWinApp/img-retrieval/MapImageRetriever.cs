@@ -5,6 +5,8 @@ using Windows.Web.Http;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
@@ -56,7 +58,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
 
     public ITileCollection TileCollection { get; }
 
-    public async Task<AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>> GetImageSourceAsync(
+    public async Task<AsyncWebResult<Image, HttpStatusCode>> GetImageSourceAsync(
         TCoord coordinates
     )
     {
@@ -64,10 +66,10 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
 
         var request = GetRequest( coordinates );
         if( request == null )
-            return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>( null,
-                HttpStatusCode.BadRequest,
-                Message:
-                "Could not create HttpRequestMessage for tile" );
+            return new AsyncWebResult<Image, HttpStatusCode>( null,
+                                                                     HttpStatusCode.BadRequest,
+                                                                     Message:
+                                                                     "Could not create HttpRequestMessage for tile" );
 
         var uriText = request.RequestUri?.AbsoluteUri ?? "*** undefined Uri ***";
         var httpClient = new HttpClient();
@@ -87,10 +89,10 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
                                            uriText,
                                            ex.Message );
 
-            return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>( null,
-                response?.StatusCode ?? HttpStatusCode.BadRequest,
-                uriText,
-                $"Image request from {uriText} failed, message was '{ex.Message}'" );
+            return new AsyncWebResult<Image, HttpStatusCode>( null,
+                                                                     response?.StatusCode ?? HttpStatusCode.BadRequest,
+                                                                     uriText,
+                                                                     $"Image request from {uriText} failed, message was '{ex.Message}'" );
         }
 
         if( response.StatusCode != HttpStatusCode.Ok )
@@ -101,19 +103,20 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
                                                            response.StatusCode,
                                                            error );
 
-            return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>( null,
-                response.StatusCode,
-                uriText,
-                $"Image request from {uriText} failed with response code {response.StatusCode}, message was '{error}'" );
+            return new AsyncWebResult<Image, HttpStatusCode>( null,
+                                                                     response.StatusCode,
+                                                                     uriText,
+                                                                     $"Image request from {uriText} failed with response code {response.StatusCode}, message was '{error}'" );
         }
 
         Logger?.Information<string>( "Reading response from {0}", uriText );
 
-        return await ExtractImageDataAsync( response );
+        return await ExtractImageDataAsync( response, coordinates );
     }
 
-    protected abstract Task<AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>> ExtractImageDataAsync(
-        HttpResponseMessage response
+    protected abstract Task<AsyncWebResult<Image, HttpStatusCode>> ExtractImageDataAsync(
+        HttpResponseMessage response,
+        TCoord coordinates
     );
     
     protected abstract HttpRequestMessage? GetRequest(TCoord tile);
