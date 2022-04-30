@@ -1,9 +1,9 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public record TileCoordinates
+public record Coordinates
 {
-    protected TileCoordinates(
-        IntPoint upperLeft,
+    protected Coordinates(
+        DoublePoint upperLeft,
         IZoom zoom
     )
     {
@@ -11,6 +11,6 @@ public record TileCoordinates
         Zoom = zoom;
     }
 
-    public IntPoint ScreenUpperLeft { get; }
+    public DoublePoint ScreenUpperLeft { get; }
     public IZoom Zoom { get; }
 }
