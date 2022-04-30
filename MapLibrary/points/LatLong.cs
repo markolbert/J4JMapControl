@@ -13,17 +13,6 @@ public class LatLong
 
     public LatLong( MapRetrieverInfo info )
     {
-        //var info = mapContext.MapRetriever.MapRetrieverInfo;
-        //if( info == null )
-        //{
-        //    var msg =
-        //        $"Attempting to create instance of {nameof( LatLong )} from an undefined {nameof( MapRetrieverInfo )}";
-
-        //    J4JDeusEx.Logger?.Fatal( msg );
-
-        //    throw new J4JDeusExException( msg );
-        //}
-
         _latitude = new LimitedPoint<double>( new DoubleLimits( -info.MaximumLatitude, info.MaximumLatitude ) );
         _longitude = new LimitedPoint<double>( new DoubleLimits( -info.MaximumLongitude, info.MaximumLongitude ) );
     }
@@ -31,7 +20,7 @@ public class LatLong
     public double Latitude => _latitude.Value;
     public double Longitude => _longitude.Value;
 
-    public void Set( DoublePoint point )
+    public void Set( GeoPoint point )
     {
         _latitude.Value = point.Latitude;
         _longitude.Value = point.Longitude;
