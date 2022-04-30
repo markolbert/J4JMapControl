@@ -26,7 +26,7 @@ public static class MapLibExtensions
         return new DoublePoint(x, y);
     }
 
-    public static string GetBingMapsQuadKey( this MultiTileCoordinates multiTile )
+    public static string GetBingMapsQuadKey( this ScreenTileGlobalCoordinates multiTile )
     {
         var retVal = new StringBuilder();
 
@@ -48,6 +48,14 @@ public static class MapLibExtensions
         }
 
         return retVal.ToString();
+    }
+
+    public static ScreenTileGlobalCoordinates ToMultiTileCoordinates( this IZoom zoom, IntPoint tilePt )
+    {
+        var screenPt = zoom.TileToScreen( tilePt );
+        var latLongPt = zoom.ScreenToLatLong( screenPt );
+
+        return new ScreenTileGlobalCoordinates( screenPt, tilePt, latLongPt, zoom );
     }
 
     public static string GetDescription<TEnum>(this TEnum enumValue)

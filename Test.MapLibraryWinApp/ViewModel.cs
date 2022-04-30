@@ -106,7 +106,7 @@ public class ViewModel : ObservableObject
         if( _selectedRetriever == null || _selectedRetriever.Retriever.MapRetrieverInfo is not {} info )
             return;
 
-        var tile = new MultiTileCoordinates(IntPoint.Empty,
+        var tile = new ScreenTileGlobalCoordinates(ScreenPoint.Empty.ToDoublePoint(),
                                             new IntPoint(XTile, YTile),
                                             LatLong.GetEmpty(info),
                                             new Zoom(Zoom, info));
