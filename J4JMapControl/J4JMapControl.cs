@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -32,7 +32,7 @@ public sealed class J4JMapControl : Panel, IMapContext
         if (d is not J4JMapControl mapControl)
             return;
 
-        mapControl.Zoom.Level = (int)e.NewValue;
+        mapControl.OnZoomLevelChanged( (int) e.NewValue );
     }
 
     #endregion
@@ -56,20 +56,12 @@ public sealed class J4JMapControl : Panel, IMapContext
     {
         if( d is not J4JMapControl mapControl
         || e.NewValue is not IMapImageRetriever retriever
-        || retriever.MapRetrieverInfo == null )
+        || retriever.MapRetrieverInfo == null
+        || retriever.Zoom == null )
             return;
 
-        var curLevel = mapControl.Zoom.Level;
-        mapControl.Zoom = new Zoom( retriever.MapRetrieverInfo ) { Level = curLevel };
-
-        var temp = retriever.GetTileCollection();
-     
-        if( temp is not ITileCollection tileCollection )
-            mapControl._logger?.Error( "{0} return a {1} instead of a {2}",
-                                       nameof( IMapImageRetriever.GetTileCollection ),
-                                       temp.GetType(),
-                                       typeof( ITileCollection ) );
-        else mapControl.MapTiles = tileCollection;
+        var curLevel = mapControl.MapRetriever.Zoom!.Level;
+        mapControl.MapRetriever.Zoom = new Zoom( retriever.MapRetrieverInfo ) { Level = curLevel };
     }
 
     #endregion
@@ -79,13 +71,13 @@ public sealed class J4JMapControl : Panel, IMapContext
     // the center of the currently displayed map
     public static readonly DependencyProperty CenterProperty =
         DependencyProperty.Register( "",
-                                     typeof( MapPoint ),
+                                     typeof( LatLong ),
                                      typeof( J4JMapControl ),
                                      new PropertyMetadata( null, OnMapCenterChangedStatic ) );
 
-    public MapPoint Center
+    public LatLong? Center
     {
-        get => (MapPoint)GetValue( CenterProperty );
+        get => (LatLong?) GetValue( CenterProperty );
         set => SetValue( CenterProperty, value );
     }
 
@@ -100,15 +92,15 @@ public sealed class J4JMapControl : Panel, IMapContext
                 mapControl.OnMapCenterChanged(null);
                 break;
 
-            case MapPoint mapPoint:
-                mapControl.OnMapCenterChanged( mapPoint );
+            case LatLong latLong:
+                mapControl.OnMapCenterChanged( latLong );
                 break;
 
             default:
                 mapControl._logger?.Error( "{0} received a {1} instead of a {2}",
                                            nameof( OnMapCenterChangedStatic ),
                                            e.NewValue.GetType(),
-                                           typeof( MapPoint ) );
+                                           typeof( LatLong ) );
                 break;
         }
     }
@@ -122,28 +114,65 @@ public sealed class J4JMapControl : Panel, IMapContext
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType(GetType());
 
-        // we only respond to zoom changes which are valid, i.e., within
-        // the range for the current map retriever
-        Zoom = J4JDeusEx.ServiceProvider.GetRequiredService<IZoom>();
-        Zoom.Changed += OnZoomLevelChanged;
-
         Visibility = Visibility.Collapsed;
     }
 
-    private void OnZoomLevelChanged( object? sender, int e )
+    private void OnZoomLevelChanged( int zoom )
     {
+        MapRetriever.Zoom!.Level = zoom;
+        UpdateMap();
     }
 
-    private void OnMapCenterChanged(MapPoint? center)
+    private void OnMapCenterChanged(LatLong? center)
     {
-        if( center == null )
-        {
+        if( center == null && Visibility != Visibility.Collapsed )
             Visibility= Visibility.Collapsed;
-            return;
-        }
+        else UpdateMap();
     }
 
-    public ITileCollection? MapTiles { get; private set; }
+    private void UpdateMap()
+    {
+        if( Center == null || MapRetriever.Zoom == null)
+            return;
 
-    public IZoom Zoom { get; private set; }
+        Children.Clear();
+
+        var tiles = MapRetriever.GetTileCollection();
+        tiles.Update(MapRetriever.Zoom.GetScreenMapRect(Center, Width, Height));
+
+        for( var row = 0; row < tiles.NumRows; row++ )
+        {
+            for( var col = 0; col < tiles.NumColumns; col++ )
+            {
+                if( tiles.TryGetTile(row,col, out var coordinates))
+                    Children.Add(new TileImage(){Coordinates = coordinates, MapRetriever = MapRetriever}  );
+            }
+        }
+
+        InvalidateArrange();
+    }
+
+    protected override Size MeasureOverride( Size availableSize )
+    {
+        if( Center == null || MapRetriever.Zoom == null || !Children.Any() )
+            return availableSize;
+
+        var tiles = MapRetriever.GetTileCollection();
+        var desiredSize = new Size( tiles.ScreenWidth, tiles.ScreenHeight );
+
+        return desiredSize.Width <= availableSize.Width && desiredSize.Height <= availableSize.Height
+            ? desiredSize
+            : availableSize;
+    }
+
+    protected override Size ArrangeOverride( Size finalSize )
+    {
+        if( Center == null || MapRetriever.Zoom == null || !Children.Any() )
+            return finalSize;
+
+        var tiles = MapRetriever.GetTileCollection();
+        var desiredSize = new Size(tiles.ScreenWidth, tiles.ScreenHeight);
+
+
+    }
 }
