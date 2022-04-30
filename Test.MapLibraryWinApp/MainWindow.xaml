@@ -42,7 +42,7 @@
                       SelectedItem="{x:Bind ViewModel.SelectedRetriever, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="local:RetrieverInfo">
-                        <TextBlock Text="{x:Bind Name }"></TextBlock>
+                        <TextBlock Text="{x:Bind Name }"/>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
