@@ -111,7 +111,7 @@ public class ViewModel : ObservableObject
                                             LatLong.GetEmpty(info),
                                             new Zoom(Zoom, info));
 
-        _selectedRetriever.Retriever.GetImageSourceAsync(tile)
+        _selectedRetriever.Retriever.GetImageStreamAsync(tile)
                           .ContinueWith((t) => _dQueue.TryEnqueue(() =>
                            {
                                TileImage = t.Result.ReturnValue as BitmapSource;
