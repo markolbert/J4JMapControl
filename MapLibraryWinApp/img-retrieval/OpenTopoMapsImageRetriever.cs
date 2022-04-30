@@ -5,13 +5,13 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public class OpenTopoMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordinates>
+public class OpenTopoMapsImageRetriever : ImageDirectImageRetriever<ScreenTileGlobalCoordinates>
 {
     private readonly string _userAgent;
 
     public OpenTopoMapsImageRetriever(
         IApplicationInfo appInfo,
-        MultiTileCollection tiles,
+        ScreenTileGlobalTiles tiles,
         IJ4JLogger? logger
     )
         : base( tiles, logger )
@@ -29,7 +29,7 @@ public class OpenTopoMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoo
                                                 256 ) );
     }
 
-    protected override HttpRequestMessage? GetRequest( MultiTileCoordinates tile )
+    protected override HttpRequestMessage? GetRequest( ScreenTileGlobalCoordinates tile )
     {
         if (string.IsNullOrEmpty(_userAgent))
         {

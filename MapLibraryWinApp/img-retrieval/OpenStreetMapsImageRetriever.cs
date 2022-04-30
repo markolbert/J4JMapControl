@@ -5,13 +5,13 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public class OpenStreetMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordinates>
+public class OpenStreetMapsImageRetriever : ImageDirectImageRetriever<ScreenTileGlobalCoordinates>
 {
     private readonly string _userAgent;
 
     public OpenStreetMapsImageRetriever(
         IApplicationInfo appInfo,
-        MultiTileCollection tiles,
+        ScreenTileGlobalTiles tiles,
         IJ4JLogger? logger
     )
         : base( tiles, logger )
@@ -29,7 +29,7 @@ public class OpenStreetMapsImageRetriever : ImageDirectImageRetriever<MultiTileC
                                                 256 ) );
     }
 
-    protected override HttpRequestMessage? GetRequest( MultiTileCoordinates tile )
+    protected override HttpRequestMessage? GetRequest( ScreenTileGlobalCoordinates tile )
     {
         if( string.IsNullOrEmpty( _userAgent ) )
         {

@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 namespace J4JSoftware.J4JMapControl;
 
 public abstract class ImageDirectImageRetriever<TMultiTile> : MapImageRetriever<TMultiTile>
-    where TMultiTile : MultiTileCoordinates
+    where TMultiTile : ScreenTileGlobalCoordinates
 {
     protected ImageDirectImageRetriever(
         ITileCollection tileCollection,

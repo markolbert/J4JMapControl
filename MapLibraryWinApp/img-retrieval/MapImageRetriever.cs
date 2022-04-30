@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 namespace J4JSoftware.J4JMapControl;
 
 public abstract class MapImageRetriever<TTile> : IMapImageRetriever<TTile>
-    where TTile : TileCoordinates
+    where TTile : Coordinates
 {
     private MapRetrieverInfo? _retrieverInfo;
     private IZoom? _zoom;

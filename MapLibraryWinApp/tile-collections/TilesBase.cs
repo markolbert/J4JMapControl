@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Windows.Foundation;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class TileCollection<TCoord> : ITileCollection<TCoord>
-    where TCoord : TileCoordinates
+public abstract class TilesBase<TCoord> : ITileCollection<TCoord>
+    where TCoord : Coordinates
 {
-    protected TileCollection(
+    protected TilesBase(
         IJ4JLogger? logger
     )
     {
@@ -18,10 +17,10 @@ public abstract class TileCollection<TCoord> : ITileCollection<TCoord>
     }
 
     protected IJ4JLogger? Logger { get; }
-    protected List<TCoord> TilesInternal { get; } = new();
+    protected List<TCoord> TilesInternal { get; private set; } = new();
 
     public ReadOnlyCollection<TCoord> Tiles => TilesInternal.AsReadOnly();
-    public int NumTiles => TilesInternal.Count;
+    public int NumTiles => Tiles.Count;
     public virtual int NumRows { get; protected set; }
     public virtual int NumColumns { get; protected set; }
 
@@ -30,19 +29,17 @@ public abstract class TileCollection<TCoord> : ITileCollection<TCoord>
         UpperLeft = viewPort.UpperLeft;
         LowerRight = viewPort.LowerRight;
 
-        TilesInternal.Clear();
-
-        UpdateInternal();
+        TilesInternal = GetRelevantTiles();
     }
 
-    protected abstract void UpdateInternal();
+    protected abstract List<TCoord> GetRelevantTiles();
 
     public MapPoint? UpperLeft { get; private set; }
     public MapPoint? LowerRight { get; private set; }
 
     public abstract bool TryGetTile( int row, int column, out TCoord? result );
 
-    bool ITileCollection.TryGetTile( int row, int column, out TileCoordinates? result )
+    bool ITileCollection.TryGetTile( int row, int column, out Coordinates? result )
     {
         result = null;
 

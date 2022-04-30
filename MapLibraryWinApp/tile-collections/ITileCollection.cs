@@ -15,13 +15,12 @@ public interface ITileCollection
     MapPoint? LowerRight { get; }
 
     void Update( MapRect viewPort );
-    bool TryGetTile( int row, int column, out TileCoordinates? result );
+    bool TryGetTile( int row, int column, out Coordinates? result );
 }
 
 public interface ITileCollection<TCoord> : ITileCollection
-    where TCoord : TileCoordinates
+    where TCoord : Coordinates
 {
     ReadOnlyCollection<TCoord> Tiles { get; }
-
     bool TryGetTile( int row, int column, out TCoord? result );
 }
