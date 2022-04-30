@@ -7,8 +7,7 @@ public class MapPoint
     private bool _ignoreChangeEvents;
 
     public MapPoint(
-        IZoom zoom,
-        IMapSourceParameters? mapSource = null
+        IZoom zoom
     )
     {
         _zoom = zoom;
@@ -17,27 +16,24 @@ public class MapPoint
             throw new ArgumentException(
                 $"Attempting to create {typeof( MapPoint )} with an undefined {nameof( MapRetrieverInfo )}" );
 
-        UpperLeftLatLong = new LatLong( zoom.MapRetrieverInfo );
-        UpperLeftLatLong.ValueChanged += UpperLeftLatLongOnValueChanged;
+        LatLong = new LatLong( zoom.MapRetrieverInfo );
+        LatLong.ValueChanged += LatLongOnValueChanged;
 
         Screen = new ScreenPoint();
         Screen.ValueChanged += ScreenOnValueChanged;
 
         Tile = new TilePoint( zoom );
         Tile.ValueChanged += TileOnValueChanged;
-
-        LowerRightLatLong = new LatLong( zoom.MapRetrieverInfo );
-        LowerRightLatLong.Set( GetLowerRightLatLong() );
     }
 
-    public LatLong UpperLeftLatLong { get; }
+    public LatLong LatLong { get; }
 
-    private void UpperLeftLatLongOnValueChanged( object? sender, EventArgs e )
+    private void LatLongOnValueChanged( object? sender, EventArgs e )
     {
         if( _ignoreChangeEvents )
             return;
 
-        var newScreen = _zoom.GetScreenCoordinates( UpperLeftLatLong );
+        var newScreen = _zoom.GetScreenCoordinates( LatLong );
         var newTile = _zoom.ScreenToTile( newScreen );
 
         lock( this )
@@ -49,15 +45,6 @@ public class MapPoint
 
             _ignoreChangeEvents = false;
         }
-
-        LowerRightLatLong.Set( GetLowerRightLatLong() );
-    }
-
-    public LatLong LowerRightLatLong { get; }
-
-    private DoublePoint GetLowerRightLatLong()
-    {
-        return DoublePoint.Empty;
     }
 
     public ScreenPoint Screen { get; }
@@ -67,7 +54,7 @@ public class MapPoint
         if( _ignoreChangeEvents )
             return;
 
-        var screenPt = new IntPoint( Screen.X, Screen.Y );
+        var screenPt = new DoublePoint( Screen.X, Screen.Y );
         var newLatLong = _zoom.ToLatLong( screenPt );
         var newTile = _zoom.ScreenToTile( screenPt );
 
@@ -75,7 +62,7 @@ public class MapPoint
         {
             _ignoreChangeEvents = true;
 
-            UpperLeftLatLong.Set( newLatLong );
+            LatLong.Set( newLatLong );
             Tile.Set( newTile );
 
             _ignoreChangeEvents = false;
@@ -97,7 +84,7 @@ public class MapPoint
         {
             _ignoreChangeEvents = true;
 
-            UpperLeftLatLong.Set( newLatLong );
+            LatLong.Set( newLatLong );
             Screen.Set( newScreenPt );
 
             _ignoreChangeEvents = false;
