@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Windows.Storage.Streams;
 using Windows.Web.Http;
 using J4JSoftware.MapLibrary;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -10,6 +11,6 @@ namespace J4JSoftware.J4JMapControl
     {
         ITileCollection? TileCollection { get; }
 
-        Task<AsyncWebResult<BitmapImage, HttpStatusCode>> GetImageSourceAsync( TTile tile );
+        Task<AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>> GetImageSourceAsync( TTile coordinates );
     }
 }

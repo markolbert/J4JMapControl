@@ -19,7 +19,7 @@ public abstract class ImageDirectImageRetriever<TMultiTile> : MapImageRetriever<
     {
     }
 
-    protected override async Task<AsyncWebResult<BitmapImage, HttpStatusCode>> ExtractImageDataAsync( HttpResponseMessage response )
+    protected override async Task<AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>> ExtractImageDataAsync( HttpResponseMessage response )
     {
         try
         {
@@ -29,17 +29,21 @@ public abstract class ImageDirectImageRetriever<TMultiTile> : MapImageRetriever<
             await RandomAccessStream.CopyAsync(responseStream, randomAccessStream);
             randomAccessStream.Seek(0);
 
-            var retVal = new BitmapImage();
+            return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>(
+                randomAccessStream,
+                response.StatusCode );
 
-            await retVal.SetSourceAsync(randomAccessStream);
+            //var retVal = new BitmapImage();
 
-            return new AsyncWebResult<BitmapImage, HttpStatusCode>( retVal, response.StatusCode );
+            //await retVal.SetSourceAsync(randomAccessStream);
+
+            //return new AsyncWebResult<BitmapImage, HttpStatusCode>( retVal, response.StatusCode );
         }
         catch (Exception ex)
         {
             Logger?.Error<string>("Could not set bitmap image, message was '{0}'", ex.Message);
 
-            return new AsyncWebResult<BitmapImage, HttpStatusCode>( null,
+            return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>( null,
                                                                     response.StatusCode,
                                                                     response.RequestMessage.RequestUri.AbsoluteUri,
                                                                     $"Could not set bitmap image, message was '{ex.Message}'" );
