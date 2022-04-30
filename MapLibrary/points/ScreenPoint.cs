@@ -2,6 +2,8 @@
 
 public class ScreenPoint
 {
+    public static ScreenPoint Empty { get; } = new ScreenPoint();
+
     public event EventHandler? ValueChanged;
 
     private readonly LimitedPoint<double> _screenX;
@@ -23,6 +25,8 @@ public class ScreenPoint
 
         OnValueChanged();
     }
+
+    public DoublePoint ToDoublePoint()=>new( _screenX.Value, _screenY.Value );
 
     protected virtual void OnValueChanged() => ValueChanged?.Invoke( this, EventArgs.Empty );
 }
