@@ -2,15 +2,13 @@
 
 public class MapPoint
 {
-    private readonly IZoom _zoom;
-
     private bool _ignoreChangeEvents;
 
     public MapPoint(
         IZoom zoom
     )
     {
-        _zoom = zoom;
+        Zoom = zoom;
 
         if( zoom.MapRetrieverInfo == null )
             throw new ArgumentException(
@@ -26,6 +24,8 @@ public class MapPoint
         Tile.ValueChanged += TileOnValueChanged;
     }
 
+    public IZoom Zoom { get; }
+
     public LatLong LatLong { get; }
 
     private void LatLongOnValueChanged( object? sender, EventArgs e )
@@ -33,8 +33,8 @@ public class MapPoint
         if( _ignoreChangeEvents )
             return;
 
-        var newScreen = _zoom.GetScreenCoordinates( LatLong );
-        var newTile = _zoom.ScreenToTile( newScreen );
+        var newScreen = Zoom.GetScreenCoordinates( LatLong );
+        var newTile = Zoom.ScreenToTile( newScreen );
 
         lock( this )
         {
@@ -55,8 +55,8 @@ public class MapPoint
             return;
 
         var screenPt = new DoublePoint( Screen.X, Screen.Y );
-        var newLatLong = _zoom.ToLatLong( screenPt );
-        var newTile = _zoom.ScreenToTile( screenPt );
+        var newLatLong = Zoom.ScreenToLatLong( screenPt );
+        var newTile = Zoom.ScreenToTile( screenPt );
 
         lock( this )
         {
@@ -77,8 +77,8 @@ public class MapPoint
             return;
 
         var tilePt = new IntPoint( Tile.X, Tile.Y );
-        var newScreenPt = _zoom.TileToScreen( tilePt );
-        var newLatLong = _zoom.ToLatLong( newScreenPt );
+        var newScreenPt = Zoom.TileToScreen( tilePt );
+        var newLatLong = Zoom.ScreenToLatLong( newScreenPt );
 
         lock( this )
         {
