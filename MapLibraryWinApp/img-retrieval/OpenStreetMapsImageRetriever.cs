@@ -11,9 +11,10 @@ public class OpenStreetMapsImageRetriever : ImageDirectImageRetriever<MultiTileC
 
     public OpenStreetMapsImageRetriever(
         IApplicationInfo appInfo,
+        MultiTileCollection tiles,
         IJ4JLogger? logger
     )
-        : base( new MultiTileCollection(), logger )
+        : base( tiles, logger )
     {
         _userAgent = appInfo.UserAgent;
 

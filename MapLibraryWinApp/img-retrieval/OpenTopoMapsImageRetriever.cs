@@ -11,9 +11,10 @@ public class OpenTopoMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoo
 
     public OpenTopoMapsImageRetriever(
         IApplicationInfo appInfo,
+        MultiTileCollection tiles,
         IJ4JLogger? logger
     )
-        : base( new MultiTileCollection(), logger )
+        : base( tiles, logger )
     {
         _userAgent = appInfo.UserAgent;
 

@@ -10,7 +10,7 @@ namespace J4JSoftware.J4JMapControl;
 
 public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordinates>
 {
-    private static readonly AutoResetEvent AutoReset = new AutoResetEvent(false);
+    private static readonly AutoResetEvent AutoReset = new(false);
 
     private readonly string _apiKey;
 
@@ -19,9 +19,10 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<MultiTileCoordin
     public BingMapsImageRetriever(
         string apiKey,
         BingMapType mapType,
+        MultiTileCollection tiles,
         IJ4JLogger? logger
     )
-        : base( new MultiTileCollection(), logger )
+        : base( tiles, logger )
     {
         _apiKey = apiKey;
         MapType = mapType;
