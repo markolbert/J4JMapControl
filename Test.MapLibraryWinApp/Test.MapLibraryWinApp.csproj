@@ -42,6 +42,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\ProgrammingUtilities\WindowsAppUtilities\WindowsAppUtilities.csproj" />
+    <ProjectReference Include="..\J4JMapControl\J4JMapControl.csproj" />
     <ProjectReference Include="..\MapLibraryWinApp\MapLibraryWinApp.csproj" />
   </ItemGroup>
 

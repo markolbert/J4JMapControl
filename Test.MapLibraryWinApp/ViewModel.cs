@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using J4JSoftware.J4JMapControl;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -21,9 +22,12 @@ public class ViewModel : ObservableObject
     private RetrieverInfo? _selectedRetriever;
     private int _xTile;
     private int _yTile;
-    private int _zoom;
+    private int _tileZoom = 1;
     private ImageSource? _tileImage;
     private string? _errorMsg;
+
+    private LatLong? _location;
+    private int _mapZoom = 1;
 
     public ViewModel(
         IEnumerable<IMapImageRetriever> retrievers,
@@ -47,6 +51,9 @@ public class ViewModel : ObservableObject
         Retrievers = temp;
 
         LoadMapTileCommand = new RelayCommand( LoadMapTileHandler );
+
+        if( LatLong.TryParse( "37.5072, -122.2605", out var initLocation ) )
+            Location = initLocation;
     }
 
     public RelayCommand LoadMapTileCommand { get; }
@@ -62,6 +69,7 @@ public class ViewModel : ObservableObject
         set
         {
             SetProperty( ref _selectedRetriever, value );
+
             GetTile();
         }
     }
@@ -88,13 +96,13 @@ public class ViewModel : ObservableObject
         }
     }
 
-    public int Zoom
+    public int TileZoom
     {
-        get => _zoom;
+        get => _tileZoom;
 
         set
         {
-            SetProperty(ref _zoom, value);
+            SetProperty(ref _tileZoom, value);
             GetTile();
         }
     }
@@ -110,7 +118,7 @@ public class ViewModel : ObservableObject
         var tile = new ScreenTileGlobalCoordinates(ScreenPoint.Empty.ToDoublePoint(),
                                             new IntPoint(XTile, YTile),
                                             LatLong.GetEmpty(info),
-                                            new Zoom(Zoom, info));
+                                            new Zoom(TileZoom, info));
 
         _selectedRetriever.Retriever.GetMapImageAsync(tile)
                           .ContinueWith((t) => _dQueue.TryEnqueue(() =>
@@ -141,4 +149,25 @@ public class ViewModel : ObservableObject
 
     public int TileWidth=>TileImage == null ? 0 : ((BitmapSource) TileImage).PixelWidth;
     public int TileHeight => TileImage == null ? 0 : ((BitmapSource)TileImage).PixelHeight;
+
+    [TypeConverter(typeof(LatLongTypeConverter))]
+    public LatLong? Location
+    {
+        get => _location;
+
+        set
+        {
+            SetProperty( ref _location, value );
+        }
+    }
+
+    public int MapZoom
+    {
+        get=> _mapZoom;
+
+        set
+        {
+            SetProperty( ref _mapZoom, value );
+        }
+    }
 }
