@@ -13,4 +13,11 @@ public record Coordinates
 
     public DoublePoint ScreenUpperLeft { get; }
     public IZoom Zoom { get; }
+
+    public virtual bool Equals( Coordinates? other ) =>
+        !ReferenceEquals( null, other )
+     && ( ReferenceEquals( this, other )
+         || ScreenUpperLeft.Equals( other.ScreenUpperLeft ) );
+
+    public override int GetHashCode() => ScreenUpperLeft.GetHashCode();
 }
