@@ -6,6 +6,7 @@ public class MapRect
         IZoom zoom
     )
     {
+        // we don't use MapRetrieverInfo, but the MapPoint ctor does
         if( zoom.MapRetrieverInfo == null )
             throw new ArgumentException(
                 $"Attempting to create {typeof( MapRect )} with an undefined {nameof( MapRetrieverInfo )}" );

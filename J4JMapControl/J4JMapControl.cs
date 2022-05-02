@@ -1,4 +1,5 @@
-﻿using Windows.Foundation;
+﻿using System.Numerics;
+using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -23,13 +24,13 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     public int ZoomLevel
     {
-        get => (int)GetValue(ZoomLevelProperty);
-        set => SetValue(ZoomLevelProperty, value);
+        get => (int) GetValue( ZoomLevelProperty );
+        set => SetValue( ZoomLevelProperty, value );
     }
 
-    private static void OnZoomLevelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnZoomLevelChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
-        if (d is not J4JMapControl mapControl)
+        if( d is not J4JMapControl mapControl )
             return;
 
         mapControl.OnZoomLevelChanged( (int) e.NewValue );
@@ -40,7 +41,8 @@ public sealed class J4JMapControl : Panel, IMapContext
     #region MapRetriever property
 
     // the IMapImageRetriever being used to display the map layer
-    public static readonly DependencyProperty MapRetrieverProperty = DependencyProperty.Register( nameof( MapRetriever ),
+    public static readonly DependencyProperty MapRetrieverProperty = DependencyProperty.Register(
+        nameof( MapRetriever ),
         typeof( IMapImageRetriever ),
         typeof( J4JMapControl ),
         new PropertyMetadata( J4JDeusEx.ServiceProvider.GetRequiredService<OpenStreetMapsImageRetriever>(),
@@ -48,7 +50,7 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     public IMapImageRetriever MapRetriever
     {
-        get => (IMapImageRetriever)GetValue( MapRetrieverProperty );
+        get => (IMapImageRetriever) GetValue( MapRetrieverProperty );
         set => SetValue( MapRetrieverProperty, value );
     }
 
@@ -81,7 +83,7 @@ public sealed class J4JMapControl : Panel, IMapContext
         set => SetValue( CenterProperty, value );
     }
 
-    private static void OnMapCenterChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnMapCenterChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl )
             return;
@@ -89,7 +91,7 @@ public sealed class J4JMapControl : Panel, IMapContext
         switch( e.NewValue )
         {
             case null:
-                mapControl.OnMapCenterChanged(null);
+                mapControl.OnMapCenterChanged( null );
                 break;
 
             case LatLong latLong:
@@ -112,67 +114,145 @@ public sealed class J4JMapControl : Panel, IMapContext
     public J4JMapControl()
     {
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
-        _logger?.SetLoggedType(GetType());
+        _logger?.SetLoggedType( GetType() );
 
         Visibility = Visibility.Collapsed;
     }
 
-    private void OnZoomLevelChanged( int zoom )
+    private async Task OnZoomLevelChanged( int zoom )
     {
         MapRetriever.Zoom!.Level = zoom;
-        UpdateMap();
+        await UpdateMap();
     }
 
-    private void OnMapCenterChanged(LatLong? center)
+    private async Task OnMapCenterChanged( LatLong? center )
     {
         if( center == null && Visibility != Visibility.Collapsed )
-            Visibility= Visibility.Collapsed;
-        else UpdateMap();
+            Visibility = Visibility.Collapsed;
+        else await UpdateMap();
     }
 
-    private void UpdateMap()
+    private async Task UpdateMap()
     {
-        if( Center == null || MapRetriever.Zoom == null)
+        if( Center == null || MapRetriever.Zoom == null )
             return;
 
-        Children.Clear();
+        var mapRect = MapRetriever.Zoom.GetScreenMapRect( Center, Width, Height );
+        var retrievalResult = await MapRetriever.GetMapImagesAsync( mapRect, GetMapImages() );
 
-        var tiles = MapRetriever.GetTileCollection();
-        tiles.Update(MapRetriever.Zoom.GetScreenMapRect(Center, Width, Height));
+        if( !retrievalResult.IsValid )
+            return;
 
-        for( var row = 0; row < tiles.NumRows; row++ )
+        var imagesChanged = false;
+
+        foreach( var newImage in retrievalResult.ReturnValue!.Cast<Image>() )
         {
-            for( var col = 0; col < tiles.NumColumns; col++ )
-            {
-                if( tiles.TryGetTile(row,col, out var coordinates))
-                    Children.Add(new TileImage(){Coordinates = coordinates, MapRetriever = MapRetriever}  );
-            }
+            Children.Add( newImage );
+            imagesChanged = true;
         }
 
-        InvalidateArrange();
+        if( imagesChanged )
+            InvalidateArrange();
     }
+
+    private List<Image> GetMapImages() =>
+        Children.Where( x => x is Image )
+                .Cast<Image>()
+                .Where( AttachedProperties.GetIsMapTile )
+                .ToList();
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        if( Center == null || MapRetriever.Zoom == null || !Children.Any() )
+        if( Center == null || MapRetriever.Zoom == null || MapRetriever.MapRetrieverInfo == null )
             return availableSize;
 
-        var tiles = MapRetriever.GetTileCollection();
-        var desiredSize = new Size( tiles.ScreenWidth, tiles.ScreenHeight );
+        var mapImages = GetMapImages();
 
-        return desiredSize.Width <= availableSize.Width && desiredSize.Height <= availableSize.Height
-            ? desiredSize
-            : availableSize;
+        return !mapImages.Any() ? availableSize : GetDesiredMapSize( availableSize, mapImages );
+    }
+
+    private Size GetDesiredMapSize( Size availableSize, List<Image> mapImages )
+    {
+        var coordinates = mapImages.Select( AttachedProperties.GetTileCoordinates ).ToList();
+
+        if( !coordinates.Any() )
+            return availableSize;
+
+        if( coordinates.Count == 1 && coordinates[ 0 ] is ScreenGlobalCoordinates )
+            return MeasureScreenGlobalCoordinates( availableSize );
+
+        if( coordinates.Any( x => x is ScreenGlobalCoordinates ) )
+        {
+            _logger?.Error( "Heterogenous mix of Coordinates types, which is unsupported" );
+            return availableSize;
+        }
+
+        var retVal = new Size( availableSize.Width, availableSize.Height );
+
+        var tiledCoordinates = coordinates.Cast<ScreenTileGlobalCoordinates>()
+                                          .ToList();
+
+        var desiredWidth = MapRetriever.MapRetrieverInfo!.DefaultBitmapWidthHeight
+          * ( tiledCoordinates.Max( x => x.TileCoordinates.X )
+              - tiledCoordinates.Min( x => x.TileCoordinates.X )
+              + 1 );
+
+        var desiredHeight = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight
+          * ( tiledCoordinates.Max( x => x.TileCoordinates.Y )
+              - tiledCoordinates.Min( y => y.TileCoordinates.Y )
+              + 1 );
+
+        if( desiredWidth < availableSize.Width )
+            retVal.Width = desiredWidth;
+
+        if( desiredHeight < availableSize.Height )
+            retVal.Height = desiredHeight;
+
+        return retVal;
+    }
+
+    private Size MeasureScreenGlobalCoordinates( Size availableSize )
+    {
+        var retVal = new Size( availableSize.Width, availableSize.Height );
+
+        if( MapRetriever.MapRetrieverInfo!.DefaultBitmapWidthHeight < retVal.Width )
+            retVal.Width = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
+
+        if( MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight < retVal.Height )
+            retVal.Height = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
+
+        return retVal;
     }
 
     protected override Size ArrangeOverride( Size finalSize )
     {
-        if( Center == null || MapRetriever.Zoom == null || !Children.Any() )
+        if( Center == null || MapRetriever.Zoom == null || MapRetriever.MapRetrieverInfo == null )
             return finalSize;
 
-        var tiles = MapRetriever.GetTileCollection();
-        var desiredSize = new Size(tiles.ScreenWidth, tiles.ScreenHeight);
+        var mapImages = GetMapImages();
+        var desiredSize = GetDesiredMapSize( new Size( double.MaxValue, double.MaxValue ), mapImages );
 
+        // shift everything leftwards by half of the excess (to keep the 
+        // map center centered)
+        var xOffset = desiredSize.Width <= finalSize.Width ? 0 : ( desiredSize.Width - finalSize.Width ) / 2;
+        var yOffset = desiredSize.Height <= finalSize.Height ? 0 : ( desiredSize.Height - finalSize.Height ) / 2;
 
+        foreach( var image in mapImages )
+        {
+            var imgTileCoord = AttachedProperties.GetTileCoordinates( image );
+            if( imgTileCoord == null )
+            {
+                _logger?.Warning<string>( "Map Image lacks {0}", nameof( AttachedProperties.TileCoordinatesProperty ) );
+                continue;
+            }
+
+            var centerPt = MapRetriever.Zoom.LatLongToScreen(Center);
+
+            image.CenterPoint = new Vector3((float)centerPt.X - (float)xOffset / 2,
+                                            (float)centerPt.Y - (float)yOffset / 2,
+                                            0);
+        }
+
+        return finalSize;
     }
 }

@@ -115,11 +115,11 @@ namespace J4JSoftware.MapLibrary
             || Coordinates == null )
                 return;
 
-            var temp = await MapRetriever.GetImageStreamAsync( Coordinates );
+            var temp = await MapRetriever.GetMapImageAsync( Coordinates );
             if( temp.ReturnValue is not InMemoryRandomAccessStream memStream )
             {
                 _logger?.Error( "{0} did not return a {1}",
-                                nameof( MapRetriever.GetImageStreamAsync ),
+                                nameof( MapRetriever.GetMapImageAsync ),
                                 typeof( InMemoryRandomAccessStream ) );
                 return;
             }
