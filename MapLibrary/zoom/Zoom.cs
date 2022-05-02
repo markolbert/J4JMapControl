@@ -109,14 +109,14 @@ public class Zoom : IZoom
         return retVal;
     }
 
-    public IntPoint LatLongToScreen( LatLong latLong )
+    public DoublePoint LatLongToScreen( LatLong latLong )
     {
         var x = ( latLong.Longitude + 180 ) / 360;
         var sinLatitude = Math.Sin( latLong.Latitude * Math.PI / 180 );
         var y = 0.5 - Math.Log( ( 1 + sinLatitude ) / ( 1 - sinLatitude ) ) / ( 4 * Math.PI );
 
-        return new IntPoint( (int) Clip( x * WidthHeight + 0.5, 0, WidthHeight - 1 ),
-                             (int) Clip( y * WidthHeight + 0.5, 0, WidthHeight - 1 ) );
+        return new DoublePoint( Clip( x * WidthHeight + 0.5, 0, WidthHeight - 1 ),
+                             Clip( y * WidthHeight + 0.5, 0, WidthHeight - 1 ) );
     }
 
     private double Clip(double n, double minValue, double maxValue) =>
