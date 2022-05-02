@@ -56,7 +56,7 @@ namespace J4JSoftware.MapLibrary
             typeof( TileImage ), 
             new PropertyMetadata(null,OnCoordinatesChangedStatic) );
 
-        private static void OnCoordinatesChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
+        private static async void OnCoordinatesChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
         {
             if( d is not TileImage tileImage )
                 return;
@@ -64,11 +64,11 @@ namespace J4JSoftware.MapLibrary
             switch (e.NewValue)
             {
                 case null:
-                    tileImage.OnCoordinatesChanged( null );
+                    await tileImage.OnCoordinatesChanged( null );
                     break;
 
                 case Coordinates coordinates:
-                    tileImage.OnCoordinatesChanged(coordinates);
+                    await tileImage.OnCoordinatesChanged(coordinates);
                     break;
 
                 default:

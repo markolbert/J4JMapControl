@@ -6,6 +6,7 @@ using J4JSoftware.MapLibrary;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Serilog.Core;
@@ -29,11 +30,11 @@ public class ViewModel : ObservableObject
         IJ4JLogger logger
     )
     {
-        _dQueue = DispatcherQueue.GetForCurrentThread();
-
         _logger = logger;
         _logger.SetLoggedType(GetType());
-            
+
+        _dQueue = DispatcherQueue.GetForCurrentThread();
+
         var temp = new List<RetrieverInfo>();
 
         foreach( var retriever in retrievers )
@@ -114,7 +115,7 @@ public class ViewModel : ObservableObject
         _selectedRetriever.Retriever.GetMapImageAsync(tile)
                           .ContinueWith((t) => _dQueue.TryEnqueue(() =>
                            {
-                               TileImage = t.Result.ReturnValue as BitmapSource;
+                               TileImage = (t.Result.ReturnValue as Image)?.Source;
                                ErrorMessage = t.Result.Message;
                            }));
     }
