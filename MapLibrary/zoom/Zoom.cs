@@ -104,7 +104,7 @@ public class Zoom : IZoom
         var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
 
         var retVal = new LatLong( MapRetrieverInfo! );
-        retVal.Set( new GeoPoint( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX ) );
+        retVal.Set( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX );
 
         return retVal;
     }
