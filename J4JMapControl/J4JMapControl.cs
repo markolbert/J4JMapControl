@@ -21,7 +21,7 @@ public sealed class J4JMapControl : Panel, IMapContext
     public static readonly DependencyProperty ZoomLevelProperty = DependencyProperty.Register( nameof( Zoom ),
         typeof( int ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( J4JDeusEx.ServiceProvider.GetRequiredService<IZoom>(), OnZoomLevelChanged ) );
+        new PropertyMetadata( null, OnZoomLevelChanged ) );
 
     public int ZoomLevel
     {
@@ -46,25 +46,24 @@ public sealed class J4JMapControl : Panel, IMapContext
         nameof( MapRetriever ),
         typeof( IMapImageRetriever ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( J4JDeusEx.ServiceProvider.GetRequiredService<OpenStreetMapsImageRetriever>(),
-                              OnMapImageRetrieverChanged ) );
+        new PropertyMetadata( null, OnMapImageRetrieverChangedStatic ) );
 
-    public IMapImageRetriever MapRetriever
+    public IMapImageRetriever? MapRetriever
     {
-        get => (IMapImageRetriever) GetValue( MapRetrieverProperty );
+        get => (IMapImageRetriever?) GetValue( MapRetrieverProperty );
         set => SetValue( MapRetrieverProperty, value );
     }
 
-    private static void OnMapImageRetrieverChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
+    private static async void OnMapImageRetrieverChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl
+        || mapControl.MapRetriever == null
         || e.NewValue is not IMapImageRetriever retriever
         || retriever.MapRetrieverInfo == null
         || retriever.Zoom == null )
             return;
 
-        var curLevel = mapControl.MapRetriever.Zoom!.Level;
-        mapControl.MapRetriever.Zoom = new Zoom( retriever.MapRetrieverInfo ) { Level = curLevel };
+        await mapControl.OnMapImageRetrieverChanged( retriever );
     }
 
     #endregion
@@ -121,9 +120,23 @@ public sealed class J4JMapControl : Panel, IMapContext
         Visibility = Visibility.Collapsed;
     }
 
+    private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
+    {
+        if (retriever.MapRetrieverInfo == null)
+            return;
+
+        var curLevel = retriever.Zoom!.Level;
+        retriever.Zoom = new Zoom(retriever.MapRetrieverInfo) { Level = curLevel };
+
+        await UpdateMap();
+    }
+
     private async Task OnZoomLevelChanged( int zoom )
     {
-        MapRetriever.Zoom!.Level = zoom;
+        if( MapRetriever == null || MapRetriever.Zoom == null )
+            return;
+
+        MapRetriever.Zoom.Level = zoom;
         await UpdateMap();
     }
 
@@ -136,7 +149,7 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private async Task UpdateMap()
     {
-        if( Center == null || MapRetriever.Zoom == null )
+        if( Center == null || MapRetriever == null || MapRetriever.Zoom == null )
             return;
 
         var mapRect = MapRetriever.Zoom.GetScreenMapRect( Center, Width, Height );
@@ -155,6 +168,8 @@ public sealed class J4JMapControl : Panel, IMapContext
 
         if( imagesChanged )
             InvalidateArrange();
+
+        Visibility = Visibility.Visible;
     }
 
     private List<Image> GetMapImages() =>

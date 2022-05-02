@@ -2,7 +2,7 @@
 
 public interface IMapContext
 {
-    IMapImageRetriever MapRetriever { get; }
+    IMapImageRetriever? MapRetriever { get; }
     double Height { get; }
     double Width { get; }
 }
