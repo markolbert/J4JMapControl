@@ -17,14 +17,14 @@ public class LatLong
         if( parts.Length != 2 )
             return false;
 
-        if( double.TryParse( parts[ 0 ], out var latitude ) )
+        if( !double.TryParse( parts[ 0 ], out var latitude ) )
             return false;
 
-        if( double.TryParse( parts[ 1 ], out var longitude ) )
+        if( !double.TryParse( parts[ 1 ], out var longitude ) )
             return false;
 
         result = new LatLong();
-        result.Set(new GeoPoint(latitude,longitude));
+        result.Set( latitude, longitude );
 
         return true;
     }
@@ -42,17 +42,19 @@ public class LatLong
 
     private LatLong()
     {
-        _latitude = new LimitedPoint<double>(new DoubleLimits(GlobalConstants.Wgs84MaxLatitude, 180));
-        _longitude = new LimitedPoint<double>(new DoubleLimits(GlobalConstants.Wgs84MaxLatitude, 180));
+        _latitude = new LimitedPoint<double>( new DoubleLimits( -GlobalConstants.Wgs84MaxLatitude,
+                                                                GlobalConstants.Wgs84MaxLatitude ) );
+
+        _longitude = new LimitedPoint<double>(new DoubleLimits(-180, 180));
     }
 
     public double Latitude => _latitude.Value;
     public double Longitude => _longitude.Value;
 
-    public void Set( GeoPoint point )
+    public void Set( double latitude, double longitude )
     {
-        _latitude.Value = point.Latitude;
-        _longitude.Value = point.Longitude;
+        _latitude.Value = latitude;
+        _longitude.Value = longitude;
 
         OnValueChanged();
     }
@@ -66,4 +68,6 @@ public class LatLong
     }
 
     protected virtual void OnValueChanged() => ValueChanged?.Invoke( this, EventArgs.Empty );
+
+    public override string ToString() => $"{Latitude}, {Longitude}";
 }
