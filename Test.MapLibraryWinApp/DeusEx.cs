@@ -72,12 +72,10 @@ public class DeusEx : J4JDeusExWinApp
         {
             builder.Register( c =>
                     {
-                        var appInfo = c.Resolve<IApplicationInfo>();
                         var config = c.Resolve<Configuration>();
                         var logger = c.Resolve<IJ4JLogger>();
-                        var tiles = c.Resolve<ScreenTileGlobalTiles>();
 
-                        return new BingMapsImageRetriever( config.BingMapsApiKey, mapType, tiles, logger );
+                        return new BingMapsImageRetriever( config.BingMapsApiKey, mapType, logger );
                     } )
                    .AsImplementedInterfaces()
                    .SingleInstance();
