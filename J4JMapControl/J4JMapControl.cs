@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
@@ -28,12 +29,12 @@ public sealed class J4JMapControl : Panel, IMapContext
         set => SetValue( ZoomLevelProperty, value );
     }
 
-    private static void OnZoomLevelChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
+    private static async void OnZoomLevelChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl )
             return;
 
-        mapControl.OnZoomLevelChanged( (int) e.NewValue );
+        await mapControl.OnZoomLevelChanged( (int) e.NewValue );
     }
 
     #endregion
@@ -77,13 +78,14 @@ public sealed class J4JMapControl : Panel, IMapContext
                                      typeof( J4JMapControl ),
                                      new PropertyMetadata( null, OnMapCenterChangedStatic ) );
 
+    [TypeConverter(typeof(LatLongTypeConverter))]
     public LatLong? Center
     {
         get => (LatLong?) GetValue( CenterProperty );
         set => SetValue( CenterProperty, value );
     }
 
-    private static void OnMapCenterChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
+    private static async void OnMapCenterChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl )
             return;
@@ -91,11 +93,11 @@ public sealed class J4JMapControl : Panel, IMapContext
         switch( e.NewValue )
         {
             case null:
-                mapControl.OnMapCenterChanged( null );
+                await mapControl.OnMapCenterChanged( null );
                 break;
 
             case LatLong latLong:
-                mapControl.OnMapCenterChanged( latLong );
+                await mapControl.OnMapCenterChanged( latLong );
                 break;
 
             default:
