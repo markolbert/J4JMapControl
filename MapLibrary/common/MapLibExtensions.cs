@@ -26,25 +26,28 @@ public static class MapLibExtensions
         return new DoublePoint(x, y);
     }
 
-    public static string GetBingMapsQuadKey( this ScreenTileGlobalCoordinates multiTile )
+    public static string GetBingMapsQuadKey( this ScreenTileGlobalCoordinates multiTile ) =>
+        GetBingMapsQuadKey( multiTile.Zoom, multiTile.TileCoordinates.X, multiTile.TileCoordinates.Y );
+
+    public static string GetBingMapsQuadKey( IZoom zoom, int xTile, int yTile )
     {
         var retVal = new StringBuilder();
 
-        for (var i = multiTile.Zoom.Level; i > 0; i--)
+        for( var i = zoom.Level; i > 0; i-- )
         {
             var digit = '0';
-            var mask = 1 << (i - 1);
+            var mask = 1 << ( i - 1 );
 
-            if ((multiTile.TileCoordinates.X & mask) != 0)
+            if( ( xTile & mask ) != 0 )
                 digit++;
 
-            if ((multiTile.TileCoordinates.Y & mask) != 0)
+            if( ( yTile & mask ) != 0 )
             {
                 digit++;
                 digit++;
             }
 
-            retVal.Append(digit);
+            retVal.Append( digit );
         }
 
         return retVal.ToString();
