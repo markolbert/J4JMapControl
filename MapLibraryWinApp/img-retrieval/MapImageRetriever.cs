@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
@@ -17,12 +19,9 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
     private IZoom? _zoom;
 
     protected MapImageRetriever(
-        ITileCollection tileCollection,
         IJ4JLogger? logger
     )
     {
-        TileCollection = tileCollection;
-
         Logger = logger;
         Logger?.SetLoggedType( GetType() );
     }
@@ -56,20 +55,57 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
         set => _zoom = value;
     }
 
-    public ITileCollection TileCollection { get; }
-
-    public async Task<AsyncWebResult<Image, HttpStatusCode>> GetImageSourceAsync(
-        TCoord coordinates
+    // Images returned by this call must each be decorated with:
+    // * an attached DependencyProperty,TileCoordinatesProperty, containing information about the tile the Image is
+    //   associated with
+    // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
+    public async Task<AsyncWebResult<List<Image>, HttpStatusCode>> GetMapImagesAsync(
+        MapRect mapRectangle,
+        IEnumerable<TCoord>? existingCoords = null
     )
     {
+        var images = new List<Image>();
+
+        existingCoords ??= Enumerable.Empty<TCoord>();
+        var existing = existingCoords.ToList();
+
+        foreach( var coordinate in GetCoordinateIterator( mapRectangle ) )
+        {
+            // don't retrieve Images we already have, if any were provided
+            if( existing.Any( x => x == coordinate ) )
+                continue;
+
+            var result = await GetMapImageAsync( coordinate );
+
+            if( result.ReturnValue != null )
+            {
+                images.Add( result.ReturnValue );
+                continue;
+            }
+
+            return GetErrorAndLog<List<Image>>(
+                $"Failed to get image for {typeof( TCoord )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
+        }
+
+        return new AsyncWebResult<List<Image>, HttpStatusCode>( images, HttpStatusCode.Ok );
+    }
+
+    protected abstract IEnumerable<TCoord> GetCoordinateIterator( MapRect mapRectangle );
+
+    // The Image returned by this call must be decorated with:
+    // * an attached DependencyProperty, TileCoordinatesProperty, containing information about the tile the Image is
+    //   associated with.
+    // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
+    public async Task<AsyncWebResult<Image, HttpStatusCode>> GetMapImageAsync( TCoord coordinates )
+    {
+        if( Zoom == null )
+            return GetErrorAndLog<Image>( "Trying to get map image when IZoom is undefined" );
+
         Logger?.Information( "Beginning image retrieval from web" );
 
         var request = GetRequest( coordinates );
         if( request == null )
-            return new AsyncWebResult<Image, HttpStatusCode>( null,
-                                                                     HttpStatusCode.BadRequest,
-                                                                     Message:
-                                                                     "Could not create HttpRequestMessage for tile" );
+            return GetErrorAndLog<Image>( "Could not create HttpRequestMessage for tile" );
 
         var uriText = request.RequestUri?.AbsoluteUri ?? "*** undefined Uri ***";
         var httpClient = new HttpClient();
@@ -85,47 +121,79 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
         }
         catch( Exception ex )
         {
-            Logger?.Error<string, string>( "Image request from {0} failed, message was '{1}'",
-                                           uriText,
-                                           ex.Message );
-
-            return new AsyncWebResult<Image, HttpStatusCode>( null,
-                                                                     response?.StatusCode ?? HttpStatusCode.BadRequest,
-                                                                     uriText,
-                                                                     $"Image request from {uriText} failed, message was '{ex.Message}'" );
+            return GetErrorAndLog<Image>( $"Image request from {uriText} failed, message was '{ex.Message}'",
+                                   request.RequestUri,
+                                   response?.StatusCode ?? HttpStatusCode.BadRequest );
         }
 
         if( response.StatusCode != HttpStatusCode.Ok )
         {
             var error = await response.Content.ReadAsStringAsync();
-            Logger?.Error<string, HttpStatusCode, string>( "Invalid response code from {0} ({1}), message was '{2}'",
-                                                           uriText,
-                                                           response.StatusCode,
-                                                           error );
 
-            return new AsyncWebResult<Image, HttpStatusCode>( null,
-                                                                     response.StatusCode,
-                                                                     uriText,
-                                                                     $"Image request from {uriText} failed with response code {response.StatusCode}, message was '{error}'" );
+            return GetErrorAndLog<Image>(
+                $"Image request from {uriText} failed with response code {response.StatusCode}, message was '{error}'",
+                request.RequestUri,
+                response.StatusCode );
         }
 
         Logger?.Information<string>( "Reading response from {0}", uriText );
 
-        return await ExtractImageDataAsync( response, coordinates );
+        return await ExtractMapImageAsync( response, coordinates );
     }
 
-    protected abstract Task<AsyncWebResult<Image, HttpStatusCode>> ExtractImageDataAsync(
-        HttpResponseMessage response,
-        TCoord coordinates
-    );
-    
-    protected abstract HttpRequestMessage? GetRequest(TCoord tile);
+    protected AsyncWebResult<TResult, HttpStatusCode> GetErrorAndLog<TResult>(
+        string msg,
+        Uri? uri = null,
+        HttpStatusCode statusCode = HttpStatusCode.BadRequest
+    )
+    where TResult : class
+    {
+        Logger?.Error( msg );
 
-    async Task<AsyncWebResult<object, int>> IMapImageRetriever.GetImageStreamAsync( object tile )
+        return new AsyncWebResult<TResult, HttpStatusCode>(null,
+                                                         statusCode,
+                                                         uri?.AbsoluteUri ?? null,
+                                                         msg);
+    }
+
+    protected abstract HttpRequestMessage? GetRequest( TCoord coordinates );
+
+    protected abstract Task<AsyncWebResult<Image, HttpStatusCode>> ExtractMapImageAsync(
+        HttpResponseMessage response,
+        TCoord coordinates );
+
+    async Task<AsyncWebResult<List<object>, int>> IMapImageRetriever.GetMapImagesAsync(
+        MapRect mapRectangle,
+        IEnumerable<object>? existingCoords
+    )
+    {
+        var existingOkay = true;
+
+        var existingCast = new List<TCoord>();
+
+        foreach( var existing in existingCoords ?? Enumerable.Empty<object>() )
+        {
+            if( existing is TCoord coord )
+                existingCast.Add( coord );
+            else existingOkay = false;
+        }
+
+        var retVal = await GetMapImagesAsync( mapRectangle, existingOkay ? existingCast : null );
+
+        if( !retVal.IsValid )
+            return new AsyncWebResult<List<object>, int>( null, (int) HttpStatusCode.BadRequest );
+
+        return new AsyncWebResult<List<object>, int>( retVal.ReturnValue!.Cast<object>().ToList(),
+                                                      (int) retVal.HttpStatusCode,
+                                                      retVal.Url,
+                                                      retVal.Message );
+    }
+
+    async Task<AsyncWebResult<object, int>> IMapImageRetriever.GetMapImageAsync( object tile )
     {
         if( tile is TCoord castTile )
         {
-            var retVal = await GetImageSourceAsync( castTile );
+            var retVal = await GetMapImageAsync( castTile );
 
             return new AsyncWebResult<object, int>( retVal.ReturnValue, (int) retVal.HttpStatusCode, retVal.Url, retVal.Message );
         }
@@ -137,6 +205,4 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
                                                 Message:
                                                 $"GetMapImage requires a {typeof( TCoord )} but was provided a {tile.GetType()}" );
     }
-
-    ITileCollection IMapImageRetriever.GetTileCollection() => TileCollection;
 }

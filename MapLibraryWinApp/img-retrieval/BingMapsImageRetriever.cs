@@ -8,7 +8,7 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public class BingMapsImageRetriever : ImageDirectImageRetriever<ScreenTileGlobalCoordinates>
+public class BingMapsImageRetriever : TileBasedImageRetriever
 {
     private static readonly AutoResetEvent AutoReset = new(false);
 
@@ -19,10 +19,9 @@ public class BingMapsImageRetriever : ImageDirectImageRetriever<ScreenTileGlobal
     public BingMapsImageRetriever(
         string apiKey,
         BingMapType mapType,
-        ScreenTileGlobalTiles tiles,
         IJ4JLogger? logger
     )
-        : base( tiles, logger )
+        : base( logger )
     {
         _apiKey = apiKey;
         MapType = mapType;

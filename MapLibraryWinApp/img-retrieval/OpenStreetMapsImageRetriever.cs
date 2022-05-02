@@ -5,16 +5,15 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public class OpenStreetMapsImageRetriever : ImageDirectImageRetriever<ScreenTileGlobalCoordinates>
+public class OpenStreetMapsImageRetriever : TileBasedImageRetriever
 {
     private readonly string _userAgent;
 
     public OpenStreetMapsImageRetriever(
         IApplicationInfo appInfo,
-        ScreenTileGlobalTiles tiles,
         IJ4JLogger? logger
     )
-        : base( tiles, logger )
+        : base( logger )
     {
         _userAgent = appInfo.UserAgent;
 
