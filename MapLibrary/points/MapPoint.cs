@@ -20,7 +20,7 @@ public class MapPoint
         Pixel = new PixelPoint();
         Pixel.ValueChanged += PixelOnValueChanged;
 
-        Tile = new TilePoint( zoom );
+        Tile = new TilePoint( new IntLimits( 0, zoom.NumTiles - 1 ) );
         Tile.ValueChanged += TileOnValueChanged;
     }
 
@@ -46,7 +46,7 @@ public class MapPoint
             return;
 
         var newScreen = Zoom.GetPixelCoordinates( LatLong );
-        var newTile = Zoom.ScreenToTile( newScreen );
+        var newTile = Zoom.PixelToTile( newScreen );
 
         lock( this )
         {
@@ -67,8 +67,8 @@ public class MapPoint
             return;
 
         var screenPt = new DoublePoint( Pixel.X, Pixel.Y );
-        var newLatLong = Zoom.ScreenToLatLong( screenPt );
-        var newTile = Zoom.ScreenToTile( screenPt );
+        var newLatLong = Zoom.PixelToLatLong( screenPt );
+        var newTile = Zoom.PixelToTile( screenPt );
 
         lock( this )
         {
@@ -89,8 +89,8 @@ public class MapPoint
             return;
 
         var tilePt = new IntPoint( Tile.X, Tile.Y );
-        var newScreenPt = Zoom.TileToScreen( tilePt );
-        var newLatLong = Zoom.ScreenToLatLong( newScreenPt );
+        var newScreenPt = Zoom.TileToPixel( tilePt );
+        var newLatLong = Zoom.PixelToLatLong( newScreenPt );
 
         lock( this )
         {
@@ -103,7 +103,7 @@ public class MapPoint
         }
     }
 
-    public MapPoint OffsetByScreen( double xOffset, double yOffset )
+    public MapPoint OffsetByPixel( double xOffset, double yOffset )
     {
         var retVal = this.Copy();
 

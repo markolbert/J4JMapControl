@@ -22,8 +22,8 @@ public class PixelLatLongTiles : TilesBase<PixelLatLong>
 
         retVal.Add( new PixelLatLong( ulScreenPt,
                                                lrScreenPt,
-                                               zoom.ScreenToLatLong(ulScreenPt),
-                                               zoom.ScreenToLatLong(lrScreenPt),
+                                               zoom.PixelToLatLong(ulScreenPt),
+                                               zoom.PixelToLatLong(lrScreenPt),
                                                UpperLeft.Zoom ) );
 
         return retVal;

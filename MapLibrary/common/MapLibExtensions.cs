@@ -55,19 +55,19 @@ public static class MapLibExtensions
 
     public static PixelTileLatLong ToMultiTileCoordinates( this IZoom zoom, IntPoint tilePt )
     {
-        var screenPt = zoom.TileToScreen( tilePt );
-        var latLongPt = zoom.ScreenToLatLong( screenPt );
+        var screenPt = zoom.TileToPixel( tilePt );
+        var latLongPt = zoom.PixelToLatLong( screenPt );
 
         return new PixelTileLatLong( screenPt, tilePt, latLongPt, zoom );
     }
 
-    public static MapRect GetScreenMapRect( this IZoom zoom, LatLong center, double width, double height )
+    public static MapRect GetPixelMapRect( this IZoom zoom, LatLong center, double width, double height )
     {
         var centerMapPt = new MapPoint( zoom );
         centerMapPt.LatLong.Set( center );
 
-        var upperLeft = centerMapPt.OffsetByScreen( -width / 2, -height / 2 );
-        var lowerRight = centerMapPt.OffsetByScreen( width / 2, height / 2 );
+        var upperLeft = centerMapPt.OffsetByPixel( -width / 2, -height / 2 );
+        var lowerRight = centerMapPt.OffsetByPixel( width / 2, height / 2 );
 
         return new MapRect( upperLeft, lowerRight );
     }

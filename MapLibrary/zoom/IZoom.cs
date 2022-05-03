@@ -11,9 +11,9 @@ public interface IZoom : IPointValueLimits<int>
     int WidthHeight { get; }
     int NumTiles { get; }
 
-    DoublePoint TileToScreen( IntPoint tile );
-    IntPoint ScreenToTile( DoublePoint screen );
+    DoublePoint TileToPixel( IntPoint tile );
+    IntPoint PixelToTile( DoublePoint screen );
 
-    LatLong ScreenToLatLong( DoublePoint screen );
-    DoublePoint LatLongToScreen( LatLong latLong );
+    LatLong PixelToLatLong( DoublePoint screen );
+    DoublePoint LatLongToPixel( LatLong latLong );
 }
