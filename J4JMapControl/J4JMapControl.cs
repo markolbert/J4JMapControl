@@ -21,7 +21,7 @@ public sealed class J4JMapControl : Panel, IMapContext
     public static readonly DependencyProperty ZoomLevelProperty = DependencyProperty.Register( nameof( Zoom ),
         typeof( int ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( null, OnZoomLevelChanged ) );
+        new PropertyMetadata( 1, OnZoomLevelChanged ) );
 
     public int ZoomLevel
     {
@@ -126,7 +126,8 @@ public sealed class J4JMapControl : Panel, IMapContext
             return;
 
         var curLevel = retriever.Zoom!.Level;
-        retriever.Zoom = new Zoom(retriever.MapRetrieverInfo) { Level = curLevel };
+        retriever.Zoom = new Zoom( retriever.MapRetrieverInfo );
+        await OnZoomLevelChanged( curLevel );
 
         await UpdateMap();
     }
@@ -152,8 +153,10 @@ public sealed class J4JMapControl : Panel, IMapContext
         if( Center == null || MapRetriever == null || MapRetriever.Zoom == null )
             return;
 
-        var mapRect = MapRetriever.Zoom.GetScreenMapRect( Center, Width, Height );
-        var retrievalResult = await MapRetriever.GetMapImagesAsync( mapRect, GetMapImages() );
+        Visibility = Visibility.Visible;
+
+        var mapRect = MapRetriever.Zoom.GetPixelMapRect( Center, Width, Height );
+        var retrievalResult = await MapRetriever.GetMapImagesAsync( mapRect, GetMapImages().ExtractCoordinates() );
 
         if( !retrievalResult.IsValid )
             return;
@@ -168,8 +171,6 @@ public sealed class J4JMapControl : Panel, IMapContext
 
         if( imagesChanged )
             InvalidateArrange();
-
-        Visibility = Visibility.Visible;
     }
 
     private List<Image> GetMapImages() =>
@@ -263,7 +264,7 @@ public sealed class J4JMapControl : Panel, IMapContext
                 continue;
             }
 
-            var centerPt = MapRetriever.Zoom.LatLongToScreen(Center);
+            var centerPt = MapRetriever.Zoom.LatLongToPixel(Center);
 
             image.CenterPoint = new Vector3((float)centerPt.X - (float)xOffset / 2,
                                             (float)centerPt.Y - (float)yOffset / 2,
