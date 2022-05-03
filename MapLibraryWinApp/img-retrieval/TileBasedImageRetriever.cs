@@ -11,7 +11,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class TileBasedImageRetriever : MapImageRetriever<ScreenTileGlobalCoordinates>
+public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLong>
 {
     protected TileBasedImageRetriever(
         IJ4JLogger? logger
@@ -20,7 +20,7 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<ScreenTileGlob
     {
     }
 
-    protected override IEnumerable<ScreenTileGlobalCoordinates> GetCoordinateIterator( MapRect mapRectangle )
+    protected override IEnumerable<PixelTileLatLong> GetCoordinateIterator( MapRect mapRectangle )
     {
         if( Zoom == null )
         {
@@ -36,14 +36,14 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<ScreenTileGlob
                 var screenPt = Zoom.TileToScreen( tilePt );
                 var latLongPt = Zoom.ScreenToLatLong( screenPt );
 
-                yield return new ScreenTileGlobalCoordinates( screenPt, tilePt, latLongPt, Zoom );
+                yield return new PixelTileLatLong( screenPt, tilePt, latLongPt, Zoom );
             }
         }
     }
 
     protected override async Task<AsyncWebResult<Image, HttpStatusCode>> ExtractMapImageAsync(
         HttpResponseMessage response,
-        ScreenTileGlobalCoordinates coordinates
+        PixelTileLatLong coordinates
     )
     {
         try

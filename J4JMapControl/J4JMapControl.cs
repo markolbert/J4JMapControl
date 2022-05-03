@@ -180,7 +180,7 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        if( Center == null || MapRetriever.Zoom == null || MapRetriever.MapRetrieverInfo == null )
+        if( Center == null || MapRetriever?.Zoom == null || MapRetriever.MapRetrieverInfo == null )
             return availableSize;
 
         var mapImages = GetMapImages();
@@ -195,10 +195,10 @@ public sealed class J4JMapControl : Panel, IMapContext
         if( !coordinates.Any() )
             return availableSize;
 
-        if( coordinates.Count == 1 && coordinates[ 0 ] is ScreenGlobalCoordinates )
+        if( coordinates.Count == 1 && coordinates[ 0 ] is PixelLatLong )
             return MeasureScreenGlobalCoordinates( availableSize );
 
-        if( coordinates.Any( x => x is ScreenGlobalCoordinates ) )
+        if( coordinates.Any( x => x is PixelLatLong ) )
         {
             _logger?.Error( "Heterogenous mix of Coordinates types, which is unsupported" );
             return availableSize;
@@ -206,17 +206,17 @@ public sealed class J4JMapControl : Panel, IMapContext
 
         var retVal = new Size( availableSize.Width, availableSize.Height );
 
-        var tiledCoordinates = coordinates.Cast<ScreenTileGlobalCoordinates>()
+        var tiledCoordinates = coordinates.Cast<PixelTileLatLong>()
                                           .ToList();
 
         var desiredWidth = MapRetriever.MapRetrieverInfo!.DefaultBitmapWidthHeight
-          * ( tiledCoordinates.Max( x => x.TileCoordinates.X )
-              - tiledCoordinates.Min( x => x.TileCoordinates.X )
+          * ( tiledCoordinates.Max( x => x.Tile.X )
+              - tiledCoordinates.Min( x => x.Tile.X )
               + 1 );
 
         var desiredHeight = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight
-          * ( tiledCoordinates.Max( x => x.TileCoordinates.Y )
-              - tiledCoordinates.Min( y => y.TileCoordinates.Y )
+          * ( tiledCoordinates.Max( x => x.Tile.Y )
+              - tiledCoordinates.Min( y => y.Tile.Y )
               + 1 );
 
         if( desiredWidth < availableSize.Width )

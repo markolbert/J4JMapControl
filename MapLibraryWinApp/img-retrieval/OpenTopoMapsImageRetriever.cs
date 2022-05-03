@@ -28,7 +28,7 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
                                                 256 ) );
     }
 
-    protected override HttpRequestMessage? GetRequest( ScreenTileGlobalCoordinates tile )
+    protected override HttpRequestMessage? GetRequest( PixelTileLatLong tile )
     {
         if (string.IsNullOrEmpty(_userAgent))
         {
@@ -43,8 +43,8 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
         }
 
         var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", tile.Zoom.Level.ToString() )
-                                      .Replace( "XTile", tile.TileCoordinates.X.ToString() )
-                                      .Replace( "YTile", tile.TileCoordinates.Y.ToString() );
+                                      .Replace( "XTile", tile.Tile.X.ToString() )
+                                      .Replace( "YTile", tile.Tile.Y.ToString() );
 
         var retVal = new HttpRequestMessage(HttpMethod.Get, new Uri(uriText));
         retVal.Headers.Add("User-Agent", _userAgent);

@@ -17,8 +17,8 @@ public class MapPoint
         LatLong = new LatLong( zoom.MapRetrieverInfo );
         LatLong.ValueChanged += LatLongOnValueChanged;
 
-        Screen = new ScreenPoint();
-        Screen.ValueChanged += ScreenOnValueChanged;
+        Pixel = new PixelPoint();
+        Pixel.ValueChanged += PixelOnValueChanged;
 
         Tile = new TilePoint( zoom );
         Tile.ValueChanged += TileOnValueChanged;
@@ -30,7 +30,7 @@ public class MapPoint
     {
         Zoom = toCopy.Zoom;
         LatLong = toCopy.LatLong;
-        Screen = toCopy.Screen;
+        Pixel = toCopy.Pixel;
         Tile = toCopy.Tile;
     }
 
@@ -45,28 +45,28 @@ public class MapPoint
         if( _ignoreChangeEvents )
             return;
 
-        var newScreen = Zoom.GetScreenCoordinates( LatLong );
+        var newScreen = Zoom.GetPixelCoordinates( LatLong );
         var newTile = Zoom.ScreenToTile( newScreen );
 
         lock( this )
         {
             _ignoreChangeEvents = true;
 
-            Screen.Set( newScreen );
+            Pixel.Set( newScreen );
             Tile.Set( newTile );
 
             _ignoreChangeEvents = false;
         }
     }
 
-    public ScreenPoint Screen { get; }
+    public PixelPoint Pixel { get; }
 
-    private void ScreenOnValueChanged( object? sender, EventArgs e )
+    private void PixelOnValueChanged( object? sender, EventArgs e )
     {
         if( _ignoreChangeEvents )
             return;
 
-        var screenPt = new DoublePoint( Screen.X, Screen.Y );
+        var screenPt = new DoublePoint( Pixel.X, Pixel.Y );
         var newLatLong = Zoom.ScreenToLatLong( screenPt );
         var newTile = Zoom.ScreenToTile( screenPt );
 
@@ -97,7 +97,7 @@ public class MapPoint
             _ignoreChangeEvents = true;
 
             LatLong.Set( newLatLong );
-            Screen.Set( newScreenPt );
+            Pixel.Set( newScreenPt );
 
             _ignoreChangeEvents = false;
         }
@@ -107,8 +107,8 @@ public class MapPoint
     {
         var retVal = this.Copy();
 
-        var newScreenPt = new DoublePoint(retVal.Screen.X + xOffset, retVal.Screen.Y + yOffset);
-        retVal.Screen.Set( newScreenPt );
+        var newScreenPt = new DoublePoint(retVal.Pixel.X + xOffset, retVal.Pixel.Y + yOffset);
+        retVal.Pixel.Set( newScreenPt );
 
         return retVal;
     }

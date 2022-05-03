@@ -64,7 +64,7 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
         return true;
     }
 
-    protected override HttpRequestMessage? GetRequest( ScreenTileGlobalCoordinates tile )
+    protected override HttpRequestMessage? GetRequest( PixelTileLatLong tile )
     {
         if( MapRetrieverInfo == null )
             return null;

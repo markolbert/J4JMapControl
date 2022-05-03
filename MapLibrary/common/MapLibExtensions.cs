@@ -6,18 +6,18 @@ namespace J4JSoftware.MapLibrary;
 
 public static class MapLibExtensions
 {
-    public static double GetGroundResolution( this IZoom zoom, LatLong globeCoord ) =>
-        Math.Cos( globeCoord.Latitude * Math.PI / 180 )
+    public static double GetGroundResolution( this IZoom zoom, LatLong latLong ) =>
+        Math.Cos( latLong.Latitude * Math.PI / 180 )
       * 2
       * Math.PI
       * GlobalConstants.EarthRadius
       / zoom.WidthHeight;
 
-    public static DoublePoint GetScreenCoordinates(this IZoom zoom, LatLong globeCoord)
+    public static DoublePoint GetPixelCoordinates(this IZoom zoom, LatLong latLong)
     {
-        var sinLatitude = Math.Sin(globeCoord.Latitude * Math.PI / 180);
+        var sinLatitude = Math.Sin(latLong.Latitude * Math.PI / 180);
 
-        var x = ((globeCoord.Longitude + 180) / 360) * 256 * Math.Pow(2, zoom.Level);
+        var x = ((latLong.Longitude + 180) / 360) * 256 * Math.Pow(2, zoom.Level);
 
         var y = (0.5 - Math.Log((1 + sinLatitude) / (1 - sinLatitude)) / (4 * Math.PI))
           * 256
@@ -26,8 +26,8 @@ public static class MapLibExtensions
         return new DoublePoint(x, y);
     }
 
-    public static string GetBingMapsQuadKey( this ScreenTileGlobalCoordinates multiTile ) =>
-        GetBingMapsQuadKey( multiTile.Zoom, multiTile.TileCoordinates.X, multiTile.TileCoordinates.Y );
+    public static string GetBingMapsQuadKey( this PixelTileLatLong tile ) =>
+        GetBingMapsQuadKey( tile.Zoom, tile.Tile.X, tile.Tile.Y );
 
     public static string GetBingMapsQuadKey( IZoom zoom, int xTile, int yTile )
     {
@@ -53,12 +53,12 @@ public static class MapLibExtensions
         return retVal.ToString();
     }
 
-    public static ScreenTileGlobalCoordinates ToMultiTileCoordinates( this IZoom zoom, IntPoint tilePt )
+    public static PixelTileLatLong ToMultiTileCoordinates( this IZoom zoom, IntPoint tilePt )
     {
         var screenPt = zoom.TileToScreen( tilePt );
         var latLongPt = zoom.ScreenToLatLong( screenPt );
 
-        return new ScreenTileGlobalCoordinates( screenPt, tilePt, latLongPt, zoom );
+        return new PixelTileLatLong( screenPt, tilePt, latLongPt, zoom );
     }
 
     public static MapRect GetScreenMapRect( this IZoom zoom, LatLong center, double width, double height )

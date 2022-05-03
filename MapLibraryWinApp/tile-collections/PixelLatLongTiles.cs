@@ -5,22 +5,22 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public class ScreenGlobalTiles : TilesBase<ScreenGlobalCoordinates>
+public class PixelLatLongTiles : TilesBase<PixelLatLong>
 {
-    public ScreenGlobalTiles(IJ4JLogger? logger)
+    public PixelLatLongTiles(IJ4JLogger? logger)
         : base(logger)
     {
     }
 
-    protected override List<ScreenGlobalCoordinates> GetRelevantTiles()
+    protected override List<PixelLatLong> GetRelevantTiles()
     {
-        var retVal = new List<ScreenGlobalCoordinates>();
+        var retVal = new List<PixelLatLong>();
 
-        var ulScreenPt = UpperLeft!.Screen.ToDoublePoint();
-        var lrScreenPt = LowerRight!.Screen.ToDoublePoint();
+        var ulScreenPt = UpperLeft!.Pixel.ToDoublePoint();
+        var lrScreenPt = LowerRight!.Pixel.ToDoublePoint();
         var zoom = UpperLeft.Zoom;
 
-        retVal.Add( new ScreenGlobalCoordinates( ulScreenPt,
+        retVal.Add( new PixelLatLong( ulScreenPt,
                                                lrScreenPt,
                                                zoom.ScreenToLatLong(ulScreenPt),
                                                zoom.ScreenToLatLong(lrScreenPt),
@@ -29,7 +29,7 @@ public class ScreenGlobalTiles : TilesBase<ScreenGlobalCoordinates>
         return retVal;
     }
 
-    public override bool TryGetTile( int row, int column, out ScreenGlobalCoordinates? result )
+    public override bool TryGetTile( int row, int column, out PixelLatLong? result )
     {
         // only ever one tile...
         result = Tiles.FirstOrDefault();

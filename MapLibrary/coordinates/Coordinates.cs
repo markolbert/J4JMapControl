@@ -7,17 +7,17 @@ public record Coordinates
         IZoom zoom
     )
     {
-        ScreenUpperLeft = upperLeft;
+        PixelUpperLeft = upperLeft;
         Zoom = zoom;
     }
 
-    public DoublePoint ScreenUpperLeft { get; }
+    public DoublePoint PixelUpperLeft { get; }
     public IZoom Zoom { get; }
 
     public virtual bool Equals( Coordinates? other ) =>
         !ReferenceEquals( null, other )
      && ( ReferenceEquals( this, other )
-         || ScreenUpperLeft.Equals( other.ScreenUpperLeft ) );
+         || PixelUpperLeft.Equals( other.PixelUpperLeft ) );
 
-    public override int GetHashCode() => ScreenUpperLeft.GetHashCode();
+    public override int GetHashCode() => PixelUpperLeft.GetHashCode();
 }

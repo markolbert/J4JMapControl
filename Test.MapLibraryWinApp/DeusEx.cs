@@ -53,10 +53,10 @@ public class DeusEx : J4JDeusExWinApp
                .AsSelf()
                .SingleInstance();
 
-        builder.RegisterType<ScreenTileGlobalTiles>()
+        builder.RegisterType<PixelTileLatLongTiles>()
                .AsSelf();
 
-        builder.RegisterType<ScreenGlobalTiles>()
+        builder.RegisterType<PixelLatLongTiles>()
                .AsSelf();
 
         builder.RegisterType<OpenStreetMapsImageRetriever>()
