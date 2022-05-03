@@ -77,14 +77,11 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
 
             var result = await GetMapImageAsync( coordinate );
 
-            if( result.ReturnValue != null )
-            {
-                images.Add( result.ReturnValue );
-                continue;
-            }
+            if( result.ReturnValue == null )
+                return GetErrorAndLog<List<Image>>(
+                    $"Failed to get image for {typeof( TCoord )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
 
-            return GetErrorAndLog<List<Image>>(
-                $"Failed to get image for {typeof( TCoord )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
+            images.Add( result.ReturnValue );
         }
 
         return new AsyncWebResult<List<Image>, HttpStatusCode>( images, HttpStatusCode.Ok );
@@ -164,14 +161,14 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
 
     async Task<AsyncWebResult<List<object>, int>> IMapImageRetriever.GetMapImagesAsync(
         MapRect mapRectangle,
-        IEnumerable<object>? existingCoords
+        IEnumerable<object>? existingImages
     )
     {
         var existingOkay = true;
 
         var existingCast = new List<TCoord>();
 
-        foreach( var existing in existingCoords ?? Enumerable.Empty<object>() )
+        foreach( var existing in existingImages ?? Enumerable.Empty<object>() )
         {
             if( existing is TCoord coord )
                 existingCast.Add( coord );
