@@ -26,5 +26,7 @@ public class TilePoint
         OnValueChanged();
     }
 
+    public IntPoint ToIntPoint() => new IntPoint( _tileX.Value, _tileY.Value );
+
     protected virtual void OnValueChanged() => ValueChanged?.Invoke( this, EventArgs.Empty );
 }
