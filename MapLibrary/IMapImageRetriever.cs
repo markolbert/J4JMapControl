@@ -7,7 +7,7 @@
 
         Task<AsyncWebResult<List<object>, int>> GetMapImagesAsync(
             MapRect mapRectangle,
-            IEnumerable<object>? existingCoords
+            IEnumerable<object>? existingImages
         );
 
         Task<AsyncWebResult<object, int>> GetMapImageAsync(object tile);

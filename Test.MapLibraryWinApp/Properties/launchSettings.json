@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Test.MapLibraryWinApp (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
     },
     "Test.MapLibraryWinApp (Unpackaged)": {
       "commandName": "Project"
