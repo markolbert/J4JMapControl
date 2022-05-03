@@ -23,7 +23,7 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
                                                 new Uri( "http://opentopomap.org/" ),
                                                 GlobalConstants.Wgs84MaxLatitude,
                                                 180,
-                                                1,
+                                                0,
                                                 20,
                                                 256 ) );
     }

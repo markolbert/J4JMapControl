@@ -59,8 +59,8 @@
 
             <TextBlock Grid.Row="3" Grid.Column="0">Tile Zoom</TextBlock>
             <NumberBox Grid.Row="3" Grid.Column="1"
-                       Minimum="1"
-                       Maximum="23"
+                       Minimum="{x:Bind ViewModel.SelectedRetriever.Retriever.MapRetrieverInfo.MinimumZoom, FallbackValue=1}"
+                       Maximum="{x:Bind ViewModel.SelectedRetriever.Retriever.MapRetrieverInfo.MaximumZoom, FallbackValue=20}"
                        Value="{x:Bind ViewModel.TileZoom, Mode=TwoWay}"/>
 
         </Grid>
@@ -99,7 +99,7 @@
                    TextWrapping="WrapWholeWords"
                    Text="{x:Bind ViewModel.ErrorMessage}"/>
 
-        <Grid Grid.Row="2" Grid.Column="0"
+        <!--<Grid Grid.Row="2" Grid.Column="0"
               VerticalAlignment="Top">
 
             <Grid.ColumnDefinitions>
@@ -122,12 +122,12 @@
                        Maximum="23"
                        Value="{x:Bind ViewModel.MapZoom, Mode=TwoWay}"/>
 
-        </Grid>
+        </Grid>-->
 
-        <map:J4JMapControl Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+        <!--<map:J4JMapControl Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
                            MapRetriever="{x:Bind ViewModel.SelectedRetriever.Retriever}"
                            Center="{x:Bind ViewModel.Location }"
-                           ZoomLevel="{x:Bind ViewModel.MapZoom}" />
+                           ZoomLevel="{x:Bind ViewModel.MapZoom}" />-->
 
     </Grid>
 

@@ -23,7 +23,7 @@ public class OpenStreetMapsImageRetriever : TileBasedImageRetriever
                                                 new Uri( "http://www.openstreetmap.org/copyright" ),
                                                 GlobalConstants.Wgs84MaxLatitude,
                                                 180,
-                                                1,
+                                                0,
                                                 20,
                                                 256 ) );
     }

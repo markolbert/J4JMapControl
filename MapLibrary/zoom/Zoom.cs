@@ -37,7 +37,7 @@ public class Zoom : IZoom
 
     private void Initialize( IMapContext mapContext )
     {
-        MapRetrieverInfo = mapContext.MapRetriever.MapRetrieverInfo;
+        MapRetrieverInfo = mapContext.MapRetriever?.MapRetrieverInfo;
 
         if( MapRetrieverInfo != null )
             Initialize();
@@ -61,8 +61,8 @@ public class Zoom : IZoom
 
         RetrievalBitmapWidthHeight = MapRetrieverInfo.DefaultBitmapWidthHeight;
 
-        WidthHeight = RetrievalBitmapWidthHeight * 2 ^ Level;
-        NumTiles = 2 ^ Level;
+        WidthHeight = RetrievalBitmapWidthHeight * 2.Pow( Level - MapRetrieverInfo.MinimumZoom );
+        NumTiles = 2.Pow( Level - MapRetrieverInfo.MinimumZoom );
 
         Changed?.Invoke( this, Level );
     }
@@ -98,7 +98,7 @@ public class Zoom : IZoom
     public int RetrievalBitmapWidthHeight { get; private set; }
     public int NumTiles { get; private set; }
 
-    public LatLong ScreenToLatLong( DoublePoint screenPoint )
+    public LatLong PixelToLatLong( DoublePoint screenPoint )
     {
         var adjX = Clip( screenPoint.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
         var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
@@ -109,7 +109,7 @@ public class Zoom : IZoom
         return retVal;
     }
 
-    public DoublePoint LatLongToScreen( LatLong latLong )
+    public DoublePoint LatLongToPixel( LatLong latLong )
     {
         var x = ( latLong.Longitude + 180 ) / 360;
         var sinLatitude = Math.Sin( latLong.Latitude * Math.PI / 180 );
@@ -122,9 +122,9 @@ public class Zoom : IZoom
     private double Clip(double n, double minValue, double maxValue) =>
         Math.Min(Math.Max(n, minValue), maxValue);
 
-    public IntPoint ScreenToTile( DoublePoint screenPoint ) =>
+    public IntPoint PixelToTile( DoublePoint screenPoint ) =>
         new( screenPoint.X / RetrievalBitmapWidthHeight, screenPoint.Y / RetrievalBitmapWidthHeight );
 
-    public DoublePoint TileToScreen( IntPoint tilePoint ) =>
+    public DoublePoint TileToPixel( IntPoint tilePoint ) =>
         new( tilePoint.X * RetrievalBitmapWidthHeight, tilePoint.Y * RetrievalBitmapWidthHeight );
 }
