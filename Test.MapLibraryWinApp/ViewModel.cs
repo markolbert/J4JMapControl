@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using J4JSoftware.J4JMapControl;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -25,6 +26,7 @@ public class ViewModel : ObservableObject
     private int _tileZoom = 1;
     private ImageSource? _tileImage;
     private string? _errorMsg;
+    private bool _suppressUpdate;
 
     private LatLong? _location;
     private int _mapZoom = 1;
@@ -68,7 +70,12 @@ public class ViewModel : ObservableObject
 
         set
         {
-            SetProperty( ref _selectedRetriever, value );
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
+            SetProperty(ref _selectedRetriever, value);
+            _suppressUpdate = false;
 
             GetTile();
         }
@@ -80,7 +87,13 @@ public class ViewModel : ObservableObject
 
         set
         {
-            SetProperty( ref _xTile, value );
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
+            SetProperty(ref _xTile, value);
+            _suppressUpdate = false;
+
             GetTile();
         }
     }
@@ -91,7 +104,13 @@ public class ViewModel : ObservableObject
 
         set
         {
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
             SetProperty(ref _yTile, value);
+            _suppressUpdate = false;
+
             GetTile();
         }
     }
@@ -102,13 +121,20 @@ public class ViewModel : ObservableObject
 
         set
         {
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
             SetProperty(ref _tileZoom, value);
+            _suppressUpdate = false;
+
             GetTile();
         }
     }
 
     private void GetTile()
     {
+        //return;
         TileImage = null;
         ErrorMessage = null;
 
@@ -116,9 +142,9 @@ public class ViewModel : ObservableObject
             return;
 
         var tile = new PixelTileLatLong(PixelPoint.Empty.ToDoublePoint(),
-                                            new IntPoint(XTile, YTile),
+                                            new IntPoint(_xTile, _yTile),
                                             LatLong.GetEmpty(info),
-                                            new Zoom(TileZoom, info));
+                                            new Zoom(_tileZoom, info));
 
         _selectedRetriever.Retriever.GetMapImageAsync(tile)
                           .ContinueWith((t) => _dQueue.TryEnqueue(() =>
@@ -157,7 +183,12 @@ public class ViewModel : ObservableObject
 
         set
         {
-            SetProperty( ref _location, value );
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
+            SetProperty(ref _location, value);
+            _suppressUpdate = false;
         }
     }
 
@@ -167,7 +198,12 @@ public class ViewModel : ObservableObject
 
         set
         {
-            SetProperty( ref _mapZoom, value );
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
+            SetProperty(ref _mapZoom, value);
+            _suppressUpdate = false;
         }
     }
 }
