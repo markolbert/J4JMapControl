@@ -99,7 +99,7 @@
                    TextWrapping="WrapWholeWords"
                    Text="{x:Bind ViewModel.ErrorMessage}"/>
 
-        <!--<Grid Grid.Row="2" Grid.Column="0"
+        <Grid Grid.Row="2" Grid.Column="0"
               VerticalAlignment="Top">
 
             <Grid.ColumnDefinitions>
@@ -108,6 +108,7 @@
             </Grid.ColumnDefinitions>
 
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -122,12 +123,19 @@
                        Maximum="23"
                        Value="{x:Bind ViewModel.MapZoom, Mode=TwoWay}"/>
 
-        </Grid>-->
+            <Button Grid.Row="2" Grid.Column="1"
+                    Click="ButtonBase_OnClick">
+                Update Map
+            </Button>
 
-        <!--<map:J4JMapControl Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+
+        </Grid>
+
+        <map:J4JMapControl x:Name="TheMap" 
+                           Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
                            MapRetriever="{x:Bind ViewModel.SelectedRetriever.Retriever}"
                            Center="{x:Bind ViewModel.Location }"
-                           ZoomLevel="{x:Bind ViewModel.MapZoom}" />-->
+                           ZoomLevel="{x:Bind ViewModel.MapZoom}" />
 
     </Grid>
 

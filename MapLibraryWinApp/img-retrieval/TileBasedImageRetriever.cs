@@ -65,11 +65,11 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLo
         {
             using var responseStream = await response.Content.ReadAsInputStreamAsync();
 
-            var randomAccessStream = new InMemoryRandomAccessStream();
-            await RandomAccessStream.CopyAsync(responseStream, randomAccessStream);
+            var memStream = new InMemoryRandomAccessStream();
+            await RandomAccessStream.CopyAsync(responseStream, memStream);
 
-            var tempStream = randomAccessStream.GetInputStreamAt( 0 ).AsStreamForRead();
-            var buffer = new byte[randomAccessStream.Size];
+            var tempStream = memStream.GetInputStreamAt( 0 ).AsStreamForRead();
+            var buffer = new byte[memStream.Size];
             var bytesRead = await tempStream.ReadAsync( buffer );
             await File.WriteAllBytesAsync( "c://users/mark/desktop/tile.png", buffer );
 
@@ -77,9 +77,16 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLo
             //    randomAccessStream,
             //    response.StatusCode );
 
-            randomAccessStream.Seek(0);
-            var retVal = new Image { Source = new BitmapImage() };
-            await ( (BitmapImage) retVal.Source ).SetSourceAsync( randomAccessStream );
+            memStream.Seek(0);
+            var retVal = new Image();
+
+            //var outStream = new InMemoryRandomAccessStream();
+            //await outStream.WriteAsync( buffer.AsBuffer() );
+            //outStream.Seek( 0 );
+
+            var source = new BitmapImage();
+            await source.SetSourceAsync( memStream );
+            retVal.Source = source;
 
             AttachedProperties.SetTileCoordinates( retVal, coordinates );
 
@@ -91,5 +98,10 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLo
                                           response.RequestMessage.RequestUri,
                                           response.StatusCode );
         }
+    }
+
+    private void Completed( IAsyncAction asyncinfo, AsyncStatus asyncstatus )
+    {
+        throw new NotImplementedException();
     }
 }

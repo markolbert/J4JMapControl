@@ -52,15 +52,9 @@ public class ViewModel : ObservableObject
 
         Retrievers = temp;
 
-        LoadMapTileCommand = new RelayCommand( LoadMapTileHandler );
-
         if( LatLong.TryParse( "37.5072, -122.2605", out var initLocation ) )
             Location = initLocation;
     }
-
-    public RelayCommand LoadMapTileCommand { get; }
-
-    private void LoadMapTileHandler() => GetTile();
 
     public List<RetrieverInfo> Retrievers { get; }
 
@@ -134,7 +128,7 @@ public class ViewModel : ObservableObject
 
     private void GetTile()
     {
-        //return;
+        return;
         TileImage = null;
         ErrorMessage = null;
 

@@ -129,7 +129,7 @@ public sealed class J4JMapControl : Panel, IMapContext
         retriever.Zoom = new Zoom( retriever.MapRetrieverInfo );
         await OnZoomLevelChanged( curLevel );
 
-        await UpdateMap();
+        //await UpdateMap();
     }
 
     private async Task OnZoomLevelChanged( int zoom )
@@ -138,17 +138,17 @@ public sealed class J4JMapControl : Panel, IMapContext
             return;
 
         MapRetriever.Zoom.Level = zoom;
-        await UpdateMap();
+        //await UpdateMap();
     }
 
     private async Task OnMapCenterChanged( LatLong? center )
     {
         if( center == null && Visibility != Visibility.Collapsed )
             Visibility = Visibility.Collapsed;
-        else await UpdateMap();
+        //else await UpdateMap();
     }
 
-    private async Task UpdateMap()
+    public async Task UpdateMap()
     {
         if( Center == null || MapRetriever == null || MapRetriever.Zoom == null )
             return;
