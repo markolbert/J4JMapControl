@@ -1,12 +1,15 @@
 ﻿using System.ComponentModel;
 using System.Numerics;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
+using ABI.Windows.Perception.Spatial;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -112,24 +115,34 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private readonly IJ4JLogger? _logger;
 
+    private Size _desiredSize = Size.Empty;
+    private IZoom? _zoom;
+    private int _tileWidthHeight;
+
     public J4JMapControl()
     {
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType( GetType() );
-
-        Visibility = Visibility.Collapsed;
     }
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
     {
-        if (retriever.MapRetrieverInfo == null)
+        if( retriever.MapRetrieverInfo == null )
+        {
+            _tileWidthHeight = 0;
+            _zoom = null;
+
             return;
+        }
 
         var curLevel = retriever.Zoom!.Level;
         retriever.Zoom = new Zoom( retriever.MapRetrieverInfo );
-        await OnZoomLevelChanged( curLevel );
+        retriever.Zoom.Level = curLevel;
 
-        //await UpdateMap();
+        _tileWidthHeight = retriever.MapRetrieverInfo?.DefaultBitmapWidthHeight ?? 0;
+        _zoom = retriever.Zoom;
+        
+        await UpdateMap();
     }
 
     private async Task OnZoomLevelChanged( int zoom )
@@ -138,139 +151,165 @@ public sealed class J4JMapControl : Panel, IMapContext
             return;
 
         MapRetriever.Zoom.Level = zoom;
-        //await UpdateMap();
+        await UpdateMap();
     }
 
     private async Task OnMapCenterChanged( LatLong? center )
     {
         if( center == null && Visibility != Visibility.Collapsed )
             Visibility = Visibility.Collapsed;
-        //else await UpdateMap();
+        else await UpdateMap();
     }
 
     public async Task UpdateMap()
     {
-        if( Center == null || MapRetriever == null || MapRetriever.Zoom == null )
+        if( Center == null || MapRetriever == null || _zoom == null )
             return;
 
-        Visibility = Visibility.Visible;
+        var mapRect = _zoom.GetPixelMapRect( Center, Width, Height );
 
-        var mapRect = MapRetriever.Zoom.GetPixelMapRect( Center, Width, Height );
-        var retrievalResult = await MapRetriever.GetMapImagesAsync( mapRect, GetMapImages().ExtractCoordinates() );
+        var retrievalResult = await MapRetriever
+           .GetMapImagesAsync( mapRect, Children.MapImages().ExtractCoordinates() );
 
         if( !retrievalResult.IsValid )
             return;
 
-        var imagesChanged = false;
-
-        foreach( var newImage in retrievalResult.ReturnValue!.Cast<Image>() )
+        foreach( var imgData in retrievalResult.ReturnValue!.Cast<MapImageData>() )
         {
+            var newImage = new Image();
+            AttachedProperties.SetCoordinates( newImage, imgData.Coordinates );
+            AttachedProperties.SetIsMapTile( newImage, true );
+
+            imgData.Stream.Seek(0);
+            var imgSource = new BitmapImage();
+            imgSource.SetSource(imgData.Stream);
+            newImage.Source = imgSource;
+
             Children.Add( newImage );
-            imagesChanged = true;
         }
-
-        if( imagesChanged )
-            InvalidateArrange();
     }
-
-    private List<Image> GetMapImages() =>
-        Children.Where( x => x is Image )
-                .Cast<Image>()
-                .Where( AttachedProperties.GetIsMapTile )
-                .ToList();
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        if( Center == null || MapRetriever?.Zoom == null || MapRetriever.MapRetrieverInfo == null )
+        // not sure why I have to do this guard action, but returning anything
+        // with an infinity, or an empty Size, blows up the WinUI library
+        if( double.IsPositiveInfinity( availableSize.Width ) )
+            availableSize.Width = 100;
+        
+        if( double.IsPositiveInfinity( availableSize.Height ) )
+            availableSize.Height = 100;
+
+        if ( Center == null || !Children.OfType<Image>().Where( AttachedProperties.GetIsMapTile ).Any() )
             return availableSize;
 
-        var mapImages = GetMapImages();
-
-        return !mapImages.Any() ? availableSize : GetDesiredMapSize( availableSize, mapImages );
+        return MeasureMapLayer( availableSize );
     }
 
-    private Size GetDesiredMapSize( Size availableSize, List<Image> mapImages )
+    private Size MeasureMapLayer( Size retVal )
     {
-        var coordinates = mapImages.Select( AttachedProperties.GetTileCoordinates ).ToList();
+        var minXTile = int.MaxValue;
+        var minYTile = int.MaxValue;
+        var maxXTile = 0;
+        var maxYTile = 0;
 
-        if( !coordinates.Any() )
-            return availableSize;
+        var varSizedImage = Children.VariableSizedMapImages().FirstOrDefault();
 
-        if( coordinates.Count == 1 && coordinates[ 0 ] is PixelLatLong )
-            return MeasureScreenGlobalCoordinates( availableSize );
-
-        if( coordinates.Any( x => x is PixelLatLong ) )
+        if( varSizedImage != null )
         {
-            _logger?.Error( "Heterogenous mix of Coordinates types, which is unsupported" );
-            return availableSize;
+            // there should only ever by a single variable-sized map image
+            minXTile = 0;
+            minYTile = 0;
+
+            // map images don't resize -- they stay the same size as when they're created
+            varSizedImage.Measure( new Size( ( (BitmapSource) varSizedImage.Source ).PixelWidth,
+                                             ( (BitmapSource) varSizedImage.Source ).PixelHeight ) );
+        }
+        else
+        {
+            // process fixed-size map images
+            foreach( var image in Children.FixedSizedMapImages() )
+            {
+                // map images don't resize -- they stay the same size as when they're created
+                image.Measure( new Size( ( (BitmapSource) image.Source ).PixelWidth,
+                                         ( (BitmapSource) image.Source ).PixelHeight ) );
+
+                var coords = AttachedProperties.GetCoordinates( image );
+                if( coords is not PixelTileLatLong tileCoords )
+                    continue;
+
+                minXTile = tileCoords.Tile.X < minXTile ? tileCoords.Tile.X : minXTile;
+                minYTile = tileCoords.Tile.Y < minYTile ? tileCoords.Tile.Y : minYTile;
+                maxXTile = tileCoords.Tile.X > maxXTile ? tileCoords.Tile.X : maxXTile;
+                maxYTile = tileCoords.Tile.Y > maxYTile ? tileCoords.Tile.Y : maxYTile;
+            }
         }
 
-        var retVal = new Size( availableSize.Width, availableSize.Height );
+        _desiredSize.Width = _tileWidthHeight * ( maxXTile - minXTile + 1 );
+        _desiredSize.Height = _tileWidthHeight * ( maxYTile - minYTile + 1 );
 
-        var tiledCoordinates = coordinates.Cast<PixelTileLatLong>()
-                                          .ToList();
+        if( _desiredSize.Width < retVal.Width )
+            retVal.Width = _desiredSize.Width;
 
-        var desiredWidth = MapRetriever.MapRetrieverInfo!.DefaultBitmapWidthHeight
-          * ( tiledCoordinates.Max( x => x.Tile.X )
-              - tiledCoordinates.Min( x => x.Tile.X )
-              + 1 );
-
-        var desiredHeight = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight
-          * ( tiledCoordinates.Max( x => x.Tile.Y )
-              - tiledCoordinates.Min( y => y.Tile.Y )
-              + 1 );
-
-        if( desiredWidth < availableSize.Width )
-            retVal.Width = desiredWidth;
-
-        if( desiredHeight < availableSize.Height )
-            retVal.Height = desiredHeight;
-
-        return retVal;
-    }
-
-    private Size MeasureScreenGlobalCoordinates( Size availableSize )
-    {
-        var retVal = new Size( availableSize.Width, availableSize.Height );
-
-        if( MapRetriever.MapRetrieverInfo!.DefaultBitmapWidthHeight < retVal.Width )
-            retVal.Width = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
-
-        if( MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight < retVal.Height )
-            retVal.Height = MapRetriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
+        if( _desiredSize.Height < retVal.Height )
+            retVal.Height = _desiredSize.Height;
 
         return retVal;
     }
 
     protected override Size ArrangeOverride( Size finalSize )
     {
-        if( Center == null || MapRetriever.Zoom == null || MapRetriever.MapRetrieverInfo == null )
+        if( Center == null
+        || MapRetriever == null
+        || _tileWidthHeight == 0
+        || !Children.MapImages().Any() )
             return finalSize;
 
-        var mapImages = GetMapImages();
-        var desiredSize = GetDesiredMapSize( new Size( double.MaxValue, double.MaxValue ), mapImages );
+        // we do this in layers by starting with arranging the map tiles, and
+        // then arranging anything else on top of it
+        ArrangeMapTiles( finalSize );
 
+        return finalSize;
+    }
+
+    private void ArrangeMapTiles( Size finalSize )
+    {
         // shift everything leftwards by half of the excess (to keep the 
         // map center centered)
-        var xOffset = desiredSize.Width <= finalSize.Width ? 0 : ( desiredSize.Width - finalSize.Width ) / 2;
-        var yOffset = desiredSize.Height <= finalSize.Height ? 0 : ( desiredSize.Height - finalSize.Height ) / 2;
+        var xOffset = _desiredSize.Width <= finalSize.Width ? 0 : ( _desiredSize.Width - finalSize.Width ) / 2;
+        var yOffset = _desiredSize.Height <= finalSize.Height ? 0 : ( _desiredSize.Height - finalSize.Height ) / 2;
 
-        foreach( var image in mapImages )
+        foreach( var image in Children.MapImages() )
         {
-            var imgTileCoord = AttachedProperties.GetTileCoordinates( image );
-            if( imgTileCoord == null )
+            var coords = AttachedProperties.GetCoordinates( image );
+            if( coords == null )
             {
-                _logger?.Warning<string>( "Map Image lacks {0}", nameof( AttachedProperties.TileCoordinatesProperty ) );
+                _logger?.Warning<string>( "Map Image lacks {0}", nameof( AttachedProperties.CoordinatesProperty ) );
                 continue;
             }
 
-            var centerPt = MapRetriever.Zoom.LatLongToPixel(Center);
+            Rect finalRect;
 
-            image.CenterPoint = new Vector3((float)centerPt.X - (float)xOffset / 2,
-                                            (float)centerPt.Y - (float)yOffset / 2,
-                                            0);
+            switch( coords )
+            {
+                case PixelLatLong:
+                    finalRect = new Rect( 0, 0, finalSize.Width, finalSize.Height );
+                    break;
+
+                case PixelTileLatLong tileCoords:
+                    var upperLeftX = tileCoords.Tile.X * _tileWidthHeight;
+                    var upperLeftY = tileCoords.Tile.Y * _tileWidthHeight;
+
+                    finalRect = new Rect( upperLeftX - xOffset,
+                                          upperLeftY - yOffset,
+                                          _tileWidthHeight,
+                                          _tileWidthHeight );
+                    break;
+
+                default:
+                    continue;
+            }
+
+            image.Arrange( finalRect );
         }
-
-        return finalSize;
     }
 }

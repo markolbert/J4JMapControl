@@ -11,7 +11,7 @@ namespace J4JSoftware.J4JMapControl
     public interface IMapImageRetriever<in TCoord> : IMapImageRetriever
         where TCoord : Coordinates
     {
-        Task<AsyncWebResult<List<Image>, HttpStatusCode>> GetMapImagesAsync( MapRect mapRectangle, IEnumerable<TCoord>? existingCoords = null );
-        Task<AsyncWebResult<Image, HttpStatusCode>> GetMapImageAsync( TCoord coordinates );
+        Task<AsyncWebResult<List<MapImageData>, HttpStatusCode>> GetMapImagesAsync( MapRect mapRectangle, IEnumerable<TCoord>? existingCoords = null );
+        Task<AsyncWebResult<MapImageData, HttpStatusCode>> GetMapImageAsync( TCoord coordinates );
     }
 }
