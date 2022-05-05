@@ -16,7 +16,7 @@ public static class PublicExtensions
 
         foreach( var image in images )
         {
-            var coordinates = AttachedProperties.GetTileCoordinates( image );
+            var coordinates = AttachedProperties.GetCoordinates( image );
             if( coordinates != null )
                 retVal.Add( coordinates );
         }

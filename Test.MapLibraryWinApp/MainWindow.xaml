@@ -132,10 +132,11 @@
         </Grid>
 
         <map:J4JMapControl x:Name="TheMap" 
-                           Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                           Grid.Row="2" Grid.Column="1"
                            MapRetriever="{x:Bind ViewModel.SelectedRetriever.Retriever}"
                            Center="{x:Bind ViewModel.Location }"
-                           ZoomLevel="{x:Bind ViewModel.MapZoom}" />
+                           ZoomLevel="{x:Bind ViewModel.MapZoom}"
+                           Background="LightGoldenrodYellow"/>
 
     </Grid>
 
