@@ -9,6 +9,7 @@ using J4JSoftware.MapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -80,7 +81,6 @@ public sealed class J4JMapControl : Panel, IMapContext
                                      typeof( J4JMapControl ),
                                      new PropertyMetadata( null, OnMapCenterChangedStatic ) );
 
-    [TypeConverter(typeof(LatLongTypeConverter))]
     public LatLong? Center
     {
         get => (LatLong?) GetValue( CenterProperty );
@@ -123,6 +123,8 @@ public sealed class J4JMapControl : Panel, IMapContext
     {
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType( GetType() );
+
+        SizeChanged += async ( _, _ ) => await UpdateMap();
     }
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
@@ -166,7 +168,7 @@ public sealed class J4JMapControl : Panel, IMapContext
         if( Center == null || MapRetriever == null || _zoom == null )
             return;
 
-        var mapRect = _zoom.GetPixelMapRect( Center, Width, Height );
+        var mapRect = _zoom.GetPixelMapRect( Center, ActualSize.ToSize() );
 
         var retrievalResult = await MapRetriever
            .GetMapImagesAsync( mapRect, Children.MapImages().ExtractCoordinates() );
@@ -263,6 +265,8 @@ public sealed class J4JMapControl : Panel, IMapContext
         || _tileWidthHeight == 0
         || !Children.MapImages().Any() )
             return finalSize;
+
+        Clip = new RectangleGeometry { Rect = new Rect( new Point( 0, 0 ), finalSize ) };
 
         // we do this in layers by starting with arranging the map tiles, and
         // then arranging anything else on top of it
