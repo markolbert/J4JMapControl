@@ -29,11 +29,11 @@ public abstract class TilesBase<TCoord> : ITileCollection<TCoord>
 
     public double ScreenWidth => UpperLeft == null || LowerRight == null 
         ? 0 
-        : LowerRight.Pixel.X - UpperLeft.Pixel.X;
+        : LowerRight.TileRelativePixel.X - UpperLeft.TileRelativePixel.X;
 
     public double ScreenHeight => UpperLeft == null || LowerRight == null
         ? 0
-        : LowerRight.Pixel.Y - UpperLeft.Pixel.Y;
+        : LowerRight.TileRelativePixel.Y - UpperLeft.TileRelativePixel.Y;
 
     public void Update( MapRect viewPort )
     {

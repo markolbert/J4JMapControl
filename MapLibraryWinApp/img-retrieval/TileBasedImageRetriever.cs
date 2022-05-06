@@ -28,19 +28,19 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLo
         // if the rectangle is collapsed (which can happen if it's derived from a control which
         // hasn't been measured yet) return the coordinates for a single tile
         if( mapRectangle.IsCollapsed )
-            yield return new PixelTileLatLong( mapRectangle.UpperLeft.Pixel.ToDoublePoint(),
+            yield return new PixelTileLatLong( mapRectangle.UpperLeft.TileRelativePixel.ToDoublePoint(),
                                                mapRectangle.UpperLeft.Tile.ToIntPoint(),
                                                mapRectangle.UpperLeft.LatLong,
                                                Zoom );
         else
         {
-            for( var yTile = mapRectangle.UpperLeft.Tile.Y; yTile < mapRectangle.LowerRight.Tile.Y; ++yTile )
+            for( var yTile = mapRectangle.UpperLeft.Tile.Y; yTile <= mapRectangle.LowerRight.Tile.Y; ++yTile )
             {
-                for( var xTile = mapRectangle.UpperLeft.Tile.X; xTile < mapRectangle.LowerRight.Tile.X; ++xTile )
+                for( var xTile = mapRectangle.UpperLeft.Tile.X; xTile <= mapRectangle.LowerRight.Tile.X; ++xTile )
                 {
                     var tilePt = new IntPoint( xTile, yTile );
-                    var pixelPt = Zoom.TileToPixel( tilePt );
-                    var latLongPt = Zoom.PixelToLatLong( pixelPt );
+                    var pixelPt = Zoom.TileToAbsolutePoint( tilePt );
+                    var latLongPt = Zoom.RelativePointToLatLong( pixelPt );
 
                     yield return new PixelTileLatLong( pixelPt, tilePt, latLongPt, Zoom );
                 }

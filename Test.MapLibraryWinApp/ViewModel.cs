@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using J4JSoftware.J4JMapControl;
 using J4JSoftware.Logging;
@@ -37,7 +38,7 @@ public class ViewModel : ObservableObject
     )
     {
         _logger = logger;
-        _logger.SetLoggedType(GetType());
+        _logger.SetLoggedType( GetType() );
 
         _dQueue = DispatcherQueue.GetForCurrentThread();
 
@@ -52,7 +53,9 @@ public class ViewModel : ObservableObject
 
         Retrievers = temp;
 
-        if( LatLong.TryParse( "37.5072, -122.2605", out var initLocation ) )
+        if( LatLong.TryParse( "37.5072, -122.2605",
+                              Retrievers.First().Retriever.MapRetrieverInfo!,
+                              out var initLocation ) )
             Location = initLocation;
     }
 
@@ -135,10 +138,11 @@ public class ViewModel : ObservableObject
         if( _selectedRetriever == null || _selectedRetriever.Retriever.MapRetrieverInfo is not {} info )
             return;
 
-        var tile = new PixelTileLatLong(PixelPoint.Empty.ToDoublePoint(),
-                                            new IntPoint(_xTile, _yTile),
-                                            LatLong.GetEmpty(info),
-                                            new Zoom(_tileZoom, info));
+        var tile = new PixelTileLatLong(
+            new RelativePixelPoint().ToDoublePoint(),
+            new IntPoint( _xTile, _yTile ),
+            LatLong.GetEmpty( info ),
+            new Zoom( _tileZoom, info ) );
 
         _selectedRetriever.Retriever.GetMapImageAsync(tile)
                           .ContinueWith((t) => _dQueue.TryEnqueue(() =>
@@ -170,7 +174,6 @@ public class ViewModel : ObservableObject
     public int TileWidth=>TileImage == null ? 0 : ((BitmapSource) TileImage).PixelWidth;
     public int TileHeight => TileImage == null ? 0 : ((BitmapSource)TileImage).PixelHeight;
 
-    [TypeConverter(typeof(LatLongTypeConverter))]
     public LatLong? Location
     {
         get => _location;

@@ -16,14 +16,14 @@ public class PixelLatLongTiles : TilesBase<PixelLatLong>
     {
         var retVal = new List<PixelLatLong>();
 
-        var ulScreenPt = UpperLeft!.Pixel.ToDoublePoint();
-        var lrScreenPt = LowerRight!.Pixel.ToDoublePoint();
+        var ulScreenPt = UpperLeft!.TileRelativePixel.ToDoublePoint();
+        var lrScreenPt = LowerRight!.TileRelativePixel.ToDoublePoint();
         var zoom = UpperLeft.Zoom;
 
         retVal.Add( new PixelLatLong( ulScreenPt,
                                                lrScreenPt,
-                                               zoom.PixelToLatLong(ulScreenPt),
-                                               zoom.PixelToLatLong(lrScreenPt),
+                                               zoom.RelativePointToLatLong(ulScreenPt),
+                                               zoom.RelativePointToLatLong(lrScreenPt),
                                                UpperLeft.Zoom ) );
 
         return retVal;
