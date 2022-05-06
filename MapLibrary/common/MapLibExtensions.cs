@@ -13,7 +13,7 @@ public static class MapLibExtensions
       * GlobalConstants.EarthRadius
       / zoom.WidthHeight;
 
-    public static DoublePoint GetPixelCoordinates(this IZoom zoom, LatLong latLong)
+    public static AbsolutePixelPoint GetAbsolutePixelCoordinates(this IZoom zoom, LatLong latLong)
     {
         var sinLatitude = Math.Sin(latLong.Latitude * Math.PI / 180);
 
@@ -23,7 +23,11 @@ public static class MapLibExtensions
           * 256
           * Math.Pow(2, zoom.Level);
 
-        return new DoublePoint(x, y);
+        var tileAbsPt = zoom.LatLongToRelativePoint( latLong );
+
+        var retVal = new AbsolutePixelPoint(x,y);
+
+        return retVal;
     }
 
     public static string GetBingMapsQuadKey( this PixelTileLatLong tile ) =>
@@ -55,21 +59,10 @@ public static class MapLibExtensions
 
     public static PixelTileLatLong ToMultiTileCoordinates( this IZoom zoom, IntPoint tilePt )
     {
-        var screenPt = zoom.TileToPixel( tilePt );
-        var latLongPt = zoom.PixelToLatLong( screenPt );
+        var screenPt = zoom.TileToAbsolutePoint( tilePt );
+        var latLongPt = zoom.RelativePointToLatLong( screenPt );
 
         return new PixelTileLatLong( screenPt, tilePt, latLongPt, zoom );
-    }
-
-    public static MapRect GetPixelMapRect( this IZoom zoom, LatLong center, double width, double height )
-    {
-        var centerMapPt = new MapPoint( zoom );
-        centerMapPt.LatLong.Set( center );
-
-        var upperLeft = centerMapPt.OffsetByPixel( -width / 2, -height / 2 );
-        var lowerRight = centerMapPt.OffsetByPixel( width / 2, height / 2 );
-
-        return new MapRect( upperLeft, lowerRight );
     }
 
     public static string GetDescription<TEnum>(this TEnum enumValue)
@@ -88,5 +81,4 @@ public static class MapLibExtensions
 
         return svcAttr?.Description ?? enumText;
     }
-
 }

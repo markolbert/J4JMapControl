@@ -98,10 +98,10 @@ public class Zoom : IZoom
     public int RetrievalBitmapWidthHeight { get; private set; }
     public int NumTiles { get; private set; }
 
-    public LatLong PixelToLatLong( DoublePoint screenPoint )
+    public LatLong RelativePointToLatLong( RelativePixelPoint point )
     {
-        var adjX = Clip( screenPoint.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
-        var adjY = 0.5 - Clip( screenPoint.Y, 0, WidthHeight - 1 ) / WidthHeight;
+        var adjX = Clip( point.X, 0, WidthHeight - 1 ) / WidthHeight - 0.5;
+        var adjY = 0.5 - Clip( point.Y, 0, WidthHeight - 1 ) / WidthHeight;
 
         var retVal = new LatLong( MapRetrieverInfo! );
         retVal.Set( 90 - 360 * Math.Atan( Math.Exp( -adjY * 2 * Math.PI ) ) / Math.PI, 360 * adjX );
@@ -109,22 +109,22 @@ public class Zoom : IZoom
         return retVal;
     }
 
-    public DoublePoint LatLongToPixel( LatLong latLong )
+    public RelativePixelPoint LatLongToRelativePoint( LatLong latLong )
     {
         var x = ( latLong.Longitude + 180 ) / 360;
         var sinLatitude = Math.Sin( latLong.Latitude * Math.PI / 180 );
         var y = 0.5 - Math.Log( ( 1 + sinLatitude ) / ( 1 - sinLatitude ) ) / ( 4 * Math.PI );
 
-        return new DoublePoint( Clip( x * WidthHeight + 0.5, 0, WidthHeight - 1 ),
+        return new RelativePixelPoint( Clip( x * WidthHeight + 0.5, 0, WidthHeight - 1 ),
                              Clip( y * WidthHeight + 0.5, 0, WidthHeight - 1 ) );
     }
 
     private double Clip(double n, double minValue, double maxValue) =>
         Math.Min(Math.Max(n, minValue), maxValue);
 
-    public IntPoint PixelToTile( DoublePoint screenPoint ) =>
-        new( screenPoint.X / RetrievalBitmapWidthHeight, screenPoint.Y / RetrievalBitmapWidthHeight );
+    public IntPoint AbsolutePointToTile( AbsolutePixelPoint point ) =>
+        new( point.X / RetrievalBitmapWidthHeight, point.Y / RetrievalBitmapWidthHeight );
 
-    public DoublePoint TileToPixel( IntPoint tilePoint ) =>
+    public AbsolutePixelPoint TileToAbsolutePoint( IntPoint tilePoint ) =>
         new( tilePoint.X * RetrievalBitmapWidthHeight, tilePoint.Y * RetrievalBitmapWidthHeight );
 }

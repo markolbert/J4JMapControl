@@ -27,7 +27,7 @@ public class MapRect
     public MapPoint UpperLeft { get; }
     public MapPoint LowerRight { get; }
 
-    public double PixelWidth => LowerRight.Pixel.X - UpperLeft.Pixel.X;
-    public double PixelHeight => LowerRight.Pixel.Y - UpperLeft.Pixel.Y;
+    public double PixelWidth => LowerRight.TileRelativePixel.X - UpperLeft.TileRelativePixel.X;
+    public double PixelHeight => LowerRight.TileRelativePixel.Y - UpperLeft.TileRelativePixel.Y;
     public bool IsCollapsed => PixelHeight <= 0.1 || PixelWidth <= 0.1;
 }

@@ -6,7 +6,7 @@ public class LatLong
 {
     public static LatLong GetEmpty( MapRetrieverInfo info ) => new( info );
 
-    public static bool TryParse( string text, out LatLong? result )
+    public static bool TryParse( string text, MapRetrieverInfo retrieverInfo, out LatLong? result )
     {
         result = null;
 
@@ -23,7 +23,7 @@ public class LatLong
         if( !double.TryParse( parts[ 1 ], out var longitude ) )
             return false;
 
-        result = new LatLong();
+        result = new LatLong( retrieverInfo );
         result.Set( latitude, longitude );
 
         return true;
@@ -33,20 +33,28 @@ public class LatLong
 
     private readonly LimitedPoint<double> _latitude;
     private readonly LimitedPoint<double> _longitude;
+    private readonly MapRetrieverInfo _retrieverInfo;
 
-    public LatLong( MapRetrieverInfo info )
+    public LatLong( MapRetrieverInfo retrieverInfo )
     {
-        _latitude = new LimitedPoint<double>( new DoubleLimits( -info.MaximumLatitude, info.MaximumLatitude ) );
-        _longitude = new LimitedPoint<double>( new DoubleLimits( -info.MaximumLongitude, info.MaximumLongitude ) );
+        _retrieverInfo = retrieverInfo;
+
+        _latitude = new LimitedPoint<double>( new DoubleLimits( -_retrieverInfo.MaximumLatitude,
+                                                                _retrieverInfo.MaximumLatitude ) );
+
+        _longitude =
+            new LimitedPoint<double>( new DoubleLimits( -_retrieverInfo.MaximumLongitude,
+                                                        _retrieverInfo.MaximumLongitude ) );
     }
 
-    private LatLong()
+    private LatLong( LatLong toCopy )
+        : this( toCopy._retrieverInfo )
     {
-        _latitude = new LimitedPoint<double>( new DoubleLimits( -GlobalConstants.Wgs84MaxLatitude,
-                                                                GlobalConstants.Wgs84MaxLatitude ) );
-
-        _longitude = new LimitedPoint<double>(new DoubleLimits(-180, 180));
+        _latitude.Value = toCopy.Latitude;
+        _longitude.Value = toCopy.Longitude;
     }
+
+    public LatLong Copy() => new( this );
 
     public double Latitude => _latitude.Value;
     public double Longitude => _longitude.Value;

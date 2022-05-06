@@ -10,6 +10,9 @@ public class MapPoint
     {
         Zoom = zoom;
 
+        AbsolutePixelPoint = new AbsolutePixelPoint();
+        AbsolutePixelPoint.ValueChanged += AbsolutePixelPointOnValueChanged;
+
         if( zoom.MapRetrieverInfo == null )
             throw new ArgumentException(
                 $"Attempting to create {typeof( MapPoint )} with an undefined {nameof( MapRetrieverInfo )}" );
@@ -17,21 +20,28 @@ public class MapPoint
         LatLong = new LatLong( zoom.MapRetrieverInfo );
         LatLong.ValueChanged += LatLongOnValueChanged;
 
-        Pixel = new PixelPoint();
-        Pixel.ValueChanged += PixelOnValueChanged;
+        TileRelativePixel = new RelativePixelPoint();
+        TileRelativePixel.ValueChanged += TileRelativePixelOnValueChanged;
 
         Tile = new TilePoint( new IntLimits( 0, zoom.NumTiles - 1 ) );
         Tile.ValueChanged += TileOnValueChanged;
     }
 
-    private MapPoint(
-        MapPoint toCopy
-    )
+    private MapPoint( MapPoint toCopy )
     {
+        LatLong = toCopy.LatLong.Copy();
+        LatLong.ValueChanged += LatLongOnValueChanged;
+
+        TileRelativePixel = (RelativePixelPoint) toCopy.TileRelativePixel.Copy();
+        TileRelativePixel.ValueChanged += TileRelativePixelOnValueChanged;
+
+        AbsolutePixelPoint = new AbsolutePixelPoint();
+        AbsolutePixelPoint.ValueChanged += AbsolutePixelPointOnValueChanged;
+
+        Tile = toCopy.Tile.Copy();
+        Tile.ValueChanged += TileOnValueChanged;
+
         Zoom = toCopy.Zoom;
-        LatLong = toCopy.LatLong;
-        Pixel = toCopy.Pixel;
-        Tile = toCopy.Tile;
     }
 
     public MapPoint Copy() => new( this );
@@ -45,30 +55,30 @@ public class MapPoint
         if( _ignoreChangeEvents )
             return;
 
-        var newScreen = Zoom.GetPixelCoordinates( LatLong );
-        var newTile = Zoom.PixelToTile( newScreen );
+        var newAbsolute = Zoom.GetAbsolutePixelCoordinates( LatLong );
+        var newTile = Zoom.AbsolutePointToTile( newAbsolute );
 
         lock( this )
         {
             _ignoreChangeEvents = true;
 
-            Pixel.Set( newScreen );
+            TileRelativePixel.Set( newAbsolute );
             Tile.Set( newTile );
 
             _ignoreChangeEvents = false;
         }
     }
 
-    public PixelPoint Pixel { get; }
+    public RelativePixelPoint TileRelativePixel { get; }
 
-    private void PixelOnValueChanged( object? sender, EventArgs e )
+    private void TileRelativePixelOnValueChanged( object? sender, EventArgs e )
     {
         if( _ignoreChangeEvents )
             return;
 
-        var screenPt = new DoublePoint( Pixel.X, Pixel.Y );
-        var newLatLong = Zoom.PixelToLatLong( screenPt );
-        var newTile = Zoom.PixelToTile( screenPt );
+        var screenPt = new DoublePoint( TileRelativePixel.X, TileRelativePixel.Y );
+        var newLatLong = Zoom.RelativePointToLatLong( screenPt );
+        var newTile = Zoom.AbsolutePointToTile( screenPt );
 
         lock( this )
         {
@@ -76,6 +86,28 @@ public class MapPoint
 
             LatLong.Set( newLatLong );
             Tile.Set( newTile );
+
+            _ignoreChangeEvents = false;
+        }
+    }
+
+    public AbsolutePixelPoint AbsolutePixelPoint { get; }
+
+    private void AbsolutePixelPointOnValueChanged(object? sender, EventArgs e)
+    {
+        if (_ignoreChangeEvents)
+            return;
+
+        var tilePt = new IntPoint(Tile.X, Tile.Y);
+        var newScreenPt = Zoom.TileToAbsolutePoint(tilePt);
+        var newLatLong = Zoom.RelativePointToLatLong(newScreenPt);
+
+        lock (this)
+        {
+            _ignoreChangeEvents = true;
+
+            LatLong.Set(newLatLong);
+            TileRelativePixel.Set(newScreenPt);
 
             _ignoreChangeEvents = false;
         }
@@ -89,15 +121,15 @@ public class MapPoint
             return;
 
         var tilePt = new IntPoint( Tile.X, Tile.Y );
-        var newScreenPt = Zoom.TileToPixel( tilePt );
-        var newLatLong = Zoom.PixelToLatLong( newScreenPt );
+        var newScreenPt = Zoom.TileToAbsolutePoint( tilePt );
+        var newLatLong = Zoom.RelativePointToLatLong( newScreenPt );
 
         lock( this )
         {
             _ignoreChangeEvents = true;
 
             LatLong.Set( newLatLong );
-            Pixel.Set( newScreenPt );
+            TileRelativePixel.Set( newScreenPt );
 
             _ignoreChangeEvents = false;
         }
@@ -105,10 +137,10 @@ public class MapPoint
 
     public MapPoint OffsetByPixel( double xOffset, double yOffset )
     {
-        var retVal = this.Copy();
+        var retVal = Copy();
 
-        var newScreenPt = new DoublePoint(retVal.Pixel.X + xOffset, retVal.Pixel.Y + yOffset);
-        retVal.Pixel.Set( newScreenPt );
+        var newScreenPt = new DoublePoint(retVal.TileRelativePixel.X + xOffset, retVal.TileRelativePixel.Y + yOffset);
+        retVal.TileRelativePixel.Set( newScreenPt );
 
         return retVal;
     }
