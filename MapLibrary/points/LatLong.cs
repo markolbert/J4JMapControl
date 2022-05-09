@@ -23,59 +23,58 @@ public class LatLong
         if( !double.TryParse( parts[ 1 ], out var longitude ) )
             return false;
 
-        result = new LatLong( retrieverInfo );
-        result.Set( latitude, longitude );
+        result = new LatLong( retrieverInfo ) { Latitude = latitude, Longitude = longitude };
 
         return true;
     }
 
-    public event EventHandler? ValueChanged;
-
-    private readonly LimitedPoint<double> _latitude;
-    private readonly LimitedPoint<double> _longitude;
     private readonly MapRetrieverInfo _retrieverInfo;
+    private double _latitude;
+    private double _longitude;
 
     public LatLong( MapRetrieverInfo retrieverInfo )
     {
         _retrieverInfo = retrieverInfo;
-
-        _latitude = new LimitedPoint<double>( new DoubleLimits( -_retrieverInfo.MaximumLatitude,
-                                                                _retrieverInfo.MaximumLatitude ) );
-
-        _longitude =
-            new LimitedPoint<double>( new DoubleLimits( -_retrieverInfo.MaximumLongitude,
-                                                        _retrieverInfo.MaximumLongitude ) );
     }
 
     private LatLong( LatLong toCopy )
         : this( toCopy._retrieverInfo )
     {
-        _latitude.Value = toCopy.Latitude;
-        _longitude.Value = toCopy.Longitude;
+        _latitude = toCopy.Latitude;
+        _longitude = toCopy.Longitude;
     }
 
     public LatLong Copy() => new( this );
 
-    public double Latitude => _latitude.Value;
-    public double Longitude => _longitude.Value;
-
-    public void Set( double latitude, double longitude )
+    public double Latitude
     {
-        _latitude.Value = latitude;
-        _longitude.Value = longitude;
+        get => _latitude;
 
-        OnValueChanged();
+        set
+        {
+            if( value > MaximumLatitude || value < -MaximumLatitude )
+                return;
+
+            _latitude = value;
+        }
     }
 
-    public void Set( LatLong point )
-    {
-        _latitude.Value = point.Latitude;
-        _longitude.Value = point.Longitude;
+    public double MaximumLatitude => _retrieverInfo.MaximumLatitude;
 
-        OnValueChanged();
+    public double Longitude
+    {
+        get => _longitude;
+
+        set
+        {
+            if( value > MaximumLongitude || value < -MaximumLongitude )
+                return;
+
+            _longitude = value;
+        }
     }
 
-    protected virtual void OnValueChanged() => ValueChanged?.Invoke( this, EventArgs.Empty );
+    public double MaximumLongitude => _retrieverInfo.MaximumLongitude;
 
     public override string ToString() => $"{Latitude}, {Longitude}";
 }
