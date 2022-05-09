@@ -6,38 +6,21 @@ namespace J4JSoftware.MapLibrary;
 
 public static class MapLibExtensions
 {
-    public static double GetGroundResolution( this IZoom zoom, LatLong latLong ) =>
+    public static double GetGroundResolution( this IMapProjection mapProjection, LatLong latLong ) =>
         Math.Cos( latLong.Latitude * Math.PI / 180 )
       * 2
       * Math.PI
       * GlobalConstants.EarthRadius
-      / zoom.WidthHeight;
+      / mapProjection.ProjectionWidthHeight;
 
-    public static AbsolutePixelPoint GetAbsolutePixelCoordinates(this IZoom zoom, LatLong latLong)
-    {
-        var sinLatitude = Math.Sin(latLong.Latitude * Math.PI / 180);
+    public static string GetBingMapsQuadKey( this TileCoordinates tile ) =>
+        GetBingMapsQuadKey( tile.MapProjection, tile.Tile.X, tile.Tile.Y );
 
-        var x = ((latLong.Longitude + 180) / 360) * 256 * Math.Pow(2, zoom.Level);
-
-        var y = (0.5 - Math.Log((1 + sinLatitude) / (1 - sinLatitude)) / (4 * Math.PI))
-          * 256
-          * Math.Pow(2, zoom.Level);
-
-        var tileAbsPt = zoom.LatLongToRelativePoint( latLong );
-
-        var retVal = new AbsolutePixelPoint(x,y);
-
-        return retVal;
-    }
-
-    public static string GetBingMapsQuadKey( this PixelTileLatLong tile ) =>
-        GetBingMapsQuadKey( tile.Zoom, tile.Tile.X, tile.Tile.Y );
-
-    public static string GetBingMapsQuadKey( IZoom zoom, int xTile, int yTile )
+    public static string GetBingMapsQuadKey( IMapProjection mapProjection, int xTile, int yTile )
     {
         var retVal = new StringBuilder();
 
-        for( var i = zoom.Level; i > 0; i-- )
+        for( var i = mapProjection.ZoomLevel; i > 0; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
@@ -55,14 +38,6 @@ public static class MapLibExtensions
         }
 
         return retVal.ToString();
-    }
-
-    public static PixelTileLatLong ToMultiTileCoordinates( this IZoom zoom, IntPoint tilePt )
-    {
-        var screenPt = zoom.TileToAbsolutePoint( tilePt );
-        var latLongPt = zoom.RelativePointToLatLong( screenPt );
-
-        return new PixelTileLatLong( screenPt, tilePt, latLongPt, zoom );
     }
 
     public static string GetDescription<TEnum>(this TEnum enumValue)
