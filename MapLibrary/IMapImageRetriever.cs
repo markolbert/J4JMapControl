@@ -2,11 +2,11 @@
 {
     public interface IMapImageRetriever
     {
-        MapRetrieverInfo? MapRetrieverInfo { get; }
-        IZoom? Zoom { get; set; }
+        IMapProjection MapProjection { get; set; }
+        MapRetrieverInfo MapRetrieverInfo { get; }
 
         Task<AsyncWebResult<List<object>, int>> GetMapImagesAsync(
-            MapRect mapRectangle,
+            BoundingBox box,
             IEnumerable<object>? existingImages
         );
 

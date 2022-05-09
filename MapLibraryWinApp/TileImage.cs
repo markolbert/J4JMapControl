@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.Security.Cryptography.Core;
 using Windows.Storage.Streams;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapControl;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using WinRT;
 
 namespace J4JSoftware.MapLibrary
 {
@@ -37,9 +30,7 @@ namespace J4JSoftware.MapLibrary
         private static async void OnMapImageRetrieverChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not TileImage tileImage
-             || e.NewValue is not IMapImageRetriever retriever
-             || retriever.MapRetrieverInfo == null
-             || retriever.Zoom == null)
+             || e.NewValue is not IMapImageRetriever )
                 return;
 
             await tileImage.LoadImageAsync();
@@ -111,7 +102,6 @@ namespace J4JSoftware.MapLibrary
         private async Task LoadImageAsync()
         {
             if( MapRetriever == null
-            || MapRetriever.MapRetrieverInfo == null
             || Coordinates == null )
                 return;
 

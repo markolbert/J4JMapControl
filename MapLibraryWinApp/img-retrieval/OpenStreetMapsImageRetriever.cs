@@ -16,19 +16,20 @@ public class OpenStreetMapsImageRetriever : TileBasedImageRetriever
         : base( logger )
     {
         _userAgent = appInfo.UserAgent;
-
-        SetRetrieverInfo( new MapRetrieverInfo( "https://tile.openstreetmap.org/ZoomLevel/XTile/YTile.png",
-                                                "OpenStreetMap",
-                                                "© OpenStreetMap Contributors",
-                                                new Uri( "http://www.openstreetmap.org/copyright" ),
-                                                GlobalConstants.Wgs84MaxLatitude,
-                                                180,
-                                                0,
-                                                20,
-                                                256 ) );
     }
 
-    protected override HttpRequestMessage? GetRequest( PixelTileLatLong tile )
+    protected override MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection ) =>
+        new( "https://tile.openstreetmap.org/ZoomLevel/XTile/YTile.png",
+             "OpenStreetMap",
+             "© OpenStreetMap Contributors",
+             new Uri( "http://www.openstreetmap.org/copyright" ),
+             GlobalConstants.Wgs84MaxLatitude,
+             180,
+             0,
+             20,
+             256 );
+
+    protected override HttpRequestMessage? GetRequest( TileCoordinates tile )
     {
         if( string.IsNullOrEmpty( _userAgent ) )
         {
@@ -36,13 +37,7 @@ public class OpenStreetMapsImageRetriever : TileBasedImageRetriever
             return null;
         }
 
-        if( MapRetrieverInfo == null )
-        {
-            Logger?.Error( "Undefined MapRetrieverInfo" );
-            return null;
-        }
-
-        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", tile.Zoom.Level.ToString() )
+        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", tile.MapProjection.ZoomLevel.ToString() )
                                       .Replace( "XTile", tile.Tile.X.ToString() )
                                       .Replace( "YTile", tile.Tile.Y.ToString() );
 

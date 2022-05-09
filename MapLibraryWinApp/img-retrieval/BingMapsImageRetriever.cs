@@ -30,25 +30,26 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
     public BingMapType MapType { get; }
     public BingMetadata.ImageryMetadata? Metadata { get; private set; }
 
-    public override MapRetrieverInfo? MapRetrieverInfo
+    protected override MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection )
     {
-        get
+        AutoReset.Reset();
+
+        BingMapRetrieverInfo? mdInfo = null;
+
+        Task.Run(async () =>
         {
-            if( base.MapRetrieverInfo != null )
-                return base.MapRetrieverInfo;
+            mdInfo = await GetMetadata();
+            AutoReset.Set();
+        });
 
-            AutoReset.Reset();
+        AutoReset.WaitOne(3000);
 
-            Task.Run( async () =>
-            {
-                await GetMetadata();
-                AutoReset.Set();
-            } );
+        if( mdInfo != null)
+            return mdInfo;
 
-            AutoReset.WaitOne( 3000 );
+        Logger?.Fatal("Could not retrieve Bing metadata info");
 
-            return base.MapRetrieverInfo;
-        }
+        throw new InvalidOperationException( "Could not retrieve Bing metadata info" );
     }
 
     public bool SetCultureCode( string code )
@@ -64,22 +65,19 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
         return true;
     }
 
-    protected override HttpRequestMessage? GetRequest( PixelTileLatLong tile )
+    protected override HttpRequestMessage GetRequest( TileCoordinates tile )
     {
-        if( MapRetrieverInfo == null )
-            return null;
-
         var subDomain = ( (BingMapRetrieverInfo) MapRetrieverInfo ).GetRandomSubdomain();
         var quadKey = tile.GetBingMapsQuadKey();
 
-        var uriText = MapRetrieverInfo!.RetrievalUrl.Replace( "{subdomain}", subDomain )
-                                       .Replace( "{quadkey}", quadKey )
-                                       .Replace( "{culture}", _cultureCode );
+        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "{subdomain}", subDomain )
+                                      .Replace( "{quadkey}", quadKey )
+                                      .Replace( "{culture}", _cultureCode );
 
         return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
 
-    private async Task GetMetadata()
+    private async Task<BingMapRetrieverInfo?> GetMetadata()
     {
         var temp = await BingMapMetadataRetriever.GetBingMetadata( MapType, _apiKey );
 
@@ -91,13 +89,13 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
                 temp.HttpStatusCode,
                 temp.Message );
 
-            return;
+            return null;
         }
 
         if( !temp.ReturnValue?.IsValid ?? true )
         {
             Logger?.Error( "Bing metadata does not include required Resource object" );
-            return;
+            return null;
         }
 
         Metadata = temp.ReturnValue!;
@@ -106,18 +104,18 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
         if( resource.ImageHeight != resource.ImageWidth )
         {
             Logger?.Error( "Bing metadata indicates non-square image dimensions, which is not supported" );
-            return;
+            return null;
         }
 
-        SetRetrieverInfo( new BingMapRetrieverInfo( resource.ImageUrl,
-                                                    resource.ImageUrlSubdomains.ToList(),
-                                                    MapType.GetDescription(),
-                                                    Metadata.Copyright,
-                                                    new Uri(Metadata.BrandLogoUri),
-                                                    GlobalConstants.Wgs84MaxLatitude,
-                                                    180,
-                                                    resource.ZoomMin,
-                                                    resource.ZoomMax,
-                                                    resource.ImageHeight ) );
+        return new BingMapRetrieverInfo( resource.ImageUrl,
+                                         resource.ImageUrlSubdomains.ToList(),
+                                         MapType.GetDescription(),
+                                         Metadata.Copyright,
+                                         new Uri( Metadata.BrandLogoUri ),
+                                         GlobalConstants.Wgs84MaxLatitude,
+                                         180,
+                                         resource.ZoomMin,
+                                         resource.ZoomMax,
+                                         resource.ImageHeight );
     }
 }

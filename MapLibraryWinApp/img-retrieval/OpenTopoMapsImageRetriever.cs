@@ -16,19 +16,20 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
         : base( logger )
     {
         _userAgent = appInfo.UserAgent;
-
-        SetRetrieverInfo( new MapRetrieverInfo( "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
-                                                "OpenTopoMap",
-                                                "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
-                                                new Uri( "http://opentopomap.org/" ),
-                                                GlobalConstants.Wgs84MaxLatitude,
-                                                180,
-                                                0,
-                                                20,
-                                                256 ) );
     }
 
-    protected override HttpRequestMessage? GetRequest( PixelTileLatLong tile )
+    protected override MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection ) =>
+        new( "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
+             "OpenTopoMap",
+             "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
+             new Uri( "http://opentopomap.org/" ),
+             GlobalConstants.Wgs84MaxLatitude,
+             180,
+             0,
+             20,
+             256 );
+
+    protected override HttpRequestMessage? GetRequest( TileCoordinates tile )
     {
         if (string.IsNullOrEmpty(_userAgent))
         {
@@ -36,13 +37,7 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
             return null;
         }
 
-        if( MapRetrieverInfo == null )
-        {
-            Logger?.Error("Undefined MapRetrieverInfo");
-            return null;
-        }
-
-        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", tile.Zoom.Level.ToString() )
+        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", tile.MapProjection.ZoomLevel.ToString() )
                                       .Replace( "XTile", tile.Tile.X.ToString() )
                                       .Replace( "YTile", tile.Tile.Y.ToString() );
 

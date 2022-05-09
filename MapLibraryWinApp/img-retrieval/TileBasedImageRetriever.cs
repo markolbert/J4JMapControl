@@ -8,7 +8,7 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLong>
+public abstract class TileBasedImageRetriever : MapImageRetriever<TileCoordinates>
 {
     protected TileBasedImageRetriever(
         IJ4JLogger? logger
@@ -17,33 +17,23 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<PixelTileLatLo
     {
     }
 
-    protected override IEnumerable<PixelTileLatLong> GetCoordinateIterator( MapRect mapRectangle )
+    protected override IEnumerable<TileCoordinates> GetCoordinateIterator( BoundingBox box )
     {
-        if( Zoom == null )
-        {
-            Logger?.Error("Trying to iterate over a {0} with an undefined {1}", typeof(MapRect), typeof(IZoom));
-            yield break;
-        }
-
         // if the rectangle is collapsed (which can happen if it's derived from a control which
         // hasn't been measured yet) return the coordinates for a single tile
-        if( mapRectangle.IsCollapsed )
-            yield return new PixelTileLatLong( mapRectangle.UpperLeft.TileRelativePixel.ToDoublePoint(),
-                                               mapRectangle.UpperLeft.Tile.ToIntPoint(),
-                                               mapRectangle.UpperLeft.LatLong,
-                                               Zoom );
-        else
-        {
-            for( var yTile = mapRectangle.UpperLeft.Tile.Y; yTile <= mapRectangle.LowerRight.Tile.Y; ++yTile )
-            {
-                for( var xTile = mapRectangle.UpperLeft.Tile.X; xTile <= mapRectangle.LowerRight.Tile.X; ++xTile )
-                {
-                    var tilePt = new IntPoint( xTile, yTile );
-                    var pixelPt = Zoom.TileToAbsolutePoint( tilePt );
-                    var latLongPt = Zoom.RelativePointToLatLong( pixelPt );
+        if( box.IsCollapsed )
+            yield break;
 
-                    yield return new PixelTileLatLong( pixelPt, tilePt, latLongPt, Zoom );
-                }
+        var upperLeftTile = MapProjection.GetTileFromScreenPoint( box.UpperLeft );
+        var lowerRightTile = MapProjection.GetTileFromScreenPoint( box.LowerRight );
+
+        for( var yTile = upperLeftTile.Y; yTile <= lowerRightTile.Y; ++yTile )
+        {
+            for( var xTile = upperLeftTile.X; xTile <= lowerRightTile.X; ++xTile )
+            {
+                var tilePt = new TilePoint( xTile, yTile );
+
+                yield return new TileCoordinates( tilePt, MapProjection );
             }
         }
     }

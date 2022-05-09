@@ -4,17 +4,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
-using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
+using Serilog;
 
 namespace J4JSoftware.J4JMapControl;
 
 public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
     where TCoord : Coordinates
 {
-    private MapRetrieverInfo? _retrieverInfo;
-    private IZoom? _zoom;
+    private IMapProjection? _mapProjection;
+    private MapRetrieverInfo? _mapRetrieverInfo;
 
     protected MapImageRetriever(
         IJ4JLogger? logger
@@ -26,31 +26,45 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
 
     protected IJ4JLogger? Logger { get; }
 
-    public virtual MapRetrieverInfo? MapRetrieverInfo => _retrieverInfo;
-
-    protected void SetRetrieverInfo( MapRetrieverInfo retrieverInfo )
-    {
-        _retrieverInfo = retrieverInfo;
-
-        Zoom = new Zoom( retrieverInfo );
-    }
-
-    public IZoom? Zoom
+    public IMapProjection MapProjection
     {
         get
         {
-            if( _zoom != null )
-                return _zoom;
+            if( _mapProjection != null )
+                return _mapProjection;
 
-            var msg = $"Trying to access an unconfigured {typeof(IZoom)}";
+            var msg = $"Trying to access {nameof( MapProjection )} when it has not been initialized";
 
-            Logger?.Fatal(msg);
-            J4JDeusEx.OutputFatalMessage(msg, null);
+            Logger?.Fatal( msg );
 
-            throw new J4JDeusExException(msg);
+            throw new NullReferenceException( msg );
         }
 
-        set => _zoom = value;
+        set
+        {
+            _mapProjection = value;
+
+            MapRetrieverInfo = GetMapRetrieverInfo( _mapProjection );
+        }
+    }
+
+    protected abstract MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection );
+
+    public MapRetrieverInfo MapRetrieverInfo
+    {
+        get
+        {
+            if( _mapRetrieverInfo != null )
+                return _mapRetrieverInfo;
+
+            var msg = $"Trying to access {nameof( MapRetrieverInfo )} when it has not been initialized";
+
+            Logger?.Fatal( msg );
+
+            throw new NullReferenceException( msg );
+        }
+
+        private set => _mapRetrieverInfo = value;
     }
 
     // Images returned by this call must each be decorated with:
@@ -58,7 +72,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
     //   associated with
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
     public async Task<AsyncWebResult<List<MapImageData>, HttpStatusCode>> GetMapImagesAsync(
-        MapRect mapRectangle,
+        BoundingBox box,
         IEnumerable<TCoord>? existingCoords = null
     )
     {
@@ -67,7 +81,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
         existingCoords ??= Enumerable.Empty<TCoord>();
         var existing = existingCoords.ToList();
 
-        foreach( var coordinate in GetCoordinateIterator( mapRectangle ) )
+        foreach( var coordinate in GetCoordinateIterator( box ) )
         {
             // don't retrieve Images we already have, if any were provided
             if( existing.Any( x => x == coordinate ) )
@@ -85,7 +99,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
         return new AsyncWebResult<List<MapImageData>, HttpStatusCode>( images, HttpStatusCode.Ok );
     }
 
-    protected abstract IEnumerable<TCoord> GetCoordinateIterator( MapRect mapRectangle );
+    protected abstract IEnumerable<TCoord> GetCoordinateIterator( BoundingBox box );
 
     // The Image returned by this call must be decorated with:
     // * an attached DependencyProperty, TileCoordinatesProperty, containing information about the tile the Image is
@@ -93,9 +107,6 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
     public async Task<AsyncWebResult<MapImageData, HttpStatusCode>> GetMapImageAsync( TCoord coordinates )
     {
-        if( Zoom == null )
-            return GetErrorAndLog<MapImageData>( "Trying to get map image when IZoom is undefined" );
-
         Logger?.Information( "Beginning image retrieval from web" );
 
         var request = GetRequest( coordinates );
@@ -162,7 +173,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
         HttpResponseMessage response );
 
     async Task<AsyncWebResult<List<object>, int>> IMapImageRetriever.GetMapImagesAsync(
-        MapRect mapRectangle,
+        BoundingBox box,
         IEnumerable<object>? existingImages
     )
     {
@@ -177,7 +188,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
             else existingOkay = false;
         }
 
-        var retVal = await GetMapImagesAsync( mapRectangle, existingOkay ? existingCast : null );
+        var retVal = await GetMapImagesAsync( box, existingOkay ? existingCast : null );
 
         if( !retVal.IsValid )
             return new AsyncWebResult<List<object>, int>( null, (int) HttpStatusCode.BadRequest );
