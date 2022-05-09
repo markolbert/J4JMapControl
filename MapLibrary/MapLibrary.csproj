@@ -13,10 +13,6 @@
 </PropertyGroup>
 
 <ItemGroup>
-  <Compile Remove="points\LatLongTypeConverter.cs" />
-</ItemGroup>
-
-<ItemGroup>
   <ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
 </ItemGroup>
 

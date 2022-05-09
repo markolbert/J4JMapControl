@@ -49,15 +49,13 @@ public class DeusEx : J4JDeusExWinApp
                .AsSelf()
                .SingleInstance();
 
+        builder.RegisterType<MercatorProjection>()
+               .AsImplementedInterfaces()
+               .SingleInstance();
+
         builder.RegisterType<ViewModel>()
                .AsSelf()
                .SingleInstance();
-
-        builder.RegisterType<PixelTileLatLongTiles>()
-               .AsSelf();
-
-        builder.RegisterType<PixelLatLongTiles>()
-               .AsSelf();
 
         builder.RegisterType<OpenStreetMapsImageRetriever>()
                .AsImplementedInterfaces()
