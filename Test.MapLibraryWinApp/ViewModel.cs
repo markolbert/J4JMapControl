@@ -33,6 +33,7 @@ public class ViewModel : ObservableObject
     private int _mapZoom = 1;
 
     public ViewModel(
+        IMapProjection mapProjection,
         IEnumerable<IMapImageRetriever> retrievers,
         IJ4JLogger logger
     )
@@ -46,9 +47,9 @@ public class ViewModel : ObservableObject
 
         foreach( var retriever in retrievers )
         {
-            if( retriever.MapRetrieverInfo != null )
-                temp.Add( new RetrieverInfo( retriever.MapRetrieverInfo.Description, retriever ) );
-            else _logger?.Error( "Could not initialize {0}", retriever.GetType() );
+            retriever.MapProjection = mapProjection;
+            
+            temp.Add( new RetrieverInfo( retriever.MapRetrieverInfo.Description, retriever ) );
         }
 
         Retrievers = temp;
@@ -135,14 +136,14 @@ public class ViewModel : ObservableObject
         TileImage = null;
         ErrorMessage = null;
 
-        if( _selectedRetriever == null || _selectedRetriever.Retriever.MapRetrieverInfo is not {} info )
+        if( _selectedRetriever.Retriever.MapRetrieverInfo is not {} info )
             return;
 
-        var tile = new PixelTileLatLong(
-            new RelativePixelPoint().ToDoublePoint(),
-            new IntPoint( _xTile, _yTile ),
-            LatLong.GetEmpty( info ),
-            new Zoom( _tileZoom, info ) );
+        var tile = new TileCoordinates( new TilePoint( _xTile, _yTile ),
+                                        new MercatorProjection
+                                        {
+                                            MapRetrieverInfo = _selectedRetriever.Retriever.MapRetrieverInfo
+                                        } );
 
         _selectedRetriever.Retriever.GetMapImageAsync(tile)
                           .ContinueWith((t) => _dQueue.TryEnqueue(() =>

@@ -1,8 +1,4 @@
-﻿using System.ComponentModel;
-using System.Numerics;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using ABI.Windows.Perception.Spatial;
+﻿using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -22,7 +18,7 @@ public sealed class J4JMapControl : Panel, IMapContext
     #region ZoomLevel property
 
     // the map's zoom level
-    public static readonly DependencyProperty ZoomLevelProperty = DependencyProperty.Register( nameof( Zoom ),
+    public static readonly DependencyProperty ZoomLevelProperty = DependencyProperty.Register( nameof( MercatorProjection ),
         typeof( int ),
         typeof( J4JMapControl ),
         new PropertyMetadata( 1, OnZoomLevelChanged ) );
@@ -62,9 +58,7 @@ public sealed class J4JMapControl : Panel, IMapContext
     {
         if( d is not J4JMapControl mapControl
         || mapControl.MapRetriever == null
-        || e.NewValue is not IMapImageRetriever retriever
-        || retriever.MapRetrieverInfo == null
-        || retriever.Zoom == null )
+        || e.NewValue is not IMapImageRetriever retriever )
             return;
 
         await mapControl.OnMapImageRetrieverChanged( retriever );
@@ -116,7 +110,7 @@ public sealed class J4JMapControl : Panel, IMapContext
     private readonly IJ4JLogger? _logger;
 
     private Size _desiredSize = Size.Empty;
-    private IZoom? _zoom;
+    private IMapProjection? _mapProjection;
     private int _tileWidthHeight;
 
     public J4JMapControl()
@@ -129,30 +123,20 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
     {
-        if( retriever.MapRetrieverInfo == null )
-        {
-            _tileWidthHeight = 0;
-            _zoom = null;
+        retriever.MapProjection = new MercatorProjection { MapRetrieverInfo = retriever.MapRetrieverInfo };
 
-            return;
-        }
-
-        var curLevel = retriever.Zoom!.Level;
-        retriever.Zoom = new Zoom( retriever.MapRetrieverInfo );
-        retriever.Zoom.Level = curLevel;
-
-        _tileWidthHeight = retriever.MapRetrieverInfo?.DefaultBitmapWidthHeight ?? 0;
-        _zoom = retriever.Zoom;
+        _tileWidthHeight = retriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
+        _mapProjection = retriever.MapProjection;
         
         await UpdateMap();
     }
 
     private async Task OnZoomLevelChanged( int zoom )
     {
-        if( MapRetriever == null || MapRetriever.Zoom == null )
+        if( MapRetriever == null )
             return;
 
-        MapRetriever.Zoom.Level = zoom;
+        MapRetriever.MapProjection.ZoomLevel = zoom;
         await UpdateMap();
     }
 
@@ -165,13 +149,13 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     public async Task UpdateMap()
     {
-        if( Center == null || MapRetriever == null || _zoom == null )
+        if( Center == null || MapRetriever == null || _mapProjection == null )
             return;
 
-        var mapRect = _zoom.GetPixelMapRect( Center, ActualSize.ToSize() );
+        var box = new BoundingBox( _mapProjection.LatLongToScreenPoint( Center ), ActualWidth, ActualHeight );
 
         var retrievalResult = await MapRetriever
-           .GetMapImagesAsync( mapRect, Children.MapImages().ExtractCoordinates() );
+           .GetMapImagesAsync( box, Children.MapImages().ExtractCoordinates() );
 
         if( !retrievalResult.IsValid )
             return;
@@ -236,7 +220,7 @@ public sealed class J4JMapControl : Panel, IMapContext
                                          ( (BitmapSource) image.Source ).PixelHeight ) );
 
                 var coords = AttachedProperties.GetCoordinates( image );
-                if( coords is not PixelTileLatLong tileCoords )
+                if( coords is not TileCoordinates tileCoords )
                     continue;
 
                 minXTile = tileCoords.Tile.X < minXTile ? tileCoords.Tile.X : minXTile;
@@ -295,18 +279,18 @@ public sealed class J4JMapControl : Panel, IMapContext
 
             switch( coords )
             {
-                case PixelLatLong:
-                    finalRect = new Rect( 0, 0, finalSize.Width, finalSize.Height );
-                    break;
+                //case PixelLatLong:
+                //    finalRect = new Rect( 0, 0, finalSize.Width, finalSize.Height );
+                //    break;
 
-                case PixelTileLatLong tileCoords:
+                case TileCoordinates tileCoords:
                     var upperLeftX = tileCoords.Tile.X * _tileWidthHeight;
                     var upperLeftY = tileCoords.Tile.Y * _tileWidthHeight;
 
-                    finalRect = new Rect( upperLeftX - xOffset,
-                                          upperLeftY - yOffset,
-                                          _tileWidthHeight,
-                                          _tileWidthHeight );
+                    finalRect = new( upperLeftX - xOffset,
+                                     upperLeftY - yOffset,
+                                     _tileWidthHeight,
+                                     _tileWidthHeight );
                     break;
 
                 default:
