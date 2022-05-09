@@ -1,14 +1,12 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public record PixelLatLong(
-    DoublePoint PixelUpperLeft,
-    DoublePoint PixelLowerRight,
+public record LatLongCoordinates(
     LatLong LatLongUpperLeft,
     LatLong LatLongLowerRight,
-    IZoom Zoom
-) : Coordinates( PixelUpperLeft, Zoom )
+    IMapProjection MapProjection
+) : Coordinates( MapProjection )
 {
-    public virtual bool Equals( PixelLatLong? other )
+    public virtual bool Equals( LatLongCoordinates? other )
     {
         if( ReferenceEquals( null, other ) )
             return false;
@@ -16,11 +14,10 @@ public record PixelLatLong(
             return true;
 
         return base.Equals( other )
-         && PixelLowerRight.Equals( other.PixelLowerRight )
          && LatLongUpperLeft.Equals( other.LatLongUpperLeft )
          && LatLongLowerRight.Equals( other.LatLongLowerRight );
     }
 
     public override int GetHashCode() =>
-        HashCode.Combine( base.GetHashCode(), PixelLowerRight, LatLongUpperLeft, LatLongLowerRight );
+        HashCode.Combine( base.GetHashCode(), LatLongUpperLeft, LatLongLowerRight );
 }

@@ -3,21 +3,16 @@
 public record Coordinates
 {
     protected Coordinates(
-        DoublePoint upperLeft,
-        IZoom zoom
+        IMapProjection mapProjection
     )
     {
-        PixelUpperLeft = upperLeft;
-        Zoom = zoom;
+        MapProjection = mapProjection;
     }
 
-    public DoublePoint PixelUpperLeft { get; }
-    public IZoom Zoom { get; }
+    public IMapProjection MapProjection { get; }
 
     public virtual bool Equals( Coordinates? other ) =>
-        !ReferenceEquals( null, other )
-     && ( ReferenceEquals( this, other )
-         || PixelUpperLeft.Equals( other.PixelUpperLeft ) );
+        !ReferenceEquals( null, other );
 
-    public override int GetHashCode() => PixelUpperLeft.GetHashCode();
+    public override int GetHashCode() => MapProjection.GetHashCode();
 }
