@@ -19,5 +19,5 @@ public record MapRetrieverInfo(
         _upperLeft ??= new LatLong( this ) { Latitude = MaximumLatitude, Longitude = -MaximumLongitude };
 
     public LatLong LowerRight =>
-        _upperLeft ??= new LatLong(this) { Latitude = -MaximumLatitude, Longitude = MaximumLongitude };
+        _lowerRight ??= new LatLong(this) { Latitude = -MaximumLatitude, Longitude = MaximumLongitude };
 }
