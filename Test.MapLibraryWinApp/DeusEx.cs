@@ -9,6 +9,7 @@ using J4JSoftware.WindowsAppUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Events;
 
 namespace Test.MapLibraryWinApp;
 
@@ -36,7 +37,9 @@ public class DeusEx : J4JDeusExWinApp
 
         loggerConfig.SerilogConfiguration
                     .WriteTo
-                    .File( path: logFilePath, rollingInterval: RollingInterval.Day );
+                    .File( path: logFilePath, rollingInterval: RollingInterval.Day )
+                    .WriteTo
+                    .Debug( restrictedToMinimumLevel: LogEventLevel.Warning );
     }
 
     private void InitializeDependencyInjection( HostBuilderContext hbc, ContainerBuilder builder )

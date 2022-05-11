@@ -29,6 +29,7 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.0.3" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22000.197" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
