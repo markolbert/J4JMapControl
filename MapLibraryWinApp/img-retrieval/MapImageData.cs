@@ -3,4 +3,4 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public record MapImageData( Coordinates Coordinates, InMemoryRandomAccessStream Stream );
+public record MapImageData( MultiCoordinates Coordinates, InMemoryRandomAccessStream Stream );
