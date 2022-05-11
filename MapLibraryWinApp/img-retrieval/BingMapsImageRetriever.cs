@@ -65,10 +65,10 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
         return true;
     }
 
-    protected override HttpRequestMessage GetRequest( TileCoordinates tile )
+    protected override HttpRequestMessage GetRequest( MultiCoordinates coordinates )
     {
         var subDomain = ( (BingMapRetrieverInfo) MapRetrieverInfo ).GetRandomSubdomain();
-        var quadKey = tile.GetBingMapsQuadKey();
+        var quadKey = coordinates.GetBingMapsQuadKey( MapProjection.ZoomLevel );
 
         var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "{subdomain}", subDomain )
                                       .Replace( "{quadkey}", quadKey )
@@ -81,9 +81,9 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
     {
         var temp = await BingMapMetadataRetriever.GetBingMetadata( MapType, _apiKey );
 
-        if( !temp.IsValid )
+        if( temp.ReturnValue == null )
         {
-            Logger?.Error<string?, HttpStatusCode, string?>(
+            Logger?.Error<string?, int, string?>(
                 "Could not get Bing metadata from {0} (status code {1}), message was {2}",
                 temp.Url,
                 temp.HttpStatusCode,

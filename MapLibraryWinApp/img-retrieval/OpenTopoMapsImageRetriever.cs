@@ -29,7 +29,7 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
              20,
              256 );
 
-    protected override HttpRequestMessage? GetRequest( TileCoordinates tile )
+    protected override HttpRequestMessage? GetRequest( MultiCoordinates coordinates )
     {
         if (string.IsNullOrEmpty(_userAgent))
         {
@@ -37,9 +37,9 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
             return null;
         }
 
-        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", tile.MapProjection.ZoomLevel.ToString() )
-                                      .Replace( "XTile", tile.Tile.X.ToString() )
-                                      .Replace( "YTile", tile.Tile.Y.ToString() );
+        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", MapProjection.ZoomLevel.ToString() )
+                                      .Replace( "XTile", coordinates.TilePoint.X.ToString() )
+                                      .Replace( "YTile", coordinates.TilePoint.Y.ToString() );
 
         var retVal = new HttpRequestMessage(HttpMethod.Get, new Uri(uriText));
         retVal.Headers.Add("User-Agent", _userAgent);

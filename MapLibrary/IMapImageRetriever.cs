@@ -4,12 +4,13 @@
     {
         IMapProjection MapProjection { get; set; }
         MapRetrieverInfo MapRetrieverInfo { get; }
+        bool FixedSizeImages { get; }
 
-        Task<AsyncWebResult<List<object>, int>> GetMapImagesAsync(
+        Task<AsyncWebResult<List<object>>> GetMapImagesAsync(
             BoundingBox box,
-            IEnumerable<object>? existingImages
+            IEnumerable<MultiCoordinates>? existingImages
         );
 
-        Task<AsyncWebResult<object, int>> GetMapImageAsync(object tile);
+        Task<AsyncWebResult<object>> GetMapImageAsync(object tile);
     }
 }

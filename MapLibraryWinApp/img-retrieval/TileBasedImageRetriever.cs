@@ -8,37 +8,16 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class TileBasedImageRetriever : MapImageRetriever<TileCoordinates>
+public abstract class TileBasedImageRetriever : MapImageRetriever
 {
     protected TileBasedImageRetriever(
         IJ4JLogger? logger
     )
-        : base( logger )
+        : base( true, logger )
     {
     }
 
-    protected override IEnumerable<TileCoordinates> GetCoordinateIterator( BoundingBox box )
-    {
-        // if the rectangle is collapsed (which can happen if it's derived from a control which
-        // hasn't been measured yet) return the coordinates for a single tile
-        if( box.IsCollapsed )
-            yield break;
-
-        var upperLeftTile = MapProjection.GetTileFromScreenPoint( box.UpperLeft );
-        var lowerRightTile = MapProjection.GetTileFromScreenPoint( box.LowerRight );
-
-        for( var yTile = upperLeftTile.Y; yTile <= lowerRightTile.Y; ++yTile )
-        {
-            for( var xTile = upperLeftTile.X; xTile <= lowerRightTile.X; ++xTile )
-            {
-                var tilePt = new TilePoint( xTile, yTile );
-
-                yield return new TileCoordinates( tilePt, MapProjection );
-            }
-        }
-    }
-
-    protected override async Task<AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>> ExtractImageDataAsync(
+    protected override async Task<AsyncWebResult<InMemoryRandomAccessStream>> ExtractImageDataAsync(
         HttpResponseMessage response
     )
     {
@@ -49,36 +28,7 @@ public abstract class TileBasedImageRetriever : MapImageRetriever<TileCoordinate
             var memStream = new InMemoryRandomAccessStream();
             await RandomAccessStream.CopyAsync( responseStream, memStream );
 
-            //var tempStream = memStream.GetInputStreamAt( 0 ).AsStreamForRead();
-            //var buffer = new byte[ memStream.Size ];
-            //var bytesRead = await tempStream.ReadAsync( buffer );
-
-            //if( Convert.ToUInt64(bytesRead) != memStream.Size)
-            //    return GetErrorAndLog<InMemoryRandomAccessStream>( "Failed to transfer all image data to buffer",
-            //                                                       response.RequestMessage.RequestUri );
-
-            return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>( memStream, HttpStatusCode.Ok );
-
-            //await File.WriteAllBytesAsync( "c://users/mark/desktop/tile.png", buffer );
-
-            ////return new AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>(
-            ////    randomAccessStream,
-            ////    response.StatusCode );
-
-            //memStream.Seek( 0 );
-            //var retVal = new Image();
-
-            ////var outStream = new InMemoryRandomAccessStream();
-            ////await outStream.WriteAsync( buffer.AsBuffer() );
-            ////outStream.Seek( 0 );
-
-            //var source = new BitmapImage();
-            //await source.SetSourceAsync( memStream );
-            //retVal.Source = source;
-
-            //AttachedProperties.SetTileCoordinates( retVal, coordinates );
-
-            //return new AsyncWebResult<Image, HttpStatusCode>( retVal, response.StatusCode );
+            return new AsyncWebResult<InMemoryRandomAccessStream>( memStream, (int) HttpStatusCode.Ok );
         }
         catch( Exception ex )
         {

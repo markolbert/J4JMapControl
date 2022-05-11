@@ -6,20 +6,21 @@ using Windows.Storage.Streams;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
-using Serilog;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
-    where TCoord : Coordinates
+public abstract class MapImageRetriever : IMapWinUiImageRetriever
 {
     private IMapProjection? _mapProjection;
     private MapRetrieverInfo? _mapRetrieverInfo;
 
     protected MapImageRetriever(
+        bool fixedSizeImages,
         IJ4JLogger? logger
     )
     {
+        FixedSizeImages = fixedSizeImages;
+
         Logger = logger;
         Logger?.SetLoggedType( GetType() );
     }
@@ -47,6 +48,7 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
             MapRetrieverInfo = GetMapRetrieverInfo( _mapProjection );
         }
     }
+    public bool FixedSizeImages { get; }
 
     protected abstract MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection );
 
@@ -71,41 +73,45 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
     // * an attached DependencyProperty,TileCoordinatesProperty, containing information about the tile the Image is
     //   associated with
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
-    public async Task<AsyncWebResult<List<MapImageData>, HttpStatusCode>> GetMapImagesAsync(
+    public async Task<AsyncWebResult<List<MapImageData>>> GetMapImagesAsync(
         BoundingBox box,
-        IEnumerable<TCoord>? existingCoords = null
+        IEnumerable<MultiCoordinates>? existingCoords = null
     )
     {
         var images = new List<MapImageData>();
 
-        existingCoords ??= Enumerable.Empty<TCoord>();
+        existingCoords ??= Enumerable.Empty<MultiCoordinates>();
         var existing = existingCoords.ToList();
 
-        foreach( var coordinate in GetCoordinateIterator( box ) )
+        foreach( var tilePoint in box.GetTileCoordinates(MapProjection) )
         {
             // don't retrieve Images we already have, if any were provided
-            if( existing.Any( x => x == coordinate ) )
+            if( existing.Any( x => x == tilePoint ) )
                 continue;
 
-            var result = await GetMapImageAsync( coordinate );
+            var result = await GetMapImageAsync( tilePoint );
 
             if( result.ReturnValue == null )
                 return GetErrorAndLog<List<MapImageData>>(
-                    $"Failed to get image for {typeof( TCoord )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
+                    $"Failed to get image for {typeof( MultiCoordinates )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
 
             images.Add( result.ReturnValue );
         }
 
-        return new AsyncWebResult<List<MapImageData>, HttpStatusCode>( images, HttpStatusCode.Ok );
-    }
+        if( images.Any())
+            return new AsyncWebResult<List<MapImageData>>( images, (int) HttpStatusCode.Ok );
 
-    protected abstract IEnumerable<TCoord> GetCoordinateIterator( BoundingBox box );
+        return new AsyncWebResult<List<MapImageData>>( null,
+                                                       (int) HttpStatusCode.BadRequest,
+                                                       null,
+                                                       "No tile images retrieved" );
+    }
 
     // The Image returned by this call must be decorated with:
     // * an attached DependencyProperty, TileCoordinatesProperty, containing information about the tile the Image is
     //   associated with.
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
-    public async Task<AsyncWebResult<MapImageData, HttpStatusCode>> GetMapImageAsync( TCoord coordinates )
+    public async Task<AsyncWebResult<MapImageData>> GetMapImageAsync( MultiCoordinates coordinates )
     {
         Logger?.Information( "Beginning image retrieval from web" );
 
@@ -145,14 +151,14 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
         Logger?.Information<string>( "Reading response from {0}", uriText );
 
         var imgData = await ExtractImageDataAsync( response );
-        if( !imgData.IsValid )
+        if( imgData.ReturnValue == null )
             return GetErrorAndLog<MapImageData>( "Failed to retrieve image data" );
 
-        return new AsyncWebResult<MapImageData, HttpStatusCode>( new MapImageData(coordinates, imgData.ReturnValue!),
-                                                                 HttpStatusCode.Ok );
+        return new AsyncWebResult<MapImageData>( new MapImageData(coordinates, imgData.ReturnValue!),
+                                                                 (int) HttpStatusCode.Ok );
     }
 
-    protected AsyncWebResult<TResult, HttpStatusCode> GetErrorAndLog<TResult>(
+    protected AsyncWebResult<TResult> GetErrorAndLog<TResult>(
         string msg,
         Uri? uri = null,
         HttpStatusCode statusCode = HttpStatusCode.BadRequest
@@ -161,58 +167,49 @@ public abstract class MapImageRetriever<TCoord> : IMapImageRetriever<TCoord>
     {
         Logger?.Error( msg );
 
-        return new AsyncWebResult<TResult, HttpStatusCode>(null,
-                                                         statusCode,
-                                                         uri?.AbsoluteUri ?? null,
-                                                         msg);
+        return new AsyncWebResult<TResult>( null,
+                                            (int) statusCode,
+                                            uri?.AbsoluteUri ?? null,
+                                            msg );
     }
 
-    protected abstract HttpRequestMessage? GetRequest( TCoord coordinates );
+    protected abstract HttpRequestMessage? GetRequest( MultiCoordinates coordinates );
 
-    protected abstract Task<AsyncWebResult<InMemoryRandomAccessStream, HttpStatusCode>> ExtractImageDataAsync(
+    protected abstract Task<AsyncWebResult<InMemoryRandomAccessStream>> ExtractImageDataAsync(
         HttpResponseMessage response );
 
-    async Task<AsyncWebResult<List<object>, int>> IMapImageRetriever.GetMapImagesAsync(
+    async Task<AsyncWebResult<List<object>>> IMapImageRetriever.GetMapImagesAsync(
         BoundingBox box,
-        IEnumerable<object>? existingImages
+        IEnumerable<MultiCoordinates>? existingImages
     )
     {
-        var existingOkay = true;
+        var retVal = await GetMapImagesAsync( box, existingImages );
 
-        var existingCast = new List<TCoord>();
-
-        foreach( var existing in existingImages ?? Enumerable.Empty<object>() )
-        {
-            if( existing is TCoord coord )
-                existingCast.Add( coord );
-            else existingOkay = false;
-        }
-
-        var retVal = await GetMapImagesAsync( box, existingOkay ? existingCast : null );
-
-        if( !retVal.IsValid )
-            return new AsyncWebResult<List<object>, int>( null, (int) HttpStatusCode.BadRequest );
-
-        return new AsyncWebResult<List<object>, int>( retVal.ReturnValue!.Cast<object>().ToList(),
-                                                      (int) retVal.HttpStatusCode,
-                                                      retVal.Url,
-                                                      retVal.Message );
+        return retVal.ReturnValue == null
+            ? new AsyncWebResult<List<object>>( null,
+                                                (int) HttpStatusCode.BadRequest,
+                                                retVal.Url,
+                                                retVal.Message )
+            : new AsyncWebResult<List<object>>( retVal.ReturnValue!.Cast<object>().ToList(),
+                                                retVal.HttpStatusCode,
+                                                retVal.Url,
+                                                retVal.Message );
     }
 
-    async Task<AsyncWebResult<object, int>> IMapImageRetriever.GetMapImageAsync( object tile )
+    async Task<AsyncWebResult<object>> IMapImageRetriever.GetMapImageAsync( object tile )
     {
-        if( tile is TCoord castTile )
+        if( tile is MultiCoordinates castTile )
         {
             var retVal = await GetMapImageAsync( castTile );
 
-            return new AsyncWebResult<object, int>( retVal.ReturnValue, (int) retVal.HttpStatusCode, retVal.Url, retVal.Message );
+            return new AsyncWebResult<object>( retVal.ReturnValue, retVal.HttpStatusCode, retVal.Url, retVal.Message );
         }
 
-        Logger?.Error( "GetMapImage requires a {0} but was provided a {1}", typeof( TCoord ), tile.GetType() );
+        Logger?.Error( "GetMapImage requires a {0} but was provided a {1}", typeof( MultiCoordinates ), tile.GetType() );
 
-        return new AsyncWebResult<object, int>( null,
+        return new AsyncWebResult<object>( null,
                                                 (int) HttpStatusCode.BadRequest,
                                                 Message:
-                                                $"GetMapImage requires a {typeof( TCoord )} but was provided a {tile.GetType()}" );
+                                                $"GetMapImage requires a {typeof( MultiCoordinates )} but was provided a {tile.GetType()}" );
     }
 }

@@ -15,7 +15,7 @@ namespace J4JSoftware.MapLibrary
         private const string MetadataUrlTemplate =
             "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
 
-        public static async Task<AsyncWebResult<BingMetadata.ImageryMetadata, HttpStatusCode>> GetBingMetadata(
+        public static async Task<AsyncWebResult<BingMetadata.ImageryMetadata>> GetBingMetadata(
             BingMapType mapType,
             string apiKey
         )
@@ -36,8 +36,8 @@ namespace J4JSoftware.MapLibrary
             }
             catch( Exception ex )
             {
-                return new AsyncWebResult<BingMetadata.ImageryMetadata, HttpStatusCode>( null,
-                    response?.StatusCode ?? HttpStatusCode.BadRequest,
+                return new AsyncWebResult<BingMetadata.ImageryMetadata>( null,
+                    (int) (response?.StatusCode ?? HttpStatusCode.BadRequest),
                     $"Metadata request from {uriText} failed, message was '{ex.Message}'" );
             }
 
@@ -45,8 +45,8 @@ namespace J4JSoftware.MapLibrary
             {
                 var error = await response.Content.ReadAsStringAsync();
 
-                return new AsyncWebResult<BingMetadata.ImageryMetadata, HttpStatusCode>( null,
-                    response.StatusCode,
+                return new AsyncWebResult<BingMetadata.ImageryMetadata>( null,
+                    (int) response.StatusCode,
                     $"Invalid response code from {uriText} ({response.StatusCode}), message was '{error}'" );
             }
 
@@ -58,14 +58,14 @@ namespace J4JSoftware.MapLibrary
 
                 var retVal = JsonSerializer.Deserialize<BingMetadata.ImageryMetadata>( respText, options );
 
-                return new AsyncWebResult<BingMetadata.ImageryMetadata, HttpStatusCode>( retVal,
-                    response.StatusCode,
+                return new AsyncWebResult<BingMetadata.ImageryMetadata>( retVal,
+                    (int) response.StatusCode,
                     request.RequestUri.AbsoluteUri );
             }
             catch( Exception ex )
             {
-                return new AsyncWebResult<BingMetadata.ImageryMetadata, HttpStatusCode>( null,
-                    response.StatusCode,
+                return new AsyncWebResult<BingMetadata.ImageryMetadata>( null,
+                    (int) response.StatusCode,
                     request.RequestUri.AbsoluteUri,
                     $"Could not retrieve metadata, message was '{ex.Message}'" );
             }
