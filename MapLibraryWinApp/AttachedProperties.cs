@@ -15,15 +15,15 @@ public static class AttachedProperties
     #region TileCoordinates property
 
     public static readonly DependencyProperty CoordinatesProperty =
-        DependencyProperty.RegisterAttached( "CoordinatesProperty",
-                                             typeof( Coordinates ),
+        DependencyProperty.RegisterAttached( nameof(CoordinatesProperty),
+                                             typeof( MultiCoordinates ),
                                              typeof( Image ),
                                              null );
 
-    public static Coordinates? GetCoordinates( Image image ) =>
-        image.GetValue( CoordinatesProperty ) as Coordinates;
+    public static MultiCoordinates? GetCoordinates( Image image ) =>
+        image.GetValue( CoordinatesProperty ) as MultiCoordinates;
 
-    public static void SetCoordinates( Image image, Coordinates value ) =>
+    public static void SetCoordinates( Image image, MultiCoordinates value ) =>
         image.SetValue( CoordinatesProperty, value );
 
     #endregion
@@ -31,7 +31,7 @@ public static class AttachedProperties
     #region IsMapTile property
 
     public static readonly DependencyProperty IsMapTileProperty = DependencyProperty.RegisterAttached(
-        "IsMapTileProperty",
+        nameof(IsMapTileProperty),
         typeof( bool ),
         typeof( Image ),
         null );
@@ -47,4 +47,23 @@ public static class AttachedProperties
 
     #endregion
 
+    #region IsFixedImageSize property
+
+    public static readonly DependencyProperty IsFixedImageSizeProperty = DependencyProperty.RegisterAttached(
+        nameof(IsFixedImageSizeProperty),
+        typeof(bool),
+        typeof(Image),
+        null);
+
+    public static bool GetIsFixedImageSize(Image image)
+    {
+        var propValue = image.GetValue(IsFixedImageSizeProperty);
+
+        return propValue != null && (bool)propValue;
+    }
+
+    public static void SetIsFixedImageSize( Image image, bool value ) =>
+        image.SetValue( IsFixedImageSizeProperty, value );
+
+    #endregion
 }
