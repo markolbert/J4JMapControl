@@ -111,6 +111,8 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private IMapProjection? _mapProjection;
     private BoundingBox? _boundingBox;
+    private double _prevCenterXOffset;
+    private double _prevCenterYOffset;
 
     public J4JMapControl()
     {
@@ -298,17 +300,39 @@ public sealed class J4JMapControl : Panel, IMapContext
         if( _mapProjection == null || _boundingBox == null )
             return;
 
+        _logger?.Warning( "Arranging within ({0}, {1})", finalSize.Width, finalSize.Height );
+        _logger?.Warning("Bounding box is ({0}, {1})", _boundingBox.Width, _boundingBox.Height);
+
         // determine if we need to shift the images
         var xOffset = 0.0;
 
-        if( _boundingBox.HorizontalTiles > 1 && _boundingBox.Width > finalSize.Width )
-            xOffset = ( finalSize.Width - _boundingBox.Width ) / 2;
+        var curCenterXOffset = _boundingBox.GetCenterOffset(CoordinateAxis.XAxis);
+        _logger?.Warning("Center X offset is {0}", curCenterXOffset);
+
+        if ( _boundingBox.HorizontalTiles > 1 && _boundingBox.Width > finalSize.Width )
+        {
+            //xOffset = (finalSize.Width - _boundingBox.Width) / 2;
+            xOffset = curCenterXOffset;
+        }
+
+        _prevCenterXOffset = curCenterXOffset;
+
+        _logger?.Warning("xOffset is {0}", xOffset);
 
         var yOffset = 0.0;
 
-        if( _boundingBox.VerticalTiles > 1 && _boundingBox.Height > finalSize.Height )
-            yOffset = ( finalSize.Height - _boundingBox.Height ) / 2;
+        var curCenterYOffset = _boundingBox.GetCenterOffset(CoordinateAxis.YAxis);
+        _logger?.Warning("Center Y offset is {0}", curCenterYOffset);
 
+        if( _boundingBox.VerticalTiles > 1 && _boundingBox.Height > finalSize.Height )
+        {
+            //yOffset = (finalSize.Height - _boundingBox.Height) / 2;
+            yOffset = curCenterYOffset;
+        }
+
+        _prevCenterYOffset = curCenterYOffset;
+
+        _logger?.Warning( "yOffset is {0}", yOffset );
 
         foreach ( var image in Children.MapImages() )
         {
@@ -319,29 +343,36 @@ public sealed class J4JMapControl : Panel, IMapContext
                 continue;
             }
 
-            Rect? finalRect;
-
-            if( AttachedProperties.GetIsFixedImageSize( image ) )
-            {
-                var coordinates = AttachedProperties.GetCoordinates( image );
-                if( coordinates == null )
-                    continue;
-
-                var upperLeftX = coordinates.ScreenPoint.GetX( CoordinateOrigin.UpperLeft )
-                  - _boundingBox.UpperLeft.ScreenPoint.GetX( CoordinateOrigin.UpperLeft );
-
-                var upperLeftY = coordinates.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
-                  - _boundingBox.UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft );
-
-                finalRect = new( upperLeftX + xOffset,
-                                 upperLeftY + yOffset,
-                                 _mapProjection.TileWidthHeight,
-                                 _mapProjection.TileWidthHeight );
-            }
-            else finalRect = null;
+            var finalRect = AttachedProperties.GetIsFixedImageSize( image ) 
+                ? GetFixedTileRect( coords, xOffset, yOffset ) 
+                : null;
 
             if( finalRect != null )
                 image.Arrange( finalRect.Value );
         }
+    }
+
+    private Rect? GetFixedTileRect( MultiCoordinates coordinates, double xOffset, double yOffset )
+    {
+        var upperLeftX = coordinates.ScreenPoint.GetX( CoordinateOrigin.UpperLeft )
+          - _boundingBox!.UpperLeft.ScreenPoint.GetX( CoordinateOrigin.UpperLeft );
+
+        var upperLeftY = coordinates.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
+          - _boundingBox.UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft );
+
+        _logger?.Warning( "Tile ({0}, {1}, {2}) positioned at ({3}, {4})",
+                              new object[]
+                              {
+                                  coordinates.TilePoint.X,
+                                  coordinates.TilePoint.Y,
+                                  coordinates.TilePoint.Z,
+                                  upperLeftX,
+                                  upperLeftY
+                              } );
+
+        return new( upperLeftX + xOffset,
+                         upperLeftY + yOffset,
+                         _mapProjection!.TileWidthHeight,
+                         _mapProjection.TileWidthHeight );
     }
 }
