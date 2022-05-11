@@ -1,13 +1,9 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public record AsyncWebResult<TResult, TStatus>(
+public record AsyncWebResult<TResult>(
     TResult? ReturnValue,
-    TStatus HttpStatusCode,
+    int HttpStatusCode,
     string? Url = null,
     string? Message = null
 )
-    where TResult : class
-    where TStatus : struct
-{
-    public bool IsValid => string.IsNullOrEmpty( Message );
-}
+    where TResult : class;
