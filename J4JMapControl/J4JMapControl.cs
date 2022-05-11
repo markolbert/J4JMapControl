@@ -110,7 +110,6 @@ public sealed class J4JMapControl : Panel, IMapContext
     private readonly IJ4JLogger? _logger;
 
     private IMapProjection? _mapProjection;
-    private int _tileWidthHeight;
     private BoundingBox? _boundingBox;
 
     public J4JMapControl()
@@ -125,8 +124,6 @@ public sealed class J4JMapControl : Panel, IMapContext
     {
         _mapProjection = new MercatorProjection { MapRetrieverInfo = retriever.MapRetrieverInfo };
         retriever.MapProjection = _mapProjection;
-
-        _tileWidthHeight = retriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
 
         if( Center == null )
             return;
@@ -223,27 +220,35 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private Size MeasureMapLayer( Size retVal )
     {
-        var minXTile = int.MaxValue;
-        var minYTile = int.MaxValue;
-        var maxXTile = 0;
-        var maxYTile = 0;
+        if( _mapProjection == null )
+            return retVal;
+
+        double desiredWidth;
+        double desiredHeight;
 
         var varSizedImage = Children.VariableSizedMapImages().FirstOrDefault();
 
         if( varSizedImage != null )
         {
             // there should only ever by a single variable-sized map image
-            minXTile = 0;
-            minYTile = 0;
+            var varSize = new Size( ( (BitmapSource) varSizedImage.Source ).PixelWidth,
+                                    ( (BitmapSource) varSizedImage.Source ).PixelHeight );
+
+            desiredWidth = varSize.Width;
+            desiredHeight = varSize.Height;
 
             // map images don't resize -- they stay the same size as when they're created
-            varSizedImage.Measure( new Size( ( (BitmapSource) varSizedImage.Source ).PixelWidth,
-                                             ( (BitmapSource) varSizedImage.Source ).PixelHeight ) );
+            varSizedImage.Measure( varSize );
         }
         else
         {
             // process fixed-size map images
-            foreach( var image in Children.FixedSizedMapImages() )
+            var minXTile = int.MaxValue;
+            var minYTile = int.MaxValue;
+            var maxXTile = 0;
+            var maxYTile = 0;
+
+            foreach ( var image in Children.FixedSizedMapImages() )
             {
                 // map images don't resize -- they stay the same size as when they're created
                 image.Measure( new Size( ( (BitmapSource) image.Source ).PixelWidth,
@@ -258,12 +263,12 @@ public sealed class J4JMapControl : Panel, IMapContext
                 maxXTile = coords.TilePoint.X > maxXTile ? coords.TilePoint.X : maxXTile;
                 maxYTile = coords.TilePoint.Y > maxYTile ? coords.TilePoint.Y : maxYTile;
             }
+
+            desiredWidth = _mapProjection.TileWidthHeight * (maxXTile - minXTile + 1);
+            desiredHeight = _mapProjection.TileWidthHeight * ( maxYTile - minYTile + 1 );
         }
 
-        var desiredWidth = _tileWidthHeight * ( maxXTile - minXTile + 1 );
-        var desiredHeight = _tileWidthHeight * ( maxYTile - minYTile + 1 );
-
-        if( desiredWidth < retVal.Width )
+        if ( desiredWidth < retVal.Width )
             retVal.Width = desiredWidth;
 
         if( desiredHeight < retVal.Height )
@@ -276,7 +281,6 @@ public sealed class J4JMapControl : Panel, IMapContext
     {
         if( Center == null
         || MapRetriever == null
-        || _tileWidthHeight == 0
         || !Children.MapImages().Any() )
             return finalSize;
 
@@ -331,8 +335,8 @@ public sealed class J4JMapControl : Panel, IMapContext
 
                 finalRect = new( upperLeftX + xOffset,
                                  upperLeftY + yOffset,
-                                 _tileWidthHeight,
-                                 _tileWidthHeight );
+                                 _mapProjection.TileWidthHeight,
+                                 _mapProjection.TileWidthHeight );
             }
             else finalRect = null;
 
