@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using J4JSoftware.J4JMapControl;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Serilog.Core;
 
 namespace Test.MapLibraryWinApp;
 
@@ -25,7 +18,7 @@ public class ViewModel : ObservableObject
     private int _xTile;
     private int _yTile;
     private int _tileZoom = 1;
-    private ImageSource? _tileImage;
+    private BitmapImage? _tileImageSource;
     private string? _errorMsg;
     private bool _suppressUpdate;
 
@@ -132,34 +125,44 @@ public class ViewModel : ObservableObject
 
     private void GetTile()
     {
-        return;
-        TileImage = null;
         ErrorMessage = null;
+        TileImageSource = null;
 
-        if( _selectedRetriever.Retriever.MapRetrieverInfo is not {} info )
+        if( Location == null
+        || _selectedRetriever?.Retriever.MapRetrieverInfo is not {} info )
             return;
 
-        var tile = new TileCoordinates( new TilePoint( _xTile, _yTile ),
-                                        new MercatorProjection
-                                        {
-                                            MapRetrieverInfo = _selectedRetriever.Retriever.MapRetrieverInfo
-                                        } );
+        var midPt = _selectedRetriever.Retriever.MapProjection.ProjectionWidthHeight / 2;
 
-        _selectedRetriever.Retriever.GetMapImageAsync(tile)
-                          .ContinueWith((t) => _dQueue.TryEnqueue(() =>
-                           {
-                               TileImage = (t.Result.ReturnValue as Image)?.Source;
-                               ErrorMessage = t.Result.Message;
-                           }));
+        var tile = new MultiCoordinates( new TilePoint( _xTile, _yTile ),
+                                         _selectedRetriever.Retriever.MapProjection,
+                                         CoordinateOrigin.UpperLeft );
+
+        var result = _selectedRetriever.Retriever.GetMapImageAsync( tile )
+                                       .ContinueWith( t =>
+                                        {
+                                            _dQueue.TryEnqueue( () =>
+                                            {
+                                                if (t.Result is not { ReturnValue: MapImageData imageData })
+                                                {
+                                                    ErrorMessage = "Failed to retrieve image";
+                                                    return;
+                                                }
+
+                                                TileImageSource = new BitmapImage();
+                                                imageData.Stream.Seek(0);
+                                                TileImageSource.SetSource(imageData.Stream);
+                                            });
+                                        });
     }
 
-    public ImageSource? TileImage
+    public BitmapImage? TileImageSource
     {
-        get => _tileImage;
+        get => _tileImageSource;
 
         set
         {
-            SetProperty( ref _tileImage, value );
+            SetProperty( ref _tileImageSource, value );
 
             OnPropertyChanged( nameof( TileHeight ) );
             OnPropertyChanged( nameof( TileWidth ) );
@@ -172,8 +175,8 @@ public class ViewModel : ObservableObject
         set => SetProperty( ref _errorMsg, value );
     }
 
-    public int TileWidth=>TileImage == null ? 0 : ((BitmapSource) TileImage).PixelWidth;
-    public int TileHeight => TileImage == null ? 0 : ((BitmapSource)TileImage).PixelHeight;
+    public int TileWidth=>TileImageSource == null ? 0 : ((BitmapSource) TileImageSource).PixelWidth;
+    public int TileHeight => TileImageSource == null ? 0 : ((BitmapSource)TileImageSource).PixelHeight;
 
     public LatLong? Location
     {
