@@ -174,23 +174,35 @@ public sealed class J4JMapControl : Panel, IMapContext
         if( retrievalResult.ReturnValue == null )
             return;
 
-        Children.Clear();
+        Children.SetMapTileState( MapTileState.NotInBoundingBox );
 
         foreach( var imgData in retrievalResult.ReturnValue!.Cast<MapImageData>() )
         {
-            var newImage = new Image();
+            // only add tiles that aren't already in the child collection
+            var curImage = Children.GetMapTile( imgData.Coordinates );
 
-            AttachedProperties.SetCoordinates( newImage, imgData.Coordinates );
-            AttachedProperties.SetIsMapTile( newImage, true );
-            AttachedProperties.SetIsFixedImageSize( newImage, MapRetriever.FixedSizeImages );
+            if( curImage != null )
+            {
+                AttachedProperties.SetMapTileState(curImage, MapTileState.InUse);
+                continue;
+            }
+
+            curImage = new Image();
+
+            AttachedProperties.SetCoordinates( curImage, imgData.Coordinates );
+            AttachedProperties.SetIsMapTile( curImage, true );
+            AttachedProperties.SetIsFixedImageSize( curImage, MapRetriever.FixedSizeImages );
+            AttachedProperties.SetMapTileState(curImage, MapTileState.InUse);
 
             imgData.Stream.Seek(0);
             var imgSource = new BitmapImage();
             imgSource.SetSource(imgData.Stream);
-            newImage.Source = imgSource;
+            curImage.Source = imgSource;
 
-            Children.Add( newImage );
+            Children.Add( curImage );
         }
+
+        Children.RemoveMapImages( MapTileState.NotInBoundingBox, MapTileState.NotSet );
     }
 
     protected override Size MeasureOverride( Size availableSize )

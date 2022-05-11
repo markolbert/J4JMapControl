@@ -59,4 +59,30 @@ public static class AttachedProperties
         image.SetValue( IsFixedImageSizeProperty, value );
 
     #endregion
+
+    #region MapTileState property
+
+    public static readonly DependencyProperty MapTileStateProperty = DependencyProperty.RegisterAttached(
+        nameof(MapTileStateProperty),
+        typeof(MapTileState),
+        typeof(Image),
+        null);
+
+    public static MapTileState GetMapTileState(Image image)
+    {
+        var isMapTile = AttachedProperties.GetIsMapTile( image );
+
+        var propValue = image.GetValue(MapTileStateProperty);
+
+        return propValue == null 
+            ? isMapTile 
+                ? MapTileState.NotSet 
+                : MapTileState.NotAMapTile 
+            : (MapTileState) propValue;
+    }
+
+    public static void SetMapTileState(Image image, MapTileState value) =>
+        image.SetValue(MapTileStateProperty, value);
+
+    #endregion
 }
