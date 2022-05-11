@@ -79,7 +79,7 @@
 
             <Image x:Name="TileImage" 
                    Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                   Source="{x:Bind ViewModel.TileImage}"
+                   Source="{x:Bind ViewModel.TileImageSource}"
                    VerticalAlignment="Top"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0">

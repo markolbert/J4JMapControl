@@ -10,4 +10,14 @@ public record MapRetrieverInfo(
     int MinimumZoom,
     int MaximumZoom,
     int DefaultBitmapWidthHeight
-);
+)
+{
+    private LatLong? _upperLeft;
+    private LatLong? _lowerRight;
+
+    public LatLong UpperLeft =>
+        _upperLeft ??= new LatLong( this ) { Latitude = MaximumLatitude, Longitude = -MaximumLongitude };
+
+    public LatLong LowerRight =>
+        _upperLeft ??= new LatLong(this) { Latitude = -MaximumLatitude, Longitude = MaximumLongitude };
+}
