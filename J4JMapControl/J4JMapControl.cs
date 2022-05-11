@@ -109,25 +109,28 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private readonly IJ4JLogger? _logger;
 
-    private Size _desiredSize = Size.Empty;
     private IMapProjection? _mapProjection;
     private int _tileWidthHeight;
+    private BoundingBox? _boundingBox;
 
     public J4JMapControl()
     {
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType( GetType() );
 
-        SizeChanged += async ( _, _ ) => await UpdateMap();
+        SizeChanged += ( _, args ) => OnSizeChangedAsync( args );
     }
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
     {
-        retriever.MapProjection = new MercatorProjection { MapRetrieverInfo = retriever.MapRetrieverInfo };
+        _mapProjection = new MercatorProjection { MapRetrieverInfo = retriever.MapRetrieverInfo };
+        retriever.MapProjection = _mapProjection;
 
         _tileWidthHeight = retriever.MapRetrieverInfo.DefaultBitmapWidthHeight;
-        _mapProjection = retriever.MapProjection;
-        
+
+        if( Center == null )
+            return;
+
         await UpdateMap();
     }
 
@@ -137,6 +140,7 @@ public sealed class J4JMapControl : Panel, IMapContext
             return;
 
         MapRetriever.MapProjection.ZoomLevel = zoom;
+
         await UpdateMap();
     }
 
@@ -147,24 +151,38 @@ public sealed class J4JMapControl : Panel, IMapContext
         else await UpdateMap();
     }
 
+    private async void OnSizeChangedAsync(SizeChangedEventArgs args)
+    {
+        if( _mapProjection == null || Center == null )
+            return;
+
+        _mapProjection.ViewportWidth = args.NewSize.Width;
+
+        await UpdateMap();
+    }
+
     public async Task UpdateMap()
     {
         if( Center == null || MapRetriever == null || _mapProjection == null )
             return;
 
-        var box = new BoundingBox( _mapProjection.LatLongToScreenPoint( Center ), ActualWidth, ActualHeight );
+        _boundingBox = new BoundingBox( _mapProjection, Center, ActualWidth, ActualHeight );
 
         var retrievalResult = await MapRetriever
-           .GetMapImagesAsync( box, Children.MapImages().ExtractCoordinates() );
+           .GetMapImagesAsync( _boundingBox, Children.MapImages().ExtractCoordinates() );
 
-        if( !retrievalResult.IsValid )
+        if( retrievalResult.ReturnValue == null )
             return;
+
+        Children.Clear();
 
         foreach( var imgData in retrievalResult.ReturnValue!.Cast<MapImageData>() )
         {
             var newImage = new Image();
+
             AttachedProperties.SetCoordinates( newImage, imgData.Coordinates );
             AttachedProperties.SetIsMapTile( newImage, true );
+            AttachedProperties.SetIsFixedImageSize( newImage, MapRetriever.FixedSizeImages );
 
             imgData.Stream.Seek(0);
             var imgSource = new BitmapImage();
@@ -220,24 +238,24 @@ public sealed class J4JMapControl : Panel, IMapContext
                                          ( (BitmapSource) image.Source ).PixelHeight ) );
 
                 var coords = AttachedProperties.GetCoordinates( image );
-                if( coords is not TileCoordinates tileCoords )
+                if( coords == null )
                     continue;
 
-                minXTile = tileCoords.Tile.X < minXTile ? tileCoords.Tile.X : minXTile;
-                minYTile = tileCoords.Tile.Y < minYTile ? tileCoords.Tile.Y : minYTile;
-                maxXTile = tileCoords.Tile.X > maxXTile ? tileCoords.Tile.X : maxXTile;
-                maxYTile = tileCoords.Tile.Y > maxYTile ? tileCoords.Tile.Y : maxYTile;
+                minXTile = coords.TilePoint.X < minXTile ? coords.TilePoint.X : minXTile;
+                minYTile = coords.TilePoint.Y < minYTile ? coords.TilePoint.Y : minYTile;
+                maxXTile = coords.TilePoint.X > maxXTile ? coords.TilePoint.X : maxXTile;
+                maxYTile = coords.TilePoint.Y > maxYTile ? coords.TilePoint.Y : maxYTile;
             }
         }
 
-        _desiredSize.Width = _tileWidthHeight * ( maxXTile - minXTile + 1 );
-        _desiredSize.Height = _tileWidthHeight * ( maxYTile - minYTile + 1 );
+        var desiredWidth = _tileWidthHeight * ( maxXTile - minXTile + 1 );
+        var desiredHeight = _tileWidthHeight * ( maxYTile - minYTile + 1 );
 
-        if( _desiredSize.Width < retVal.Width )
-            retVal.Width = _desiredSize.Width;
+        if( desiredWidth < retVal.Width )
+            retVal.Width = desiredWidth;
 
-        if( _desiredSize.Height < retVal.Height )
-            retVal.Height = _desiredSize.Height;
+        if( desiredHeight < retVal.Height )
+            retVal.Height = desiredHeight;
 
         return retVal;
     }
@@ -261,12 +279,22 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private void ArrangeMapTiles( Size finalSize )
     {
-        // shift everything leftwards by half of the excess (to keep the 
-        // map center centered)
-        var xOffset = _desiredSize.Width <= finalSize.Width ? 0 : ( _desiredSize.Width - finalSize.Width ) / 2;
-        var yOffset = _desiredSize.Height <= finalSize.Height ? 0 : ( _desiredSize.Height - finalSize.Height ) / 2;
+        if( _mapProjection == null || _boundingBox == null )
+            return;
 
-        foreach( var image in Children.MapImages() )
+        // determine if we need to shift the images
+        var xOffset = 0.0;
+
+        if( _boundingBox.HorizontalTiles > 1 && _boundingBox.Width > finalSize.Width )
+            xOffset = ( finalSize.Width - _boundingBox.Width ) / 2;
+
+        var yOffset = 0.0;
+
+        if( _boundingBox.VerticalTiles > 1 && _boundingBox.Height > finalSize.Height )
+            yOffset = ( finalSize.Height - _boundingBox.Height ) / 2;
+
+
+        foreach ( var image in Children.MapImages() )
         {
             var coords = AttachedProperties.GetCoordinates( image );
             if( coords == null )
@@ -275,29 +303,29 @@ public sealed class J4JMapControl : Panel, IMapContext
                 continue;
             }
 
-            Rect finalRect;
+            Rect? finalRect;
 
-            switch( coords )
+            if( AttachedProperties.GetIsFixedImageSize( image ) )
             {
-                //case PixelLatLong:
-                //    finalRect = new Rect( 0, 0, finalSize.Width, finalSize.Height );
-                //    break;
-
-                case TileCoordinates tileCoords:
-                    var upperLeftX = tileCoords.Tile.X * _tileWidthHeight;
-                    var upperLeftY = tileCoords.Tile.Y * _tileWidthHeight;
-
-                    finalRect = new( upperLeftX - xOffset,
-                                     upperLeftY - yOffset,
-                                     _tileWidthHeight,
-                                     _tileWidthHeight );
-                    break;
-
-                default:
+                var coordinates = AttachedProperties.GetCoordinates( image );
+                if( coordinates == null )
                     continue;
-            }
 
-            image.Arrange( finalRect );
+                var upperLeftX = coordinates.ScreenPoint.GetX( CoordinateOrigin.UpperLeft )
+                  - _boundingBox.UpperLeft.ScreenPoint.GetX( CoordinateOrigin.UpperLeft );
+
+                var upperLeftY = coordinates.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
+                  - _boundingBox.UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft );
+
+                finalRect = new( upperLeftX + xOffset,
+                                 upperLeftY + yOffset,
+                                 _tileWidthHeight,
+                                 _tileWidthHeight );
+            }
+            else finalRect = null;
+
+            if( finalRect != null )
+                image.Arrange( finalRect.Value );
         }
     }
 }
