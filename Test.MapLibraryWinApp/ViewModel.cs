@@ -134,7 +134,7 @@ public class ViewModel : ObservableObject
 
         var midPt = _selectedRetriever.Retriever.MapProjection.ProjectionWidthHeight / 2;
 
-        var tile = new MultiCoordinates( new TilePoint( _xTile, _yTile ),
+        var tile = new MultiCoordinates( new TilePoint( _xTile, _yTile, MapZoom ),
                                          _selectedRetriever.Retriever.MapProjection,
                                          CoordinateOrigin.UpperLeft );
 

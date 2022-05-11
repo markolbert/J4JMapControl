@@ -217,7 +217,7 @@ public class MercatorProjection : IMapProjection
         if( screenY > ProjectionWidthHeight - 1 )
             screenY = ProjectionWidthHeight - 1;
 
-        return new( screenX / TileWidthHeight, screenY / TileWidthHeight );
+        return new( screenX / TileWidthHeight, screenY / TileWidthHeight, ZoomLevel );
     }
 
     public TilePoint GetTileFromLatLong(
@@ -247,7 +247,7 @@ public class MercatorProjection : IMapProjection
         if (yTile > ZoomFactor - 1)
             yTile = ZoomFactor - 1;
 
-        return new MultiCoordinates( new TilePoint( xTile, yTile ),
+        return new MultiCoordinates( new TilePoint( xTile, yTile, ZoomLevel ),
                                      this,
                                      origin );
     }

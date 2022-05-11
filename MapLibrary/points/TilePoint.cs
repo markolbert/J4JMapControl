@@ -1,12 +1,33 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public record TilePoint( int X, int Y )
+public record TilePoint( int X, int Y, int Z )
 {
+    #region IEquality
+
+    public virtual bool Equals( TilePoint? other )
+    {
+        if( ReferenceEquals( null, other ) )
+            return false;
+        if( ReferenceEquals( this, other ) )
+            return true;
+
+        return X == other.X
+         && Y == other.Y
+         && Z == other.Z;
+    }
+
+    public override int GetHashCode() => HashCode.Combine( X, Y, Z );
+
+    #endregion
+
     public TilePoint(
         double x,
-        double y
+        double y,
+        double z
     )
-        : this( Convert.ToInt32( Math.Floor( x ) ), Convert.ToInt32( Math.Floor( y ) ) )
+        : this( Convert.ToInt32( Math.Floor( x ) ),
+                Convert.ToInt32( Math.Floor( y ) ),
+                Convert.ToInt32( Math.Floor( z ) ) )
     {
     }
 }
