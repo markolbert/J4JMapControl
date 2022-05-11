@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-
-namespace J4JSoftware.MapLibrary;
+﻿namespace J4JSoftware.MapLibrary;
 
 public record BoundingBox
 {

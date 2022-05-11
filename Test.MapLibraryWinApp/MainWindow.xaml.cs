@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using J4JSoftware.DeusEx;
-using J4JSoftware.J4JMapControl;
 using Microsoft.Extensions.DependencyInjection;
 
 // To learn more about WinUI, the WinUI project structure,

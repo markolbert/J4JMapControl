@@ -1,6 +1,4 @@
-﻿using J4JSoftware.DeusEx;
-
-namespace J4JSoftware.MapLibrary;
+﻿namespace J4JSoftware.MapLibrary;
 
 public class LatLong
 {
