@@ -1,44 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices.ComTypes;
 
-namespace J4JSoftware.MapLibrary
+namespace J4JSoftware.MapLibrary;
+
+public record BoundingBox
 {
-    public record BoundingBox
+    public const double MinDelta = 1e-9;
+
+    public BoundingBox(
+        IMapProjection mapProjection,
+        LatLong centerLatLong,
+        double winUiWidth,
+        double winUiHeight
+    )
     {
-        public const double MinDelta = 1e-9;
+        var ulTile = mapProjection.GetTileFromLatLong( centerLatLong, -winUiWidth / 2, -winUiHeight / 2 );
+        var lrTile = mapProjection.GetTileFromLatLong( centerLatLong, winUiWidth / 2, winUiHeight / 2 );
 
-        public BoundingBox(
-            DoublePoint upperLeft,
-            DoublePoint lowerRight
-        )
+        UpperLeft = new MultiCoordinates( ulTile, mapProjection, CoordinateOrigin.UpperLeft );
+        LowerRight = new MultiCoordinates( lrTile, mapProjection, CoordinateOrigin.UpperLeft );
+
+        HorizontalTiles = LowerRight.TilePoint.X - UpperLeft.TilePoint.X + 1;
+        VerticalTiles = LowerRight.TilePoint.Y - UpperLeft.TilePoint.Y + 1;
+
+        Width = HorizontalTiles * mapProjection.TileWidthHeight;
+        Height = VerticalTiles * mapProjection.TileWidthHeight;
+    }
+
+    public MultiCoordinates UpperLeft { get; }
+    public MultiCoordinates LowerRight { get; }
+
+    public int HorizontalTiles { get; }
+    public int VerticalTiles { get; }
+
+    public double Width { get; }
+    public double Height { get; }
+
+    public IEnumerable<MultiCoordinates> GetTileCoordinates( IMapProjection mapProjection )
+    {
+        for( var yTile = UpperLeft.TilePoint.Y; yTile <= LowerRight.TilePoint.Y; yTile++ )
         {
-            var minX = upperLeft.X < lowerRight.X ? upperLeft.X : lowerRight.X;
-            var minY = upperLeft.Y < lowerRight.Y ? upperLeft.Y : lowerRight.Y;
-            var maxX = upperLeft.X > lowerRight.X ? upperLeft.X : lowerRight.X;
-            var maxY = upperLeft.Y > lowerRight.Y ? upperLeft.Y : lowerRight.Y;
-
-            UpperLeft = new DoublePoint( minX, minY );
-            LowerRight = new DoublePoint( maxX, maxY );
+            for( var xTile = UpperLeft.TilePoint.X; xTile <= LowerRight.TilePoint.X; xTile++ )
+            {
+                yield return mapProjection.GetTileCoordinates( xTile, yTile, CoordinateOrigin.UpperLeft );
+            }
         }
-
-        public BoundingBox(
-            DoublePoint center,
-            double width,
-            double height
-        )
-        {
-            UpperLeft = new DoublePoint(center.X - width/2, center.Y - height/2);
-            LowerRight = new DoublePoint( center.X + width / 2, center.Y + height / 2 );
-        }
-
-        public DoublePoint UpperLeft { get; }
-        public DoublePoint LowerRight { get; }
-
-        public bool IsCollapsed =>
-            Math.Abs( UpperLeft.X - LowerRight.X ) < MinDelta
-         || Math.Abs( UpperLeft.Y - LowerRight.Y ) < MinDelta;
     }
 }
