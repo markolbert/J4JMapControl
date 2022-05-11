@@ -15,12 +15,12 @@ public static class Extensions
         elements.OfType<Image>().Where( AttachedProperties.GetIsMapTile );
 
     public static IEnumerable<Image> VariableSizedMapImages( this IEnumerable<UIElement> elements ) =>
-        elements.MapImages().Where( x => AttachedProperties.GetCoordinates( x ) is LatLongCoordinates );
+        elements.MapImages().Where( x => !AttachedProperties.GetIsFixedImageSize(x) );
 
     public static IEnumerable<Image> FixedSizedMapImages( this IEnumerable<UIElement> elements ) =>
-        elements.MapImages().Where( x => AttachedProperties.GetCoordinates( x ) is TileCoordinates);
+        elements.MapImages().Where( AttachedProperties.GetIsFixedImageSize );
 
-    public static IEnumerable<Coordinates> MapCoordinates( this IEnumerable<Image> images ) =>
+    public static IEnumerable<MultiCoordinates> MapCoordinates( this IEnumerable<Image> images ) =>
         images.Where( x => AttachedProperties.GetIsMapTile( x )
                        && AttachedProperties.GetCoordinates( x ) != null )
               .Select( x => AttachedProperties.GetCoordinates( x )! );

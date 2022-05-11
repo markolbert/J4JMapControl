@@ -2,30 +2,32 @@
 
 public interface IMapProjection
 {
-    event EventHandler<int>? ZoomChanged;
+    MapRetrieverInfo MapRetrieverInfo { get; }
 
-    MapRetrieverInfo? MapRetrieverInfo { get; }
-    
     public int MaximumZoom { get; }
     public int MinimumZoom { get; }
     int ZoomLevel { get; set; }
 
-    double MapWidth { get; set; }
-    double MaximumMapHeight { get; }
-    double MapHeight { get; set; }
+    double ViewportWidth { get; set; }
+    double MapRadius { get; }
 
     int ProjectionWidthHeight { get; }
     int TileWidthHeight { get; }
-    int NumTiles { get; }
+    int ZoomFactor { get; }
 
-    double LongitudeFromScreen( double screenX );
-    double ScreenFromLongitude( double longDegrees );
-    double LatitudeFromScreen( double screenY );
-    double ScreenFromLatitude( double latDegrees );
+    DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin);
+    double ScreenToLongitude( DoublePoint screenPoint );
+    double ScreenToLatitude( DoublePoint screenPoint );
 
-    LatLong ScreenPointToLatLong( DoublePoint point );
-    DoublePoint LatLongToScreenPoint( LatLong latLong );
+    double ChangeOrigin( double value, CoordinateAxis axis );
+    
+    TilePoint GetTileFromScreenPoint( DoublePoint point );
 
-    TilePoint GetTileFromScreenPoint(DoublePoint point);
-    TilePoint GetTileFromLatLong(LatLong latLong);
+    TilePoint GetTileFromLatLong(
+        LatLong latLong,
+        double offsetX = 0,
+        double offsetY = 0
+    );
+
+    MultiCoordinates GetTileCoordinates( int xTile, int yTile, CoordinateOrigin origin);
 }

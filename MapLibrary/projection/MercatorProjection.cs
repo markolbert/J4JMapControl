@@ -1,4 +1,5 @@
-﻿using J4JSoftware.DeusEx;
+﻿using System.ComponentModel;
+using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,33 +10,16 @@ public class MercatorProjection : IMapProjection
     private const double TwoPi = 2 * Math.PI;
     private const double QuarterPi = Math.PI / 4;
 
-    public event EventHandler<int>? ZoomChanged;
-
     private readonly IJ4JLogger? _logger;
 
     private MapRetrieverInfo? _mapRetrieverInfo;
-    private double _mapWidth;
-    private double _mapHeight;
-    private double _mapRadius;
+    private double _viewPortWidth;
     private int _zoomLevel;
 
     public MercatorProjection()
     {
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType(GetType());
-    }
-
-    private MapRetrieverInfo GetMapRetrieverInfo( IMapContext mapContext )
-    {
-        if( mapContext.MapRetriever != null )
-            return mapContext.MapRetriever.MapRetrieverInfo;
-
-        var msg =
-            $"Attempting to create instance of {nameof( MercatorProjection )} from an undefined {nameof( IMapContext )}";
-
-        _logger?.Fatal(msg);
-
-        throw new ArgumentException( msg );
     }
 
     public MapRetrieverInfo MapRetrieverInfo
@@ -66,8 +50,8 @@ public class MercatorProjection : IMapProjection
     private void OnMapRetrieverInfoChanged()
     {
         TileWidthHeight = MapRetrieverInfo.DefaultBitmapWidthHeight;
-        NumTiles = 2.Pow(ZoomLevel - MinimumZoom);
-        ProjectionWidthHeight = TileWidthHeight * NumTiles;
+
+        OnZoomChanged();
     }
 
     public int MaximumZoom => MapRetrieverInfo.MaximumZoom;
@@ -96,191 +80,176 @@ public class MercatorProjection : IMapProjection
             _zoomLevel = value;
 
             if( changed )
-                ZoomChanged?.Invoke( this, _zoomLevel );
+                OnZoomChanged();
         }
     }
 
-    public double MapWidth
+    private void OnZoomChanged()
     {
-        get => _mapWidth;
+        ZoomFactor = 2.Pow(ZoomLevel - MinimumZoom);
 
-        set
-        {
-            if( value <= 0 )
-            {
-                _logger?.Error( "Map width ({0}) must be > 0, ignoring change", value );
-                return;
-            }
-
-            _mapWidth = value;
-            _mapRadius = _mapWidth / TwoPi;
-
-            MaximumMapHeight = ScreenFromLatitude( -MapRetrieverInfo.MaximumLatitude );
-        }
+        ProjectionWidthHeight = TileWidthHeight * ZoomFactor;
     }
 
-    public double MaximumMapHeight { get; private set; }
-
-    public double MapHeight
+    public double ViewportWidth
     {
-        get => _mapHeight;
+        get => _viewPortWidth;
 
         set
         {
             if (value <= 0)
             {
-                _logger?.Error("Map height ({0}) must be > 0, ignoring change", value);
+                _logger?.Error("Viewport width ({0}) must be > 0, ignoring change", value);
                 return;
             }
 
-            if( value > MaximumMapHeight )
-            {
-                _logger?.Error( "Map height ({0}) exceeds maximum ({1}), ignoring change", value, MaximumMapHeight );
-                return;
-            }
-
-            _mapHeight = value;
+            _viewPortWidth = value;
         }
     }
 
-    public int ProjectionWidthHeight { get; private set; }
-    public int TileWidthHeight { get; private set; }
-    public int NumTiles { get; private set; }
+    public double MapRadius => ProjectionWidthHeight / TwoPi;
 
-    // screenX can range from 0 to MapWidth
-    public double LongitudeFromScreen( double screenX )
+    public int ProjectionWidthHeight { get; private set; }
+    private double HalfProjectionHeight => ProjectionWidthHeight / 2.0;
+    public int TileWidthHeight { get; private set; }
+    public int ZoomFactor { get; private set; }
+
+    public DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin)
+    {
+        // screenX and screenY use CoordinateOrigin.MiddleLeft
+        var screenX = ProjectionWidthHeight * (0.5 + latLong.Longitude / (2 * MapRetrieverInfo.MaximumLongitude));
+
+        screenX = screenX < 0
+            ? 0.0
+            : screenX > ProjectionWidthHeight - 1
+                ? ProjectionWidthHeight - 1
+                : screenX;
+
+        double screenY;
+
+        if (latLong.Latitude > MapRetrieverInfo.MaximumLatitude)
+            screenY = HalfProjectionHeight;
+        else
+        {
+            if( latLong.Latitude < -MapRetrieverInfo.MaximumLatitude )
+                screenY = -HalfProjectionHeight + 1;
+            else
+            {
+                var halfAngle = ( latLong.Latitude / 2 ).DegreesToRadians();
+                var tangent = Math.Tan( QuarterPi + halfAngle );
+
+                screenY = MapRadius * Math.Log( tangent );
+            }
+        }
+
+        var retVal = new DoublePoint(origin, this);
+
+        retVal.SetX(screenX, CoordinateOrigin.MiddleLeft);
+        retVal.SetY(screenY, CoordinateOrigin.MiddleLeft);
+
+        return retVal;
+    }
+
+    public double ScreenToLongitude(DoublePoint screenPoint)
     {
         // ensure point is within bounds
+        var screenX = screenPoint.GetX( CoordinateOrigin.MiddleLeft );
+
         if (screenX < 0)
         {
-            _logger?.Error( "X coordinate ({0}) < 0, returning minimum longitude ({1})",
-                            screenX,
-                            -MapRetrieverInfo.MaximumLongitude );
+            _logger?.Error("X coordinate ({0}) < 0, returning minimum longitude ({1})",
+                           screenX,
+                            -MapRetrieverInfo.MaximumLongitude);
 
             return -MapRetrieverInfo.MaximumLongitude;
         }
 
-        if( screenX <= ProjectionWidthHeight - 1 )
+        if( screenX <= ProjectionWidthHeight )
             return 360 * ( screenX / ProjectionWidthHeight - 0.5 );
 
-        _logger?.Error( "X coordinate ({0}) >= {1}, returning maximum longitude ({2})",
+        _logger?.Error("X coordinate ({0}) beyond projection width ({1}), returning maximum longitude ({2})",
                         screenX,
                         ProjectionWidthHeight,
-                        MapRetrieverInfo.MaximumLongitude );
+                        MapRetrieverInfo.MaximumLongitude);
 
         return MapRetrieverInfo.MaximumLongitude;
     }
 
-    // longDegrees can range from -MapRetrieverInfo.MaximumLongitude to MapRetrieverInfo.MaximumLongitude
-    public double ScreenFromLongitude( double longDegrees )
+    public double ScreenToLatitude( DoublePoint screenPoint )
     {
-        if( longDegrees < -MapRetrieverInfo.MaximumLongitude )
-        {
-            _logger?.Error( "Longitude less than minimum ({0}), returning 0.0", -MapRetrieverInfo.MaximumLongitude );
-            return 0.0;
-        }
+        // ensure point is within bounds
+        var screenY = screenPoint.GetY( CoordinateOrigin.MiddleLeft );
 
-        if( longDegrees <= MapRetrieverInfo.MaximumLongitude )
-            return MapWidth * ( 0.5 + longDegrees / MapRetrieverInfo.MaximumLongitude );
-
-        _logger?.Error( "Longitude exceeds maximum ({0}), returning map width ({1})",
-                        MapRetrieverInfo.MaximumLongitude,
-                        MapWidth );
-        
-        return MapWidth;
-    }
-
-    // screenY can range from 0 to MaxScreenHeight
-    public double LatitudeFromScreen( double screenY )
-    {
-        if( screenY < 0 )
-        {
-            _logger?.Error( "Y coordinate ({0}) < 0, returning maximum latitude ({1})",
-                            screenY,
-                            MapRetrieverInfo.MaximumLatitude );
-
+        if( screenY > HalfProjectionHeight )
             return MapRetrieverInfo.MaximumLatitude;
+
+        if( screenY > -HalfProjectionHeight + 1 )
+        {
+            var halfAngle = Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi;
+            return ( 2 * halfAngle ).RadiansToDegrees();
         }
-
-        if( screenY <= MaximumMapHeight )
-            return ( Math.Atan( Math.Exp( screenY / _mapRadius ) ) - QuarterPi ).RadiansToDegrees();
-
-        _logger?.Error( "Y coordinate ({0}) > maximum ({1}), returning minimum latitude ({2})",
-                        screenY,
-                        MaximumMapHeight,
-                        -MapRetrieverInfo.MaximumLatitude );
 
         return -MapRetrieverInfo.MaximumLatitude;
     }
 
-    // latDegrees can range from -MapRetrieverInfo.MaximumLatitude to MapRetrieverInfo.MaximumLatitude
-    public double ScreenFromLatitude( double latDegrees )
-    {
-        if( latDegrees > MapRetrieverInfo.MaximumLatitude )
+    public double ChangeOrigin( double value, CoordinateAxis axis ) =>
+        axis switch
         {
-            _logger?.Error( "Latitude ({0}) exceeds maximum ({1}), returning 0",
-                            latDegrees,
-                            MapRetrieverInfo.MaximumLatitude );
-            return 0.0;
-        }
-
-        if( latDegrees < -MapRetrieverInfo.MaximumLatitude )
-        {
-            _logger?.Error( "Latitude ({0}) less than minimum ({1}), returning maximum map height ({2})",
-                            latDegrees,
-                            -MapRetrieverInfo.MaximumLatitude,
-                            MaximumMapHeight );
-
-            return MaximumMapHeight;
-        }
-
-        double tangent;
-
-        try
-        {
-            tangent = Math.Tan( QuarterPi + ( latDegrees / 2 ).DegreesToRadians() );
-        }
-        catch( OverflowException )
-        {
-            return MaximumMapHeight;
-        }
-
-        return _mapRadius * Math.Log( tangent );
-    }
-
-    public LatLong ScreenPointToLatLong( DoublePoint point ) =>
-        new( MapRetrieverInfo )
-        {
-            Latitude = LatitudeFromScreen( point.Y ), 
-            Longitude = LongitudeFromScreen( point.X )
+            CoordinateAxis.XAxis => value,
+            CoordinateAxis.YAxis => HalfProjectionHeight - value,
+            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( CoordinateAxis )} value '{axis}'" )
         };
 
-    public DoublePoint LatLongToScreenPoint( LatLong latLong ) =>
-        new( ScreenFromLongitude( latLong.Longitude ), ScreenFromLatitude( latLong.Latitude ) );
-
-    public TilePoint GetTileFromScreenPoint( DoublePoint point )
+    public TilePoint GetTileFromScreenPoint( DoublePoint screenPoint )
     {
-        if( point.X < 0 )
-        {
-            _logger?.Error( "X coordinate ({0}) < 0, setting to 0", point.X );
-            point = point with { X = 0 };
-        }
+        var screenX = screenPoint.GetX( CoordinateOrigin.UpperLeft );
+        var screenY = screenPoint.GetY( CoordinateOrigin.UpperLeft );
 
-        if( point.Y >= 0 )
-            return new( point.X / TileWidthHeight, point.Y / TileWidthHeight );
+        if( screenX < 0 )
+            screenX = 0;
 
-        _logger?.Error( "Y coordinate ({0}) < 0, setting to 0", point.Y );
+        if( screenX > ProjectionWidthHeight - 1)
+            screenX = ProjectionWidthHeight - 1;
 
-        point = point with { Y = 0 };
+        if( screenY < 0 )
+            screenY = 0;
 
-        return new( point.X / TileWidthHeight, point.Y / TileWidthHeight );
+        if( screenY > ProjectionWidthHeight - 1 )
+            screenY = ProjectionWidthHeight - 1;
+
+        return new( screenX / TileWidthHeight, screenY / TileWidthHeight );
     }
 
-    public TilePoint GetTileFromLatLong( LatLong latLong )
+    public TilePoint GetTileFromLatLong(
+        LatLong latLong,
+        double offsetX = 0,
+        double offsetY = 0
+    )
     {
-        var screenPt = new DoublePoint( ScreenFromLongitude( latLong.Longitude ),
-                                        ScreenFromLatitude( latLong.Latitude ) );
+        var screenPt = LatLongToScreen( latLong, CoordinateOrigin.UpperLeft );
+        screenPt.IncrementX(offsetX);
+        screenPt.IncrementY(offsetY);
 
         return GetTileFromScreenPoint( screenPt );
     }
+
+    public MultiCoordinates GetTileCoordinates(int xTile, int yTile, CoordinateOrigin origin)
+    {
+        if (xTile < 0)
+            xTile = 0;
+
+        if (xTile > ZoomFactor - 1)
+            xTile = ZoomFactor - 1;
+
+        if (yTile < 0)
+            yTile = 0;
+
+        if (yTile > ZoomFactor - 1)
+            yTile = ZoomFactor - 1;
+
+        return new MultiCoordinates( new TilePoint( xTile, yTile ),
+                                     this,
+                                     origin );
+    }
+
 }
