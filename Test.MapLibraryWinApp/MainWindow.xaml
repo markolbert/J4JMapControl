@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:map="using:J4JSoftware.J4JMapControl"
+    xmlns:mapLibrary="using:J4JSoftware.MapLibrary"
     mc:Ignorable="d"
     x:DefaultBindMode="OneWay">
 
@@ -43,7 +44,7 @@
                       ItemsSource="{x:Bind ViewModel.Retrievers}"
                       SelectedItem="{x:Bind ViewModel.SelectedRetriever, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="local:RetrieverInfo">
+                    <DataTemplate x:DataType="local:Retriever">
                         <TextBlock Text="{x:Bind Name }"/>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -123,16 +124,43 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0">Horizontal Binding</TextBlock>
+
+            <ComboBox x:Name="Horizontal" 
+                      Grid.Row="0" Grid.Column="1"
+                      ItemsSource="{x:Bind ViewModel.HorizontalBinders}"
+                      SelectedItem="{x:Bind ViewModel.HorizontalBinder, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:HorizontalBinder">
+                        <TextBlock Text="{x:Bind Name }"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Grid.Row="1" Grid.Column="0">Vertical Binding</TextBlock>
+
+            <ComboBox x:Name="Vertical" 
+                      Grid.Row="1" Grid.Column="1"
+                      ItemsSource="{x:Bind ViewModel.VerticalBinders}"
+                      SelectedItem="{x:Bind ViewModel.VerticalBinder, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:VerticalBinder">
+                        <TextBlock Text="{x:Bind Name }"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
         </Grid>
 
         <map:J4JMapControl x:Name="TheMap" 
                            Grid.Row="2" Grid.Column="1"
-                           MapRetriever="{x:Bind ViewModel.SelectedRetriever.Retriever}"
+                           MapRetriever="{x:Bind ViewModel.SelectedRetriever.Item}"
                            Center="{x:Bind ViewModel.Location }"
                            ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
+                           SmallMapHorizontalBinding="{x:Bind ViewModel.HorizontalBinder.Item}"
+                           SmallMapVerticalBinding="{x:Bind ViewModel.VerticalBinder.Item}"
                            Background="LightGoldenrodYellow"/>
 
     </Grid>

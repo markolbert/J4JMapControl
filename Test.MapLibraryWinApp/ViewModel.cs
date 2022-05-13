@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using J4JSoftware.J4JMapControl;
 using J4JSoftware.Logging;
@@ -12,12 +13,16 @@ namespace Test.MapLibraryWinApp;
 public class ViewModel : ObservableObject
 {
     private readonly DispatcherQueue _dQueue;
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly IJ4JLogger _logger;
 
-    private RetrieverInfo? _selectedRetriever;
+    private SelectableItem<IMapImageRetriever>? _selectedRetriever;
     private int _xTile;
     private int _yTile;
     private int _zoomLevel;
+    private HorizontalBinder _horizBinder;
+    private VerticalBinder _vertBinder;
+
     private BitmapImage? _tileImageSource;
     private string? _errorMsg;
     private bool _suppressUpdate;
@@ -35,26 +40,33 @@ public class ViewModel : ObservableObject
 
         _dQueue = DispatcherQueue.GetForCurrentThread();
 
-        var temp = new List<RetrieverInfo>();
+        var temp = new List<SelectableItem<IMapImageRetriever>>();
 
         foreach( var retriever in retrievers )
         {
             retriever.MapProjection = mapProjection;
             
-            temp.Add( new RetrieverInfo( retriever.MapRetrieverInfo.Description, retriever ) );
+            temp.Add( new Retriever( retriever.MapRetrieverInfo.Description, retriever ) );
         }
 
         Retrievers = temp;
 
-        if( LatLong.TryParse( "37.5072, -122.2605",
-                              Retrievers.First().Retriever.MapRetrieverInfo!,
-                              out var initLocation ) )
-            Location = initLocation;
+        HorizontalBinders = Enum.GetValues<SmallMapHorizontalAlignment>()
+                                .Select( x => new HorizontalBinder( x ) )
+                                .ToList();
+
+        HorizontalBinder = HorizontalBinders.First( x => x.Name.Equals( "Center", StringComparison.OrdinalIgnoreCase ) );
+
+        VerticalBinders = Enum.GetValues<SmallMapVerticalAlignment>()
+                              .Select( x => new VerticalBinder( x ) )
+                              .ToList();
+
+        VerticalBinder = VerticalBinders.First(x => x.Name.Equals("Middle", StringComparison.OrdinalIgnoreCase));
     }
 
-    public List<RetrieverInfo> Retrievers { get; }
+    public List<SelectableItem<IMapImageRetriever>> Retrievers { get; }
 
-    public RetrieverInfo? SelectedRetriever
+    public SelectableItem<IMapImageRetriever>? SelectedRetriever
     {
         get=> _selectedRetriever;
 
@@ -66,7 +78,16 @@ public class ViewModel : ObservableObject
             _suppressUpdate = true;
 
             SetProperty(ref _selectedRetriever, value);
-            
+
+            if( _selectedRetriever != null )
+            {
+                if( LatLong.TryParse( "37.5072, -122.2605",
+                                   _selectedRetriever.Item.MapRetrieverInfo,
+                                   out var initLocation ) )
+                    Location = initLocation;
+
+            }
+
             OnPropertyChanged(nameof(MinZoom));
             OnPropertyChanged(nameof(MaxZoom));
             OnPropertyChanged(nameof(MaxTile));
@@ -79,9 +100,9 @@ public class ViewModel : ObservableObject
         }
     }
 
-    public int MinZoom => _selectedRetriever?.Retriever.MapRetrieverInfo.MinimumZoom ?? 0;
-    public int MaxZoom => _selectedRetriever?.Retriever.MapRetrieverInfo.MaximumZoom ?? 0;
-    public int MaxTile => _selectedRetriever?.Retriever.MapProjection.ZoomFactor ?? 0;
+    public int MinZoom => _selectedRetriever?.Item.MapRetrieverInfo.MinimumZoom ?? 0;
+    public int MaxZoom => _selectedRetriever?.Item.MapRetrieverInfo.MaximumZoom ?? 0;
+    public int MaxTile => _selectedRetriever?.Item.MapProjection.ZoomFactor ?? 0;
 
     public int XTile
     {
@@ -131,9 +152,43 @@ public class ViewModel : ObservableObject
             _suppressUpdate = false;
 
             if( _selectedRetriever != null )
-                _selectedRetriever.Retriever.MapProjection.ZoomLevel = _zoomLevel;
+                _selectedRetriever.Item.MapProjection.ZoomLevel = _zoomLevel;
 
             UpdateTileMap();
+        }
+    }
+
+    public List<HorizontalBinder> HorizontalBinders { get; }
+
+    public HorizontalBinder HorizontalBinder
+    {
+        get => _horizBinder;
+
+        set
+        {
+            if( _suppressUpdate )
+                return;
+
+            _suppressUpdate = true;
+            SetProperty( ref _horizBinder, value );
+            _suppressUpdate = false;
+        }
+    }
+
+    public List<VerticalBinder> VerticalBinders { get; }
+
+    public VerticalBinder VerticalBinder
+    {
+        get => _vertBinder;
+
+        set
+        {
+            if( _suppressUpdate )
+                return;
+
+            _suppressUpdate = true;
+            SetProperty( ref _vertBinder, value );
+            _suppressUpdate = false;
         }
     }
 
@@ -143,33 +198,31 @@ public class ViewModel : ObservableObject
         TileImageSource = null;
 
         if( Location == null
-        || _selectedRetriever?.Retriever.MapRetrieverInfo is not {} info )
+        || _selectedRetriever?.Item.MapRetrieverInfo is not {} _ )
             return;
 
-        var midPt = _selectedRetriever.Retriever.MapProjection.ProjectionWidthHeight / 2;
-
         var tile = new MultiCoordinates( new TilePoint( _xTile, _yTile, ZoomLevel ),
-                                         _selectedRetriever.Retriever.MapProjection,
+                                         _selectedRetriever.Item.MapProjection,
                                          CoordinateOrigin.UpperLeft );
 
-        var result = _selectedRetriever.Retriever.GetMapImageAsync( tile )
-                                       .ContinueWith( t =>
-                                        {
-                                            _dQueue.TryEnqueue( () =>
-                                            {
-                                                if (t.Result is not { ReturnValue: MapImageData imageData })
-                                                {
-                                                    ErrorMessage = "Failed to retrieve image";
-                                                    return;
-                                                }
+        _selectedRetriever.Item.GetMapImageAsync( tile )
+                          .ContinueWith( t =>
+                           {
+                               _dQueue.TryEnqueue( () =>
+                               {
+                                   if( t.Result is not { ReturnValue: MapImageData imageData } )
+                                   {
+                                       ErrorMessage = "Failed to retrieve image";
+                                       return;
+                                   }
 
-                                                var newImage = new BitmapImage();
-                                                imageData.Stream.Seek(0);
-                                                newImage.SetSource(imageData.Stream);
+                                   var newImage = new BitmapImage();
+                                   imageData.Stream.Seek( 0 );
+                                   newImage.SetSource( imageData.Stream );
 
-                                                TileImageSource = newImage;
-                                            });
-                                        });
+                                   TileImageSource = newImage;
+                               } );
+                           } );
     }
 
     public BitmapImage? TileImageSource
@@ -191,21 +244,12 @@ public class ViewModel : ObservableObject
         set => SetProperty( ref _errorMsg, value );
     }
 
-    public int TileWidth=>TileImageSource == null ? 0 : ((BitmapSource) TileImageSource).PixelWidth;
-    public int TileHeight => TileImageSource == null ? 0 : ((BitmapSource)TileImageSource).PixelHeight;
+    public int TileWidth=>TileImageSource == null ? 0 : TileImageSource.PixelWidth;
+    public int TileHeight => TileImageSource == null ? 0 : TileImageSource.PixelHeight;
 
     public LatLong? Location
     {
         get => _location;
-
-        set
-        {
-            if (_suppressUpdate)
-                return;
-
-            _suppressUpdate = true;
-            SetProperty(ref _location, value);
-            _suppressUpdate = false;
-        }
+        set => SetProperty(ref _location, value);
     }
 }
