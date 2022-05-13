@@ -49,19 +49,32 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <TextBlock Grid.Row="1" Grid.Column="0">X Tile Coordinate</TextBlock>
+            <TextBlock Grid.Row="1" Grid.Column="0">Tile Zoom</TextBlock>
             <NumberBox Grid.Row="1" Grid.Column="1"
-                       Value="{x:Bind ViewModel.XTile, Mode=TwoWay}"/>
+                       Minimum="{x:Bind ViewModel.MinZoom}"
+                       Maximum="{x:Bind ViewModel.MaxZoom}"
+                       Value="{x:Bind ViewModel.ZoomLevel, Mode=TwoWay}"
+                       SmallChange="1"
+                       LargeChange="10"
+                       SpinButtonPlacementMode="Compact"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0">Y Tile Coordinate</TextBlock>
+            <TextBlock Grid.Row="2" Grid.Column="0">X Tile Coordinate</TextBlock>
             <NumberBox Grid.Row="2" Grid.Column="1"
-                       Value="{x:Bind ViewModel.YTile, Mode=TwoWay}"/>
+                       Value="{x:Bind ViewModel.XTile, Mode=TwoWay}"
+                       Minimum="0"
+                       Maximum="{x:Bind ViewModel.MaxTile}"
+                       SmallChange="1"
+                       LargeChange="10"
+                       SpinButtonPlacementMode="Compact"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0">Tile Zoom</TextBlock>
+            <TextBlock Grid.Row="3" Grid.Column="0">Y Tile Coordinate</TextBlock>
             <NumberBox Grid.Row="3" Grid.Column="1"
-                       Minimum="{x:Bind ViewModel.SelectedRetriever.Retriever.MapRetrieverInfo.MinimumZoom, FallbackValue=1}"
-                       Maximum="{x:Bind ViewModel.SelectedRetriever.Retriever.MapRetrieverInfo.MaximumZoom, FallbackValue=20}"
-                       Value="{x:Bind ViewModel.TileZoom, Mode=TwoWay}"/>
+                       Value="{x:Bind ViewModel.YTile, Mode=TwoWay}"
+                       Minimum="0"
+                       Maximum="{x:Bind ViewModel.MaxTile}"
+                       SmallChange="1"
+                       LargeChange="10"
+                       SpinButtonPlacementMode="Compact"/>
 
         </Grid>
 
@@ -113,29 +126,13 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Grid.Column="0">Location</TextBlock>
-            <TextBox Grid.Row="0" Grid.Column="1"
-                     Text="{x:Bind ViewModel.Location, Mode=TwoWay}"/>
-
-            <TextBlock Grid.Row="1" Grid.Column="0">Map Zoom</TextBlock>
-            <NumberBox Grid.Row="1" Grid.Column="1"
-                       Minimum="1"
-                       Maximum="23"
-                       Value="{x:Bind ViewModel.MapZoom, Mode=TwoWay}"/>
-
-            <Button Grid.Row="2" Grid.Column="1"
-                    Click="ButtonBase_OnClick">
-                Update Map
-            </Button>
-
-
         </Grid>
 
         <map:J4JMapControl x:Name="TheMap" 
                            Grid.Row="2" Grid.Column="1"
                            MapRetriever="{x:Bind ViewModel.SelectedRetriever.Retriever}"
                            Center="{x:Bind ViewModel.Location }"
-                           ZoomLevel="{x:Bind ViewModel.MapZoom}"
+                           ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
                            Background="LightGoldenrodYellow"/>
 
     </Grid>

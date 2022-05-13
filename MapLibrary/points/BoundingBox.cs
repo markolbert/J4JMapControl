@@ -1,8 +1,4 @@
-﻿using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace J4JSoftware.MapLibrary;
+﻿namespace J4JSoftware.MapLibrary;
 
 public record BoundingBox
 {
@@ -15,43 +11,36 @@ public record BoundingBox
         double winUiHeight
     )
     {
-        var logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
-
-        ViewportCenter = centerLatLong;
-        ViewportCenterPoint = mapProjection.LatLongToScreen( centerLatLong, CoordinateOrigin.UpperLeft );
-
         var ulTile = mapProjection.GetTileFromLatLong( centerLatLong, -winUiWidth / 2, -winUiHeight / 2 );
         var lrTile = mapProjection.GetTileFromLatLong( centerLatLong, winUiWidth / 2, winUiHeight / 2 );
 
         UpperLeft = new MultiCoordinates( ulTile, mapProjection, CoordinateOrigin.UpperLeft );
         LowerRight = new MultiCoordinates( lrTile, mapProjection, CoordinateOrigin.UpperLeft );
 
-        logger.Warning( "Creating BoundingBox, TileWidthHeight is {0}", mapProjection.TileWidthHeight );
-
         HorizontalTiles = LowerRight.TilePoint.X - UpperLeft.TilePoint.X + 1;
-        logger.Warning( "Horizontal tiles: {0} -> {1} ({2})",
-                        UpperLeft.TilePoint.X,
-                        LowerRight.TilePoint.X,
-                        HorizontalTiles );
-
         VerticalTiles = LowerRight.TilePoint.Y - UpperLeft.TilePoint.Y + 1;
-        logger.Warning("Vertical tiles: {0} -> {1} ({2})",
-                       UpperLeft.TilePoint.Y,
-                       LowerRight.TilePoint.Y,
-                       VerticalTiles);
 
         ZoomLevel = mapProjection.ZoomLevel;
 
         Width = HorizontalTiles * mapProjection.TileWidthHeight;
         Height = VerticalTiles * mapProjection.TileWidthHeight;
 
+        ViewportCenter = centerLatLong;
+        ViewportCenterPoint = mapProjection.LatLongToScreen(centerLatLong, CoordinateOrigin.UpperLeft);
+
+        BoundingBoxCenterPoint = new DoublePoint(
+            UpperLeft.ScreenPoint.GetX( CoordinateOrigin.UpperLeft )
+          + HorizontalTiles * mapProjection.TileWidthHeight / 2.0,
+            UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
+          + VerticalTiles * mapProjection.TileWidthHeight / 2.0,
+            CoordinateOrigin.UpperLeft,
+            mapProjection );
+
         BoundingBoxCenter = new LatLong( mapProjection.MapRetrieverInfo )
         {
-            Latitude = ( UpperLeft.LatLong.Latitude + LowerRight.LatLong.Latitude ) / 2,
-            Longitude = ( UpperLeft.LatLong.Longitude + LowerRight.LatLong.Longitude ) / 2
+            Latitude = mapProjection.ScreenToLatitude( BoundingBoxCenterPoint ),
+            Longitude = mapProjection.ScreenToLongitude( BoundingBoxCenterPoint ),
         };
-
-        BoundingBoxCenterPoint = mapProjection.LatLongToScreen( BoundingBoxCenter, CoordinateOrigin.UpperLeft );
     }
 
     public MultiCoordinates UpperLeft { get; }
@@ -60,7 +49,7 @@ public record BoundingBox
     public LatLong ViewportCenter { get; }
     public LatLong BoundingBoxCenter { get; }
 
-    // center points are in mercator-space
+    // these points are in projection-space
     public DoublePoint ViewportCenterPoint { get; }
     public DoublePoint BoundingBoxCenterPoint { get; }
 
@@ -80,7 +69,7 @@ public record BoundingBox
             _ => throw new InvalidOperationException($"Unsupported {typeof(CoordinateAxis)} value '{axis}'")
         };
 
-        return viewPort - boundingBox;
+        return boundingBox - viewPort;
     }
 
     public int HorizontalTiles { get; }

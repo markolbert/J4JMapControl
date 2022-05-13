@@ -20,10 +20,5 @@ namespace Test.MapLibraryWinApp
         }
 
         private ViewModel ViewModel { get; }
-
-        private async void ButtonBase_OnClick( object sender, RoutedEventArgs e )
-        {
-            await TheMap.UpdateMap();
-        }
     }
 }

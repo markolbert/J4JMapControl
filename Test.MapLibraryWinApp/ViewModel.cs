@@ -17,13 +17,12 @@ public class ViewModel : ObservableObject
     private RetrieverInfo? _selectedRetriever;
     private int _xTile;
     private int _yTile;
-    private int _tileZoom = 1;
+    private int _zoomLevel;
     private BitmapImage? _tileImageSource;
     private string? _errorMsg;
     private bool _suppressUpdate;
 
     private LatLong? _location;
-    private int _mapZoom = 1;
 
     public ViewModel(
         IMapProjection mapProjection,
@@ -65,12 +64,24 @@ public class ViewModel : ObservableObject
                 return;
 
             _suppressUpdate = true;
+
             SetProperty(ref _selectedRetriever, value);
+            
+            OnPropertyChanged(nameof(MinZoom));
+            OnPropertyChanged(nameof(MaxZoom));
+            OnPropertyChanged(nameof(MaxTile));
+
             _suppressUpdate = false;
 
-            GetTile();
+            ZoomLevel = MinZoom;
+
+            UpdateTileMap();
         }
     }
+
+    public int MinZoom => _selectedRetriever?.Retriever.MapRetrieverInfo.MinimumZoom ?? 0;
+    public int MaxZoom => _selectedRetriever?.Retriever.MapRetrieverInfo.MaximumZoom ?? 0;
+    public int MaxTile => _selectedRetriever?.Retriever.MapProjection.ZoomFactor ?? 0;
 
     public int XTile
     {
@@ -85,7 +96,7 @@ public class ViewModel : ObservableObject
             SetProperty(ref _xTile, value);
             _suppressUpdate = false;
 
-            GetTile();
+            UpdateTileMap();
         }
     }
 
@@ -102,13 +113,13 @@ public class ViewModel : ObservableObject
             SetProperty(ref _yTile, value);
             _suppressUpdate = false;
 
-            GetTile();
+            UpdateTileMap();
         }
     }
 
-    public int TileZoom
+    public int ZoomLevel
     {
-        get => _tileZoom;
+        get => _zoomLevel;
 
         set
         {
@@ -116,14 +127,17 @@ public class ViewModel : ObservableObject
                 return;
 
             _suppressUpdate = true;
-            SetProperty(ref _tileZoom, value);
+            SetProperty(ref _zoomLevel, value);
             _suppressUpdate = false;
 
-            GetTile();
+            if( _selectedRetriever != null )
+                _selectedRetriever.Retriever.MapProjection.ZoomLevel = _zoomLevel;
+
+            UpdateTileMap();
         }
     }
 
-    private void GetTile()
+    private void UpdateTileMap()
     {
         ErrorMessage = null;
         TileImageSource = null;
@@ -134,7 +148,7 @@ public class ViewModel : ObservableObject
 
         var midPt = _selectedRetriever.Retriever.MapProjection.ProjectionWidthHeight / 2;
 
-        var tile = new MultiCoordinates( new TilePoint( _xTile, _yTile, MapZoom ),
+        var tile = new MultiCoordinates( new TilePoint( _xTile, _yTile, ZoomLevel ),
                                          _selectedRetriever.Retriever.MapProjection,
                                          CoordinateOrigin.UpperLeft );
 
@@ -149,9 +163,11 @@ public class ViewModel : ObservableObject
                                                     return;
                                                 }
 
-                                                TileImageSource = new BitmapImage();
+                                                var newImage = new BitmapImage();
                                                 imageData.Stream.Seek(0);
-                                                TileImageSource.SetSource(imageData.Stream);
+                                                newImage.SetSource(imageData.Stream);
+
+                                                TileImageSource = newImage;
                                             });
                                         });
     }
@@ -189,21 +205,6 @@ public class ViewModel : ObservableObject
 
             _suppressUpdate = true;
             SetProperty(ref _location, value);
-            _suppressUpdate = false;
-        }
-    }
-
-    public int MapZoom
-    {
-        get=> _mapZoom;
-
-        set
-        {
-            if (_suppressUpdate)
-                return;
-
-            _suppressUpdate = true;
-            SetProperty(ref _mapZoom, value);
             _suppressUpdate = false;
         }
     }
