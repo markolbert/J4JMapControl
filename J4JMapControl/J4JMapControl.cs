@@ -13,106 +13,12 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
-public sealed class J4JMapControl : Panel, IMapContext
+public sealed partial class J4JMapControl : Panel, IMapContext
 {
-    #region ZoomLevel property
-
-    // the map's zoom level
-    public static readonly DependencyProperty ZoomLevelProperty = DependencyProperty.Register( nameof( MercatorProjection ),
-        typeof( int ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 1, OnZoomLevelChanged ) );
-
-    public int ZoomLevel
-    {
-        get => (int) GetValue( ZoomLevelProperty );
-        set => SetValue( ZoomLevelProperty, value );
-    }
-
-    private static async void OnZoomLevelChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
-    {
-        if( d is not J4JMapControl mapControl )
-            return;
-
-        await mapControl.OnZoomLevelChanged( (int) e.NewValue );
-    }
-
-    #endregion
-
-    #region MapRetriever property
-
-    // the IMapImageRetriever being used to display the map layer
-    public static readonly DependencyProperty MapRetrieverProperty = DependencyProperty.Register(
-        nameof( MapRetriever ),
-        typeof( IMapImageRetriever ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( null, OnMapImageRetrieverChangedStatic ) );
-
-    public IMapImageRetriever? MapRetriever
-    {
-        get => (IMapImageRetriever?) GetValue( MapRetrieverProperty );
-        set => SetValue( MapRetrieverProperty, value );
-    }
-
-    private static async void OnMapImageRetrieverChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
-    {
-        if( d is not J4JMapControl mapControl
-        || mapControl.MapRetriever == null
-        || e.NewValue is not IMapImageRetriever retriever )
-            return;
-
-        await mapControl.OnMapImageRetrieverChanged( retriever );
-    }
-
-    #endregion
-
-    #region Center property
-
-    // the center of the currently displayed map
-    public static readonly DependencyProperty CenterProperty =
-        DependencyProperty.Register( "",
-                                     typeof( LatLong ),
-                                     typeof( J4JMapControl ),
-                                     new PropertyMetadata( null, OnMapCenterChangedStatic ) );
-
-    public LatLong? Center
-    {
-        get => (LatLong?) GetValue( CenterProperty );
-        set => SetValue( CenterProperty, value );
-    }
-
-    private static async void OnMapCenterChangedStatic( DependencyObject d, DependencyPropertyChangedEventArgs e )
-    {
-        if( d is not J4JMapControl mapControl )
-            return;
-
-        switch( e.NewValue )
-        {
-            case null:
-                await mapControl.OnMapCenterChanged( null );
-                break;
-
-            case LatLong latLong:
-                await mapControl.OnMapCenterChanged( latLong );
-                break;
-
-            default:
-                mapControl._logger?.Error( "{0} received a {1} instead of a {2}",
-                                           nameof( OnMapCenterChangedStatic ),
-                                           e.NewValue.GetType(),
-                                           typeof( LatLong ) );
-                break;
-        }
-    }
-
-    #endregion
-
     private readonly IJ4JLogger? _logger;
 
     private IMapProjection? _mapProjection;
     private BoundingBox? _boundingBox;
-    private double _prevCenterXOffset;
-    private double _prevCenterYOffset;
 
     public J4JMapControl()
     {
@@ -120,6 +26,9 @@ public sealed class J4JMapControl : Panel, IMapContext
         _logger?.SetLoggedType( GetType() );
 
         SizeChanged += ( _, args ) => OnSizeChangedAsync( args );
+
+        HorizontalContentAlignment = HorizontalAlignment.Left;
+        VerticalContentAlignment = VerticalAlignment.Top;
     }
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
@@ -222,7 +131,7 @@ public sealed class J4JMapControl : Panel, IMapContext
 
     private Size MeasureMapLayer( Size retVal )
     {
-        if( _mapProjection == null )
+        if( _mapProjection == null  )
             return retVal;
 
         double desiredWidth;
@@ -290,56 +199,28 @@ public sealed class J4JMapControl : Panel, IMapContext
 
         // we do this in layers by starting with arranging the map tiles, and
         // then arranging anything else on top of it
-        ArrangeMapTiles( finalSize );
+        ArrangeMapTiles();
 
         return finalSize;
     }
 
-    private void ArrangeMapTiles( Size finalSize )
+    private void ArrangeMapTiles()
     {
-        if( _mapProjection == null || _boundingBox == null )
+        if( _mapProjection == null || _boundingBox == null || MapRetriever == null )
             return;
 
-        _logger?.Warning( "Arranging within ({0}, {1})", finalSize.Width, finalSize.Height );
-        _logger?.Warning("Bounding box is ({0}, {1})", _boundingBox.Width, _boundingBox.Height);
+        var xOffset = (ActualWidth - _boundingBox.Width) / 2
+          + _boundingBox.GetCenterOffset(CoordinateAxis.XAxis);
 
-        // determine if we need to shift the images
-        var xOffset = 0.0;
-
-        var curCenterXOffset = _boundingBox.GetCenterOffset(CoordinateAxis.XAxis);
-        _logger?.Warning("Center X offset is {0}", curCenterXOffset);
-
-        if ( _boundingBox.HorizontalTiles > 1 && _boundingBox.Width > finalSize.Width )
-        {
-            //xOffset = (finalSize.Width - _boundingBox.Width) / 2;
-            xOffset = curCenterXOffset;
-        }
-
-        _prevCenterXOffset = curCenterXOffset;
-
-        _logger?.Warning("xOffset is {0}", xOffset);
-
-        var yOffset = 0.0;
-
-        var curCenterYOffset = _boundingBox.GetCenterOffset(CoordinateAxis.YAxis);
-        _logger?.Warning("Center Y offset is {0}", curCenterYOffset);
-
-        if( _boundingBox.VerticalTiles > 1 && _boundingBox.Height > finalSize.Height )
-        {
-            //yOffset = (finalSize.Height - _boundingBox.Height) / 2;
-            yOffset = curCenterYOffset;
-        }
-
-        _prevCenterYOffset = curCenterYOffset;
-
-        _logger?.Warning( "yOffset is {0}", yOffset );
+        var yOffset = (ActualHeight - _boundingBox.Height) / 2
+          + _boundingBox.GetCenterOffset(CoordinateAxis.YAxis);
 
         foreach ( var image in Children.MapImages() )
         {
             var coords = AttachedProperties.GetCoordinates( image );
             if( coords == null )
             {
-                _logger?.Warning<string>( "Map Image lacks {0}", nameof( AttachedProperties.CoordinatesProperty ) );
+                _logger?.Error<string>( "Map Image lacks {0}", nameof( AttachedProperties.CoordinatesProperty ) );
                 continue;
             }
 
@@ -360,19 +241,12 @@ public sealed class J4JMapControl : Panel, IMapContext
         var upperLeftY = coordinates.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
           - _boundingBox.UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft );
 
-        _logger?.Warning( "Tile ({0}, {1}, {2}) positioned at ({3}, {4})",
-                              new object[]
-                              {
-                                  coordinates.TilePoint.X,
-                                  coordinates.TilePoint.Y,
-                                  coordinates.TilePoint.Z,
-                                  upperLeftX,
-                                  upperLeftY
-                              } );
+        var xPosition = upperLeftX + xOffset;
+        var yPosition = upperLeftY + yOffset;
 
-        return new( upperLeftX + xOffset,
-                         upperLeftY + yOffset,
-                         _mapProjection!.TileWidthHeight,
-                         _mapProjection.TileWidthHeight );
+        return new( xPosition,
+                    yPosition,
+                    _mapProjection!.TileWidthHeight,
+                    _mapProjection.TileWidthHeight );
     }
 }
