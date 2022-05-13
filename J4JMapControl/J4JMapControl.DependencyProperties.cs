@@ -100,26 +100,26 @@ public sealed partial class J4JMapControl
 
     #endregion
 
-    #region HorizontalContentAlignment property
+    #region SmallMapHorizontalBinding property
 
-    public static readonly DependencyProperty HorizontalContentAlignmentProperty =
-        DependencyProperty.Register( nameof( HorizontalContentAlignment ),
-                                     typeof( HorizontalAlignment ),
+    public static readonly DependencyProperty SmallMapHorizontalBindingProperty =
+        DependencyProperty.Register( nameof(SmallMapHorizontalBinding),
+                                     typeof( SmallMapHorizontalAlignment ),
                                      typeof( J4JMapControl ),
-                                     new PropertyMetadata( HorizontalAlignment.Left,
-                                                           OnHorizontalContentAlignmentChanged ) );
+                                     new PropertyMetadata( SmallMapHorizontalAlignment.Center,
+                                                           OnSmallMapHorizontalBindingChanged ) );
 
-    public HorizontalAlignment HorizontalContentAlignment
+    public SmallMapHorizontalAlignment SmallMapHorizontalBinding
     {
-        get => (HorizontalAlignment) GetValue( HorizontalContentAlignmentProperty );
-        set => SetValue( HorizontalContentAlignmentProperty, value );
+        get => (SmallMapHorizontalAlignment) GetValue(SmallMapHorizontalBindingProperty);
+        set => SetValue(SmallMapHorizontalBindingProperty, value );
     }
 
-    private static void OnHorizontalContentAlignmentChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
+    private static void OnSmallMapHorizontalBindingChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl
-        || e.NewValue is not HorizontalAlignment newValue
-        || e.OldValue is not HorizontalAlignment oldValue
+        || e.NewValue is not SmallMapHorizontalAlignment newValue
+        || e.OldValue is not SmallMapHorizontalAlignment oldValue
         || newValue == oldValue )
             return;
 
@@ -128,26 +128,26 @@ public sealed partial class J4JMapControl
 
     #endregion
 
-    #region VerticalContentAlignment property
+    #region SmallMapVerticalBinding property
 
-    public static readonly DependencyProperty VerticalContentAlignmentProperty =
-        DependencyProperty.Register( nameof( VerticalContentAlignment ),
-                                     typeof( VerticalAlignment ),
+    public static readonly DependencyProperty SmallMapVerticalBindingProperty =
+        DependencyProperty.Register( nameof(SmallMapVerticalAlignment),
+                                     typeof( SmallMapVerticalAlignment ),
                                      typeof( J4JMapControl ),
-                                     new PropertyMetadata( VerticalAlignment.Top,
-                                                           OnVerticalContentAlignmentChanged ) );
+                                     new PropertyMetadata( SmallMapVerticalAlignment.Middle,
+                                                           OnSmallMapVerticalBindingChanged) );
 
-    public VerticalAlignment VerticalContentAlignment
+    public SmallMapVerticalAlignment SmallMapVerticalBinding
     {
-        get => (VerticalAlignment) GetValue( VerticalContentAlignmentProperty );
-        set => SetValue( VerticalContentAlignmentProperty, value );
+        get => (SmallMapVerticalAlignment) GetValue(SmallMapVerticalBindingProperty);
+        set => SetValue(SmallMapVerticalBindingProperty, value );
     }
 
-    private static void OnVerticalContentAlignmentChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
+    private static void OnSmallMapVerticalBindingChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl
-        || e.NewValue is not VerticalAlignment newValue
-        || e.OldValue is not VerticalAlignment oldValue
+        || e.NewValue is not SmallMapVerticalAlignment newValue
+        || e.OldValue is not SmallMapVerticalAlignment oldValue
         || newValue == oldValue )
             return;
 
