@@ -26,8 +26,6 @@ public class ViewModel : ObservableObject
     private BitmapImage? _tileImageSource;
     private string? _errorMsg;
     private bool _suppressUpdate;
-    private double _mapWidth;
-    private double _mapHeight;
 
     private LatLong? _location;
 
@@ -192,18 +190,6 @@ public class ViewModel : ObservableObject
             SetProperty( ref _vertBinder, value );
             _suppressUpdate = false;
         }
-    }
-
-    public double MapWidth
-    {
-        get => _mapWidth;
-        set => SetProperty( ref _mapWidth, value );
-    }
-
-    public double MapHeight
-    {
-        get=> _mapHeight;
-        set => SetProperty( ref _mapHeight, value );
     }
 
     private void UpdateTileMap()

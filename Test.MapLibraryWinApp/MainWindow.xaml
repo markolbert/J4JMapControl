@@ -173,27 +173,21 @@
                                MapRetriever="{x:Bind ViewModel.SelectedRetriever.Item}"
                                Center="{x:Bind ViewModel.Location }"
                                ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
-                               Width="{x:Bind ViewModel.MapWidth}"
-                               Height="{x:Bind ViewModel.MapHeight}"
                                SmallMapHorizontalBinding="{x:Bind ViewModel.HorizontalBinder.Item}"
                                SmallMapVerticalBinding="{x:Bind ViewModel.VerticalBinder.Item}"
-                               Background="LightGoldenrodYellow">
-
-                <i:Interaction.Behaviors>
-                    <ic: 
-                </i:Interaction.Behaviors>
-            </map:J4JMapControl>
+                               Background="LightGoldenrodYellow"
+                               SizeChanged="TheMap_OnSizeChanged"/>
 
 
             <TextBlock Grid.Row="1" Grid.Column="0">
                 <Run>Width: </Run>
-                <Run Text="{x:Bind ViewModel.MapWidth }"/>
+                <Run Text="{x:Bind MapSize.Width }"/>
             </TextBlock>
 
             <TextBlock Grid.Row="1" Grid.Column="1"
                        HorizontalAlignment="Right">
                 <Run>Height: </Run>
-                <Run Text="{x:Bind ViewModel.MapHeight}"/>
+                <Run Text="{x:Bind MapSize.Height}"/>
             </TextBlock>
 
         </Grid>
