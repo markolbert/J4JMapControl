@@ -7,6 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:map="using:J4JSoftware.J4JMapControl"
     xmlns:mapLibrary="using:J4JSoftware.MapLibrary"
+    xmlns:i="using:Microsoft.Xaml.Interactivity"
+    xmlns:ic="using:Microsoft.Xaml.Interactions"
     mc:Ignorable="d"
     x:DefaultBindMode="OneWay">
 
@@ -154,14 +156,47 @@
 
         </Grid>
 
-        <map:J4JMapControl x:Name="TheMap" 
-                           Grid.Row="2" Grid.Column="1"
-                           MapRetriever="{x:Bind ViewModel.SelectedRetriever.Item}"
-                           Center="{x:Bind ViewModel.Location }"
-                           ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
-                           SmallMapHorizontalBinding="{x:Bind ViewModel.HorizontalBinder.Item}"
-                           SmallMapVerticalBinding="{x:Bind ViewModel.VerticalBinder.Item}"
-                           Background="LightGoldenrodYellow"/>
+        <Grid Grid.Row="2" Grid.Column="1">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <map:J4JMapControl x:Name="TheMap" 
+                               Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                               MapRetriever="{x:Bind ViewModel.SelectedRetriever.Item}"
+                               Center="{x:Bind ViewModel.Location }"
+                               ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
+                               Width="{x:Bind ViewModel.MapWidth}"
+                               Height="{x:Bind ViewModel.MapHeight}"
+                               SmallMapHorizontalBinding="{x:Bind ViewModel.HorizontalBinder.Item}"
+                               SmallMapVerticalBinding="{x:Bind ViewModel.VerticalBinder.Item}"
+                               Background="LightGoldenrodYellow">
+
+                <i:Interaction.Behaviors>
+                    <ic: 
+                </i:Interaction.Behaviors>
+            </map:J4JMapControl>
+
+
+            <TextBlock Grid.Row="1" Grid.Column="0">
+                <Run>Width: </Run>
+                <Run Text="{x:Bind ViewModel.MapWidth }"/>
+            </TextBlock>
+
+            <TextBlock Grid.Row="1" Grid.Column="1"
+                       HorizontalAlignment="Right">
+                <Run>Height: </Run>
+                <Run Text="{x:Bind ViewModel.MapHeight}"/>
+            </TextBlock>
+
+        </Grid>
 
     </Grid>
 

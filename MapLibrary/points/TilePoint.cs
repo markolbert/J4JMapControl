@@ -2,6 +2,8 @@
 
 public record TilePoint( int X, int Y, int Z )
 {
+    private const double Tolerance = 0.01;
+
     #region IEquality
 
     public virtual bool Equals( TilePoint? other )
@@ -23,11 +25,20 @@ public record TilePoint( int X, int Y, int Z )
     public TilePoint(
         double x,
         double y,
-        double z
+        int z
     )
-        : this( Convert.ToInt32( Math.Floor( x ) ),
-                Convert.ToInt32( Math.Floor( y ) ),
-                Convert.ToInt32( Math.Floor( z ) ) )
+        : this( RoundDouble(x), RoundDouble(y), z )
     {
+    }
+
+    private static int RoundDouble( double toRound )
+    {
+        var floor = Math.Floor( toRound );
+        var retVal = Convert.ToInt32( floor );
+
+        if( toRound - floor > Tolerance )
+            retVal++;
+
+        return retVal;
     }
 }

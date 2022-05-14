@@ -210,45 +210,25 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( _mapProjection == null || _boundingBox == null || MapRetriever == null )
             return;
 
-        var xOffset = (ActualWidth - _boundingBox.Width) / 2
-          + _boundingBox.GetCenterOffset(CoordinateAxis.XAxis);
-
-        // apply adjustment if the map tiles are smaller than the viewport
-        // we determine that by comparing how far the viewport's center point is
-        // to the map's centerpoint offset. If the viewport center point is smaller,
-        // that means there's a blank area to the left of the tile images
-        if( _boundingBox.ViewportCenterPoint.GetX( CoordinateOrigin.UpperLeft )
-         < _boundingBox.GetCenterOffset( CoordinateAxis.XAxis ) )
+        var xOffset = SmallMapHorizontalBinding switch
         {
-            xOffset = SmallMapHorizontalBinding switch
-            {
-                SmallMapHorizontalAlignment.Center => xOffset,
-                SmallMapHorizontalAlignment.Left => 0,
-                SmallMapHorizontalAlignment.Right => ActualWidth - _boundingBox.Width,
-                _ => throw new InvalidEnumArgumentException(
-                    $"Unsupported {typeof( SmallMapHorizontalAlignment )} value '{SmallMapHorizontalBinding}'" )
-            };
-        }
+            SmallMapHorizontalAlignment.Center => ( ActualWidth - _boundingBox.Width ) / 2
+              + _boundingBox.GetCenterOffset( CoordinateAxis.XAxis ),
+            SmallMapHorizontalAlignment.Left => 0.0,
+            SmallMapHorizontalAlignment.Right => ActualWidth - _boundingBox.Width,
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof( SmallMapHorizontalAlignment )} value '{SmallMapHorizontalBinding}'" )
+        };
 
-        var yOffset = (ActualHeight - _boundingBox.Height) / 2
-          + _boundingBox.GetCenterOffset(CoordinateAxis.YAxis);
-
-        // apply adjustment if the map tiles are smaller than the viewport
-        // we determine that by comparing how far the viewport's center point is
-        // to the map's centerpoint offset. If the viewport center point is larger,
-        // that means there's a blank area above the tile images
-        if (_boundingBox.ViewportCenterPoint.GetY(CoordinateOrigin.UpperLeft)
-          > _boundingBox.GetCenterOffset(CoordinateAxis.YAxis))
+        var yOffset = SmallMapVerticalBinding switch
         {
-            yOffset = SmallMapVerticalBinding switch
-            {
-                SmallMapVerticalAlignment.Middle => yOffset,
-                SmallMapVerticalAlignment.Top => 0,
-                SmallMapVerticalAlignment.Bottom => ActualHeight - _boundingBox.Height,
-                _ => throw new InvalidEnumArgumentException(
-                    $"Unsupported {typeof(SmallMapVerticalAlignment)} value '{SmallMapVerticalBinding}'")
-            };
-        }
+            SmallMapVerticalAlignment.Middle => (ActualHeight - _boundingBox.Height) / 2
+              + _boundingBox.GetCenterOffset(CoordinateAxis.YAxis),
+            SmallMapVerticalAlignment.Top => 0,
+            SmallMapVerticalAlignment.Bottom => ActualHeight - _boundingBox.Height,
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof(SmallMapVerticalAlignment)} value '{SmallMapVerticalBinding}'")
+        };
 
         foreach ( var image in Children.MapImages() )
         {
