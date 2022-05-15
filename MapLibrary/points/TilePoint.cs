@@ -31,14 +31,5 @@ public record TilePoint( int X, int Y, int Z )
     {
     }
 
-    private static int RoundDouble( double toRound )
-    {
-        var floor = Math.Floor( toRound );
-        var retVal = Convert.ToInt32( floor );
-
-        if( toRound - floor > Tolerance )
-            retVal++;
-
-        return retVal;
-    }
+    private static int RoundDouble( double toRound ) => Convert.ToInt32( Math.Floor( toRound ) );
 }
