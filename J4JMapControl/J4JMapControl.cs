@@ -16,6 +16,8 @@ namespace J4JSoftware.J4JMapControl;
 
 public sealed partial class J4JMapControl : Panel, IMapContext
 {
+    private static double Tolerance = 0.1;
+
     private readonly IJ4JLogger? _logger;
 
     private IMapProjection? _mapProjection;
@@ -62,7 +64,8 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private async void OnSizeChangedAsync(SizeChangedEventArgs args)
     {
-        if( _mapProjection == null || Center == null )
+        if( _mapProjection == null || Center == null || args.NewSize.Width > MaxWidth ||
+            args.NewSize.Height > MaxHeight )
             return;
 
         _mapProjection.ViewportWidth = args.NewSize.Width;
@@ -132,7 +135,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private Size MeasureMapLayer( Size retVal )
     {
-        if( _mapProjection == null  )
+        if( _mapProjection == null )
             return retVal;
 
         double desiredWidth;
@@ -143,8 +146,8 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( varSizedImage != null )
         {
             // there should only ever by a single variable-sized map image
-            var varSize = new Size( ( (BitmapSource) varSizedImage.Source ).PixelWidth,
-                                    ( (BitmapSource) varSizedImage.Source ).PixelHeight );
+            var varSize = new Size( ( (BitmapSource)varSizedImage.Source ).PixelWidth,
+                ( (BitmapSource)varSizedImage.Source ).PixelHeight );
 
             desiredWidth = varSize.Width;
             desiredHeight = varSize.Height;
@@ -160,11 +163,11 @@ public sealed partial class J4JMapControl : Panel, IMapContext
             var maxXTile = 0;
             var maxYTile = 0;
 
-            foreach ( var image in Children.FixedSizedMapImages() )
+            foreach( var image in Children.FixedSizedMapImages() )
             {
                 // map images don't resize -- they stay the same size as when they're created
-                image.Measure( new Size( ( (BitmapSource) image.Source ).PixelWidth,
-                                         ( (BitmapSource) image.Source ).PixelHeight ) );
+                image.Measure( new Size( ( (BitmapSource)image.Source ).PixelWidth,
+                    ( (BitmapSource)image.Source ).PixelHeight ) );
 
                 var coords = AttachedProperties.GetCoordinates( image );
                 if( coords == null )
@@ -176,17 +179,36 @@ public sealed partial class J4JMapControl : Panel, IMapContext
                 maxYTile = coords.TilePoint.Y > maxYTile ? coords.TilePoint.Y : maxYTile;
             }
 
-            desiredWidth = _mapProjection.TileWidthHeight * (maxXTile - minXTile + 1);
+            desiredWidth = _mapProjection.TileWidthHeight * ( maxXTile - minXTile + 1 );
             desiredHeight = _mapProjection.TileWidthHeight * ( maxYTile - minYTile + 1 );
         }
 
-        if ( desiredWidth < retVal.Width )
+        if( desiredWidth < retVal.Width )
             retVal.Width = desiredWidth;
 
         if( desiredHeight < retVal.Height )
             retVal.Height = desiredHeight;
 
+        MaxWidth = _mapProjection.TileWidthHeight * _boundingBox?.HorizontalTiles ?? 1;
+        MaxHeight = _mapProjection.TileWidthHeight * _boundingBox?.VerticalTiles ?? 1;
+
         return retVal;
+    }
+
+    private double OffsetX()
+    {
+        if( Math.Abs( _boundingBox?.GetDesiredCenterOffset( CoordinateAxis.XAxis) ?? 0) < Tolerance )
+            return (ActualWidth - _boundingBox?.Width ?? 0) / 2;
+
+        return 0.0;
+    }
+
+    private double OffsetY()
+    {
+        if (Math.Abs(_boundingBox?.GetDesiredCenterOffset(CoordinateAxis.YAxis) ?? 0) < Tolerance)
+            return (ActualHeight - _boundingBox?.Height ?? 0) / 2;
+
+        return 0.0;
     }
 
     protected override Size ArrangeOverride( Size finalSize )
@@ -212,8 +234,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
         var xOffset = SmallMapHorizontalBinding switch
         {
-            SmallMapHorizontalAlignment.Center => ( ActualWidth - _boundingBox.Width ) / 2
-              + _boundingBox.GetCenterOffset( CoordinateAxis.XAxis ),
+            SmallMapHorizontalAlignment.Center => OffsetX(),
             SmallMapHorizontalAlignment.Left => 0.0,
             SmallMapHorizontalAlignment.Right => ActualWidth - _boundingBox.Width,
             _ => throw new InvalidEnumArgumentException(
@@ -222,8 +243,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
         var yOffset = SmallMapVerticalBinding switch
         {
-            SmallMapVerticalAlignment.Middle => (ActualHeight - _boundingBox.Height) / 2
-              + _boundingBox.GetCenterOffset(CoordinateAxis.YAxis),
+            SmallMapVerticalAlignment.Middle => OffsetY(),
             SmallMapVerticalAlignment.Top => 0,
             SmallMapVerticalAlignment.Bottom => ActualHeight - _boundingBox.Height,
             _ => throw new InvalidEnumArgumentException(
