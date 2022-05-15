@@ -25,10 +25,10 @@ public record BoundingBox
         Width = HorizontalTiles * mapProjection.TileWidthHeight;
         Height = VerticalTiles * mapProjection.TileWidthHeight;
 
-        ViewportCenter = centerLatLong;
-        ViewportCenterPoint = mapProjection.LatLongToScreen(centerLatLong, CoordinateOrigin.UpperLeft);
+        DesiredCenter = centerLatLong;
+        DesiredCenterPoint = mapProjection.LatLongToScreen(centerLatLong, CoordinateOrigin.UpperLeft);
 
-        BoundingBoxCenterPoint = new DoublePoint(
+        CenterPoint = new DoublePoint(
             UpperLeft.ScreenPoint.GetX( CoordinateOrigin.UpperLeft )
           + HorizontalTiles * mapProjection.TileWidthHeight / 2.0,
             UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
@@ -38,34 +38,34 @@ public record BoundingBox
 
         BoundingBoxCenter = new LatLong( mapProjection.MapRetrieverInfo )
         {
-            Latitude = mapProjection.ScreenToLatitude( BoundingBoxCenterPoint ),
-            Longitude = mapProjection.ScreenToLongitude( BoundingBoxCenterPoint ),
+            Latitude = mapProjection.ScreenToLatitude( CenterPoint ),
+            Longitude = mapProjection.ScreenToLongitude( CenterPoint ),
         };
     }
 
     public MultiCoordinates UpperLeft { get; }
     public MultiCoordinates LowerRight { get; }
 
-    public LatLong ViewportCenter { get; }
+    public LatLong DesiredCenter { get; }
     public LatLong BoundingBoxCenter { get; }
 
     // these points are in projection-space
-    public DoublePoint ViewportCenterPoint { get; }
-    public DoublePoint BoundingBoxCenterPoint { get; }
+    public DoublePoint DesiredCenterPoint { get; }
+    public DoublePoint CenterPoint { get; }
 
-    public double GetCenterOffset( CoordinateAxis axis )
+    public double GetDesiredCenterOffset( CoordinateAxis axis )
     {
         var viewPort = axis switch
         {
-            CoordinateAxis.XAxis => ViewportCenterPoint.GetX( CoordinateOrigin.UpperLeft ),
-            CoordinateAxis.YAxis => ViewportCenterPoint.GetY( CoordinateOrigin.UpperLeft ),
+            CoordinateAxis.XAxis => DesiredCenterPoint.GetX( CoordinateOrigin.UpperLeft ),
+            CoordinateAxis.YAxis => DesiredCenterPoint.GetY( CoordinateOrigin.UpperLeft ),
             _ => throw new InvalidOperationException( $"Unsupported {typeof( CoordinateAxis )} value '{axis}'" )
         };
 
         var boundingBox = axis switch
         {
-            CoordinateAxis.XAxis => BoundingBoxCenterPoint.GetX(CoordinateOrigin.UpperLeft),
-            CoordinateAxis.YAxis => BoundingBoxCenterPoint.GetY(CoordinateOrigin.UpperLeft),
+            CoordinateAxis.XAxis => CenterPoint.GetX(CoordinateOrigin.UpperLeft),
+            CoordinateAxis.YAxis => CenterPoint.GetY(CoordinateOrigin.UpperLeft),
             _ => throw new InvalidOperationException($"Unsupported {typeof(CoordinateAxis)} value '{axis}'")
         };
 
