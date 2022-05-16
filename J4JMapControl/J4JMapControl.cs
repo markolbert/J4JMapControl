@@ -197,10 +197,16 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private double OffsetX()
     {
+        // there are two offsets to consider:
+        // - the difference between the desired center of the viewport and the actual
+        //   center of the tiles that were retrieved
+        // - the difference between the size/width of the viewport and the size/width of the tiles
+        //   that were retrieved
         var mapOffset = _boundingBox!.GetDesiredCenterOffset( CoordinateAxis.XAxis );
         var vpOffset = ( ActualWidth - _boundingBox.Width ) / 2;
 
-        if( _boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor )
+        // if we're displaying everything available horizontally the offset is 0.0
+        if ( _boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor )
             return 0.0;
 
         return vpOffset + mapOffset;
@@ -208,10 +214,16 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private double OffsetY()
     {
+        // there are two offsets to consider:
+        // - the difference between the desired center of the viewport and the actual
+        //   center of the tiles that were retrieved
+        // - the difference between the size/height of the viewport and the size/height of the tiles
+        //   that were retrieved
         var mapOffset = -_boundingBox!.GetDesiredCenterOffset( CoordinateAxis.YAxis );
         var vpOffset = ( ActualHeight - _boundingBox.Height ) / 2;
 
-        if( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
+        // if we're displaying everything available vertically the offset is 0.0
+        if ( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
             return 0.0;
 
         return vpOffset - mapOffset;
