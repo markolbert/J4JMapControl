@@ -16,8 +16,6 @@ namespace J4JSoftware.J4JMapControl;
 
 public sealed partial class J4JMapControl : Panel, IMapContext
 {
-    private static double Tolerance = 0.1;
-
     private readonly IJ4JLogger? _logger;
 
     private IMapProjection? _mapProjection;
@@ -29,9 +27,6 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         _logger?.SetLoggedType( GetType() );
 
         SizeChanged += ( _, args ) => OnSizeChangedAsync( args );
-
-        SmallMapHorizontalBinding = SmallMapHorizontalAlignment.Center;
-        SmallMapVerticalBinding = SmallMapVerticalAlignment.Middle;
     }
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
@@ -250,23 +245,8 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( _mapProjection == null || _boundingBox == null || MapRetriever == null )
             return;
 
-        var xOffset = SmallMapHorizontalBinding switch
-        {
-            SmallMapHorizontalAlignment.Center => OffsetX(),
-            SmallMapHorizontalAlignment.Left => 0.0,
-            SmallMapHorizontalAlignment.Right => ActualWidth - _boundingBox.Width,
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( SmallMapHorizontalAlignment )} value '{SmallMapHorizontalBinding}'" )
-        };
-
-        var yOffset = SmallMapVerticalBinding switch
-        {
-            SmallMapVerticalAlignment.Middle => OffsetY(),
-            SmallMapVerticalAlignment.Top => 0,
-            SmallMapVerticalAlignment.Bottom => ActualHeight - _boundingBox.Height,
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof(SmallMapVerticalAlignment)} value '{SmallMapVerticalBinding}'")
-        };
+        var xOffset = OffsetX();
+        var yOffset = OffsetY();
 
         foreach ( var image in Children.MapImages() )
         {
