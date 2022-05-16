@@ -200,55 +200,21 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         var mapOffset = _boundingBox!.GetDesiredCenterOffset( CoordinateAxis.XAxis );
         var vpOffset = ( ActualWidth - _boundingBox.Width ) / 2;
 
-        double retVal;
+        if( _boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor )
+            return 0.0;
 
-        if ( Math.Abs( mapOffset ) < Tolerance )
-            retVal = vpOffset;
-        else
-        {
-            if (_boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor)
-                retVal = 0.0;
-            else retVal = vpOffset + mapOffset;
-        }
-
-        //_logger?.Warning( "H tiles, map offset, vp offset, retVal: {0}, {1}, {2}, {3}",
-        //    new object[]
-        //    {
-        //        _boundingBox.HorizontalTiles,
-        //        Convert.ToInt32( mapOffset ),
-        //        Convert.ToInt32( vpOffset ),
-        //        Convert.ToInt32( retVal )
-        //    } );
-
-        return retVal;
+        return vpOffset + mapOffset;
     }
 
     private double OffsetY()
     {
         var mapOffset = -_boundingBox!.GetDesiredCenterOffset( CoordinateAxis.YAxis );
-        var vpOffset = (ActualHeight - _boundingBox.Height) / 2;
+        var vpOffset = ( ActualHeight - _boundingBox.Height ) / 2;
 
-        double retVal;
+        if( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
+            return 0.0;
 
-        if ( Math.Abs( mapOffset ) < Tolerance )
-            retVal= vpOffset;
-        else
-        {
-            if( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
-                retVal = 0.0;
-            else retVal = vpOffset - mapOffset;
-        }
-
-        //_logger?.Warning("V tiles, map offset, vp offset, retVal: {0}, {1}, {2}, {3}",
-        //    new object[]
-        //    {
-        //        _boundingBox.VerticalTiles,
-        //        Convert.ToInt32( mapOffset ),
-        //        Convert.ToInt32( vpOffset ),
-        //        Convert.ToInt32( retVal )
-        //    });
-
-        return retVal;
+        return vpOffset - mapOffset;
     }
 
     protected override Size ArrangeOverride( Size finalSize )
