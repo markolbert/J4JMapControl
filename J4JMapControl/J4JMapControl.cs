@@ -135,7 +135,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private Size MeasureMapLayer( Size retVal )
     {
-        if( _mapProjection == null )
+        if( _mapProjection == null || _boundingBox == null )
             return retVal;
 
         double desiredWidth;
@@ -189,26 +189,66 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( desiredHeight < retVal.Height )
             retVal.Height = desiredHeight;
 
-        MaxWidth = _mapProjection.TileWidthHeight * _boundingBox?.HorizontalTiles ?? 1;
-        MaxHeight = _mapProjection.TileWidthHeight * _boundingBox?.VerticalTiles ?? 1;
+        MaxWidth = _mapProjection.TileWidthHeight * _boundingBox.HorizontalTiles;
+        MaxHeight = _mapProjection.TileWidthHeight * _boundingBox.VerticalTiles;
 
         return retVal;
     }
 
     private double OffsetX()
     {
-        if( Math.Abs( _boundingBox?.GetDesiredCenterOffset( CoordinateAxis.XAxis) ?? 0) < Tolerance )
-            return (ActualWidth - _boundingBox?.Width ?? 0) / 2;
+        var mapOffset = _boundingBox!.GetDesiredCenterOffset( CoordinateAxis.XAxis );
+        var vpOffset = ( ActualWidth - _boundingBox.Width ) / 2;
 
-        return 0.0;
+        double retVal;
+
+        if ( Math.Abs( mapOffset ) < Tolerance )
+            retVal = vpOffset;
+        else
+        {
+            if (_boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor)
+                retVal = 0.0;
+            else retVal = vpOffset + mapOffset;
+        }
+
+        //_logger?.Warning( "H tiles, map offset, vp offset, retVal: {0}, {1}, {2}, {3}",
+        //    new object[]
+        //    {
+        //        _boundingBox.HorizontalTiles,
+        //        Convert.ToInt32( mapOffset ),
+        //        Convert.ToInt32( vpOffset ),
+        //        Convert.ToInt32( retVal )
+        //    } );
+
+        return retVal;
     }
 
     private double OffsetY()
     {
-        if (Math.Abs(_boundingBox?.GetDesiredCenterOffset(CoordinateAxis.YAxis) ?? 0) < Tolerance)
-            return (ActualHeight - _boundingBox?.Height ?? 0) / 2;
+        var mapOffset = -_boundingBox!.GetDesiredCenterOffset( CoordinateAxis.YAxis );
+        var vpOffset = (ActualHeight - _boundingBox.Height) / 2;
 
-        return 0.0;
+        double retVal;
+
+        if ( Math.Abs( mapOffset ) < Tolerance )
+            retVal= vpOffset;
+        else
+        {
+            if( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
+                retVal = 0.0;
+            else retVal = vpOffset - mapOffset;
+        }
+
+        //_logger?.Warning("V tiles, map offset, vp offset, retVal: {0}, {1}, {2}, {3}",
+        //    new object[]
+        //    {
+        //        _boundingBox.VerticalTiles,
+        //        Convert.ToInt32( mapOffset ),
+        //        Convert.ToInt32( vpOffset ),
+        //        Convert.ToInt32( retVal )
+        //    });
+
+        return retVal;
     }
 
     protected override Size ArrangeOverride( Size finalSize )
