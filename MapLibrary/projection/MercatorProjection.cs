@@ -192,6 +192,20 @@ public class MercatorProjection : IMapProjection
         return -MapRetrieverInfo.MaximumLatitude;
     }
 
+    public LatLong Offset( LatLong origin, double xOffset, double yOffset )
+    {
+        var originPt = LatLongToScreen( origin, CoordinateOrigin.UpperLeft );
+
+        originPt.IncrementX(xOffset);
+        originPt.IncrementY(yOffset);
+
+        return new LatLong( MapRetrieverInfo )
+        {
+            Latitude = ScreenToLatitude( originPt ),
+            Longitude = ScreenToLongitude( originPt ),
+        };
+    }
+
     public double ChangeOrigin( double value, CoordinateAxis axis ) =>
         axis switch
         {

@@ -18,6 +18,7 @@ public interface IMapProjection
     DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin);
     double ScreenToLongitude( DoublePoint screenPoint );
     double ScreenToLatitude( DoublePoint screenPoint );
+    LatLong Offset( LatLong origin, double xOffset, double yOffset );
 
     double ChangeOrigin( double value, CoordinateAxis axis );
     
