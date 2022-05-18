@@ -6,8 +6,10 @@ using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
@@ -22,6 +24,8 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private IMapProjection? _mapProjection;
     private BoundingBox? _boundingBox;
+    private bool _pointerCaptured;
+    private Point _lastDragPt;
 
     public J4JMapControl()
     {
@@ -29,7 +33,65 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         _logger?.SetLoggedType( GetType() );
 
         SizeChanged += ( _, args ) => OnSizeChangedAsync( args );
+
+        PointerPressed += OnPointerPressed;
+        PointerMoved += OnPointerMoved;
+        PointerReleased += OnPointerReleased;
     }
+
+    #region Map dragging...
+
+    private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
+    {
+        if (Center == null || sender is not J4JMapControl mapControl)
+            return;
+
+        _pointerCaptured = mapControl.CapturePointer(e.Pointer);
+
+        if( _pointerCaptured )
+        {
+            e.Handled = true;
+            _lastDragPt = e.GetCurrentPoint( this ).Position;
+        }
+        else _logger?.Error("Failed to capture pointer");
+    }
+
+    private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if ( !_pointerCaptured || Center == null || sender is not J4JMapControl mapControl)
+            return;
+
+        e.Handled = true;
+
+        OnMapDragged( e.GetCurrentPoint( this ).Position );
+
+        mapControl.ReleasePointerCapture(e.Pointer);
+        _pointerCaptured = false;
+    }
+
+    private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if( !_pointerCaptured )
+            return;
+
+        e.Handled = true;
+
+        OnMapDragged(e.GetCurrentPoint(this).Position);
+    }
+
+    private void OnMapDragged(Point curDragPt )
+    {
+        if( !_pointerCaptured || _mapProjection == null || Center == null  )
+            return;
+
+        Center = _mapProjection.Offset( Center,
+            _lastDragPt.X - curDragPt.X,
+            _lastDragPt.Y - curDragPt.Y);
+
+        _lastDragPt = curDragPt;
+    }
+
+    #endregion
 
     #region Property change handlers
 
