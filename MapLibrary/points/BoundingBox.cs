@@ -7,12 +7,15 @@ public record BoundingBox
     public BoundingBox(
         IMapProjection mapProjection,
         LatLong centerLatLong,
-        double winUiWidth,
-        double winUiHeight
+        double viewportWidth,
+        double viewportHeight
     )
     {
-        var ulTile = mapProjection.GetTileFromLatLong( centerLatLong, -winUiWidth / 2, -winUiHeight / 2 );
-        var lrTile = mapProjection.GetTileFromLatLong( centerLatLong, winUiWidth / 2, winUiHeight / 2 );
+        ViewportWidth = viewportWidth;
+        ViewportHeight = viewportHeight;
+
+        var ulTile = mapProjection.GetTileFromLatLong( centerLatLong, -viewportWidth / 2, -viewportHeight / 2 );
+        var lrTile = mapProjection.GetTileFromLatLong( centerLatLong, viewportWidth / 2, viewportHeight / 2 );
 
         UpperLeft = new MultiCoordinates( ulTile, mapProjection, CoordinateOrigin.UpperLeft );
         LowerRight = new MultiCoordinates( lrTile, mapProjection, CoordinateOrigin.UpperLeft );
@@ -78,6 +81,9 @@ public record BoundingBox
 
     public double Width { get; }
     public double Height { get; }
+
+    public double ViewportWidth { get; }
+    public double ViewportHeight { get; }
 
     public IEnumerable<MultiCoordinates> GetTileCoordinates( IMapProjection mapProjection )
     {
