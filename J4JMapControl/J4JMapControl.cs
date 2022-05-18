@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
@@ -28,6 +30,8 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
         SizeChanged += ( _, args ) => OnSizeChangedAsync( args );
     }
+
+    #region Property change handlers
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
     {
@@ -68,6 +72,10 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         await UpdateMap();
     }
 
+    #endregion
+
+    public List<UIElement> Annotations { get; } = new();
+
     public async Task UpdateMap()
     {
         if( Center == null || MapRetriever == null || _mapProjection == null )
@@ -90,16 +98,16 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
             if( curImage != null )
             {
-                AttachedProperties.SetMapTileState(curImage, MapTileState.InUse);
+                MapProperties.SetMapTileState(curImage, MapTileState.InUse);
                 continue;
             }
 
             curImage = new Image();
 
-            AttachedProperties.SetCoordinates( curImage, imgData.Coordinates );
-            AttachedProperties.SetIsMapTile( curImage, true );
-            AttachedProperties.SetIsFixedImageSize( curImage, MapRetriever.FixedSizeImages );
-            AttachedProperties.SetMapTileState(curImage, MapTileState.InUse);
+            MapProperties.SetCoordinates( curImage, imgData.Coordinates );
+            MapProperties.SetIsMapTile( curImage, true );
+            MapProperties.SetIsFixedImageSize( curImage, MapRetriever.FixedSizeImages );
+            MapProperties.SetMapTileState(curImage, MapTileState.InUse);
 
             imgData.Stream.Seek(0);
             var imgSource = new BitmapImage();
@@ -110,7 +118,11 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         }
 
         Children.RemoveMapImages( MapTileState.NotInBoundingBox, MapTileState.NotSet );
+
+        Children.ReplaceAnnotations( Annotations );
     }
+
+    #region Measuring...
 
     protected override Size MeasureOverride( Size availableSize )
     {
@@ -122,10 +134,16 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( double.IsPositiveInfinity( availableSize.Height ) )
             availableSize.Height = 100;
 
-        if ( Center == null || !Children.OfType<Image>().Where( AttachedProperties.GetIsMapTile ).Any() )
+        if ( Center == null )
             return availableSize;
 
-        return MeasureMapLayer( availableSize );
+        var retVal = MeasureMapLayer( availableSize );
+
+        Clip = new RectangleGeometry { Rect = new Rect(new Point(0, 0), retVal) };
+
+        MeasureAnnotations( retVal );
+
+        return retVal;
     }
 
     private Size MeasureMapLayer( Size retVal )
@@ -164,7 +182,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
                 image.Measure( new Size( ( (BitmapSource)image.Source ).PixelWidth,
                     ( (BitmapSource)image.Source ).PixelHeight ) );
 
-                var coords = AttachedProperties.GetCoordinates( image );
+                var coords = MapProperties.GetCoordinates( image );
                 if( coords == null )
                     continue;
 
@@ -188,6 +206,17 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         MaxHeight = _mapProjection.TileWidthHeight * _boundingBox.VerticalTiles;
 
         return retVal;
+    }
+
+    private void MeasureAnnotations( Size clipSize )
+    {
+        if( _mapProjection == null )
+            return;
+
+        foreach (var annotation in Children.GetInitializedAnnotations(clipSize, _mapProjection))
+        {
+            annotation.Element.Measure( clipSize );
+        }
     }
 
     private double OffsetX()
@@ -224,18 +253,21 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         return vpOffset - mapOffset;
     }
 
+    #endregion
+
+    #region Arranging...
+
     protected override Size ArrangeOverride( Size finalSize )
     {
         if( Center == null
-        || MapRetriever == null
-        || !Children.MapImages().Any() )
+        || MapRetriever == null )
             return finalSize;
-
-        Clip = new RectangleGeometry { Rect = new Rect( new Point( 0, 0 ), finalSize ) };
 
         // we do this in layers by starting with arranging the map tiles, and
         // then arranging anything else on top of it
         ArrangeMapTiles();
+
+        ArrangeAnnotations();
 
         return finalSize;
     }
@@ -250,14 +282,14 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
         foreach ( var image in Children.MapImages() )
         {
-            var coords = AttachedProperties.GetCoordinates( image );
+            var coords = MapProperties.GetCoordinates( image );
             if( coords == null )
             {
-                _logger?.Error<string>( "Map Image lacks {0}", nameof( AttachedProperties.CoordinatesProperty ) );
+                _logger?.Error<string>( "Map Image lacks {0}", nameof( MapProperties.CoordinatesProperty ) );
                 continue;
             }
 
-            var finalRect = AttachedProperties.GetIsFixedImageSize( image ) 
+            var finalRect = MapProperties.GetIsFixedImageSize( image ) 
                 ? GetFixedTileRect( coords, xOffset, yOffset ) 
                 : null;
 
@@ -282,4 +314,14 @@ public sealed partial class J4JMapControl : Panel, IMapContext
                     _mapProjection!.TileWidthHeight,
                     _mapProjection.TileWidthHeight );
     }
+
+    private void ArrangeAnnotations()
+    {
+        foreach( var annotation in Children.GetValidAnnotations() )
+        {
+            annotation.Element.Arrange( new Rect( annotation.AnnotationInfo!.Origin, annotation.Element.DesiredSize ) );
+        }
+    }
+
+    #endregion
 }
