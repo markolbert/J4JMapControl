@@ -19,11 +19,3 @@ public record SelectableItem<TItem>
 }
 
 public record Retriever( string Name, IMapImageRetriever Item ) : SelectableItem<IMapImageRetriever>( Name, Item );
-
-public record HorizontalBinder( SmallMapHorizontalAlignment Alignment )
-    : SelectableItem<SmallMapHorizontalAlignment>( Alignment.ToString(),
-                                                   Alignment );
-
-public record VerticalBinder(SmallMapVerticalAlignment Alignment)
-    : SelectableItem<SmallMapVerticalAlignment>(Alignment.ToString(),
-                                                  Alignment);

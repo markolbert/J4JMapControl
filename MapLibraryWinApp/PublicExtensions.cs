@@ -13,7 +13,7 @@ public static class PublicExtensions
 
         foreach( var image in images )
         {
-            var coordinates = AttachedProperties.GetCoordinates( image );
+            var coordinates = MapProperties.GetCoordinates( image );
             if( coordinates != null )
                 retVal.Add( coordinates );
         }

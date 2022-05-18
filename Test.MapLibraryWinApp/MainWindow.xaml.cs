@@ -14,7 +14,7 @@ namespace Test.MapLibraryWinApp;
 /// An empty window that can be used on its own or navigated to within a Frame.
 /// </summary>
 // ReSharper disable once RedundantExtendsListEntry
-public sealed partial class MainWindow : Window, INotifyPropertyChanged
+public sealed partial class MainWindow : Window
 {
     public MainWindow()
     {
@@ -24,18 +24,9 @@ public sealed partial class MainWindow : Window, INotifyPropertyChanged
     }
 
     private ViewModel ViewModel { get; }
-    private Size MapSize { get; set; }
 
     private void TheMap_OnSizeChanged( object sender, SizeChangedEventArgs e )
     {
-        MapSize = e.NewSize;
-        OnPropertyChanged(nameof(MapSize));
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged( [ CallerMemberName ] string? propertyName = null )
-    {
-        PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( propertyName ) );
+        //ViewModel.MapSize = e.NewSize;
     }
 }
