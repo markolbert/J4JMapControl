@@ -3,12 +3,12 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace J4JSoftware.MapLibrary;
 
-public static class AttachedProperties
+public class MapProperties : DependencyObject
 {
     #region TileCoordinates property
 
     public static readonly DependencyProperty CoordinatesProperty =
-        DependencyProperty.RegisterAttached( nameof(CoordinatesProperty),
+        DependencyProperty.RegisterAttached( "Coordinates",
                                              typeof( MultiCoordinates ),
                                              typeof( Image ),
                                              null );
@@ -24,7 +24,7 @@ public static class AttachedProperties
     #region IsMapTile property
 
     public static readonly DependencyProperty IsMapTileProperty = DependencyProperty.RegisterAttached(
-        nameof(IsMapTileProperty),
+        "IsMapTile",
         typeof( bool ),
         typeof( Image ),
         null );
@@ -43,7 +43,7 @@ public static class AttachedProperties
     #region IsFixedImageSize property
 
     public static readonly DependencyProperty IsFixedImageSizeProperty = DependencyProperty.RegisterAttached(
-        nameof(IsFixedImageSizeProperty),
+        "IsFixedImageSize",
         typeof(bool),
         typeof(Image),
         null);
@@ -63,14 +63,14 @@ public static class AttachedProperties
     #region MapTileState property
 
     public static readonly DependencyProperty MapTileStateProperty = DependencyProperty.RegisterAttached(
-        nameof(MapTileStateProperty),
+        "MapTileState",
         typeof(MapTileState),
         typeof(Image),
         null);
 
     public static MapTileState GetMapTileState(Image image)
     {
-        var isMapTile = AttachedProperties.GetIsMapTile( image );
+        var isMapTile = MapProperties.GetIsMapTile( image );
 
         var propValue = image.GetValue(MapTileStateProperty);
 
@@ -83,6 +83,24 @@ public static class AttachedProperties
 
     public static void SetMapTileState(Image image, MapTileState value) =>
         image.SetValue(MapTileStateProperty, value);
+
+    #endregion
+
+    #region Annotation property
+
+    // the layer to which a map annotation belongs
+    public static readonly DependencyProperty AnnotationProperty = DependencyProperty.RegisterAttached(
+        "Annotation",
+        typeof( AnnotationBase ),
+        typeof( UIElement ),
+        new PropertyMetadata( -1 )
+    );
+
+    public static AnnotationBase? GetAnnotationProperty( UIElement element ) =>
+        element.GetValue( AnnotationProperty ) as AnnotationBase;
+
+    public static void SetAnnotationProperty( UIElement element, AnnotationBase annotation ) =>
+        element.SetValue( AnnotationProperty, annotation );
 
     #endregion
 }
