@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Windows.Foundation;
+using Windows.System;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -26,6 +27,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
     private BoundingBox? _boundingBox;
     private bool _pointerCaptured;
     private Point _lastDragPt;
+    private GestureRecognizer _gestureRecognizer;
 
     public J4JMapControl()
     {
@@ -34,49 +36,138 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
         SizeChanged += ( _, args ) => OnSizeChangedAsync( args );
 
+        _gestureRecognizer = new GestureRecognizer
+        {
+            GestureSettings = GestureSettings.ManipulationTranslateX 
+                              | GestureSettings.ManipulationTranslateY 
+                              | GestureSettings.ManipulationScale
+                              | GestureSettings.DoubleTap
+        };
+
+        _gestureRecognizer.Tapped += GestureRecognizerOnTapped;
+        _gestureRecognizer.ManipulationStarted += GestureRecognizerOnManipulationStarted;
+        _gestureRecognizer.ManipulationUpdated += GestureRecognizerOnManipulationUpdated;
+        _gestureRecognizer.ManipulationCompleted += GestureRecognizerOnManipulationCompleted;
+
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
+        PointerWheelChanged += OnPointerWheelChanged;
+    }
+
+    private void GestureRecognizerOnTapped( GestureRecognizer sender, TappedEventArgs args )
+    {
+        _logger?.Warning("Tapped: ({0}, {1}), tc: {2}", new object[]
+        {
+            args.Position.X,
+            args.Position.Y,
+            args.TapCount
+        });
+
+        if( args.TapCount < 2 || _mapProjection == null || _boundingBox == null )
+            return;
+
+        var centerPt = _boundingBox.UpperLeft.ScreenPoint.Increment( args.Position.X, args.Position.Y );
+
+        Center = _mapProjection.ScreenToLatLong( centerPt );
+    }
+
+    private void GestureRecognizerOnManipulationCompleted( GestureRecognizer sender, ManipulationCompletedEventArgs args )
+    {
+        _logger?.Warning("Completed: ({0}, {1}), xp: {2}, r: {3}, s: {4}, t: {5}", new object []
+        {
+            args.Position.X, 
+            args.Position.Y, 
+            args.Cumulative.Expansion, 
+            args.Cumulative.Rotation, 
+            args.Cumulative.Scale, 
+            args.Cumulative.Translation
+        });
+    }
+
+    private void GestureRecognizerOnManipulationUpdated( GestureRecognizer sender, ManipulationUpdatedEventArgs args )
+    {
+        _logger?.Warning("Updated: ({0}, {1}), xp: {2}, r: {3}, s: {4}, t: {5}", new object[]
+        {
+            args.Position.X,
+            args.Position.Y,
+            args.Cumulative.Expansion,
+            args.Cumulative.Rotation,
+            args.Cumulative.Scale,
+            args.Cumulative.Translation
+        });
+    }
+
+    private void GestureRecognizerOnManipulationStarted( GestureRecognizer sender, ManipulationStartedEventArgs args )
+    {
+        _logger?.Warning("Started: ({0}, {1}), xp: {2}, r: {3}, s: {4}, t: {5}", new object[]
+        {
+            args.Position.X,
+            args.Position.Y,
+            args.Cumulative.Expansion,
+            args.Cumulative.Rotation,
+            args.Cumulative.Scale,
+            args.Cumulative.Translation
+        });
     }
 
     #region Map dragging...
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
     {
-        if (Center == null || sender is not J4JMapControl mapControl)
-            return;
+        _gestureRecognizer.ProcessDownEvent( e.GetCurrentPoint( this ) );
+        e.Handled = true;
 
-        _pointerCaptured = mapControl.CapturePointer(e.Pointer);
+        //if (Center == null || sender is not J4JMapControl mapControl)
+        //    return;
 
-        if( _pointerCaptured )
-        {
-            e.Handled = true;
-            _lastDragPt = e.GetCurrentPoint( this ).Position;
-        }
-        else _logger?.Error("Failed to capture pointer");
+        //_pointerCaptured = mapControl.CapturePointer(e.Pointer);
+
+        //if( _pointerCaptured )
+        //{
+        //    e.Handled = true;
+        //    _lastDragPt = e.GetCurrentPoint( this ).Position;
+        //}
+        //else _logger?.Error("Failed to capture pointer");
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        if ( !_pointerCaptured || Center == null || sender is not J4JMapControl mapControl)
-            return;
-
+        _gestureRecognizer.ProcessUpEvent(e.GetCurrentPoint(this));
         e.Handled = true;
 
-        OnMapDragged( e.GetCurrentPoint( this ).Position );
+        //if ( !_pointerCaptured || Center == null || sender is not J4JMapControl mapControl)
+        //    return;
 
-        mapControl.ReleasePointerCapture(e.Pointer);
-        _pointerCaptured = false;
+        //e.Handled = true;
+
+        //OnMapDragged( e.GetCurrentPoint( this ).Position );
+
+        //mapControl.ReleasePointerCapture(e.Pointer);
+        //_pointerCaptured = false;
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if( !_pointerCaptured )
-            return;
-
+        _gestureRecognizer.ProcessMoveEvents(e.GetIntermediatePoints(this));
         e.Handled = true;
 
-        OnMapDragged(e.GetCurrentPoint(this).Position);
+        //if( !_pointerCaptured )
+        //    return;
+
+        //e.Handled = true;
+
+        //OnMapDragged(e.GetCurrentPoint(this).Position);
+    }
+
+    private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        _gestureRecognizer.ProcessMouseWheelEvent(
+            e.GetCurrentPoint(this),
+            (e.KeyModifiers & VirtualKeyModifiers.Shift) != 0,
+            (e.KeyModifiers & VirtualKeyModifiers.Control) != 0);
+
+        e.Handled = true;
     }
 
     private void OnMapDragged(Point curDragPt )
@@ -362,14 +453,11 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private Rect? GetFixedTileRect( MultiCoordinates coordinates, double xOffset, double yOffset )
     {
-        var upperLeftX = coordinates.ScreenPoint.GetX( CoordinateOrigin.UpperLeft )
-          - _boundingBox!.UpperLeft.ScreenPoint.GetX( CoordinateOrigin.UpperLeft );
+        var (coordsX, coordsY) = coordinates.ScreenPoint.GetValues( CoordinateOrigin.UpperLeft );
+        var (boundingX, boundingY) = _boundingBox!.UpperLeft.ScreenPoint.GetValues( CoordinateOrigin.UpperLeft );
 
-        var upperLeftY = coordinates.ScreenPoint.GetY( CoordinateOrigin.UpperLeft )
-          - _boundingBox.UpperLeft.ScreenPoint.GetY( CoordinateOrigin.UpperLeft );
-
-        var xPosition = upperLeftX + xOffset;
-        var yPosition = upperLeftY + yOffset;
+        var xPosition = coordsX - boundingX + xOffset;
+        var yPosition = coordsY - boundingY + yOffset;
 
         return new( xPosition,
                     yPosition,
