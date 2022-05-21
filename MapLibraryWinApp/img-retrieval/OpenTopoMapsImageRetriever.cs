@@ -18,16 +18,16 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
         _userAgent = appInfo.UserAgent;
     }
 
-    protected override MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection ) =>
-        new( "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
-             "OpenTopoMap",
-             "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
-             new Uri( "http://opentopomap.org/" ),
-             GlobalConstants.Wgs84MaxLatitude,
-             180,
-             0,
-             20,
-             256 );
+    protected override MapRetrieverInfo? GetMapRetrieverInfo( IMapProjection mapProjection ) =>
+        new("https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
+            "OpenTopoMap",
+            "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
+            new Uri( "http://opentopomap.org/" ),
+            GlobalConstants.Wgs84MaxLatitude,
+            180,
+            0,
+            20,
+            256);
 
     protected override HttpRequestMessage? GetRequest( MultiCoordinates coordinates )
     {
@@ -37,7 +37,7 @@ public class OpenTopoMapsImageRetriever : TileBasedImageRetriever
             return null;
         }
 
-        var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "ZoomLevel", MapProjection.ZoomLevel.ToString() )
+        var uriText = MapRetrieverInfo!.RetrievalUrl.Replace( "ZoomLevel", MapProjection.ZoomLevel.ToString() )
                                       .Replace( "XTile", coordinates.TilePoint.X.ToString() )
                                       .Replace( "YTile", coordinates.TilePoint.Y.ToString() );
 

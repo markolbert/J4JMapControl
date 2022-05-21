@@ -39,8 +39,10 @@ public class ViewModel : ObservableObject
         foreach( var retriever in retrievers )
         {
             retriever.MapProjection = mapProjection;
+            if( !retriever.IsInitialized)
+                continue;
             
-            temp.Add( new Retriever( retriever.MapRetrieverInfo.Description, retriever ) );
+            temp.Add( new Retriever( retriever.MapRetrieverInfo!.Description, retriever ) );
         }
 
         Retrievers = temp;
@@ -64,7 +66,7 @@ public class ViewModel : ObservableObject
             if( _selectedRetriever != null )
             {
                 if( LatLong.TryParse( "37.5072, -122.2605",
-                                   _selectedRetriever.Item.MapRetrieverInfo,
+                                   _selectedRetriever.Item.MapRetrieverInfo!,
                                    out var initLocation ) )
                     Location = initLocation;
 
@@ -79,8 +81,8 @@ public class ViewModel : ObservableObject
         }
     }
 
-    public int MinZoom => _selectedRetriever?.Item.MapRetrieverInfo.MinimumZoom ?? 0;
-    public int MaxZoom => _selectedRetriever?.Item.MapRetrieverInfo.MaximumZoom ?? 0;
+    public int MinZoom => _selectedRetriever?.Item.MapRetrieverInfo!.MinimumZoom ?? 0;
+    public int MaxZoom => _selectedRetriever?.Item.MapRetrieverInfo!.MaximumZoom ?? 0;
 
     public int ZoomLevel
     {

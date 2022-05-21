@@ -12,7 +12,6 @@ namespace J4JSoftware.J4JMapControl;
 public abstract class MapImageRetriever : IMapWinUiImageRetriever
 {
     private IMapProjection? _mapProjection;
-    private MapRetrieverInfo? _mapRetrieverInfo;
 
     protected MapImageRetriever(
         bool fixedSizeImages,
@@ -26,6 +25,8 @@ public abstract class MapImageRetriever : IMapWinUiImageRetriever
     }
 
     protected IJ4JLogger? Logger { get; }
+
+    public bool IsInitialized => MapRetrieverInfo != null;
 
     public IMapProjection MapProjection
     {
@@ -50,24 +51,9 @@ public abstract class MapImageRetriever : IMapWinUiImageRetriever
     }
     public bool FixedSizeImages { get; }
 
-    protected abstract MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection );
+    protected abstract MapRetrieverInfo? GetMapRetrieverInfo( IMapProjection mapProjection );
 
-    public MapRetrieverInfo MapRetrieverInfo
-    {
-        get
-        {
-            if( _mapRetrieverInfo != null )
-                return _mapRetrieverInfo;
-
-            var msg = $"Trying to access {nameof( MapRetrieverInfo )} when it has not been initialized";
-
-            Logger?.Fatal( msg );
-
-            throw new NullReferenceException( msg );
-        }
-
-        private set => _mapRetrieverInfo = value;
-    }
+    public MapRetrieverInfo? MapRetrieverInfo { get; private set; }
 
     // Images returned by this call must each be decorated with:
     // * an attached DependencyProperty,TileCoordinatesProperty, containing information about the tile the Image is
@@ -78,6 +64,9 @@ public abstract class MapImageRetriever : IMapWinUiImageRetriever
         IEnumerable<MultiCoordinates>? existingCoords = null
     )
     {
+        if( !IsInitialized )
+            return GetErrorAndLog<List<MapImageData>>( $"{this.GetType()} is not initialized, cannot retrieve images" );
+
         var images = new List<MapImageData>();
 
         existingCoords ??= Enumerable.Empty<MultiCoordinates>();
@@ -113,6 +102,9 @@ public abstract class MapImageRetriever : IMapWinUiImageRetriever
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
     public async Task<AsyncWebResult<MapImageData>> GetMapImageAsync( MultiCoordinates coordinates )
     {
+        if( !IsInitialized )
+            return GetErrorAndLog<MapImageData>( $"{this.GetType()} is not initialized, cannot retrieve image" );
+
         Logger?.Information( "Beginning image retrieval from web" );
 
         var request = GetRequest( coordinates );

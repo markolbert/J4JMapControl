@@ -30,7 +30,7 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
     public BingMapType MapType { get; }
     public BingMetadata.ImageryMetadata? Metadata { get; private set; }
 
-    protected override MapRetrieverInfo GetMapRetrieverInfo( IMapProjection mapProjection )
+    protected override MapRetrieverInfo? GetMapRetrieverInfo( IMapProjection mapProjection )
     {
         AutoReset.Reset();
 
@@ -42,14 +42,14 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
             AutoReset.Set();
         });
 
-        AutoReset.WaitOne(3000);
+        AutoReset.WaitOne(5000);
 
-        if( mdInfo != null)
+        if( mdInfo != null )
             return mdInfo;
 
-        Logger?.Fatal("Could not retrieve Bing metadata info");
+        Logger?.Error("Could not retrieve Bing metadata info");
 
-        throw new InvalidOperationException( "Could not retrieve Bing metadata info" );
+        return null;
     }
 
     public bool SetCultureCode( string code )
@@ -67,7 +67,7 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
 
     protected override HttpRequestMessage GetRequest( MultiCoordinates coordinates )
     {
-        var subDomain = ( (BingMapRetrieverInfo) MapRetrieverInfo ).GetRandomSubdomain();
+        var subDomain = ( (BingMapRetrieverInfo) MapRetrieverInfo! ).GetRandomSubdomain();
         var quadKey = coordinates.GetBingMapsQuadKey( MapProjection.ZoomLevel );
 
         var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "{subdomain}", subDomain )
