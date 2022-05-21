@@ -57,7 +57,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private void GestureRecognizerOnTapped( GestureRecognizer sender, TappedEventArgs args )
     {
-        _logger?.Warning("Tapped: ({0}, {1}), tc: {2}", new object[]
+        _logger?.Warning("Tapped: ({0}, {1}), tc: {2}, (w, h): ({3}, {4})", new object[]
         {
             args.Position.X,
             args.Position.Y,
@@ -67,10 +67,15 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( args.TapCount < 2 || _mapProjection == null || _boundingBox == null )
             return;
 
-        var centerPt = _boundingBox.UpperLeft.ScreenPoint;
-        centerPt.Increment( args.Position.X, args.Position.Y );
+        var offsetX = _boundingBox.GetDesiredCenterOffset( CoordinateAxis.XAxis );
+        var offsetY = _boundingBox.GetDesiredCenterOffset( CoordinateAxis.YAxis );
 
-        Center = _mapProjection.ScreenToLatLong( centerPt );
+        var deltaCenterX = args.Position.X - ActualWidth / 2 - offsetX / 2;
+        var deltaCenterY = args.Position.Y - ActualHeight / 2 - offsetY / 2;
+
+        _boundingBox.CenterPoint.Increment(deltaCenterX, deltaCenterY);
+
+        Center = _mapProjection.ScreenToLatLong( _boundingBox.CenterPoint );
     }
 
     private void GestureRecognizerOnManipulationCompleted( GestureRecognizer sender, ManipulationCompletedEventArgs args )
@@ -111,6 +116,15 @@ public sealed partial class J4JMapControl : Panel, IMapContext
             args.Cumulative.Translation
         });
     }
+
+    #region Map movement handlers
+
+    private void OnCenterChanged()
+    {
+
+    }
+
+    #endregion
 
     #region Map dragging...
 
