@@ -33,17 +33,6 @@ public record DoublePoint
             : ( _mapProjection.ChangeOrigin( _x, CoordinateAxis.XAxis ),
                 _mapProjection.ChangeOrigin( _y, CoordinateAxis.YAxis ) );
 
-    //public double GetX( CoordinateOrigin origin ) =>
-    //    origin == Origin ? _x : _mapProjection.ChangeOrigin( _x, CoordinateAxis.XAxis );
-
-    //public void SetX( double value, CoordinateOrigin origin )
-    //{
-    //    if( origin != Origin )
-    //        value = _mapProjection.ChangeOrigin( value, CoordinateAxis.XAxis );
-
-    //    _x = value;
-    //}
-
     public void Set( double xValue, double yValue, CoordinateOrigin origin )
     {
         if( origin == Origin )
@@ -63,21 +52,6 @@ public record DoublePoint
         _x += xIncr;
         _y += yIncr;
     }
-
-    //public void IncrementX( double value ) => _x += value;
-
-    //public double GetY( CoordinateOrigin origin ) =>
-    //    origin == Origin ? _y : _mapProjection.ChangeOrigin( _y, CoordinateAxis.YAxis );
-
-    //public void SetY( double value, CoordinateOrigin origin )
-    //{
-    //    if( origin != Origin )
-    //        value = _mapProjection.ChangeOrigin( value, CoordinateAxis.YAxis );
-
-    //    _y = value;
-    //}
-
-    //public void IncrementY( double value ) => _y += value;
 
     public CoordinateOrigin Origin { get; }
 }
