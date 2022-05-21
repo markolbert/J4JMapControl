@@ -16,8 +16,9 @@ public interface IMapProjection
     int ZoomFactor { get; }
 
     DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin);
-    double ScreenToLongitude( DoublePoint screenPoint );
-    double ScreenToLatitude( DoublePoint screenPoint );
+    //double ScreenToLongitude( DoublePoint screenPoint );
+    //double ScreenToLatitude( DoublePoint screenPoint );
+    LatLong ScreenToLatLong( DoublePoint screenPoint );
     LatLong Offset( LatLong origin, double xOffset, double yOffset );
 
     double ChangeOrigin( double value, CoordinateAxis axis );

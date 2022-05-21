@@ -144,66 +144,81 @@ public class MercatorProjection : IMapProjection
 
         var retVal = new DoublePoint(origin, this);
 
-        retVal.SetX(screenX, CoordinateOrigin.MiddleLeft);
-        retVal.SetY(screenY, CoordinateOrigin.MiddleLeft);
+        retVal.Set( screenX, screenY, CoordinateOrigin.MiddleLeft );
 
         return retVal;
     }
 
-    public double ScreenToLongitude(DoublePoint screenPoint)
+    public LatLong ScreenToLatLong( DoublePoint screenPoint )
     {
         // ensure point is within bounds
-        var screenX = screenPoint.GetX( CoordinateOrigin.MiddleLeft );
+        var (screenX, screenY) = screenPoint.GetValues(CoordinateOrigin.MiddleLeft);
 
-        if (screenX < 0)
+        return new LatLong( MapRetrieverInfo )
         {
-            _logger?.Error("X coordinate ({0}) < 0, returning minimum longitude ({1})",
-                           screenX,
-                            -MapRetrieverInfo.MaximumLongitude);
+            Latitude = screenX < 0
+                ? -MapRetrieverInfo.MaximumLongitude
+                : screenX <= ProjectionWidthHeight
+                    ? 360 * ( screenX / ProjectionWidthHeight - 0.5 )
+                    : MapRetrieverInfo.MaximumLongitude,
 
-            return -MapRetrieverInfo.MaximumLongitude;
-        }
-
-        if( screenX <= ProjectionWidthHeight )
-            return 360 * ( screenX / ProjectionWidthHeight - 0.5 );
-
-        _logger?.Error("X coordinate ({0}) beyond projection width ({1}), returning maximum longitude ({2})",
-                        screenX,
-                        ProjectionWidthHeight,
-                        MapRetrieverInfo.MaximumLongitude);
-
-        return MapRetrieverInfo.MaximumLongitude;
+            Longitude = screenY > HalfProjectionHeight
+                ? MapRetrieverInfo.MaximumLatitude
+                : screenY > -HalfProjectionHeight + 1
+                    ? ( 2 * ( Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi ) ).RadiansToDegrees()
+                    : -MapRetrieverInfo.MaximumLatitude
+        };
     }
 
-    public double ScreenToLatitude( DoublePoint screenPoint )
-    {
-        // ensure point is within bounds
-        var screenY = screenPoint.GetY( CoordinateOrigin.MiddleLeft );
+    //public double ScreenToLongitude(DoublePoint screenPoint)
+    //{
+    //    // ensure point is within bounds
+    //    var (screenX, _) = screenPoint.GetValues( CoordinateOrigin.MiddleLeft );
 
-        if( screenY > HalfProjectionHeight )
-            return MapRetrieverInfo.MaximumLatitude;
+    //    if (screenX < 0)
+    //    {
+    //        _logger?.Error("X coordinate ({0}) < 0, returning minimum longitude ({1})",
+    //                       screenX,
+    //                        -MapRetrieverInfo.MaximumLongitude);
 
-        if( screenY > -HalfProjectionHeight + 1 )
-        {
-            var halfAngle = Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi;
-            return ( 2 * halfAngle ).RadiansToDegrees();
-        }
+    //        return -MapRetrieverInfo.MaximumLongitude;
+    //    }
 
-        return -MapRetrieverInfo.MaximumLatitude;
-    }
+    //    if( screenX <= ProjectionWidthHeight )
+    //        return 360 * ( screenX / ProjectionWidthHeight - 0.5 );
+
+    //    _logger?.Error("X coordinate ({0}) beyond projection width ({1}), returning maximum longitude ({2})",
+    //                    screenX,
+    //                    ProjectionWidthHeight,
+    //                    MapRetrieverInfo.MaximumLongitude);
+
+    //    return MapRetrieverInfo.MaximumLongitude;
+    //}
+
+    //public double ScreenToLatitude( DoublePoint screenPoint )
+    //{
+    //    // ensure point is within bounds
+    //    var (_, screenY) = screenPoint.GetValues( CoordinateOrigin.MiddleLeft );
+
+    //    if( screenY > HalfProjectionHeight )
+    //        return MapRetrieverInfo.MaximumLatitude;
+
+    //    if( screenY > -HalfProjectionHeight + 1 )
+    //    {
+    //        var halfAngle = Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi;
+    //        return ( 2 * halfAngle ).RadiansToDegrees();
+    //    }
+
+    //    return -MapRetrieverInfo.MaximumLatitude;
+    //}
 
     public LatLong Offset( LatLong origin, double xOffset, double yOffset )
     {
         var originPt = LatLongToScreen( origin, CoordinateOrigin.UpperLeft );
 
-        originPt.IncrementX(xOffset);
-        originPt.IncrementY(yOffset);
+        originPt.Increment( xOffset, yOffset );
 
-        return new LatLong( MapRetrieverInfo )
-        {
-            Latitude = ScreenToLatitude( originPt ),
-            Longitude = ScreenToLongitude( originPt ),
-        };
+        return ScreenToLatLong( originPt );
     }
 
     public double ChangeOrigin( double value, CoordinateAxis axis ) =>
@@ -216,8 +231,7 @@ public class MercatorProjection : IMapProjection
 
     public TilePoint GetTileFromScreenPoint( DoublePoint screenPoint )
     {
-        var screenX = screenPoint.GetX( CoordinateOrigin.UpperLeft );
-        var screenY = screenPoint.GetY( CoordinateOrigin.UpperLeft );
+        var (screenX, screenY) = screenPoint.GetValues( CoordinateOrigin.UpperLeft );
 
         if( screenX < 0 )
             screenX = 0;
@@ -241,8 +255,7 @@ public class MercatorProjection : IMapProjection
     )
     {
         var screenPt = LatLongToScreen( latLong, CoordinateOrigin.UpperLeft );
-        screenPt.IncrementX(offsetX);
-        screenPt.IncrementY(offsetY);
+        screenPt.Increment( offsetX, offsetY );
 
         return GetTileFromScreenPoint( screenPt );
     }

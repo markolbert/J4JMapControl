@@ -34,9 +34,8 @@ public class LatLongAnnotation : AnnotationBase
         IsValid = true;
 
         var upperLeft = mapProjection.LatLongToScreen( latLong, CoordinateOrigin.UpperLeft );
-        var xPoint = upperLeft.GetX( CoordinateOrigin.UpperLeft );
-        var yPoint = upperLeft.GetY( CoordinateOrigin.UpperLeft );
 
+        var (xPoint, yPoint) = upperLeft.GetValues( CoordinateOrigin.UpperLeft );
         Origin = new Point( xPoint, yPoint );
 
         return IsValid;

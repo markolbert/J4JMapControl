@@ -15,11 +15,7 @@ public record MultiCoordinates
                                        origin,
                                        mapProjection );
 
-        LatLong = new LatLong( mapProjection.MapRetrieverInfo )
-        {
-            Latitude = mapProjection.ScreenToLatitude( ScreenPoint ),
-            Longitude = mapProjection.ScreenToLongitude( ScreenPoint )
-        };
+        LatLong = mapProjection.ScreenToLatLong( ScreenPoint );
     }
 
     public LatLong LatLong { get; }

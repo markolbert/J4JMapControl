@@ -67,7 +67,8 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         if( args.TapCount < 2 || _mapProjection == null || _boundingBox == null )
             return;
 
-        var centerPt = _boundingBox.UpperLeft.ScreenPoint.Increment( args.Position.X, args.Position.Y );
+        var centerPt = _boundingBox.UpperLeft.ScreenPoint;
+        centerPt.Increment( args.Position.X, args.Position.Y );
 
         Center = _mapProjection.ScreenToLatLong( centerPt );
     }
