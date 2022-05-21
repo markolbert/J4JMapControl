@@ -154,63 +154,25 @@ public class MercatorProjection : IMapProjection
         // ensure point is within bounds
         var (screenX, screenY) = screenPoint.GetValues(CoordinateOrigin.MiddleLeft);
 
+        var longitude = screenX < 0
+            ? -MapRetrieverInfo.MaximumLongitude
+            : screenX <= ProjectionWidthHeight
+                ? 360 * ( screenX / ProjectionWidthHeight - 0.5 )
+                : MapRetrieverInfo.MaximumLongitude;
+
+        var latitude = screenY > HalfProjectionHeight
+            ? MapRetrieverInfo.MaximumLatitude
+            : screenY > -HalfProjectionHeight + 1
+                ? ( 2 * ( Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi ) ).RadiansToDegrees()
+                : -MapRetrieverInfo.MaximumLatitude;
+
+
         return new LatLong( MapRetrieverInfo )
         {
-            Latitude = screenX < 0
-                ? -MapRetrieverInfo.MaximumLongitude
-                : screenX <= ProjectionWidthHeight
-                    ? 360 * ( screenX / ProjectionWidthHeight - 0.5 )
-                    : MapRetrieverInfo.MaximumLongitude,
-
-            Longitude = screenY > HalfProjectionHeight
-                ? MapRetrieverInfo.MaximumLatitude
-                : screenY > -HalfProjectionHeight + 1
-                    ? ( 2 * ( Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi ) ).RadiansToDegrees()
-                    : -MapRetrieverInfo.MaximumLatitude
+            Latitude = latitude,
+            Longitude = longitude
         };
     }
-
-    //public double ScreenToLongitude(DoublePoint screenPoint)
-    //{
-    //    // ensure point is within bounds
-    //    var (screenX, _) = screenPoint.GetValues( CoordinateOrigin.MiddleLeft );
-
-    //    if (screenX < 0)
-    //    {
-    //        _logger?.Error("X coordinate ({0}) < 0, returning minimum longitude ({1})",
-    //                       screenX,
-    //                        -MapRetrieverInfo.MaximumLongitude);
-
-    //        return -MapRetrieverInfo.MaximumLongitude;
-    //    }
-
-    //    if( screenX <= ProjectionWidthHeight )
-    //        return 360 * ( screenX / ProjectionWidthHeight - 0.5 );
-
-    //    _logger?.Error("X coordinate ({0}) beyond projection width ({1}), returning maximum longitude ({2})",
-    //                    screenX,
-    //                    ProjectionWidthHeight,
-    //                    MapRetrieverInfo.MaximumLongitude);
-
-    //    return MapRetrieverInfo.MaximumLongitude;
-    //}
-
-    //public double ScreenToLatitude( DoublePoint screenPoint )
-    //{
-    //    // ensure point is within bounds
-    //    var (_, screenY) = screenPoint.GetValues( CoordinateOrigin.MiddleLeft );
-
-    //    if( screenY > HalfProjectionHeight )
-    //        return MapRetrieverInfo.MaximumLatitude;
-
-    //    if( screenY > -HalfProjectionHeight + 1 )
-    //    {
-    //        var halfAngle = Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi;
-    //        return ( 2 * halfAngle ).RadiansToDegrees();
-    //    }
-
-    //    return -MapRetrieverInfo.MaximumLatitude;
-    //}
 
     public LatLong Offset( LatLong origin, double xOffset, double yOffset )
     {
