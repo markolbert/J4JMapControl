@@ -102,6 +102,11 @@ public sealed partial class J4JMapControl : Panel, IMapContext
             args.Cumulative.Scale,
             args.Cumulative.Translation
         });
+
+        var scaleSign = args.Delta.Scale < 1 ? -1 : 1;
+        var scale = args.Delta.Scale < 1 ? 1 / args.Delta.Scale : args.Delta.Scale;
+
+        ZoomLevel += Convert.ToInt32( scaleSign * scale );
     }
 
     private void GestureRecognizerOnManipulationStarted( GestureRecognizer sender, ManipulationStartedEventArgs args )
@@ -116,15 +121,6 @@ public sealed partial class J4JMapControl : Panel, IMapContext
             args.Cumulative.Translation
         });
     }
-
-    #region Map movement handlers
-
-    private void OnCenterChanged()
-    {
-
-    }
-
-    #endregion
 
     #region Map dragging...
 
@@ -203,7 +199,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
     private async Task OnMapImageRetrieverChanged(IMapImageRetriever retriever)
     {
-        _mapProjection = new MercatorProjection { MapRetrieverInfo = retriever.MapRetrieverInfo };
+        _mapProjection = new MercatorProjection { MapRetrieverInfo = retriever.MapRetrieverInfo! };
         retriever.MapProjection = _mapProjection;
 
         if( Center == null )
