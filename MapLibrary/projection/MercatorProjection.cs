@@ -167,11 +167,13 @@ public class MercatorProjection : IMapProjection
                 : -MapRetrieverInfo.MaximumLatitude;
 
 
-        return new LatLong( MapRetrieverInfo )
+        var retVal = new LatLong
         {
             Latitude = latitude,
             Longitude = longitude
         };
+
+        return retVal.Capped( MapRetrieverInfo );
     }
 
     public LatLong Offset( LatLong origin, double xOffset, double yOffset )

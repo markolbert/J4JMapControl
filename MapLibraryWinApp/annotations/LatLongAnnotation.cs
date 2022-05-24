@@ -21,7 +21,7 @@ public class LatLongAnnotation : AnnotationBase
         if( double.IsNaN( Latitutde ) || double.IsNaN( Longitude ) )
             return IsValid;
 
-        if (string.IsNullOrEmpty(Text) || !LatLong.TryParse(Text, mapProjection.MapRetrieverInfo, out var latLong))
+        if (string.IsNullOrEmpty(Text) || !LatLong.TryParse(Text, out var latLong))
             return IsValid;
 
         Latitutde = latLong!.Latitude;

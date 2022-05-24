@@ -2,9 +2,9 @@
 
 public class LatLong
 {
-    public static LatLong GetEmpty( MapRetrieverInfo info ) => new( info );
+    public static LatLong Empty { get; } = new LatLong();
 
-    public static bool TryParse( string text, MapRetrieverInfo retrieverInfo, out LatLong? result )
+    public static bool TryParse( string text, out LatLong? result )
     {
         result = null;
 
@@ -21,58 +21,25 @@ public class LatLong
         if( !double.TryParse( parts[ 1 ], out var longitude ) )
             return false;
 
-        result = new LatLong( retrieverInfo ) { Latitude = latitude, Longitude = longitude };
+        result = new LatLong { Latitude = latitude, Longitude = longitude };
 
         return true;
     }
 
-    private readonly MapRetrieverInfo _retrieverInfo;
-    private double _latitude;
-    private double _longitude;
-
-    public LatLong( MapRetrieverInfo retrieverInfo )
+    public LatLong()
     {
-        _retrieverInfo = retrieverInfo;
     }
 
     private LatLong( LatLong toCopy )
-        : this( toCopy._retrieverInfo )
     {
-        _latitude = toCopy.Latitude;
-        _longitude = toCopy.Longitude;
+        Latitude = toCopy.Latitude;
+        Longitude = toCopy.Longitude;
     }
 
     public LatLong Copy() => new( this );
 
-    public double Latitude
-    {
-        get => _latitude;
-
-        set
-        {
-            if( value > MaximumLatitude || value < -MaximumLatitude )
-                return;
-
-            _latitude = value;
-        }
-    }
-
-    public double MaximumLatitude => _retrieverInfo.MaximumLatitude;
-
-    public double Longitude
-    {
-        get => _longitude;
-
-        set
-        {
-            if( value > MaximumLongitude || value < -MaximumLongitude )
-                return;
-
-            _longitude = value;
-        }
-    }
-
-    public double MaximumLongitude => _retrieverInfo.MaximumLongitude;
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
 
     public override string ToString() => $"{Latitude}, {Longitude}";
 }

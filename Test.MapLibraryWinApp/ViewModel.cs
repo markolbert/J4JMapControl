@@ -66,10 +66,8 @@ public class ViewModel : ObservableObject
             if( _selectedRetriever != null )
             {
                 if( LatLong.TryParse( "37.5072, -122.2605",
-                                   _selectedRetriever.Item.MapRetrieverInfo!,
-                                   out var initLocation ) )
-                    Location = initLocation;
-
+                                      out var initLocation ) )
+                    Location = initLocation!.Capped( _selectedRetriever.Item.MapRetrieverInfo! );
             }
 
             OnPropertyChanged(nameof(MinZoom));
