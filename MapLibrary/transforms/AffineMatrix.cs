@@ -24,24 +24,11 @@ public class AffineMatrix
         _logger?.SetLoggedType( GetType() );
     }
 
-    public double GetRotation( AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
-        angleMeasure switch
-        {
-            AngleMeasure.Degrees => _rotationRadians / RadiansPerDegree,
-            AngleMeasure.Radians => _rotationRadians,
-            _ => throw new InvalidOperationException(
-                $"{nameof( GetRotation )}(): unsupported {typeof( AngleMeasure )} '{angleMeasure}'" )
-        };
+    public double GetRotation() => _rotationRadians / RadiansPerDegree;
 
-    public void SetRotation( double value, AngleMeasure angleMeasure = AngleMeasure.Degrees )
+    public void SetRotation( double value )
     {
-        _rotationRadians = angleMeasure switch
-        {
-            AngleMeasure.Degrees => value * RadiansPerDegree,
-            AngleMeasure.Radians => value,
-            _ => throw new InvalidOperationException(
-                $"{nameof( SetRotation )}(): unsupported {typeof( AngleMeasure )} '{angleMeasure}'" )
-        };
+        _rotationRadians = value * RadiansPerDegree;
 
         _matrix = null;
     }

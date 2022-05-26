@@ -18,20 +18,15 @@ public interface IMapProjection
         LatLong center,
         double boundingBoxWidth,
         double boundingBoxHeight,
-        double rotation,
-        AngleMeasure angleMeasure = AngleMeasure.Degrees
+        double rotation
     );
 
-    double LatitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees );
-    double LongitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees );
-    double[] LatLongToCartesian( LatLong latLong, AngleMeasure angleMeasure = AngleMeasure.Degrees );
-    double CartesianToLatitude( double y, AngleMeasure angleMeasure = AngleMeasure.Degrees );
-    double CartesianToLongitude( double x, AngleMeasure angleMeasure = AngleMeasure.Degrees );
-    LatLong CartesianToLatLong(
-        double x,
-        double y,
-        AngleMeasure angleMeasure = AngleMeasure.Degrees
-    );
+    double LatitudeToCartesian( double latitude );
+    double LongitudeToCartesian( double longitude );
+    double[] LatLongToCartesian( LatLong latLong );
+    double CartesianToLatitude( double y );
+    double CartesianToLongitude( double x );
+    LatLong CartesianToLatLong( double x, double y );
 
     DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin);
     LatLong ScreenToLatLong( DoublePoint screenPoint );

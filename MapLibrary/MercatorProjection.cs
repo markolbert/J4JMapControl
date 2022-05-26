@@ -126,21 +126,14 @@ public class MercatorProjection : IMapProjection
         LatLong center,
         double boundingBoxWidth,
         double boundingBoxHeight,
-        double rotation,
-        AngleMeasure angleMeasure = AngleMeasure.Degrees
+        double rotation
     )
     {
-        var projectionCenter = this.LatLongToCartesian( center, angleMeasure );
+        var projectionCenter = this.LatLongToCartesian( center );
 
-        _affineMatrix.SetRotation(rotation, angleMeasure);
+        _affineMatrix.SetRotation(rotation);
 
-        _projSpaceTransform.Rotation = angleMeasure switch
-        {
-            AngleMeasure.Degrees => rotation,
-            AngleMeasure.Radians => rotation.RadiansToDegrees(),
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( AngleMeasure )} value '{angleMeasure}'" )
-        };
+        _projSpaceTransform.Rotation = rotation;
 
         var left = int.MaxValue;
         var top = int.MaxValue;
@@ -204,35 +197,30 @@ public class MercatorProjection : IMapProjection
         return Convert.ToInt32( Math.Floor( retVal / TileWidthHeight ) );
     }
 
-    public double LatitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
-        MercatorTransforms.LatitudeToCartesian( angle, ProjectionWidthHeight, angleMeasure );
+    public double LatitudeToCartesian( double angle ) =>
+        MercatorTransforms.LatitudeToCartesian( angle, ProjectionWidthHeight );
 
-    public double LongitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
-        MercatorTransforms.LongitudeToCartesian(angle, ProjectionWidthHeight, angleMeasure);
+    public double LongitudeToCartesian( double longitude ) =>
+        MercatorTransforms.LongitudeToCartesian(longitude, ProjectionWidthHeight);
 
-    public double[] LatLongToCartesian( LatLong latLong, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
+    public double[] LatLongToCartesian( LatLong latLong ) =>
         new[]
         {
-            LongitudeToCartesian( latLong.Longitude, angleMeasure ),
-            LatitudeToCartesian( latLong.Latitude, angleMeasure )
+            LongitudeToCartesian( latLong.Longitude ),
+            LatitudeToCartesian( latLong.Latitude )
         };
 
-    public double CartesianToLatitude( double y, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
-        MercatorTransforms.CartesianToLatitude(y, ProjectionWidthHeight, angleMeasure);
+    public double CartesianToLatitude( double y ) =>
+        MercatorTransforms.CartesianToLatitude(y, ProjectionWidthHeight );
 
-    public double CartesianToLongitude( double x, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
-        MercatorTransforms.CartesianToLongitude(x, ProjectionWidthHeight, angleMeasure);
+    public double CartesianToLongitude( double x ) =>
+        MercatorTransforms.CartesianToLongitude(x, ProjectionWidthHeight );
 
     public LatLong CartesianToLatLong(
         double x,
-        double y,
-        AngleMeasure angleMeasure = AngleMeasure.Degrees
+        double y
     ) =>
-        new LatLong
-        {
-            Latitude = CartesianToLatitude(y, angleMeasure),
-            Longitude = CartesianToLongitude(x, angleMeasure)
-        };
+        new() { Latitude = CartesianToLatitude( y ), Longitude = CartesianToLongitude( x ) };
 
     public DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin)
     {
