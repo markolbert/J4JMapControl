@@ -1,4 +1,8 @@
-﻿namespace J4JSoftware.MapLibrary;
+﻿using System;
+using System.Collections.Generic;
+using J4JSoftware.MapLibrary;
+
+namespace J4JSoftware.MapLibrary;
 
 public record BoundingBox
 {
@@ -6,16 +10,18 @@ public record BoundingBox
 
     public BoundingBox(
         IMapProjection mapProjection,
-        LatLong centerLatLong,
-        double viewportWidth,
-        double viewportHeight
+        LatLong center,
+        double controlWidth,
+        double controlHeight
     )
     {
-        ViewportWidth = viewportWidth;
-        ViewportHeight = viewportHeight;
+        ControlWidth = controlWidth;
+        ControlHeight = controlHeight;
 
-        var ulTile = mapProjection.GetTileFromLatLong( centerLatLong, -viewportWidth / 2, -viewportHeight / 2 );
-        var lrTile = mapProjection.GetTileFromLatLong( centerLatLong, viewportWidth / 2, viewportHeight / 2 );
+        var tileRegion = mapProjection.GetTileRegion( center, controlWidth, controlHeight, 0 );
+
+        var ulTile = mapProjection.GetTileFromLatLong( center, -controlWidth / 2, -controlHeight / 2 );
+        var lrTile = mapProjection.GetTileFromLatLong( center, controlWidth / 2, controlHeight / 2 );
 
         UpperLeft = new MultiCoordinates( ulTile, mapProjection, CoordinateOrigin.UpperLeft );
         LowerRight = new MultiCoordinates( lrTile, mapProjection, CoordinateOrigin.UpperLeft );
@@ -25,11 +31,11 @@ public record BoundingBox
 
         ZoomLevel = mapProjection.ZoomLevel;
 
-        Width = HorizontalTiles * mapProjection.TileWidthHeight;
-        Height = VerticalTiles * mapProjection.TileWidthHeight;
+        ProjectionWidth = HorizontalTiles * mapProjection.TileWidthHeight;
+        ProjectionHeight = VerticalTiles * mapProjection.TileWidthHeight;
 
-        DesiredCenter = centerLatLong;
-        DesiredCenterPoint = mapProjection.LatLongToScreen(centerLatLong, CoordinateOrigin.UpperLeft);
+        DesiredCenter = center;
+        DesiredCenterPoint = mapProjection.LatLongToScreen(center, CoordinateOrigin.UpperLeft);
 
         var (xUpperLeft, yUpperLeft) = UpperLeft.ScreenPoint.GetValues( CoordinateOrigin.UpperLeft );
 
@@ -69,11 +75,11 @@ public record BoundingBox
     public int VerticalTiles { get; }
     public int ZoomLevel { get; }
 
-    public double Width { get; }
-    public double Height { get; }
+    public double ProjectionWidth { get; }
+    public double ProjectionHeight { get; }
 
-    public double ViewportWidth { get; }
-    public double ViewportHeight { get; }
+    public double ControlWidth { get; }
+    public double ControlHeight { get; }
 
     public IEnumerable<MultiCoordinates> GetTileCoordinates( IMapProjection mapProjection )
     {
