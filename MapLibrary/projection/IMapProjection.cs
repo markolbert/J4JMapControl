@@ -14,6 +14,24 @@ public interface IMapProjection
     int ProjectionWidthHeight { get; }
     int TileWidthHeight { get; }
     int ZoomFactor { get; }
+    TileRegion GetTileRegion(
+        LatLong center,
+        double boundingBoxWidth,
+        double boundingBoxHeight,
+        double rotation,
+        AngleMeasure angleMeasure = AngleMeasure.Degrees
+    );
+
+    double LatitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees );
+    double LongitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees );
+    double[] LatLongToCartesian( LatLong latLong, AngleMeasure angleMeasure = AngleMeasure.Degrees );
+    double CartesianToLatitude( double y, AngleMeasure angleMeasure = AngleMeasure.Degrees );
+    double CartesianToLongitude( double x, AngleMeasure angleMeasure = AngleMeasure.Degrees );
+    LatLong CartesianToLatLong(
+        double x,
+        double y,
+        AngleMeasure angleMeasure = AngleMeasure.Degrees
+    );
 
     DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin);
     LatLong ScreenToLatLong( DoublePoint screenPoint );

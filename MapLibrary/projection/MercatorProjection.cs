@@ -10,6 +10,7 @@ public class MercatorProjection : IMapProjection
     private const double TwoPi = 2 * Math.PI;
     private const double QuarterPi = Math.PI / 4;
 
+    private readonly AffineMatrix _affineMatrix;
     private readonly IJ4JLogger? _logger;
 
     private MapRetrieverInfo? _mapRetrieverInfo;
@@ -18,6 +19,8 @@ public class MercatorProjection : IMapProjection
 
     public MercatorProjection()
     {
+        _affineMatrix = J4JDeusEx.ServiceProvider.GetRequiredService<AffineMatrix>();
+
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType(GetType());
     }
@@ -87,7 +90,6 @@ public class MercatorProjection : IMapProjection
     private void OnZoomChanged()
     {
         ZoomFactor = 2.Pow(ZoomLevel - MinimumZoom);
-
         ProjectionWidthHeight = TileWidthHeight * ZoomFactor;
     }
 
@@ -113,6 +115,112 @@ public class MercatorProjection : IMapProjection
     private double HalfProjectionHeight => ProjectionWidthHeight / 2.0;
     public int TileWidthHeight { get; private set; }
     public int ZoomFactor { get; private set; }
+
+    public double[] ToProjectionSpace( double[] controlVector ) => _affineMatrix.Matrix.DotProduct( controlVector );
+
+    public TileRegion GetTileRegion(
+        LatLong center,
+        double boundingBoxWidth,
+        double boundingBoxHeight,
+        double rotation,
+        AngleMeasure angleMeasure = AngleMeasure.Degrees
+    )
+    {
+        var projectionCenter = this.LatLongToCartesian( center, angleMeasure );
+
+        _affineMatrix.SetRotation(rotation, angleMeasure);
+
+        var left = int.MaxValue;
+        var top = int.MaxValue;
+        var right = int.MinValue;
+        var bottom = int.MinValue;
+
+        // upper left corner of bounding box
+        var tileCoords = GetTileCoordinates(-boundingBoxWidth / 2, boundingBoxHeight / 2, projectionCenter);
+        MinMax();
+
+        // upper right corner of bounding box
+        tileCoords = GetTileCoordinates(boundingBoxWidth / 2, boundingBoxHeight / 2, projectionCenter);
+        MinMax();
+        
+        // lower left corner of bounding box
+        tileCoords = GetTileCoordinates(-boundingBoxWidth / 2, -boundingBoxHeight / 2, projectionCenter);
+        MinMax();
+
+        // lower right corner of bounding box
+        tileCoords = GetTileCoordinates(boundingBoxWidth / 2, -boundingBoxHeight / 2, projectionCenter);
+        MinMax();
+
+        return new TileRegion( new TilePoint( left, top, ZoomLevel ),
+                               new TilePoint( right, bottom, ZoomLevel ) );
+
+        void MinMax()
+        {
+            if (tileCoords.X < left)
+                left = tileCoords.X;
+            if (tileCoords.Y < top)
+                top = tileCoords.Y;
+            if (tileCoords.X > right)
+                right = tileCoords.X;
+            if (tileCoords.Y > bottom)
+                bottom = tileCoords.Y;
+        }
+    }
+
+    private (int X, int Y) GetTileCoordinates( double xCenterOffset, double yCenterOffset, double[] projectionCenter )
+    {
+        projectionCenter = projectionCenter.ExpandToAffine();
+
+        var cornerVector = AffineExtensions.CreateAffineVector( xCenterOffset, yCenterOffset );
+        var offsetProjection = ToProjectionSpace( cornerVector ).ExpandToAffine();
+        var cornerProjection = offsetProjection.Add( projectionCenter ).ExpandToAffine();
+
+        // in determining tile coordinates, remember to account for the fact that our Cartesian 
+        // coordinates have an origin at the middle left of projection space, while tile coordinates
+        // have an origin at the upper left of their space
+        return ( ScreenToTile( cornerProjection[ 0 ] ), ScreenToTile( HalfProjectionHeight - cornerProjection[ 1 ] ) );
+    }
+
+    private int ScreenToTile( double value )
+    {
+        var retVal = value < 0
+            ? 0
+            : value > ProjectionWidthHeight - 1
+                ? ProjectionWidthHeight - 1
+                : value;
+
+        return Convert.ToInt32( Math.Floor( retVal / TileWidthHeight ) );
+    }
+
+    public double LatitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
+        MercatorTransforms.LatitudeToCartesian( angle, ProjectionWidthHeight, angleMeasure );
+
+    public double LongitudeToCartesian( double angle, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
+        MercatorTransforms.LongitudeToCartesian(angle, ProjectionWidthHeight, angleMeasure);
+
+    public double[] LatLongToCartesian( LatLong latLong, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
+        new[]
+        {
+            LongitudeToCartesian( latLong.Longitude, angleMeasure ),
+            LatitudeToCartesian( latLong.Latitude, angleMeasure )
+        };
+
+    public double CartesianToLatitude( double y, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
+        MercatorTransforms.CartesianToLatitude(y, ProjectionWidthHeight, angleMeasure);
+
+    public double CartesianToLongitude( double x, AngleMeasure angleMeasure = AngleMeasure.Degrees ) =>
+        MercatorTransforms.CartesianToLongitude(x, ProjectionWidthHeight, angleMeasure);
+
+    public LatLong CartesianToLatLong(
+        double x,
+        double y,
+        AngleMeasure angleMeasure = AngleMeasure.Degrees
+    ) =>
+        new LatLong
+        {
+            Latitude = CartesianToLatitude(y, angleMeasure),
+            Longitude = CartesianToLongitude(x, angleMeasure)
+        };
 
     public DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin)
     {
@@ -197,19 +305,7 @@ public class MercatorProjection : IMapProjection
     {
         var (screenX, screenY) = screenPoint.GetValues( CoordinateOrigin.UpperLeft );
 
-        if( screenX < 0 )
-            screenX = 0;
-
-        if( screenX > ProjectionWidthHeight - 1)
-            screenX = ProjectionWidthHeight - 1;
-
-        if( screenY < 0 )
-            screenY = 0;
-
-        if( screenY > ProjectionWidthHeight - 1 )
-            screenY = ProjectionWidthHeight - 1;
-
-        return new( screenX / TileWidthHeight, screenY / TileWidthHeight, ZoomLevel );
+        return new( ScreenToTile( screenX ), ScreenToTile( screenY ), ZoomLevel );
     }
 
     public TilePoint GetTileFromLatLong(
@@ -238,7 +334,7 @@ public class MercatorProjection : IMapProjection
         if (yTile > ZoomFactor - 1)
             yTile = ZoomFactor - 1;
 
-        return new MultiCoordinates( new TilePoint( xTile, yTile, ZoomLevel ),
+        return new MultiCoordinates( new TilePoint( xTile, yTile, ZoomLevel),
                                      this,
                                      origin );
     }
