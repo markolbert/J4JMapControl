@@ -1,4 +1,7 @@
-﻿namespace J4JSoftware.MapLibrary;
+﻿using System;
+using System.Collections.Generic;
+
+namespace J4JSoftware.MapLibrary;
 
 public record BingMapRetrieverInfo(
     string RetrievalUrl,

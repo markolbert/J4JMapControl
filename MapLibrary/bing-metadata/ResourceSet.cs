@@ -1,4 +1,4 @@
-﻿namespace J4JSoftware.J4JMapControl.BingMetadata;
+﻿namespace J4JSoftware.MapLibrary.BingMetadata;
 
 #pragma warning disable CS8618
 public class ResourceSet

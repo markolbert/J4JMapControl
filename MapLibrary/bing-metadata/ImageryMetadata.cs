@@ -1,6 +1,6 @@
 ﻿#pragma warning disable CS8618
 
-namespace J4JSoftware.J4JMapControl.BingMetadata;
+namespace J4JSoftware.MapLibrary.BingMetadata;
 
 public class ImageryMetadata
 {

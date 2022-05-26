@@ -1,7 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
+using J4JSoftware.MapLibrary;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Media;
 
 namespace J4JSoftware.MapLibrary;
 
@@ -11,6 +14,7 @@ public class MercatorProjection : IMapProjection
     private const double QuarterPi = Math.PI / 4;
 
     private readonly AffineMatrix _affineMatrix;
+    private readonly CompositeTransform _projSpaceTransform = new();
     private readonly IJ4JLogger? _logger;
 
     private MapRetrieverInfo? _mapRetrieverInfo;
@@ -129,6 +133,14 @@ public class MercatorProjection : IMapProjection
         var projectionCenter = this.LatLongToCartesian( center, angleMeasure );
 
         _affineMatrix.SetRotation(rotation, angleMeasure);
+
+        _projSpaceTransform.Rotation = angleMeasure switch
+        {
+            AngleMeasure.Degrees => rotation,
+            AngleMeasure.Radians => rotation.RadiansToDegrees(),
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof( AngleMeasure )} value '{angleMeasure}'" )
+        };
 
         var left = int.MaxValue;
         var top = int.MaxValue;

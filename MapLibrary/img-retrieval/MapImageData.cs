@@ -1,6 +1,6 @@
 ﻿using Windows.Storage.Streams;
 using J4JSoftware.MapLibrary;
 
-namespace J4JSoftware.J4JMapControl;
+namespace J4JSoftware.MapLibrary;
 
 public record MapImageData( MultiCoordinates Coordinates, InMemoryRandomAccessStream Stream );

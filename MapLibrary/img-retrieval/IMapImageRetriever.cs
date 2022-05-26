@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using J4JSoftware.MapLibrary;
 
-namespace J4JSoftware.J4JMapControl
+namespace J4JSoftware.MapLibrary
 {
     public interface IMapImageRetriever
     {

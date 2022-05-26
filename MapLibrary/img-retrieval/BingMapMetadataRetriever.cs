@@ -2,8 +2,6 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Web.Http;
-using J4JSoftware.J4JMapControl;
-using BingMetadata = J4JSoftware.J4JMapControl.BingMetadata;
 
 namespace J4JSoftware.MapLibrary
 {

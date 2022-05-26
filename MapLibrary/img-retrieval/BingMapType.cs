@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace J4JSoftware.J4JMapControl;
+namespace J4JSoftware.MapLibrary;
 
 public enum BingMapType
 {

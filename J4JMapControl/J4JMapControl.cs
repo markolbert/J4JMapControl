@@ -1,7 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using Windows.Foundation;
+﻿using Windows.Foundation;
 using Windows.System;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;

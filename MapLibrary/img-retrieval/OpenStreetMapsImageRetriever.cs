@@ -1,9 +1,8 @@
 ﻿using System;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
-using J4JSoftware.MapLibrary;
 
-namespace J4JSoftware.J4JMapControl;
+namespace J4JSoftware.MapLibrary;
 
 public class OpenStreetMapsImageRetriever : TileBasedImageRetriever
 {

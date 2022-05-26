@@ -1,4 +1,6 @@
-﻿namespace J4JSoftware.MapLibrary;
+﻿using System;
+
+namespace J4JSoftware.MapLibrary;
 
 public static class AffineExtensions
 {
