@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
 using Windows.Foundation;
 using Microsoft.UI.Xaml.Controls;
 
@@ -21,9 +20,6 @@ public static class PublicExtensions
         return retVal;
     }
 
-    public static DoublePoint ToDoublePoint( this Size size, IMapProjection mapProjection ) =>
-        new( size.Width, size.Height, CoordinateOrigin.UpperLeft, mapProjection );
-
-    public static DoublePoint ToDoublePoint( this Vector2 size, IMapProjection mapProjection ) =>
-        new( size.X, size.Y, CoordinateOrigin.UpperLeft, mapProjection );
+    public static Point ToControlSpacePoint( this IMapProjection mapProjection, TilePoint tilePoint ) =>
+        new Point( tilePoint.X * mapProjection.TileWidthHeight, tilePoint.Y * mapProjection.TileWidthHeight );
 }

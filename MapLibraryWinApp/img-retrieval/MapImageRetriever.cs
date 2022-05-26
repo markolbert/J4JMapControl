@@ -9,7 +9,7 @@ using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.J4JMapControl;
 
-public abstract class MapImageRetriever : IMapWinUiImageRetriever
+public abstract class MapImageRetriever : IMapImageRetriever
 {
     private IMapProjection? _mapProjection;
 
@@ -169,39 +169,4 @@ public abstract class MapImageRetriever : IMapWinUiImageRetriever
 
     protected abstract Task<AsyncWebResult<InMemoryRandomAccessStream>> ExtractImageDataAsync(
         HttpResponseMessage response );
-
-    async Task<AsyncWebResult<List<object>>> IMapImageRetriever.GetMapImagesAsync(
-        BoundingBox box,
-        IEnumerable<MultiCoordinates>? existingImages
-    )
-    {
-        var retVal = await GetMapImagesAsync( box, existingImages );
-
-        return retVal.ReturnValue == null
-            ? new AsyncWebResult<List<object>>( null,
-                                                (int) HttpStatusCode.BadRequest,
-                                                retVal.Url,
-                                                retVal.Message )
-            : new AsyncWebResult<List<object>>( retVal.ReturnValue!.Cast<object>().ToList(),
-                                                retVal.HttpStatusCode,
-                                                retVal.Url,
-                                                retVal.Message );
-    }
-
-    async Task<AsyncWebResult<object>> IMapImageRetriever.GetMapImageAsync( object tile )
-    {
-        if( tile is MultiCoordinates castTile )
-        {
-            var retVal = await GetMapImageAsync( castTile );
-
-            return new AsyncWebResult<object>( retVal.ReturnValue, retVal.HttpStatusCode, retVal.Url, retVal.Message );
-        }
-
-        Logger?.Error( "GetMapImage requires a {0} but was provided a {1}", typeof( MultiCoordinates ), tile.GetType() );
-
-        return new AsyncWebResult<object>( null,
-                                                (int) HttpStatusCode.BadRequest,
-                                                Message:
-                                                $"GetMapImage requires a {typeof( MultiCoordinates )} but was provided a {tile.GetType()}" );
-    }
 }
