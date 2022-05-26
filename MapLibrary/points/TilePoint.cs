@@ -1,9 +1,7 @@
 ﻿namespace J4JSoftware.MapLibrary;
 
-public record TilePoint( int X, int Y, int Z )
+public record TilePoint( int X, int Y, int Z)
 {
-    private const double Tolerance = 0.01;
-
     #region IEquality
 
     public virtual bool Equals( TilePoint? other )
@@ -18,18 +16,10 @@ public record TilePoint( int X, int Y, int Z )
          && Z == other.Z;
     }
 
-    public override int GetHashCode() => HashCode.Combine( X, Y, Z );
-
-    #endregion
-
-    public TilePoint(
-        double x,
-        double y,
-        int z
-    )
-        : this( RoundDouble(x), RoundDouble(y), z )
+    public override int GetHashCode()
     {
+        return HashCode.Combine( X, Y, Z );
     }
 
-    private static int RoundDouble( double toRound ) => Convert.ToInt32( Math.Floor( toRound ) );
+    #endregion
 }
