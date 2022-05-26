@@ -1,4 +1,8 @@
-﻿namespace J4JSoftware.MapLibrary
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using J4JSoftware.MapLibrary;
+
+namespace J4JSoftware.J4JMapControl
 {
     public interface IMapImageRetriever
     {
@@ -7,11 +11,11 @@
         MapRetrieverInfo? MapRetrieverInfo { get; }
         bool FixedSizeImages { get; }
 
-        Task<AsyncWebResult<List<object>>> GetMapImagesAsync(
+        Task<AsyncWebResult<List<MapImageData>>> GetMapImagesAsync(
             BoundingBox box,
             IEnumerable<MultiCoordinates>? existingImages
         );
 
-        Task<AsyncWebResult<object>> GetMapImageAsync(object tile);
+        Task<AsyncWebResult<MapImageData>> GetMapImageAsync(MultiCoordinates coordinates);
     }
 }
