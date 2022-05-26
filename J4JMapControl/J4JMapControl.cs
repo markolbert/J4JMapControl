@@ -19,7 +19,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapControl;
 
-public sealed partial class J4JMapControl : Panel, IMapContext
+public sealed partial class J4JMapControl : Panel
 {
     private readonly IJ4JLogger? _logger;
 
@@ -255,7 +255,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
 
         Children.SetMapTileState( MapTileState.NotInBoundingBox );
 
-        foreach( var imgData in retrievalResult.ReturnValue!.Cast<MapImageData>() )
+        foreach( var imgData in retrievalResult.ReturnValue! )
         {
             // only add tiles that aren't already in the child collection
             var curImage = Children.GetMapTile( imgData.Coordinates );
@@ -391,7 +391,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         // - the difference between the size/width of the viewport and the size/width of the tiles
         //   that were retrieved
         var mapOffset = _boundingBox!.GetDesiredCenterOffset( CoordinateAxis.XAxis );
-        var vpOffset = ( ActualWidth - _boundingBox.Width ) / 2;
+        var vpOffset = ( ActualWidth - _boundingBox.ProjectionWidth ) / 2;
 
         // if we're displaying everything available horizontally the offset is 0.0
         if ( _boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor )
@@ -408,7 +408,7 @@ public sealed partial class J4JMapControl : Panel, IMapContext
         // - the difference between the size/height of the viewport and the size/height of the tiles
         //   that were retrieved
         var mapOffset = -_boundingBox!.GetDesiredCenterOffset( CoordinateAxis.YAxis );
-        var vpOffset = ( ActualHeight - _boundingBox.Height ) / 2;
+        var vpOffset = ( ActualHeight - _boundingBox.ProjectionHeight ) / 2;
 
         // if we're displaying everything available vertically the offset is 0.0
         if ( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
