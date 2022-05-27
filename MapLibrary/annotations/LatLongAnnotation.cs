@@ -33,10 +33,7 @@ public class LatLongAnnotation : AnnotationBase
 
         IsValid = true;
 
-        var upperLeft = mapProjection.LatLongToScreen( latLong, CoordinateOrigin.UpperLeft );
-
-        var (xPoint, yPoint) = upperLeft.GetValues( CoordinateOrigin.UpperLeft );
-        Origin = new Point( xPoint, yPoint );
+        Origin = mapProjection.LatLongToScreen( latLong );
 
         return IsValid;
     }
