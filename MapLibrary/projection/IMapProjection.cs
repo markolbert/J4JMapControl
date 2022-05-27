@@ -1,4 +1,6 @@
-﻿namespace J4JSoftware.MapLibrary;
+﻿using Windows.Foundation;
+
+namespace J4JSoftware.MapLibrary;
 
 public interface IMapProjection
 {
@@ -28,13 +30,13 @@ public interface IMapProjection
     double CartesianToLongitude( double x );
     LatLong CartesianToLatLong( double x, double y );
 
-    DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin);
-    LatLong ScreenToLatLong( DoublePoint screenPoint );
+    Point LatLongToScreen(LatLong latLong);
+    LatLong ScreenToLatLong( Point screenPoint );
     LatLong Offset( LatLong origin, double xOffset, double yOffset );
 
-    double ChangeOrigin( double value, CoordinateAxis axis );
+    Point ToUpperLeftOrigin( Point point );
     
-    TilePoint GetTileFromScreenPoint( DoublePoint point );
+    TilePoint GetTileFromScreenPoint( Point point );
 
     TilePoint GetTileFromLatLong(
         LatLong latLong,
@@ -43,4 +45,5 @@ public interface IMapProjection
     );
 
     MultiCoordinates GetTileCoordinates( int xTile, int yTile, CoordinateOrigin origin);
+    Point ToScreenPoint( TilePoint tilePoint );
 }

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
+using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
-using J4JSoftware.MapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media;
 
@@ -222,7 +221,7 @@ public class MercatorProjection : IMapProjection
     ) =>
         new() { Latitude = CartesianToLatitude( y ), Longitude = CartesianToLongitude( x ) };
 
-    public DoublePoint LatLongToScreen(LatLong latLong, CoordinateOrigin origin)
+    public Point LatLongToScreen(LatLong latLong)
     {
         // screenX and screenY use CoordinateOrigin.MiddleLeft
         var screenX = ProjectionWidthHeight * (0.5 + latLong.Longitude / (2 * MapRetrieverInfo.MaximumLongitude));
@@ -250,28 +249,21 @@ public class MercatorProjection : IMapProjection
             }
         }
 
-        var retVal = new DoublePoint(origin, this);
-
-        retVal.Set( screenX, screenY, CoordinateOrigin.MiddleLeft );
-
-        return retVal;
+        return new Point( screenX, screenY );
     }
 
-    public LatLong ScreenToLatLong( DoublePoint screenPoint )
+    public LatLong ScreenToLatLong( Point screenPoint )
     {
-        // ensure point is within bounds
-        var (screenX, screenY) = screenPoint.GetValues(CoordinateOrigin.MiddleLeft);
-
-        var longitude = screenX < 0
+        var longitude = screenPoint.X < 0
             ? -MapRetrieverInfo.MaximumLongitude
-            : screenX <= ProjectionWidthHeight
-                ? 360 * ( screenX / ProjectionWidthHeight - 0.5 )
+            : screenPoint.X <= ProjectionWidthHeight
+                ? 360 * (screenPoint.X / ProjectionWidthHeight - 0.5 )
                 : MapRetrieverInfo.MaximumLongitude;
 
-        var latitude = screenY > HalfProjectionHeight
+        var latitude = screenPoint.Y > HalfProjectionHeight
             ? MapRetrieverInfo.MaximumLatitude
-            : screenY > -HalfProjectionHeight + 1
-                ? ( 2 * ( Math.Atan( Math.Exp( screenY / MapRadius ) ) - QuarterPi ) ).RadiansToDegrees()
+            : screenPoint.Y > -HalfProjectionHeight + 1
+                ? ( 2 * ( Math.Atan( Math.Exp(screenPoint.Y / MapRadius ) ) - QuarterPi ) ).RadiansToDegrees()
                 : -MapRetrieverInfo.MaximumLatitude;
 
 
@@ -286,26 +278,24 @@ public class MercatorProjection : IMapProjection
 
     public LatLong Offset( LatLong origin, double xOffset, double yOffset )
     {
-        var originPt = LatLongToScreen( origin, CoordinateOrigin.UpperLeft );
+        var originPt = LatLongToScreen( origin );
 
-        originPt.Increment( xOffset, yOffset );
+        originPt.X += xOffset;
+        originPt.Y += yOffset;
 
         return ScreenToLatLong( originPt );
     }
 
-    public double ChangeOrigin( double value, CoordinateAxis axis ) =>
-        axis switch
-        {
-            CoordinateAxis.XAxis => value,
-            CoordinateAxis.YAxis => HalfProjectionHeight - value,
-            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( CoordinateAxis )} value '{axis}'" )
-        };
-
-    public TilePoint GetTileFromScreenPoint( DoublePoint screenPoint )
+    public Point ToUpperLeftOrigin( Point point )
     {
-        var (screenX, screenY) = screenPoint.GetValues( CoordinateOrigin.UpperLeft );
+        point.Y = HalfProjectionHeight - point.Y;
 
-        return new( ScreenToTile( screenX ), ScreenToTile( screenY ), ZoomLevel );
+        return point;
+    }
+
+    public TilePoint GetTileFromScreenPoint( Point screenPoint )
+    {
+        return new( ScreenToTile( screenPoint.X ), ScreenToTile( screenPoint.Y ), ZoomLevel );
     }
 
     public TilePoint GetTileFromLatLong(
@@ -314,8 +304,11 @@ public class MercatorProjection : IMapProjection
         double offsetY = 0
     )
     {
-        var screenPt = LatLongToScreen( latLong, CoordinateOrigin.UpperLeft );
-        screenPt.Increment( offsetX, offsetY );
+        var screenPt = LatLongToScreen( latLong );
+        screenPt = ToUpperLeftOrigin( screenPt );
+
+        screenPt.X += offsetX;
+        screenPt.Y += offsetY;
 
         return GetTileFromScreenPoint( screenPt );
     }
@@ -334,9 +327,17 @@ public class MercatorProjection : IMapProjection
         if (yTile > ZoomFactor - 1)
             yTile = ZoomFactor - 1;
 
-        return new MultiCoordinates( new TilePoint( xTile, yTile, ZoomLevel),
-                                     this,
-                                     origin );
+        var tilePoint = new TilePoint( xTile, yTile, ZoomLevel );
+        var screenPoint = ToScreenPoint( tilePoint );
+
+        return new MultiCoordinates( ScreenToLatLong( screenPoint ),
+                                     tilePoint,
+                                     screenPoint );
     }
+
+    // the returned values are relative to an upper left corner origin
+    // because tiles are accounted for from the upper left corner
+    public Point ToScreenPoint( TilePoint tilePoint ) =>
+        new Point( tilePoint.X * TileWidthHeight, tilePoint.Y * TileWidthHeight );
 
 }
