@@ -1,24 +1,5 @@
-﻿namespace J4JSoftware.MapLibrary;
+﻿using Windows.Foundation;
 
-public record MultiCoordinates
-{
-    public MultiCoordinates(
-        TilePoint tilePoint,
-        IMapProjection mapProjection,
-        CoordinateOrigin origin
-    )
-    {
-        TilePoint = tilePoint;
+namespace J4JSoftware.MapLibrary;
 
-        ScreenPoint = new DoublePoint( tilePoint.X * mapProjection.TileWidthHeight,
-                                       tilePoint.Y * mapProjection.TileWidthHeight,
-                                       origin,
-                                       mapProjection );
-
-        LatLong = mapProjection.ScreenToLatLong( ScreenPoint );
-    }
-
-    public LatLong LatLong { get; }
-    public TilePoint TilePoint { get; }
-    public DoublePoint ScreenPoint { get; }
-}
+public record MultiCoordinates( LatLong LatLong, TilePoint TilePoint, Point ScreenPoint );
