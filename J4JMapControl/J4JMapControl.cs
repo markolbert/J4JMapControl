@@ -70,9 +70,10 @@ public sealed partial class J4JMapControl : Panel
         var deltaCenterX = args.Position.X - ActualWidth / 2 - offsetX / 2;
         var deltaCenterY = args.Position.Y - ActualHeight / 2 - offsetY / 2;
 
-        _boundingBox.CenterPoint.Increment(deltaCenterX, deltaCenterY);
+        var adjCenter = new Point( _boundingBox.CenterPoint.X + deltaCenterX,
+                                   _boundingBox.CenterPoint.Y + deltaCenterY );
 
-        Center = _mapProjection.ScreenToLatLong( _boundingBox.CenterPoint );
+        Center = _mapProjection.ScreenToLatLong( adjCenter );
     }
 
     private void GestureRecognizerOnManipulationCompleted( GestureRecognizer sender, ManipulationCompletedEventArgs args )
@@ -380,40 +381,6 @@ public sealed partial class J4JMapControl : Panel
         }
     }
 
-    private double OffsetX()
-    {
-        // there are two offsets to consider:
-        // - the difference between the desired center of the viewport and the actual
-        //   center of the tiles that were retrieved
-        // - the difference between the size/width of the viewport and the size/width of the tiles
-        //   that were retrieved
-        var mapOffset = _boundingBox!.GetDesiredCenterOffset( CoordinateAxis.XAxis );
-        var vpOffset = ( ActualWidth - _boundingBox.ProjectionWidth ) / 2;
-
-        // if we're displaying everything available horizontally the offset is 0.0
-        if ( _boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor )
-            return 0.0;
-
-        return vpOffset + mapOffset;
-    }
-
-    private double OffsetY()
-    {
-        // there are two offsets to consider:
-        // - the difference between the desired center of the viewport and the actual
-        //   center of the tiles that were retrieved
-        // - the difference between the size/height of the viewport and the size/height of the tiles
-        //   that were retrieved
-        var mapOffset = -_boundingBox!.GetDesiredCenterOffset( CoordinateAxis.YAxis );
-        var vpOffset = ( ActualHeight - _boundingBox.ProjectionHeight ) / 2;
-
-        // if we're displaying everything available vertically the offset is 0.0
-        if ( _boundingBox.VerticalTiles == _mapProjection!.ZoomFactor )
-            return 0.0;
-
-        return vpOffset - mapOffset;
-    }
-
     #endregion
 
     #region Arranging...
@@ -459,13 +426,53 @@ public sealed partial class J4JMapControl : Panel
         }
     }
 
+    private double OffsetX()
+    {
+        // there are two offsets to consider:
+        // - the difference between the desired center of the viewport and the actual
+        //   center of the tiles that were retrieved
+        // - the difference between the size/width of the viewport and the size/width of the tiles
+        //   that were retrieved
+        var mapOffset = _boundingBox!.GetDesiredCenterOffset(CoordinateAxis.XAxis);
+        var vpOffset = (ActualWidth - _boundingBox.ProjectionWidth) / 2;
+
+        // if we're displaying everything available horizontally the offset is 0.0
+        if (_boundingBox.HorizontalTiles == _mapProjection!.ZoomFactor)
+            return 0.0;
+
+        return vpOffset + mapOffset;
+    }
+
+    private double OffsetY()
+    {
+        // there are two offsets to consider:
+        // - the difference between the desired center of the viewport and the actual
+        //   center of the tiles that were retrieved
+        // - the difference between the size/height of the viewport and the size/height of the tiles
+        //   that were retrieved
+        var mapOffset = -_boundingBox!.GetDesiredCenterOffset(CoordinateAxis.YAxis);
+        var vpOffset = (ActualHeight - _boundingBox.ProjectionHeight) / 2;
+
+        // if we're displaying everything available vertically the offset is 0.0
+        if (_boundingBox.VerticalTiles == _mapProjection!.ZoomFactor)
+            return 0.0;
+
+        return vpOffset - mapOffset;
+    }
+
     private Rect? GetFixedTileRect( MultiCoordinates coordinates, double xOffset, double yOffset )
     {
-        var (coordsX, coordsY) = coordinates.ScreenPoint.GetValues( CoordinateOrigin.UpperLeft );
-        var (boundingX, boundingY) = _boundingBox!.UpperLeft.ScreenPoint.GetValues( CoordinateOrigin.UpperLeft );
+        if( _mapProjection == null || _boundingBox == null )
+            return null;
 
-        var xPosition = coordsX - boundingX + xOffset;
-        var yPosition = coordsY - boundingY + yOffset;
+        var tilePoint = _mapProjection.ToScreenPoint( coordinates.TilePoint );
+        var upperLeftPoint = _mapProjection.ToScreenPoint( _boundingBox.UpperLeft.TilePoint );
+
+        var xPosition = tilePoint.X - upperLeftPoint.X + xOffset;
+        var yPosition = tilePoint.Y - upperLeftPoint.Y + yOffset;
+
+        //var xPosition = coordinates.ScreenPoint.X - _boundingBox!.UpperLeft.ScreenPoint.X + xOffset;
+        //var yPosition = coordinates.ScreenPoint.Y - _boundingBox.UpperLeft.ScreenPoint.Y + yOffset;
 
         return new( xPosition,
                     yPosition,
