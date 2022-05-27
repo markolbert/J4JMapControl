@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using J4JSoftware.MapLibrary;
+using Windows.Foundation;
 
 namespace J4JSoftware.MapLibrary;
 
@@ -23,8 +23,11 @@ public record BoundingBox
         var ulTile = mapProjection.GetTileFromLatLong( center, -controlWidth / 2, -controlHeight / 2 );
         var lrTile = mapProjection.GetTileFromLatLong( center, controlWidth / 2, controlHeight / 2 );
 
-        UpperLeft = new MultiCoordinates( ulTile, mapProjection, CoordinateOrigin.UpperLeft );
-        LowerRight = new MultiCoordinates( lrTile, mapProjection, CoordinateOrigin.UpperLeft );
+        var ulScreenPoint = mapProjection.ToScreenPoint( ulTile );
+        UpperLeft = new MultiCoordinates( mapProjection.ScreenToLatLong( ulScreenPoint ), ulTile, ulScreenPoint );
+
+        var lrScreenPoint = mapProjection.ToScreenPoint( lrTile );
+        LowerRight = new MultiCoordinates( mapProjection.ScreenToLatLong( lrScreenPoint ), lrTile, lrScreenPoint );
 
         HorizontalTiles = LowerRight.TilePoint.X - UpperLeft.TilePoint.X + 1;
         VerticalTiles = LowerRight.TilePoint.Y - UpperLeft.TilePoint.Y + 1;
@@ -35,15 +38,14 @@ public record BoundingBox
         ProjectionHeight = VerticalTiles * mapProjection.TileWidthHeight;
 
         DesiredCenter = center;
-        DesiredCenterPoint = mapProjection.LatLongToScreen(center, CoordinateOrigin.UpperLeft);
 
-        var (xUpperLeft, yUpperLeft) = UpperLeft.ScreenPoint.GetValues( CoordinateOrigin.UpperLeft );
+        // the coordinates returned by LatLongToScreen are in projection space, they
+        // need to be converted to control/Windows space
+        var desiredCenterPt = mapProjection.LatLongToScreen(center);
+        DesiredCenterPoint = mapProjection.ToUpperLeftOrigin( desiredCenterPt );
 
-        CenterPoint = new DoublePoint(
-            xUpperLeft + HorizontalTiles * mapProjection.TileWidthHeight / 2.0,
-            yUpperLeft + + VerticalTiles * mapProjection.TileWidthHeight / 2.0,
-            CoordinateOrigin.UpperLeft,
-            mapProjection);
+        CenterPoint = new Point( UpperLeft.ScreenPoint.X + HorizontalTiles * mapProjection.TileWidthHeight / 2.0,
+                                 UpperLeft.ScreenPoint.Y + VerticalTiles * mapProjection.TileWidthHeight / 2.0 );
 
         BoundingBoxCenter = mapProjection.ScreenToLatLong( CenterPoint );
     }
@@ -55,21 +57,16 @@ public record BoundingBox
     public LatLong BoundingBoxCenter { get; }
 
     // these points are in projection-space
-    public DoublePoint DesiredCenterPoint { get; }
-    public DoublePoint CenterPoint { get; }
+    public Point DesiredCenterPoint { get; }
+    public Point CenterPoint { get; }
 
-    public double GetDesiredCenterOffset( CoordinateAxis axis )
-    {
-        var (viewPortX, viewPortY) = DesiredCenterPoint.GetValues( CoordinateOrigin.UpperLeft );
-        var (bBoxX, bBoxY) = CenterPoint.GetValues( CoordinateOrigin.UpperLeft );
-
-        return axis switch
+    public double GetDesiredCenterOffset( CoordinateAxis axis ) =>
+        axis switch
         {
-            CoordinateAxis.XAxis => bBoxX - viewPortX,
-            CoordinateAxis.YAxis => bBoxY - viewPortY,
+            CoordinateAxis.XAxis => CenterPoint.X - DesiredCenterPoint.X,
+            CoordinateAxis.YAxis => CenterPoint.Y - DesiredCenterPoint.Y,
             _ => throw new InvalidOperationException( $"Unsupported {typeof( CoordinateAxis )} value '{axis}'" )
         };
-    }
 
     public int HorizontalTiles { get; }
     public int VerticalTiles { get; }
