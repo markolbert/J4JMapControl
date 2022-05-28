@@ -14,10 +14,10 @@ public static class MapLibExtensions
       * GlobalConstants.EarthRadius
       / mapProjection.ProjectionWidthHeight;
 
-    public static string GetBingMapsQuadKey( this MultiCoordinates tile, int zoomLevel ) =>
-        GetBingMapsQuadKey( tile.TilePoint.X, tile.TilePoint.Y, zoomLevel );
+    //public static string GetBingMapsQuadKey( this MultiCoordinates tile, int zoomLevel ) =>
+    //    GetBingMapsQuadKey( tile.TilePoint.X, tile.TilePoint.Y, zoomLevel );
 
-    public static string GetBingMapsQuadKey( int xTile, int yTile, int zoomLevel )
+    public static string GetBingMapsQuadKey( this MapTile mapTile, int zoomLevel )
     {
         var retVal = new StringBuilder();
 
@@ -26,10 +26,10 @@ public static class MapLibExtensions
             var digit = '0';
             var mask = 1 << ( i - 1 );
 
-            if( ( xTile & mask ) != 0 )
+            if( ( mapTile.X & mask ) != 0 )
                 digit++;
 
-            if( ( yTile & mask ) != 0 )
+            if( ( mapTile.Y & mask ) != 0 )
             {
                 digit++;
                 digit++;

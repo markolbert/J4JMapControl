@@ -155,8 +155,8 @@ public class MercatorProjection : IMapProjection
         tileCoords = GetTileCoordinates(boundingBoxWidth / 2, -boundingBoxHeight / 2, projectionCenter);
         MinMax();
 
-        return new TileRegion( new TilePoint( left, top, ZoomLevel ),
-                               new TilePoint( right, bottom, ZoomLevel ) );
+        return new TileRegion( new MapTile( left, top, ZoomLevel ),
+                               new MapTile( right, bottom, ZoomLevel ) );
 
         void MinMax()
         {
@@ -293,12 +293,12 @@ public class MercatorProjection : IMapProjection
         return point;
     }
 
-    public TilePoint GetTileFromScreenPoint( Point screenPoint )
+    public MapTile GetTileFromScreenPoint( Point screenPoint )
     {
         return new( ScreenToTile( screenPoint.X ), ScreenToTile( screenPoint.Y ), ZoomLevel );
     }
 
-    public TilePoint GetTileFromLatLong(
+    public MapTile GetTileFromLatLong(
         LatLong latLong,
         double offsetX = 0,
         double offsetY = 0
@@ -313,7 +313,7 @@ public class MercatorProjection : IMapProjection
         return GetTileFromScreenPoint( screenPt );
     }
 
-    public MultiCoordinates GetTileCoordinates(int xTile, int yTile, CoordinateOrigin origin)
+    public MapTile GetTileCoordinates(int xTile, int yTile)
     {
         if (xTile < 0)
             xTile = 0;
@@ -327,17 +327,12 @@ public class MercatorProjection : IMapProjection
         if (yTile > ZoomFactor - 1)
             yTile = ZoomFactor - 1;
 
-        var tilePoint = new TilePoint( xTile, yTile, ZoomLevel );
-        var screenPoint = ToScreenPoint( tilePoint );
-
-        return new MultiCoordinates( ScreenToLatLong( screenPoint ),
-                                     tilePoint,
-                                     screenPoint );
+        return new MapTile( xTile, yTile, ZoomLevel );
     }
 
     // the returned values are relative to an upper left corner origin
     // because tiles are accounted for from the upper left corner
-    public Point ToScreenPoint( TilePoint tilePoint ) =>
-        new Point( tilePoint.X * TileWidthHeight, tilePoint.Y * TileWidthHeight );
+    public Point ToScreenPoint( MapTile mapTile ) =>
+        new Point( mapTile.X * TileWidthHeight, mapTile.Y * TileWidthHeight );
 
 }

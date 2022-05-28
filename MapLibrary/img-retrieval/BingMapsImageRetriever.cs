@@ -65,10 +65,11 @@ public class BingMapsImageRetriever : TileBasedImageRetriever
         return true;
     }
 
-    protected override HttpRequestMessage GetRequest( MultiCoordinates coordinates )
+    protected override HttpRequestMessage GetRequest( MapTile mapTile )
     {
         var subDomain = ( (BingMapRetrieverInfo) MapRetrieverInfo! ).GetRandomSubdomain();
-        var quadKey = coordinates.GetBingMapsQuadKey( MapProjection.ZoomLevel );
+        
+        var quadKey = mapTile.GetBingMapsQuadKey( MapProjection.ZoomLevel );
 
         var uriText = MapRetrieverInfo.RetrievalUrl.Replace( "{subdomain}", subDomain )
                                       .Replace( "{quadkey}", quadKey )

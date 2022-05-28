@@ -16,10 +16,10 @@ public static class PublicExtensions
     public static IEnumerable<Image> FixedSizedMapImages( this IEnumerable<UIElement> elements ) =>
         elements.MapImages().Where( MapProperties.GetIsFixedImageSize );
 
-    public static IEnumerable<MultiCoordinates> MapCoordinates( this IEnumerable<Image> images ) =>
+    public static IEnumerable<MapTile> MapCoordinates( this IEnumerable<Image> images ) =>
         images.Where( x => MapProperties.GetIsMapTile( x )
-                       && MapProperties.GetCoordinates( x ) != null )
-              .Select( x => MapProperties.GetCoordinates( x )! );
+                       && MapProperties.GetTile( x ) != null )
+              .Select( x => MapProperties.GetTile( x )! );
 
     public static void RemoveMapImages( this UIElementCollection elements, params MapTileState[] stateFilters )
     {
@@ -40,17 +40,17 @@ public static class PublicExtensions
         }
     }
 
-    public static void SetMapTileState( this UIElementCollection elements, MapTileState state )
-    {
-        foreach( var image in elements.MapImages() )
-        {
-            MapProperties.SetMapTileState( image, state );
-        }
-    }
+    //public static void SetMapTileState( this UIElementCollection elements, MapTileState state )
+    //{
+    //    foreach( var image in elements.MapImages() )
+    //    {
+    //        MapProperties.SetMapTileState( image, state );
+    //    }
+    //}
 
-    public static Image? GetMapTile(this UIElementCollection elements, MultiCoordinates toMatch) =>
+    public static Image? GetMapTile(this UIElementCollection elements, MapTile toMatch) =>
         elements.MapImages()
-                .FirstOrDefault( x => MapProperties.GetCoordinates( x ) == toMatch );
+                .FirstOrDefault( x => MapProperties.GetTile( x ) == toMatch );
 
     public static IEnumerable<AnnotationElement> GetInitializedAnnotations( this UIElementCollection uiElements,
         Size clipSize, IMapProjection mapProjection )

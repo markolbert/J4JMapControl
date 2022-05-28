@@ -61,7 +61,7 @@ public abstract class MapImageRetriever : IMapImageRetriever
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
     public async Task<AsyncWebResult<List<MapImageData>>> GetMapImagesAsync(
         BoundingBox box,
-        IEnumerable<MultiCoordinates>? existingCoords = null
+        IEnumerable<MapTile>? existingTiles = null
     )
     {
         if( !IsInitialized )
@@ -69,8 +69,8 @@ public abstract class MapImageRetriever : IMapImageRetriever
 
         var images = new List<MapImageData>();
 
-        existingCoords ??= Enumerable.Empty<MultiCoordinates>();
-        var existing = existingCoords.ToList();
+        existingTiles ??= Enumerable.Empty<MapTile>();
+        var existing = existingTiles.ToList();
 
         foreach( var tilePoint in box.GetTileCoordinates(MapProjection) )
         {
@@ -82,7 +82,7 @@ public abstract class MapImageRetriever : IMapImageRetriever
 
             if( result.ReturnValue == null )
                 return GetErrorAndLog<List<MapImageData>>(
-                    $"Failed to get image for {typeof( MultiCoordinates )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
+                    $"Failed to get image for {typeof( MapTile )}, message was '{result.Message}' (status code {result.HttpStatusCode}" );
 
             images.Add( result.ReturnValue );
         }
@@ -100,14 +100,14 @@ public abstract class MapImageRetriever : IMapImageRetriever
     // * an attached DependencyProperty, TileCoordinatesProperty, containing information about the tile the Image is
     //   associated with.
     // * an attached DependencyProperty, IsMapTileProperty, set equal to 'true'
-    public async Task<AsyncWebResult<MapImageData>> GetMapImageAsync( MultiCoordinates coordinates )
+    public async Task<AsyncWebResult<MapImageData>> GetMapImageAsync( MapTile mapTile )
     {
         if( !IsInitialized )
             return GetErrorAndLog<MapImageData>( $"{this.GetType()} is not initialized, cannot retrieve image" );
 
         Logger?.Information( "Beginning image retrieval from web" );
 
-        var request = GetRequest( coordinates );
+        var request = GetRequest( mapTile );
         if( request == null )
             return GetErrorAndLog<MapImageData>( "Could not create HttpRequestMessage for tile" );
 
@@ -146,7 +146,7 @@ public abstract class MapImageRetriever : IMapImageRetriever
         if( imgData.ReturnValue == null )
             return GetErrorAndLog<MapImageData>( "Failed to retrieve image data" );
 
-        return new AsyncWebResult<MapImageData>( new MapImageData(coordinates, imgData.ReturnValue!),
+        return new AsyncWebResult<MapImageData>( new MapImageData(mapTile, imgData.ReturnValue!),
                                                                  (int) HttpStatusCode.Ok );
     }
 
@@ -165,7 +165,7 @@ public abstract class MapImageRetriever : IMapImageRetriever
                                             msg );
     }
 
-    protected abstract HttpRequestMessage? GetRequest( MultiCoordinates coordinates );
+    protected abstract HttpRequestMessage? GetRequest( MapTile mapTile );
 
     protected abstract Task<AsyncWebResult<InMemoryRandomAccessStream>> ExtractImageDataAsync(
         HttpResponseMessage response );

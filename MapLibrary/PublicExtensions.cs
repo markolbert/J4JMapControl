@@ -8,22 +8,22 @@ namespace J4JSoftware.MapLibrary;
 
 public static class PublicExtensions
 {
-    public static List<MultiCoordinates> ExtractCoordinates( this IEnumerable<Image> images )
+    public static List<MapTile> ExtractMapTiles( this IEnumerable<Image> images )
     {
-        var retVal = new List<MultiCoordinates>();
+        var retVal = new List<MapTile>();
 
         foreach( var image in images )
         {
-            var coordinates = MapProperties.GetCoordinates( image );
-            if( coordinates != null )
-                retVal.Add( coordinates );
+            var tile = MapProperties.GetTile( image );
+            if( tile != null )
+                retVal.Add( tile );
         }
 
         return retVal;
     }
 
-    public static Point ToControlSpacePoint( this IMapProjection mapProjection, TilePoint tilePoint ) =>
-        new Point( tilePoint.X * mapProjection.TileWidthHeight, tilePoint.Y * mapProjection.TileWidthHeight );
+    public static Point ToControlSpacePoint( this IMapProjection mapProjection, MapTile mapTile ) =>
+        new Point( mapTile.X * mapProjection.TileWidthHeight, mapTile.Y * mapProjection.TileWidthHeight );
 
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
@@ -47,4 +47,13 @@ public static class PublicExtensions
 
     public static double DegreesToRadians(this double degrees) => degrees * Math.PI / 180;
     public static double RadiansToDegrees(this double radians) => radians * 180 / Math.PI;
+
+    public static Rect ToControlSpaceRect( this IMapProjection mapProjection, TileRegion tileRegion ) =>
+        new( mapProjection.ToControlSpacePoint( tileRegion.UpperLeft ),
+             mapProjection.ToControlSpacePoint( ( tileRegion.LowerRight ) ) );
+
+    public static Point Center( this Rect rect ) =>
+        new( ( rect.Left + rect.Right ) / 2, ( rect.Top + rect.Bottom ) / 2 );
+
+    public static Size Size( this Rect rect ) => new( rect.Width, rect.Height );
 }

@@ -13,9 +13,9 @@ namespace J4JSoftware.MapLibrary
 
         Task<AsyncWebResult<List<MapImageData>>> GetMapImagesAsync(
             BoundingBox box,
-            IEnumerable<MultiCoordinates>? existingImages
+            IEnumerable<MapTile>? existingTiles
         );
 
-        Task<AsyncWebResult<MapImageData>> GetMapImageAsync(MultiCoordinates coordinates);
+        Task<AsyncWebResult<MapImageData>> GetMapImageAsync(MapTile mapTile);
     }
 }

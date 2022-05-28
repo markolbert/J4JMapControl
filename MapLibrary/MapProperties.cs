@@ -7,17 +7,17 @@ public class MapProperties : DependencyObject
 {
     #region TileCoordinates property
 
-    public static readonly DependencyProperty CoordinatesProperty =
-        DependencyProperty.RegisterAttached( "Coordinates",
-                                             typeof( MultiCoordinates ),
+    public static readonly DependencyProperty TileProperty =
+        DependencyProperty.RegisterAttached( "Tile",
+                                             typeof( MapTile ),
                                              typeof( Image ),
                                              null );
 
-    public static MultiCoordinates? GetCoordinates( Image image ) =>
-        image.GetValue( CoordinatesProperty ) as MultiCoordinates;
+    public static MapTile? GetTile( Image image ) =>
+        image.GetValue( TileProperty ) as MapTile;
 
-    public static void SetCoordinates( Image image, MultiCoordinates value ) =>
-        image.SetValue( CoordinatesProperty, value );
+    public static void SetTile( Image image, MapTile value ) =>
+        image.SetValue( TileProperty, value );
 
     #endregion
 
