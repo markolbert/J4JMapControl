@@ -243,7 +243,7 @@ public sealed partial class J4JMapControl : Panel
         if( Center == null || MapRetriever == null || _mapProjection == null )
             return;
 
-        _boundingBox = new BoundingBox( _mapProjection, Center, ActualWidth, ActualHeight, 0 );
+        _boundingBox = _mapProjection.GetBoundingBox( Center, ActualWidth, ActualHeight, 0 );
 
         var retrievalResult = await MapRetriever
            .GetMapImagesAsync( _boundingBox, Children.MapImages().ExtractMapTiles() );
@@ -476,23 +476,6 @@ public sealed partial class J4JMapControl : Panel
         return new Point( projectionCenter.X - _boundingBox.ViewportCenterPoint.X,
                           projectionCenter.Y - _boundingBox.ViewportCenterPoint.Y );
     }
-
-    //private double OffsetY()
-    //{
-    //    // there are two offsets to consider:
-    //    // - the difference between the desired center of the viewport and the actual
-    //    //   center of the tiles that were retrieved
-    //    // - the difference between the size/height of the viewport and the size/height of the tiles
-    //    //   that were retrieved
-    //    var mapOffset = -_boundingBox!.GetCenterOffset(CoordinateAxis.YAxis);
-    //    var vpOffset = (ActualHeight - _boundingBox.ProjectionRegion.VerticalTiles * _mapProjection!.TileWidthHeight) / 2;
-
-    //    // if we're displaying everything available vertically the offset is 0.0
-    //    if (_boundingBox.ProjectionRegion.VerticalTiles == _mapProjection!.ZoomFactor)
-    //        return 0.0;
-
-    //    return vpOffset - mapOffset;
-    //}
 
     private Rect? GetFixedTileRect( MapTile mapTile, Point offset )
     {
