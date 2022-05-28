@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
-using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.MapLibrary;
 
@@ -72,13 +71,13 @@ public abstract class MapImageRetriever : IMapImageRetriever
         existingTiles ??= Enumerable.Empty<MapTile>();
         var existing = existingTiles.ToList();
 
-        foreach( var tilePoint in box.GetTileCoordinates(MapProjection) )
+        foreach( var mapTile in box )
         {
             // don't retrieve Images we already have, if any were provided
-            if( existing.Any( x => x == tilePoint ) )
+            if( existing.Any( x => x == mapTile ) )
                 continue;
 
-            var result = await GetMapImageAsync( tilePoint );
+            var result = await GetMapImageAsync( mapTile );
 
             if( result.ReturnValue == null )
                 return GetErrorAndLog<List<MapImageData>>(

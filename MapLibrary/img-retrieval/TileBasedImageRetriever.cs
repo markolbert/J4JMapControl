@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
 using J4JSoftware.Logging;
-using J4JSoftware.MapLibrary;
 
 namespace J4JSoftware.MapLibrary;
 
