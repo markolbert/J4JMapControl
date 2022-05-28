@@ -23,6 +23,8 @@ public interface IMapProjection
         double rotation
     );
 
+    BoundingBox GetBoundingBox( LatLong center, double viewportWidth, double viewportHeight, double rotation );
+
     double LatitudeToCartesian( double latitude );
     double LongitudeToCartesian( double longitude );
     double[] LatLongToCartesian( LatLong latLong );
