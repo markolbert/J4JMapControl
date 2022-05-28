@@ -3,11 +3,11 @@ using Windows.Foundation;
 
 namespace J4JSoftware.MapLibrary;
 
-public record TilePoint( int X, int Y, int Z)
+public record MapTile( int X, int Y, int Z)
 {
     #region IEquality
 
-    public virtual bool Equals( TilePoint? other )
+    public virtual bool Equals( MapTile? other )
     {
         if( ReferenceEquals( null, other ) )
             return false;
