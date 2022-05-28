@@ -18,8 +18,8 @@ public interface IMapProjection
     int ZoomFactor { get; }
     TileRegion GetTileRegion(
         LatLong center,
-        double boundingBoxWidth,
-        double boundingBoxHeight,
+        double viewPortWidth,
+        double viewPortHeight,
         double rotation
     );
 
@@ -36,14 +36,14 @@ public interface IMapProjection
 
     Point ToUpperLeftOrigin( Point point );
     
-    TilePoint GetTileFromScreenPoint( Point point );
+    MapTile GetTileFromScreenPoint( Point point );
 
-    TilePoint GetTileFromLatLong(
+    MapTile GetTileFromLatLong(
         LatLong latLong,
         double offsetX = 0,
         double offsetY = 0
     );
 
-    MultiCoordinates GetTileCoordinates( int xTile, int yTile, CoordinateOrigin origin);
-    Point ToScreenPoint( TilePoint tilePoint );
+    MapTile GetTileCoordinates( int xTile, int yTile);
+    Point ToScreenPoint( MapTile mapTile );
 }
