@@ -11,80 +11,83 @@ public record BoundingBox
     public BoundingBox(
         IMapProjection mapProjection,
         LatLong center,
-        double controlWidth,
-        double controlHeight
+        double viewPortWidth,
+        double viewPortHeight,
+        double rotation
     )
     {
-        ControlWidth = controlWidth;
-        ControlHeight = controlHeight;
+        Viewport = new Rect( 0, 0, viewPortWidth, viewPortHeight );
 
-        var tileRegion = mapProjection.GetTileRegion( center, controlWidth, controlHeight, 0 );
+        TileRegion = mapProjection.GetTileRegion( center, viewPortWidth, viewPortHeight, rotation );   
 
-        var ulTile = mapProjection.GetTileFromLatLong( center, -controlWidth / 2, -controlHeight / 2 );
-        var lrTile = mapProjection.GetTileFromLatLong( center, controlWidth / 2, controlHeight / 2 );
+        //var ulTile = mapProjection.GetTileFromLatLong( center, -controlWidth / 2, -controlHeight / 2 );
+        //var lrTile = mapProjection.GetTileFromLatLong( center, controlWidth / 2, controlHeight / 2 );
 
-        var ulScreenPoint = mapProjection.ToScreenPoint( ulTile );
-        UpperLeft = new MultiCoordinates( mapProjection.ScreenToLatLong( ulScreenPoint ), ulTile, ulScreenPoint );
+        //var ulScreenPoint = mapProjection.ToScreenPoint( ulTile );
+        //UpperLeft = new MultiCoordinates( mapProjection.ScreenToLatLong( ulScreenPoint ), ulTile, ulScreenPoint );
 
-        var lrScreenPoint = mapProjection.ToScreenPoint( lrTile );
-        LowerRight = new MultiCoordinates( mapProjection.ScreenToLatLong( lrScreenPoint ), lrTile, lrScreenPoint );
+        //var lrScreenPoint = mapProjection.ToScreenPoint( lrTile );
+        //LowerRight = new MultiCoordinates( mapProjection.ScreenToLatLong( lrScreenPoint ), lrTile, lrScreenPoint );
 
-        HorizontalTiles = LowerRight.TilePoint.X - UpperLeft.TilePoint.X + 1;
-        VerticalTiles = LowerRight.TilePoint.Y - UpperLeft.TilePoint.Y + 1;
+        //HorizontalTiles = LowerRight.TilePoint.X - UpperLeft.TilePoint.X + 1;
+        //VerticalTiles = LowerRight.TilePoint.Y - UpperLeft.TilePoint.Y + 1;
 
-        ZoomLevel = mapProjection.ZoomLevel;
+        //ZoomLevel = mapProjection.ZoomLevel;
 
-        ProjectionWidth = HorizontalTiles * mapProjection.TileWidthHeight;
-        ProjectionHeight = VerticalTiles * mapProjection.TileWidthHeight;
+        //ProjectionWidth = HorizontalTiles * mapProjection.TileWidthHeight;
+        //ProjectionHeight = VerticalTiles * mapProjection.TileWidthHeight;
 
-        DesiredCenter = center;
+        ViewportCenter = center;
 
         // the coordinates returned by LatLongToScreen are in projection space, they
         // need to be converted to control/Windows space
         var desiredCenterPt = mapProjection.LatLongToScreen(center);
-        DesiredCenterPoint = mapProjection.ToUpperLeftOrigin( desiredCenterPt );
+        ViewportCenterPoint = mapProjection.ToUpperLeftOrigin( desiredCenterPt );
 
-        CenterPoint = new Point( UpperLeft.ScreenPoint.X + HorizontalTiles * mapProjection.TileWidthHeight / 2.0,
-                                 UpperLeft.ScreenPoint.Y + VerticalTiles * mapProjection.TileWidthHeight / 2.0 );
+        //CenterPoint = new Point( UpperLeft.ScreenPoint.X + HorizontalTiles * mapProjection.TileWidthHeight / 2.0,
+        //                         UpperLeft.ScreenPoint.Y + VerticalTiles * mapProjection.TileWidthHeight / 2.0 );
 
-        BoundingBoxCenter = mapProjection.ScreenToLatLong( CenterPoint );
+        //BoundingBoxCenter = mapProjection.ScreenToLatLong( CenterPoint );
     }
 
-    public MultiCoordinates UpperLeft { get; }
-    public MultiCoordinates LowerRight { get; }
+    public Rect Viewport { get; }
+    public TileRegion TileRegion { get; }
 
-    public LatLong DesiredCenter { get; }
-    public LatLong BoundingBoxCenter { get; }
+    //public MultiCoordinates UpperLeft { get; }
+    //public MultiCoordinates LowerRight { get; }
 
-    // these points are in projection-space
-    public Point DesiredCenterPoint { get; }
-    public Point CenterPoint { get; }
+    public LatLong ViewportCenter { get; }
+    //public LatLong BoundingBoxCenter { get; }
 
-    public double GetDesiredCenterOffset( CoordinateAxis axis ) =>
-        axis switch
-        {
-            CoordinateAxis.XAxis => CenterPoint.X - DesiredCenterPoint.X,
-            CoordinateAxis.YAxis => CenterPoint.Y - DesiredCenterPoint.Y,
-            _ => throw new InvalidOperationException( $"Unsupported {typeof( CoordinateAxis )} value '{axis}'" )
-        };
+    // this is in control space (upper left corner origin)
+    public Point ViewportCenterPoint { get; }
+    //public Point CenterPoint { get; }
 
-    public int HorizontalTiles { get; }
-    public int VerticalTiles { get; }
-    public int ZoomLevel { get; }
+    //public Point GetCenterOffset( IMapProjection mapProjection )
+    //{
+    //    var projectionCenter = TileRegion.GetProjectionRect( mapProjection ).Center();
+    //    //projectionCenter = mapProjection.ToUpperLeftOrigin( projectionCenter );
 
-    public double ProjectionWidth { get; }
-    public double ProjectionHeight { get; }
+    //    return new Point( projectionCenter.X - ViewportCenterPoint.X, projectionCenter.Y - ViewportCenterPoint.Y );
+    //}
 
-    public double ControlWidth { get; }
-    public double ControlHeight { get; }
+    //public int HorizontalTiles { get; }
+    //public int VerticalTiles { get; }
+    //public int ZoomLevel { get; }
 
-    public IEnumerable<MultiCoordinates> GetTileCoordinates( IMapProjection mapProjection )
+    //public double ProjectionWidth { get; }
+    //public double ProjectionHeight { get; }
+
+    //public double ControlWidth { get; }
+    //public double ControlHeight { get; }
+
+    public IEnumerable<MapTile> GetTileCoordinates( IMapProjection mapProjection )
     {
-        for( var yTile = UpperLeft.TilePoint.Y; yTile <= LowerRight.TilePoint.Y; yTile++ )
+        for( var yTile = TileRegion.UpperLeft.Y; yTile <= TileRegion.LowerRight.Y; yTile++ )
         {
-            for( var xTile = UpperLeft.TilePoint.X; xTile <= LowerRight.TilePoint.X; xTile++ )
+            for( var xTile = TileRegion.UpperLeft.X; xTile <= TileRegion.LowerRight.X; xTile++ )
             {
-                yield return mapProjection.GetTileCoordinates( xTile, yTile, CoordinateOrigin.UpperLeft );
+                yield return new MapTile( xTile, yTile, mapProjection.ZoomLevel );
             }
         }
     }
