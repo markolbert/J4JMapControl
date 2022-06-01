@@ -21,7 +21,7 @@ public record BoundingBox(
             if( _vpCenterPt != null )
                 return _vpCenterPt.Value;
 
-            var desiredCenterPt = MapProjection.LatLongToScreen(ViewportCenter);
+            var desiredCenterPt = MapProjection.LatLongToCartesian(ViewportCenter);
             _vpCenterPt = MapProjection.ToUpperLeftOrigin( desiredCenterPt );
 
             return _vpCenterPt.Value;
@@ -35,7 +35,7 @@ public record BoundingBox(
             if( _tileRegion != null )
                 return _tileRegion;
 
-            _tileRegion = MapProjection.GetTileRegion( ViewportCenter, Viewport.Width, Viewport.Height, Rotation );
+            _tileRegion = MapProjection.GetTileRegion( this );
             return _tileRegion;
         }
     }

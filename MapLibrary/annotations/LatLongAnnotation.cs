@@ -33,7 +33,7 @@ public class LatLongAnnotation : AnnotationBase
 
         IsValid = true;
 
-        Origin = mapProjection.LatLongToScreen( latLong );
+        Origin = mapProjection.LatLongToCartesian( latLong );
 
         return IsValid;
     }

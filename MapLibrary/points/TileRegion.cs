@@ -19,10 +19,10 @@ public record TileRegion( MapTile UpperLeft, MapTile LowerRight )
     }
 
     public Point GetUpperLeft( IMapProjection mapProjection ) =>
-        mapProjection.ToScreenPoint( UpperLeft );
+        mapProjection.MapTileToCartesian( UpperLeft );
 
     public Point GetLowerRight( IMapProjection mapProjection ) =>
-        mapProjection.ToScreenPoint( LowerRight );
+        mapProjection.MapTileToCartesian( LowerRight );
 
     // upper left corner origin
     public Rect GetProjectionRect( IMapProjection mapProjection ) =>
@@ -31,5 +31,5 @@ public record TileRegion( MapTile UpperLeft, MapTile LowerRight )
                             VerticalTiles * mapProjection.TileWidthHeight ) );
 
     public LatLong GetCenterLatLong( IMapProjection mapProjection ) =>
-        mapProjection.ScreenToLatLong( GetProjectionRect( mapProjection ).Center() );
+        mapProjection.CartesianToLatLong( GetProjectionRect( mapProjection ).Center() );
 }
