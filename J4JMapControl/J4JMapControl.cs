@@ -54,26 +54,17 @@ public sealed partial class J4JMapControl : Panel
 
     private void GestureRecognizerOnTapped( GestureRecognizer sender, TappedEventArgs args )
     {
-        _logger?.Warning("Tapped: ({0}, {1}), tc: {2}, (w, h): ({3}, {4})", new object[]
-        {
-            args.Position.X,
-            args.Position.Y,
-            args.TapCount
-        });
-
-        if( args.TapCount < 2 || _mapProjection == null || _boundingBox == null )
+        if( args.TapCount < 2 || _mapProjection == null || _boundingBox == null || Center == null )
             return;
 
-        var offset = GetCenterOffset();
+        var deltaX = args.Position.X - _boundingBox.Viewport.Width / 2;
 
-        var deltaCenterX = args.Position.X - ActualWidth / 2 - offset.X / 2;
-        var deltaCenterY = args.Position.Y - ActualHeight / 2 - offset.Y / 2;
+        // remember, in control space increasing Y values take you >>down<< the page but
+        // in projection space they take you >>up<< the page...so you have to invert the
+        // delta
+        var deltaY = _boundingBox.Viewport.Height / 2 - args.Position.Y;
 
-        var vpCenter = _boundingBox.Viewport.Center();
-
-        var adjCenter = new Point( vpCenter.X + deltaCenterX, vpCenter.Y + deltaCenterY );
-
-        Center = _mapProjection.ScreenToLatLong( adjCenter );
+        Center = _mapProjection.Offset(Center, deltaX, deltaY);
     }
 
     private void GestureRecognizerOnManipulationCompleted( GestureRecognizer sender, ManipulationCompletedEventArgs args )
@@ -248,9 +239,6 @@ public sealed partial class J4JMapControl : Panel
         var retrievalResult = await MapRetriever
            .GetMapImagesAsync( _boundingBox, Children.MapImages().ExtractMapTiles() );
 
-        if( retrievalResult.ReturnValue == null )
-            return;
-
         // determine which existing tiles are still in the bounding box area
         foreach( var image in Children.MapImages() )
         {
@@ -268,7 +256,7 @@ public sealed partial class J4JMapControl : Panel
                                                : MapTileState.NotInBoundingBox );
         }
 
-        foreach( var imgData in retrievalResult.ReturnValue! )
+        foreach( var imgData in retrievalResult.ReturnValue ?? Enumerable.Empty<MapImageData>() )
         {
             // only add tiles that aren't already in the child collection
             // (we should never find any because they should've been excluded when we
@@ -482,8 +470,8 @@ public sealed partial class J4JMapControl : Panel
         if( _mapProjection == null || _boundingBox == null )
             return null;
 
-        var tilePoint = _mapProjection.ToScreenPoint( mapTile );
-        var upperLeftPoint = _mapProjection.ToScreenPoint( _boundingBox.TileRegion.UpperLeft );
+        var tilePoint = _mapProjection.MapTileToCartesian( mapTile );
+        var upperLeftPoint = _mapProjection.MapTileToCartesian( _boundingBox.TileRegion.UpperLeft );
 
         var xPosition = tilePoint.X - upperLeftPoint.X + offset.X;
         var yPosition = tilePoint.Y - upperLeftPoint.Y + offset.Y;
