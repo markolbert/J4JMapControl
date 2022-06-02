@@ -100,4 +100,29 @@ public sealed partial class J4JMapControl
 
     #endregion
 
+    #region Rotation property
+
+    // the rotation, around the viewport center, of the map, in degrees
+    public static readonly DependencyProperty MapRotationProperty =
+        DependencyProperty.Register(nameof(MapRotation),
+                                    typeof(LatLong),
+                                    typeof(J4JMapControl),
+                                    new PropertyMetadata(0.0, OnMapRotationChangedStatic));
+
+    public double MapRotation
+    {
+        get => (double)GetValue(CenterProperty);
+        set => SetValue(CenterProperty, value);
+    }
+
+    private static async void OnMapRotationChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not J4JMapControl mapControl 
+         || e.NewValue is not double)
+            return;
+
+        await mapControl.UpdateMap();
+    }
+
+    #endregion
 }

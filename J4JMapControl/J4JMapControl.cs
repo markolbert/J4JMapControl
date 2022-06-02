@@ -1,5 +1,6 @@
 ﻿using Windows.Foundation;
 using Windows.System;
+using Windows.UI.Core;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using J4JSoftware.MapLibrary;
@@ -18,13 +19,19 @@ namespace J4JSoftware.J4JMapControl;
 
 public sealed partial class J4JMapControl : Panel
 {
+    private const float FloatTolerance = 0.1F;
+    private const double DoubleTolerance = 0.1;
+    private const double TranslationToScale = 20.0;
+
+    private readonly GestureRecognizer _gestureRecognizer;
     private readonly IJ4JLogger? _logger;
 
     private IMapProjection? _mapProjection;
     private BoundingBox? _boundingBox;
-    private bool _pointerCaptured;
-    private Point _lastDragPt;
-    private GestureRecognizer _gestureRecognizer;
+    private VirtualKeyModifiers _keyModifiers;
+    private double _lastScaleOffset;
+    private Point _gestureInitialPoint;
+    private double _gestureInitialAngle;
 
     public J4JMapControl()
     {
@@ -69,95 +76,124 @@ public sealed partial class J4JMapControl : Panel
 
     private void GestureRecognizerOnManipulationCompleted( GestureRecognizer sender, ManipulationCompletedEventArgs args )
     {
-        _logger?.Warning("Completed: ({0}, {1}), xp: {2}, r: {3}, s: {4}, t: {5}", new object []
-        {
-            args.Position.X, 
-            args.Position.Y, 
-            args.Cumulative.Expansion, 
-            args.Cumulative.Rotation, 
-            args.Cumulative.Scale, 
-            args.Cumulative.Translation
-        });
     }
 
     private void GestureRecognizerOnManipulationUpdated( GestureRecognizer sender, ManipulationUpdatedEventArgs args )
     {
-        _logger?.Warning("Updated: ({0}, {1}), xp: {2}, r: {3}, s: {4}, t: {5}", new object[]
+        if( Math.Abs( args.Delta.Scale - 1 ) > FloatTolerance )
+            OnScaleChanged( args.Delta.Scale );
+
+        if( Math.Abs( args.Delta.Rotation - 0 ) > FloatTolerance )
+            OnMapRotationChanged( args.Delta.Rotation );
+
+        if( Math.Abs( args.Delta.Translation.X - 1.0 ) > DoubleTolerance
+        || Math.Abs( args.Delta.Translation.Y - 1.0 ) > DoubleTolerance )
+            OnTranslation( args.Cumulative.Translation );
+    }
+
+    private void OnScaleChanged( double cumulative )
+    {
+        // ignore small changes until they accumulate
+        if( Math.Abs( cumulative - _lastScaleOffset ) < TranslationToScale )
+            return;
+
+        var scaleChange = Convert.ToInt32((cumulative - _lastScaleOffset) / TranslationToScale);
+        _lastScaleOffset += scaleChange * TranslationToScale;
+
+        ZoomLevel += scaleChange;
+    }
+
+    private void OnMapRotationChanged( float deltaRotation )
+    {
+        if( Math.Abs( deltaRotation ) < 1F )
+            return;
+
+        _logger?.Warning( "Rotation: {0}", deltaRotation );
+    }
+
+    private void OnTranslation( Point translation )
+    {
+        // certain keyboard keys modify our behavior
+        if( _keyModifiers.HasFlag( VirtualKeyModifiers.Shift ) )
         {
-            args.Position.X,
-            args.Position.Y,
-            args.Cumulative.Expansion,
-            args.Cumulative.Rotation,
-            args.Cumulative.Scale,
-            args.Cumulative.Translation
-        });
+            OnScaleChanged( translation.X );
+            return;
+        }
 
-        var scaleSign = args.Delta.Scale < 1 ? -1 : 1;
-        var scale = args.Delta.Scale < 1 ? 1 / args.Delta.Scale : args.Delta.Scale;
+        if( _keyModifiers.HasFlag( VirtualKeyModifiers.Control ) )
+        {
+            // rotation: translation represents the vector applied to the original position
+            // to get to where we are now
+            var curPt = new Point( _gestureInitialPoint.X + translation.X, _gestureInitialPoint.Y + translation.Y );
+            var curAngle = curPt.Y != 0
+                ? Math.Atan2( curPt.Y, curPt.X ).RadiansToDegrees()
+                : 0.0;
 
-        ZoomLevel += Convert.ToInt32( scaleSign * scale );
+            OnMapRotationChanged( Convert.ToSingle( curAngle - _gestureInitialAngle ) );
+
+            return;
+        }
+
+        // if no modification keys were detected we must just be
+        // doing a basic translation
+        if (_mapProjection == null || _boundingBox == null || Center == null)
+            return;
+
+        // move the center in the direction opposite to what deltaTranslation reports
+        // so that the map tracks the pointer. 
+
+        // remember, in control space increasing Y values take you >>down<< the page but
+        // in projection space they take you >>up<< the page...so you have to invert the
+        // delta, and since we are inverting twice we just pass the value thru
+        Center = _mapProjection.Offset(Center, -translation.X, translation.Y);
     }
 
     private void GestureRecognizerOnManipulationStarted( GestureRecognizer sender, ManipulationStartedEventArgs args )
     {
-        _logger?.Warning("Started: ({0}, {1}), xp: {2}, r: {3}, s: {4}, t: {5}", new object[]
-        {
-            args.Position.X,
-            args.Position.Y,
-            args.Cumulative.Expansion,
-            args.Cumulative.Rotation,
-            args.Cumulative.Scale,
-            args.Cumulative.Translation
-        });
+        _lastScaleOffset = 0.0;
     }
 
-    #region Map dragging...
+    #region Pointer event handlers...
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
     {
+        if( _boundingBox == null )
+            return;
+
+        _keyModifiers = e.KeyModifiers;
+
+        // get initial point relative to viewport center for detecting
+        // rotation motions using single-focus gestures (e.g., mouse, pen)
+        // this point's coordinates are relative to the center of the viewport
+        _gestureInitialPoint = e.GetCurrentPoint( this ).Position;
+        _gestureInitialPoint.X -= _boundingBox.Viewport.Width / 2.0;
+        _gestureInitialPoint.Y -= _boundingBox.Viewport.Height / 2.0;
+
+        _gestureInitialAngle = _gestureInitialPoint.Y != 0
+            ? Math.Atan2( _gestureInitialPoint.Y, _gestureInitialPoint.X )
+                  .RadiansToDegrees()
+            : 0.0;
+
         _gestureRecognizer.ProcessDownEvent( e.GetCurrentPoint( this ) );
         e.Handled = true;
-
-        //if (Center == null || sender is not J4JMapControl mapControl)
-        //    return;
-
-        //_pointerCaptured = mapControl.CapturePointer(e.Pointer);
-
-        //if( _pointerCaptured )
-        //{
-        //    e.Handled = true;
-        //    _lastDragPt = e.GetCurrentPoint( this ).Position;
-        //}
-        //else _logger?.Error("Failed to capture pointer");
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        if (_boundingBox == null)
+            return;
+
         _gestureRecognizer.ProcessUpEvent(e.GetCurrentPoint(this));
         e.Handled = true;
-
-        //if ( !_pointerCaptured || Center == null || sender is not J4JMapControl mapControl)
-        //    return;
-
-        //e.Handled = true;
-
-        //OnMapDragged( e.GetCurrentPoint( this ).Position );
-
-        //mapControl.ReleasePointerCapture(e.Pointer);
-        //_pointerCaptured = false;
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
+        if (_boundingBox == null)
+            return;
+
         _gestureRecognizer.ProcessMoveEvents(e.GetIntermediatePoints(this));
         e.Handled = true;
-
-        //if( !_pointerCaptured )
-        //    return;
-
-        //e.Handled = true;
-
-        //OnMapDragged(e.GetCurrentPoint(this).Position);
     }
 
     private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
@@ -168,18 +204,6 @@ public sealed partial class J4JMapControl : Panel
             (e.KeyModifiers & VirtualKeyModifiers.Control) != 0);
 
         e.Handled = true;
-    }
-
-    private void OnMapDragged(Point curDragPt )
-    {
-        if( !_pointerCaptured || _mapProjection == null || Center == null  )
-            return;
-
-        Center = _mapProjection.Offset( Center,
-            _lastDragPt.X - curDragPt.X,
-            _lastDragPt.Y - curDragPt.Y);
-
-        _lastDragPt = curDragPt;
     }
 
     #endregion
@@ -199,12 +223,16 @@ public sealed partial class J4JMapControl : Panel
 
     private async Task OnZoomLevelChanged( int zoom )
     {
-        if( MapRetriever == null )
+        if( MapRetriever?.MapRetrieverInfo == null )
             return;
 
-        MapRetriever.MapProjection.ZoomLevel = zoom;
-
-        await UpdateMap();
+        if( zoom >= MapRetriever.MapRetrieverInfo.MinimumZoom
+        && zoom <= MapRetriever.MapRetrieverInfo.MaximumZoom )
+        {
+            MapRetriever.MapProjection.ZoomLevel = zoom;
+            _logger?.Warning( "Changed zoom to {0}", zoom );
+            await UpdateMap();
+        }
     }
 
     private async Task OnMapCenterChanged( LatLong? center )
@@ -234,7 +262,7 @@ public sealed partial class J4JMapControl : Panel
         if( Center == null || MapRetriever == null || _mapProjection == null )
             return;
 
-        _boundingBox = _mapProjection.GetBoundingBox( Center, ActualWidth, ActualHeight, 0 );
+        _boundingBox = _mapProjection.GetBoundingBox( Center, ActualWidth, ActualHeight, (double) GetValue(MapRotationProperty) );
 
         var retrievalResult = await MapRetriever
            .GetMapImagesAsync( _boundingBox, Children.MapImages().ExtractMapTiles() );
