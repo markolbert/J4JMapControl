@@ -15,8 +15,9 @@ public class ViewModel : ObservableObject
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly IJ4JLogger _logger;
 
-    private SelectableItem<IMapImageRetriever>? _selectedRetriever;
+    private Retriever? _selectedRetriever;
     private int _zoomLevel;
+    private Rotation? _selectedRotation;
     private Size _mapSize;
     private string? _errorMsg;
     private bool _suppressUpdate;
@@ -34,7 +35,7 @@ public class ViewModel : ObservableObject
 
         _dQueue = DispatcherQueue.GetForCurrentThread();
 
-        var temp = new List<SelectableItem<IMapImageRetriever>>();
+        var temp = new List<Retriever>();
 
         foreach( var retriever in retrievers )
         {
@@ -46,11 +47,16 @@ public class ViewModel : ObservableObject
         }
 
         Retrievers = temp;
+
+        for( var rotation = -90; rotation <= 90; rotation += 30 )
+        {
+            Rotations.Add( new Rotation( rotation ) );
+        }
     }
 
-    public List<SelectableItem<IMapImageRetriever>> Retrievers { get; }
+    public List<Retriever> Retrievers { get; }
 
-    public SelectableItem<IMapImageRetriever>? SelectedRetriever
+    public Retriever? SelectedRetriever
     {
         get=> _selectedRetriever;
 
@@ -76,6 +82,25 @@ public class ViewModel : ObservableObject
             _suppressUpdate = false;
 
             ZoomLevel = MinZoom;
+        }
+    }
+
+    public List<Rotation> Rotations { get; } = new();
+
+    public Rotation? SelectedRotation
+    {
+        get => _selectedRotation;
+
+        set
+        {
+            if (_suppressUpdate)
+                return;
+
+            _suppressUpdate = true;
+
+            SetProperty(ref _selectedRotation, value);
+
+            _suppressUpdate = false;
         }
     }
 

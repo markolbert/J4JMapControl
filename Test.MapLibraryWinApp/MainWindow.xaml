@@ -23,12 +23,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <map:J4JMapControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
                            MapRetriever="{x:Bind ViewModel.SelectedRetriever.Item}"
                            Center="{x:Bind ViewModel.Location }"
                            ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
+                           Rotation="{x:Bind ViewModel.SelectedRotation.Item}"
                            Background="LightGoldenrodYellow"
                            SizeChanged="TheMap_OnSizeChanged">
 
@@ -67,7 +69,13 @@
                    LargeChange="10"
                    SpinButtonPlacementMode="Compact"/>
 
-        <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
+        <TextBlock Grid.Row="3" Grid.Column="0">Rotation</TextBlock>
+
+        <ComboBox Grid.Row="3" Grid.Column="1"
+                  ItemsSource="{x:Bind ViewModel.Rotations}"
+                  SelectedItem="{x:Bind ViewModel.SelectedRotation, Mode=TwoWay}"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
                    TextWrapping="WrapWholeWords"
                    Text="{x:Bind ViewModel.ErrorMessage}"/>
 
