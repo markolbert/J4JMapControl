@@ -1,6 +1,5 @@
 ﻿using System;
 using Windows.Foundation;
-using ABI.Microsoft.UI.Composition.Interactions;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,9 +9,6 @@ namespace J4JSoftware.MapLibrary;
 
 public class MercatorProjection : IMapProjection
 {
-    //private const double TwoPi = 2 * Math.PI;
-    //private const double QuarterPi = Math.PI / 4;
-
     private readonly IJ4JLogger? _logger;
 
     private MapRetrieverInfo? _mapRetrieverInfo;
@@ -56,9 +52,6 @@ public class MercatorProjection : IMapProjection
 
         OnZoomChanged();
     }
-
-    //public int MaximumZoom => MapRetrieverInfo.MaximumZoom;
-    //public int MinimumZoom => MapRetrieverInfo.MinimumZoom;
 
     public int ZoomLevel
     {
@@ -111,8 +104,6 @@ public class MercatorProjection : IMapProjection
         }
     }
 
-    //public double MapRadius => ProjectionWidthHeight / TwoPi;
-
     public int ProjectionWidthHeight { get; private set; }
     private double HalfProjectionHeight => ProjectionWidthHeight / 2.0;
     public int TileWidthHeight { get; private set; }
@@ -138,19 +129,6 @@ public class MercatorProjection : IMapProjection
 
     public TileRegion GetTileRegion( BoundingBox boundingBox )
     {
-        //var projectionCenter = LatLongToCartesian( center );
-
-        //var transform = new CompositeTransform
-        //{
-        //    Rotation = rotation, TranslateX = projectionCenter.X, TranslateY = projectionCenter.Y
-        //};
-
-        //var viewPortRect = new Rect( -boundingBoxWidth / 2,
-        //                             -boundingBoxHeight / 2,
-        //                             boundingBoxWidth,
-        //                             boundingBoxHeight );
-        //var projectedRect = transform.TransformBounds( viewPortRect );
-
         var projectedRect = GetProjectionRegion( boundingBox );
 
         return new TileRegion( new MapTile( ScreenToTile( projectedRect.Left ),
@@ -189,61 +167,6 @@ public class MercatorProjection : IMapProjection
             Longitude = MercatorTransforms.CartesianToLongitude( screenPoint.X, ProjectionWidthHeight )
         };
 
-    //public Point LatLongToScreen(LatLong latLong)
-    //{
-    //    // screenX and screenY use CoordinateOrigin.MiddleLeft
-    //    var screenX = ProjectionWidthHeight * (0.5 + latLong.Longitude / (2 * MapRetrieverInfo.MaximumLongitude));
-
-    //    screenX = screenX < 0
-    //        ? 0.0
-    //        : screenX > ProjectionWidthHeight - 1
-    //            ? ProjectionWidthHeight - 1
-    //            : screenX;
-
-    //    double screenY;
-
-    //    if (latLong.Latitude > MapRetrieverInfo.MaximumLatitude)
-    //        screenY = HalfProjectionHeight;
-    //    else
-    //    {
-    //        if (latLong.Latitude < -MapRetrieverInfo.MaximumLatitude)
-    //            screenY = -HalfProjectionHeight + 1;
-    //        else
-    //        {
-    //            var halfAngle = (latLong.Latitude / 2).DegreesToRadians();
-    //            var tangent = Math.Tan(QuarterPi + halfAngle);
-
-    //            screenY = MapRadius * Math.Log(tangent);
-    //        }
-    //    }
-
-    //    return new Point(screenX, screenY);
-    //}
-
-    //public LatLong ScreenToLatLong(Point screenPoint)
-    //{
-    //    var longitude = screenPoint.X < 0
-    //        ? -MapRetrieverInfo.MaximumLongitude
-    //        : screenPoint.X <= ProjectionWidthHeight
-    //            ? 360 * (screenPoint.X / ProjectionWidthHeight - 0.5)
-    //            : MapRetrieverInfo.MaximumLongitude;
-
-    //    var latitude = screenPoint.Y > HalfProjectionHeight
-    //        ? MapRetrieverInfo.MaximumLatitude
-    //        : screenPoint.Y > -HalfProjectionHeight + 1
-    //            ? (2 * (Math.Atan(Math.Exp(screenPoint.Y / MapRadius)) - QuarterPi)).RadiansToDegrees()
-    //            : -MapRetrieverInfo.MaximumLatitude;
-
-
-    //    var retVal = new LatLong
-    //    {
-    //        Latitude = latitude,
-    //        Longitude = longitude
-    //    };
-
-    //    return retVal.Capped(MapRetrieverInfo);
-    //}
-
     public LatLong Offset(LatLong origin, double xOffset, double yOffset)
     {
         var originPt = LatLongToCartesian(origin);
@@ -261,45 +184,9 @@ public class MercatorProjection : IMapProjection
         return point;
     }
 
-    //public MapTile GetTileFromScreenPoint(Point screenPoint)
-    //{
-    //    return new(ScreenToTile(screenPoint.X), ScreenToTile(screenPoint.Y), ZoomLevel);
-    //}
-
-    //public MapTile GetTileFromLatLong(
-    //    LatLong latLong,
-    //    double offsetX = 0,
-    //    double offsetY = 0
-    //)
-    //{
-    //    var screenPt = LatLongToCartesian(latLong);
-    //    screenPt = ToUpperLeftOrigin(screenPt);
-
-    //    screenPt.X += offsetX;
-    //    screenPt.Y += offsetY;
-
-    //    return GetTileFromScreenPoint(screenPt);
-    //}
-
-    //public MapTile GetTileCoordinates(int xTile, int yTile)
-    //{
-    //    if (xTile < 0)
-    //        xTile = 0;
-
-    //    if (xTile > ZoomFactor - 1)
-    //        xTile = ZoomFactor - 1;
-
-    //    if (yTile < 0)
-    //        yTile = 0;
-
-    //    if (yTile > ZoomFactor - 1)
-    //        yTile = ZoomFactor - 1;
-
-    //    return new MapTile(xTile, yTile, ZoomLevel);
-    //}
-
-    // the returned values are relative to an upper left corner origin
-    // because tiles are accounted for from the upper left corner
     public Point MapTileToCartesian(MapTile mapTile) =>
-        new Point(mapTile.X * TileWidthHeight, mapTile.Y * TileWidthHeight);
+        new(mapTile.X * TileWidthHeight, mapTile.Y * TileWidthHeight);
+
+    public Point MapTileCenterToCartesian( MapTile mapTile ) =>
+        new( mapTile.X * TileWidthHeight + TileWidthHeight / 2, mapTile.Y * TileWidthHeight + TileWidthHeight / 2 );
 }

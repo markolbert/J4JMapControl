@@ -56,9 +56,6 @@ public class DeusEx : J4JDeusExWinApp
                .AsImplementedInterfaces()
                .SingleInstance();
 
-        builder.RegisterType<AffineMatrix>()
-               .AsSelf();
-
         builder.RegisterType<ViewModel>()
                .AsSelf()
                .SingleInstance();
