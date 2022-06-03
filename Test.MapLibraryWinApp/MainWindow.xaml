@@ -30,7 +30,7 @@
                            MapRetriever="{x:Bind ViewModel.SelectedRetriever.Item}"
                            Center="{x:Bind ViewModel.Location }"
                            ZoomLevel="{x:Bind ViewModel.ZoomLevel}"
-                           Rotation="{x:Bind ViewModel.SelectedRotation.Item}"
+                           MapRotation="{x:Bind ViewModel.SelectedRotation.Item}"
                            Background="LightGoldenrodYellow"
                            SizeChanged="TheMap_OnSizeChanged">
 
@@ -73,7 +73,13 @@
 
         <ComboBox Grid.Row="3" Grid.Column="1"
                   ItemsSource="{x:Bind ViewModel.Rotations}"
-                  SelectedItem="{x:Bind ViewModel.SelectedRotation, Mode=TwoWay}"/>
+                  SelectedItem="{x:Bind ViewModel.SelectedRotation, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="local:Rotation">
+                    <TextBlock Text="{x:Bind Name }"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
 
         <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
                    TextWrapping="WrapWholeWords"
