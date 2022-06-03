@@ -80,15 +80,52 @@ public sealed partial class J4JMapControl : Panel
 
     private void GestureRecognizerOnManipulationUpdated( GestureRecognizer sender, ManipulationUpdatedEventArgs args )
     {
+        if( _mapProjection == null || Center == null )
+            return;
+
         if( Math.Abs( args.Delta.Scale - 1 ) > FloatTolerance )
             OnScaleChanged( args.Delta.Scale );
 
         if( Math.Abs( args.Delta.Rotation - 0 ) > FloatTolerance )
             OnMapRotationChanged( args.Delta.Rotation );
 
-        if( Math.Abs( args.Delta.Translation.X - 1.0 ) > DoubleTolerance
-        || Math.Abs( args.Delta.Translation.Y - 1.0 ) > DoubleTolerance )
-            OnTranslation( args.Cumulative.Translation );
+        // ignore minor translations
+        if (Math.Abs(args.Delta.Translation.X - 1.0) < DoubleTolerance
+         || Math.Abs(args.Delta.Translation.Y - 1.0) < DoubleTolerance)
+            return;
+
+        // we respond to translation events differently if certain
+        // keyboard modifiers are in play
+        if (_keyModifiers.HasFlag(VirtualKeyModifiers.Shift))
+        {
+            OnScaleChanged(args.Cumulative.Translation.X);
+            return;
+        }
+
+        if (_keyModifiers.HasFlag(VirtualKeyModifiers.Control))
+        {
+            // rotation: translation represents the vector applied to the original position
+            // to get to where we are now
+            var curPt = new Point( _gestureInitialPoint.X + args.Cumulative.Translation.X,
+                                   _gestureInitialPoint.Y + args.Cumulative.Translation.Y );
+
+            var curAngle = curPt.Y != 0
+                ? Math.Atan2(curPt.Y, curPt.X).RadiansToDegrees()
+                : 0.0;
+
+            OnMapRotationChanged(Convert.ToSingle(curAngle - _gestureInitialAngle));
+
+            return;
+        }
+
+        // if no modification keys were detected this must be a basic translation,
+        // so move the center in the direction opposite to what deltaTranslation reports
+        // so that the map tracks the pointer. 
+
+        // remember, in control space increasing Y values take you >>down<< the page but
+        // in projection space they take you >>up<< the page...so you have to invert the
+        // delta, and since we are inverting twice we just pass the value thru
+        Center = _mapProjection.Offset(Center, -args.Delta.Translation.X, args.Delta.Translation.Y);
     }
 
     private void OnScaleChanged( double cumulative )
@@ -109,43 +146,6 @@ public sealed partial class J4JMapControl : Panel
             return;
 
         _logger?.Warning( "Rotation: {0}", deltaRotation );
-    }
-
-    private void OnTranslation( Point translation )
-    {
-        // certain keyboard keys modify our behavior
-        if( _keyModifiers.HasFlag( VirtualKeyModifiers.Shift ) )
-        {
-            OnScaleChanged( translation.X );
-            return;
-        }
-
-        if( _keyModifiers.HasFlag( VirtualKeyModifiers.Control ) )
-        {
-            // rotation: translation represents the vector applied to the original position
-            // to get to where we are now
-            var curPt = new Point( _gestureInitialPoint.X + translation.X, _gestureInitialPoint.Y + translation.Y );
-            var curAngle = curPt.Y != 0
-                ? Math.Atan2( curPt.Y, curPt.X ).RadiansToDegrees()
-                : 0.0;
-
-            OnMapRotationChanged( Convert.ToSingle( curAngle - _gestureInitialAngle ) );
-
-            return;
-        }
-
-        // if no modification keys were detected we must just be
-        // doing a basic translation
-        if (_mapProjection == null || _boundingBox == null || Center == null)
-            return;
-
-        // move the center in the direction opposite to what deltaTranslation reports
-        // so that the map tracks the pointer. 
-
-        // remember, in control space increasing Y values take you >>down<< the page but
-        // in projection space they take you >>up<< the page...so you have to invert the
-        // delta, and since we are inverting twice we just pass the value thru
-        Center = _mapProjection.Offset(Center, -translation.X, translation.Y);
     }
 
     private void GestureRecognizerOnManipulationStarted( GestureRecognizer sender, ManipulationStartedEventArgs args )
@@ -262,6 +262,7 @@ public sealed partial class J4JMapControl : Panel
         if( Center == null || MapRetriever == null || _mapProjection == null )
             return;
 
+        //var junk = _mapProjection.GetBoundingBox(Center, ActualWidth, ActualHeight, 0.0);
         _boundingBox = _mapProjection.GetBoundingBox( Center, ActualWidth, ActualHeight, (double) GetValue(MapRotationProperty) );
 
         var retrievalResult = await MapRetriever
@@ -438,59 +439,58 @@ public sealed partial class J4JMapControl : Panel
         if( _mapProjection == null || _boundingBox == null || MapRetriever == null )
             return;
 
-        var offset = GetOffset();
-        //var yOffset = OffsetY();
-
         foreach ( var image in Children.MapImages() )
         {
-            var tile = MapProperties.GetTile( image );
-            if( tile == null )
+            if( !MapProperties.GetIsMapTile( image ) )
+                continue;
+
+            var tile = MapProperties.GetTile(image);
+            if (tile == null)
             {
-                _logger?.Error<string>( "Map Image lacks {0}", nameof( MapProperties.TileProperty ) );
+                _logger?.Error<string>("Map Image lacks {0}", nameof(MapProperties.TileProperty));
                 continue;
             }
 
-            var finalRect = MapProperties.GetIsFixedImageSize( image ) 
-                ? GetFixedTileRect( tile, offset ) 
-                : null;
-
-            if( finalRect != null )
-                image.Arrange( finalRect.Value );
+            if ( MapProperties.GetIsFixedImageSize( image ) )
+                ArrangeFixedMapTile( image, tile );
+            else ArrangeVariableMapTile( image, tile );
         }
     }
 
-    private Point GetOffset()
+    private void ArrangeFixedMapTile( Image image, MapTile mapTile )
     {
-        if( _boundingBox == null )
-            return new Point();
+        if (_mapProjection == null || _boundingBox == null)
+            return;
 
-        // there are two offsets to consider:
-        // - the difference between the desired center of the viewport and the actual
-        //   center of the tiles that were retrieved
-        // - the difference between the size/width of the viewport and the size/width of the tiles
-        //   that were retrieved
-        var mapOffset = GetCenterOffset();
+        var tilePoint = _mapProjection.MapTileToCartesian(mapTile);
+        var upperLeftPoint = _mapProjection.MapTileToCartesian(_boundingBox.TileRegion.UpperLeft);
+        var offset = _boundingBox.GetOffset();
 
-        var vpOffsetX = ( ActualWidth - _boundingBox.TileRegion.HorizontalTiles * _mapProjection!.TileWidthHeight )
-          / 2;
-        var vpOffsetY = (ActualHeight - _boundingBox.TileRegion.VerticalTiles* _mapProjection!.TileWidthHeight)
-          / 2;
+        var xTranslation = tilePoint.X - upperLeftPoint.X + offset.X;
+        var yTranslation = tilePoint.Y - upperLeftPoint.Y + offset.Y;
 
-        // if we're displaying everything available horizontally the offset is 0.0
-        return _boundingBox.TileRegion.HorizontalTiles == _mapProjection!.ZoomFactor
-            ? new Point( 0.0, 0.0 )
-            : new Point( vpOffsetX + mapOffset.X, vpOffsetY + mapOffset.Y );
+        var projectionCenter = _mapProjection.GetProjectionRegion( _boundingBox ).Center();
+        var tileProjectionCenter = _mapProjection.MapTileCenterToCartesian( mapTile );
+
+        var compTransform = new CompositeTransform
+        {
+            TranslateX = xTranslation, 
+            TranslateY = yTranslation,
+            CenterX = projectionCenter.X - tileProjectionCenter.X,
+            CenterY = tileProjectionCenter.Y - projectionCenter.Y,
+            Rotation = MapRotation
+        };
+
+        var imageRect = compTransform.TransformBounds( new Rect( 0.0,
+                                                                 0.0,
+                                                                 _mapProjection.TileWidthHeight,
+                                                                 _mapProjection.TileWidthHeight ) );
+
+        image.Arrange( imageRect );
     }
 
-    private Point GetCenterOffset()
+    private void ArrangeVariableMapTile( Image image, MapTile mapTile )
     {
-        if( _mapProjection == null || _boundingBox == null )
-            return new Point();
-
-        var projectionCenter = _boundingBox.TileRegion.GetProjectionRect(_mapProjection).Center();
-
-        return new Point( projectionCenter.X - _boundingBox.ViewportCenterPoint.X,
-                          projectionCenter.Y - _boundingBox.ViewportCenterPoint.Y );
     }
 
     private Rect? GetFixedTileRect( MapTile mapTile, Point offset )
