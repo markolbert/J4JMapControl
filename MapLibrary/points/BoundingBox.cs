@@ -40,6 +40,34 @@ public record BoundingBox(
         }
     }
 
+    public Point GetCenterOffset()
+    {
+        var projectionCenter = TileRegion.GetProjectionRect(MapProjection).Center();
+
+        return new Point(projectionCenter.X - ViewportCenterPoint.X,
+                         projectionCenter.Y - ViewportCenterPoint.Y);
+    }
+
+    public Point GetOffset()
+    {
+        // there are two offsets to consider:
+        // - the difference between the desired center of the viewport and the actual
+        //   center of the tiles that were retrieved
+        // - the difference between the size/width of the viewport and the size/width of the tiles
+        //   that were retrieved
+        var mapOffset = GetCenterOffset();
+
+        var vpOffsetX = (Viewport.Width - TileRegion.HorizontalTiles * MapProjection.TileWidthHeight)
+          / 2;
+        var vpOffsetY = (Viewport.Height - TileRegion.VerticalTiles * MapProjection.TileWidthHeight)
+          / 2;
+
+        // if we're displaying everything available horizontally the offset is 0.0
+        return TileRegion.HorizontalTiles == MapProjection.ZoomFactor
+            ? new Point(0.0, 0.0)
+            : new Point(vpOffsetX + mapOffset.X, vpOffsetY + mapOffset.Y);
+    }
+
     public IEnumerator<MapTile> GetEnumerator()
     {
         for( var yTile = TileRegion.UpperLeft.Y; yTile <= TileRegion.LowerRight.Y; yTile++ )
