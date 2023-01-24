@@ -1,34 +1,81 @@
 ﻿using J4JSoftware.Logging;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 
 namespace J4JMapLibrary;
 
-public class BingMapProjection : MapProjection
+public class BingMapProjection : TiledProjection
 {
     private const string MetadataUrlTemplate =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
 
-    private readonly string _apiKey;
+    private const int BaseTileHeightWidth = 256;
+
+    private readonly Random _random = new( Environment.TickCount );
+
+    private string _apiKey = string.Empty;
+    private int _scale;
+    private string? _cultureCode;
 
     public BingMapProjection(
-        BingMapType mapType,
-        string apiKey,
         IJ4JLogger logger
     )
-        : base( logger )
+        : base( Math.Atan( Math.Sinh( Math.PI ) ) * 180 / Math.PI,
+                -Math.Atan( Math.Sinh( Math.PI ) ) * 180 / Math.PI,
+                -180,
+                180,
+                logger )
     {
-        MapType = mapType;
-        _apiKey = apiKey;
+        Size = new RectangleSize { Height = 256, Width = 256 };
+        SetSizes( 0 );
     }
 
-    public BingMapType MapType { get; }
+    // this assumes *scale* has been normalized (i.e., x -> x - 1)
+    private void SetSizes( int scale )
+    {
+        var numCells = Pow(2, scale);
+        var heightWidth = BaseTileHeightWidth * numCells;
+
+        MinX = 0;
+        MaxX = heightWidth - 1;
+        MinY = 0;
+        MaxY = heightWidth - 1;
+
+        MaxTile = new TileCoordinates( numCells - 1, numCells - 1 );
+    }
+
+    public BingMapType MapType { get; private set; } = BingMapType.Aerial;
     public BingImageryMetadata? Metadata { get; private set; }
 
-    public override double MinLatitude => Metadata?.PrimaryResource?.
-
-    public override async Task<bool> InitializeAsync()
+    public override int Scale
     {
+        get => _scale;
+
+        set
+        {
+            if( !Initialized )
+            {
+                Logger.Error("Trying to set scale before projection is initialized, ignoring");
+                return;
+            }
+
+            _scale = Cap( value, MinScale, MaxScale, "Scale" );
+            SetSizes( _scale - MinScale );
+
+            foreach( var point in RegisteredPoints )
+            {
+                point.ChangeScale();
+            }
+        }
+    }
+
+    public async Task<bool> InitializeAsync( string apiKey, BingMapType mapType )
+    {
+        _apiKey = apiKey;
+        MapType = mapType;
+        Initialized = false;
+
         var uri = new Uri( MetadataUrlTemplate.Replace( "Mode", MapType.ToString() )
                                               .Replace( "ApiKey", _apiKey ) );
 
@@ -37,7 +84,7 @@ public class BingMapProjection : MapProjection
         var uriText = uri.AbsoluteUri;
         var httpClient = new HttpClient();
 
-        HttpResponseMessage? response = null;
+        HttpResponseMessage? response;
 
         Logger.Verbose( "Attempting to retrieve Bing Maps metadata" );
         try
@@ -81,14 +128,88 @@ public class BingMapProjection : MapProjection
             return false;
         }
 
+        if( Metadata!.PrimaryResource == null )
+        {
+            Logger.Error("Primary resource is not defined"  );
+            return false;
+        }
+
+        TileSize = new RectangleSize
+        {
+            Height = Metadata.PrimaryResource.ImageHeight, 
+            Width = Metadata.PrimaryResource.ImageWidth
+        };
+
+        MaxScale = Metadata.PrimaryResource.ZoomMax;
+        MinScale = Metadata.PrimaryResource.ZoomMin;
+
         Initialized = true;
+
+        Scale = MinScale;
 
         return true;
     }
-    
-    public override (double latitude, double longitude) ConvertToLatLong( int x, int y ) =>
-        throw new NotImplementedException();
 
-    public override (int x, int y) ConvertToXY( double latitude, double longitude ) =>
-        throw new NotImplementedException();
+    public bool SetCultureCode(string code)
+    {
+        if (!BingMapsCultureCodes.Default.ContainsKey(code))
+        {
+            Logger.Error<string>("Invalid or unsupported culture code '{0}'", code);
+            return false;
+        }
+
+        _cultureCode = code;
+
+        return true;
+    }
+
+    public string GetQuadKey(TileCoordinates coordinates)
+    {
+        var retVal = new StringBuilder();
+
+        for (var i = Scale - 1; i > 0; i--)
+        {
+            var digit = '0';
+            var mask = 1 << (i - 1);
+
+            if ((coordinates.X & mask) != 0)
+                digit++;
+
+            if ((coordinates.Y & mask) != 0)
+            {
+                digit++;
+                digit++;
+            }
+
+            retVal.Append(digit);
+        }
+
+        return retVal.Length == 0 ? "0" : retVal.ToString();
+    }
+
+    protected override bool TryGetRequest( TileCoordinates coordinates, out HttpRequestMessage? result )
+    {
+        result = null;
+
+        if( !Initialized )
+            return false;
+
+        coordinates = Cap( coordinates )!;
+
+        var subDomain = Metadata!.PrimaryResource!
+                                 .ImageUrlSubdomains[ _random.Next( Metadata!
+                                                                   .PrimaryResource!
+                                                                   .ImageUrlSubdomains
+                                                                   .Length ) ];
+
+        var quadKey = GetQuadKey( coordinates );
+
+        var uriText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", subDomain )
+                               .Replace( "{quadkey}", quadKey )
+                               .Replace( "{culture}", _cultureCode );
+
+        result = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
+
+        return true;
+    }
 }

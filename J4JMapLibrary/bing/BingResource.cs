@@ -5,7 +5,7 @@ namespace J4JMapLibrary;
 public class BingResource
 {
     [ JsonPropertyName( "__type" ) ]
-    public string Type { get; set; }
+    public string Type { get; set; } = string.Empty;
 
     public double[] BoundingBox { get; set; } = Array.Empty<double>();
     public int ImageHeight { get; set; }
