@@ -13,8 +13,8 @@ public class MapPoint
     private int _horizontal;
     private int _vertical;
 
-    public MapPoint(
-        IMapProjection projection,
+    internal MapPoint(
+        ITiledProjection projection,
         IJ4JLogger logger
     )
     {
@@ -24,7 +24,7 @@ public class MapPoint
         _logger.SetLoggedType(GetType());
     }
 
-    public IMapProjection Projection { get; }
+    public ITiledProjection Projection { get; }
 
     internal void ChangeScale()
     {
@@ -140,7 +140,7 @@ public class MapPoint
     // X & Y are presumed to be valid if this method is called
     private void UpdateLatLong()
     {
-        var latLong = Projection.ConvertToLatLong( _x, _y );
+        var latLong = Projection.XYToLatLong( _x, _y );
 
         _latitude = latLong.latitude;
         _longitude = latLong.longitude;
@@ -149,7 +149,7 @@ public class MapPoint
     // Latitude & Longitude are presumed to be valid if this method is called
     private void UpdateXY()
     {
-        var xy = Projection.ConvertToXY(_latitude, _longitude);
+        var xy = Projection.LatLongToXY(_latitude, _longitude);
 
         _x = xy.x;
         _y = xy.y;
