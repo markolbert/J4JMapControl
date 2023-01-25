@@ -7,10 +7,8 @@ namespace J4JMapLibrary;
 
 public class BingMapProjection : TiledProjection
 {
-    private const string MetadataUrlTemplate =
-        "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
-
-    private const int BaseTileHeightWidth = 256;
+    // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
+    private readonly string _metadataUrlTemplate;
 
     private readonly Random _random = new( Environment.TickCount );
 
@@ -19,58 +17,20 @@ public class BingMapProjection : TiledProjection
     private string? _cultureCode;
 
     public BingMapProjection(
+        IDynamicConfiguration dynamicConfig,
         IJ4JLogger logger
     )
-        : base( Math.Atan( Math.Sinh( Math.PI ) ) * 180 / Math.PI,
-                -Math.Atan( Math.Sinh( Math.PI ) ) * 180 / Math.PI,
-                -180,
-                180,
+        : base( dynamicConfig,
                 logger )
     {
-        TileWidth = 256;
-        TileHeight = 256;
+        _metadataUrlTemplate = dynamicConfig.MetadataRetrievalUrl;
 
+        TileHeightWidth = 256;
         SetSizes( 0 );
-    }
-
-    // this assumes *scale* has been normalized (i.e., x -> x - 1)
-    private void SetSizes( int scale )
-    {
-        var numCells = Pow(2, scale);
-        var heightWidth = BaseTileHeightWidth * numCells;
-
-        MinX = 0;
-        MaxX = heightWidth - 1;
-        MinY = 0;
-        MaxY = heightWidth - 1;
-
-        MaxTile = CreateMapTileInternal(this, numCells - 1, numCells - 1 );
     }
 
     public BingMapType MapType { get; private set; } = BingMapType.Aerial;
     public BingImageryMetadata? Metadata { get; private set; }
-
-    public override int Scale
-    {
-        get => _scale;
-
-        set
-        {
-            if( !Initialized )
-            {
-                Logger.Error("Trying to set scale before projection is initialized, ignoring");
-                return;
-            }
-
-            _scale = MapExtensions.ConformValueToRange( value, MinScale, MaxScale, "Scale", Logger );
-            SetSizes( _scale - MinScale );
-
-            foreach( var point in RegisteredPoints )
-            {
-                point.UpdateCartesian();
-            }
-        }
-    }
 
     public async Task<bool> InitializeAsync( string apiKey, BingMapType mapType )
     {
@@ -78,7 +38,7 @@ public class BingMapProjection : TiledProjection
         MapType = mapType;
         Initialized = false;
 
-        var uri = new Uri( MetadataUrlTemplate.Replace( "Mode", MapType.ToString() )
+        var uri = new Uri( _metadataUrlTemplate.Replace( "Mode", MapType.ToString() )
                                               .Replace( "ApiKey", _apiKey ) );
 
         var request = new HttpRequestMessage( HttpMethod.Get, uri );
@@ -136,11 +96,17 @@ public class BingMapProjection : TiledProjection
             return false;
         }
 
-        TileWidth = Metadata.PrimaryResource.ImageWidth;
-        TileHeight = Metadata.PrimaryResource.ImageHeight;
+        TileHeightWidth = Metadata.PrimaryResource.ImageWidth;
 
         MaxScale = Metadata.PrimaryResource.ZoomMax;
         MinScale = Metadata.PrimaryResource.ZoomMin;
+
+        // check to ensure we're dealing with square tiles
+        if (TileHeightWidth != Metadata.PrimaryResource.ImageHeight)
+        {
+            Logger.Error("Tile service is not using square tiles");
+            return false;
+        }
 
         Initialized = true;
 

@@ -21,14 +21,13 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
            .Repeat(numBase, Math.Abs(exp))
            .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
 
+    private int _scale;
+
     protected TiledProjection(
-        double maxLatitude,
-        double minLatitude,
-        double minLongitude,
-        double maxLongitude,
+        ISourceConfiguration srcConfig,
         IJ4JLogger logger
     )
-    :base(maxLatitude, minLatitude,minLongitude, maxLongitude, logger)
+    :base(srcConfig, logger)
     {
         // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
         // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
@@ -44,10 +43,45 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
     public int MaxScale { get; protected set; }
     public int MinScale { get; protected set; }
-    public virtual int Scale { get; set; }
 
-    public int TileWidth { get; protected set; }
-    public int TileHeight { get; protected set; }
+    public virtual int Scale
+    {
+        get => _scale;
+
+        set
+        {
+            if (!Initialized)
+            {
+                Logger.Error("Trying to set scale before projection is initialized, ignoring");
+                return;
+            }
+
+            _scale = MapExtensions.ConformValueToRange(value, MinScale, MaxScale, "Scale", Logger);
+            SetSizes(_scale - MinScale);
+
+            foreach (var point in RegisteredPoints)
+            {
+                point.UpdateCartesian();
+            }
+        }
+    }
+
+    // this assumes *scale* has been normalized (i.e., x -> x - MinScale)
+    // and TileHeightWidth has been set
+    protected void SetSizes(int scale)
+    {
+        var numCells = Pow(2, scale);
+        var heightWidth = TileHeightWidth * numCells;
+
+        MinX = 0;
+        MaxX = heightWidth - 1;
+        MinY = 0;
+        MaxY = heightWidth - 1;
+
+        MaxTile = CreateMapTileInternal(this, numCells - 1, numCells - 1);
+    }
+
+    public int TileHeightWidth { get; protected set; }
 
     public double GroundResolution( double latitude )
     {

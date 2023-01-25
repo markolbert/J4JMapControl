@@ -15,10 +15,7 @@ public abstract partial class MapProjection : IMapProjection
 #pragma warning restore CS8618
 
     protected MapProjection(
-        double maxLatitude,
-        double minLatitude,
-        double minLongitude,
-        double maxLongitude,
+        ISourceConfiguration srcConfig,
         IJ4JLogger logger
     )
     {
@@ -26,10 +23,15 @@ public abstract partial class MapProjection : IMapProjection
         // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
         RuntimeHelpers.RunClassConstructor(typeof(MapPoint).TypeHandle);
 
-        MaxLatitude = maxLatitude;
-        MinLatitude = minLatitude;
-        MaxLongitude = maxLongitude;
-        MinLongitude = minLongitude;
+        Name = srcConfig.Name;
+        Description = srcConfig.Description;
+        Copyright = srcConfig.Copyright;
+        CopyrightUri = srcConfig.CopyrightUri;
+
+        MaxLatitude = srcConfig.MaxLatitude;
+        MinLatitude = srcConfig.MinLatitude;
+        MaxLongitude = srcConfig.MaxLongitude;
+        MinLongitude = srcConfig.MinLongitude;
 
         Logger = logger;
         Logger.SetLoggedType( GetType() );
@@ -38,6 +40,11 @@ public abstract partial class MapProjection : IMapProjection
     protected IJ4JLogger Logger { get; }
 
     public bool Initialized { get; protected set; }
+
+    public string Name { get; }
+    public string Description { get; }
+    public string Copyright { get; }
+    public Uri? CopyrightUri { get; }
 
     public double MaxLatitude { get; }
     public double MinLatitude { get; }

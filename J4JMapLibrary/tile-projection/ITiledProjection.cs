@@ -8,8 +8,7 @@ public interface ITiledProjection : IMapProjection
     int MinScale { get; }
     int Scale { get; set; }
 
-    int TileWidth { get; }
-    int TileHeight { get; }
+    int TileHeightWidth { get; }
 
     TiledProjection.MapTile MinTile { get; }
     TiledProjection.MapTile MaxTile { get; }
