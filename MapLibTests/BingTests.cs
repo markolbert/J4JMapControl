@@ -3,7 +3,7 @@ using J4JMapLibrary;
 using J4JSoftware.DeusEx;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BingMapsTest;
+namespace MapLibTests;
 
 public class BingTests : TestBase
 {
@@ -19,10 +19,8 @@ public class BingTests : TestBase
     [ Fact ]
     public async void ValidBingApiKey()
     {
-        var bingMaps = J4JDeusEx.ServiceProvider.GetRequiredService<BingMapProjection>();
-        var temp = await bingMaps.InitializeAsync( Configuration.BingMapsApiKey, BingMapType.Aerial );
+        var bingMaps = await GetBingMapProjection();
 
-        temp.Should().Be( true );
         bingMaps.Metadata.Should().NotBeNull();
         bingMaps.Metadata!.PrimaryResource.Should().NotBeNull();
         bingMaps.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
@@ -37,11 +35,7 @@ public class BingTests : TestBase
     [InlineData(15, 27, 48)]
     public async void GetBingTile( int scale, int xTile, int yTile )
     {
-        var bingMaps = J4JDeusEx.ServiceProvider.GetRequiredService<BingMapProjection>();
-        var initialized = await bingMaps.InitializeAsync( Configuration.BingMapsApiKey, BingMapType.Aerial );
-
-        initialized.Should().Be( true );
-
+        var bingMaps = await GetBingMapProjection();
         bingMaps.Scale = scale;
 
         var mapTile = bingMaps.CreateMapTile( xTile, yTile );
@@ -78,11 +72,7 @@ public class BingTests : TestBase
     [InlineData(4, 4, 6, "320")]
     public async void TestQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var bingMaps = J4JDeusEx.ServiceProvider.GetRequiredService<BingMapProjection>();
-        var initialized = await bingMaps.InitializeAsync(Configuration.BingMapsApiKey, BingMapType.Aerial);
-
-        initialized.Should().Be(true);
-
+        var bingMaps = await GetBingMapProjection();
         bingMaps.Scale = scale;
 
         var mapTile = bingMaps.CreateMapTile(xTile, yTile);

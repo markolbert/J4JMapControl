@@ -32,4 +32,10 @@
     <ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="libconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,26 @@
+{
+  "SourceConfigurations": [
+    {
+      "Name": "Bing",
+      "MetadataRetrievalUrl": "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey"
+    },
+    {
+      "Name": "OpenStreetMap",
+      "RetrievalUrl": "https://tile.openstreetmap.org/ZoomLevel/XTile/YTile.png",
+      "Copyright": "© OpenStreetMap Contributors",
+      "CopyrightUri": "http://www.openstreetmap.org/copyright",
+      "MinScale": 0,
+      "MaxScale": 20,
+      "TileHeightWidth": 256
+    },
+    {
+      "Name": "OpenTopoMap",
+      "RetrievalUrl": "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
+      "Copyright": "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
+      "CopyrightUri": "http://opentopomap.org/",
+      "MinScale": 0,
+      "MaxScale": 20,
+      "TileHeightWidth": 256
+    }
+  ]
+}

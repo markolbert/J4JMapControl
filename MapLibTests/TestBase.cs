@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
+using J4JMapLibrary;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BingMapsTest;
+namespace MapLibTests;
 
 public class TestBase
 {
@@ -21,11 +17,30 @@ public class TestBase
         logger.Should().NotBeNull();
         Logger = logger;
 
-        var config = J4JDeusEx.ServiceProvider.GetRequiredService<Configuration>();
+        var config = J4JDeusEx.ServiceProvider.GetRequiredService<LibraryConfiguration>();
         config.Should().NotBeNull();
+        config.ValidateConfiguration().Should().BeTrue();
         Configuration = config;
     }
 
     protected IJ4JLogger Logger { get; }
-    protected Configuration Configuration { get; }
+    protected LibraryConfiguration Configuration { get; }
+
+    protected async Task<BingMapProjection> GetBingMapProjection()
+    {
+        var key = Configuration.Credentials
+                               .FirstOrDefault(x => x.Name.Equals("Bing",
+                                                                  StringComparison.OrdinalIgnoreCase))
+                              ?.Key;
+
+        key.Should().NotBeNull().And.NotBeEmpty();
+
+        var retVal = J4JDeusEx.ServiceProvider.GetService<BingMapProjection>();
+        retVal.Should().NotBeNull();
+        
+        var okay = await retVal!.InitializeAsync( key!, BingMapType.Aerial );
+        okay.Should().BeTrue();
+
+        return retVal;
+    }
 }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace BingMapsTest;
+namespace MapLibTests;
 
 internal class DeusEx : J4JDeusExHosted
 {
@@ -14,6 +14,7 @@ internal class DeusEx : J4JDeusExHosted
         new J4JHostConfiguration( AppEnvironment.Console )
            .Publisher("J4JSoftware"  )
            .ApplicationName("Test.MapLibrary")
+           .AddApplicationConfigurationFile("libConfig.json")
            .AddConfigurationInitializers(SetupConfiguration)
            .AddDependencyInjectionInitializers( SetupDependencyInjection )
            .LoggerInitializer( SetupLogger );
@@ -29,15 +30,15 @@ internal class DeusEx : J4JDeusExHosted
 
         builder.Register( c =>
                 {
-                    Configuration? config;
+                    LibraryConfiguration? config;
 
                     try
                     {
-                        config = hbc.Configuration.Get<Configuration>();
+                        config = hbc.Configuration.Get<LibraryConfiguration>();
                     }
                     catch
                     {
-                        config = new Configuration();
+                        config = new LibraryConfiguration();
                     }
 
                     return config!;
