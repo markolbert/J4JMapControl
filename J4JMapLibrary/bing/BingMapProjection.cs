@@ -27,7 +27,9 @@ public class BingMapProjection : TiledProjection
                 180,
                 logger )
     {
-        Size = new RectangleSize { Height = 256, Width = 256 };
+        TileWidth = 256;
+        TileHeight = 256;
+
         SetSizes( 0 );
     }
 
@@ -42,7 +44,7 @@ public class BingMapProjection : TiledProjection
         MinY = 0;
         MaxY = heightWidth - 1;
 
-        MaxTile = new TileCoordinates( numCells - 1, numCells - 1 );
+        MaxTile = CreateMapTileInternal(this, numCells - 1, numCells - 1 );
     }
 
     public BingMapType MapType { get; private set; } = BingMapType.Aerial;
@@ -60,12 +62,12 @@ public class BingMapProjection : TiledProjection
                 return;
             }
 
-            _scale = Cap( value, MinScale, MaxScale, "Scale" );
+            _scale = MapExtensions.ConformValueToRange( value, MinScale, MaxScale, "Scale", Logger );
             SetSizes( _scale - MinScale );
 
             foreach( var point in RegisteredPoints )
             {
-                point.ChangeScale();
+                point.UpdateCartesian();
             }
         }
     }
@@ -134,11 +136,8 @@ public class BingMapProjection : TiledProjection
             return false;
         }
 
-        TileSize = new RectangleSize
-        {
-            Height = Metadata.PrimaryResource.ImageHeight, 
-            Width = Metadata.PrimaryResource.ImageWidth
-        };
+        TileWidth = Metadata.PrimaryResource.ImageWidth;
+        TileHeight = Metadata.PrimaryResource.ImageHeight;
 
         MaxScale = Metadata.PrimaryResource.ZoomMax;
         MinScale = Metadata.PrimaryResource.ZoomMin;
@@ -163,7 +162,7 @@ public class BingMapProjection : TiledProjection
         return true;
     }
 
-    public string GetQuadKey(TileCoordinates coordinates)
+    public string GetQuadKey(MapTile coordinates)
     {
         var retVal = new StringBuilder();
 
@@ -187,7 +186,7 @@ public class BingMapProjection : TiledProjection
         return retVal.Length == 0 ? "0" : retVal.ToString();
     }
 
-    protected override bool TryGetRequest( TileCoordinates coordinates, out HttpRequestMessage? result )
+    protected override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )
     {
         result = null;
 
