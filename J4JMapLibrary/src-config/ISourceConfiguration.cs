@@ -3,7 +3,7 @@
 public interface ISourceConfiguration
 {
     string Name { get; }
-    string Description { get; }
+    bool CredentialsRequired { get; }
     string Copyright { get; }
     Uri? CopyrightUri { get; }
     double MaxLatitude { get; }

@@ -1,21 +1,49 @@
-﻿namespace J4JMapLibrary;
+﻿using System.Text.Json.Serialization;
 
+namespace J4JMapLibrary;
+
+[JsonDerivedType(typeof(StaticConfiguration))]
+[JsonDerivedType(typeof(DynamicConfiguration))]
 public class SourceConfiguration : ISourceConfiguration
 {
-    protected SourceConfiguration(
-        string name
-    )
-    {
-        Name = name;
+    #region Comparer
 
+    private sealed class NameEqualityComparer : IEqualityComparer<SourceConfiguration>
+    {
+        public bool Equals( SourceConfiguration? x, SourceConfiguration? y )
+        {
+            if( ReferenceEquals( x, y ) )
+                return true;
+            if( ReferenceEquals( x, null ) )
+                return false;
+            if( ReferenceEquals( y, null ) )
+                return false;
+            if( x.GetType() != y.GetType() )
+                return false;
+
+            return x.Name == y.Name;
+        }
+
+        public int GetHashCode( SourceConfiguration obj )
+        {
+            return obj.Name.GetHashCode();
+        }
+    }
+
+    public static IEqualityComparer<SourceConfiguration> DefaultComparer { get; } = new NameEqualityComparer();
+
+    #endregion
+
+    protected SourceConfiguration()
+    {
         MaxLatitude = Math.Atan(Math.Sinh(Math.PI)) * 180 / Math.PI;
         MinLatitude = -MaxLatitude;
         MaxLongitude = 180;
         MinLongitude = -MaxLongitude;
     }
 
-    public string Name { get; }
-    public string Description { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public bool CredentialsRequired { get; set; } = true;
     public string Copyright { get; set; } = string.Empty;
     public Uri? CopyrightUri { get; set; }
     public double MaxLatitude { get; set; }
