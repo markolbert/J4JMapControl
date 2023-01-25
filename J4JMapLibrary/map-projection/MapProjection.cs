@@ -24,7 +24,6 @@ public abstract partial class MapProjection : IMapProjection
         RuntimeHelpers.RunClassConstructor(typeof(MapPoint).TypeHandle);
 
         Name = srcConfig.Name;
-        Description = srcConfig.Description;
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
@@ -42,7 +41,6 @@ public abstract partial class MapProjection : IMapProjection
     public bool Initialized { get; protected set; }
 
     public string Name { get; }
-    public string Description { get; }
     public string Copyright { get; }
     public Uri? CopyrightUri { get; }
 
