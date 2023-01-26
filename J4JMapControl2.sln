@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapLibTests", "MapLibTests\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeusEx", "..\ProgrammingUtilities\DeusEx\DeusEx.csproj", "{B338520A-17B6-4D7F-B5AA-F290DBD01949}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutofacSupport", "AutofacSupport\AutofacSupport.csproj", "{80E20797-E29D-42D7-9686-1404AB0A89E3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypeUtilities", "..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj", "{0D22B6D9-D0D1-466C-A07F-D6EBCCB17B4E}"
 EndProject
 Global
@@ -47,10 +45,6 @@ Global
 		{B338520A-17B6-4D7F-B5AA-F290DBD01949}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B338520A-17B6-4D7F-B5AA-F290DBD01949}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B338520A-17B6-4D7F-B5AA-F290DBD01949}.Release|Any CPU.Build.0 = Release|Any CPU
-		{80E20797-E29D-42D7-9686-1404AB0A89E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{80E20797-E29D-42D7-9686-1404AB0A89E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{80E20797-E29D-42D7-9686-1404AB0A89E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{80E20797-E29D-42D7-9686-1404AB0A89E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0D22B6D9-D0D1-466C-A07F-D6EBCCB17B4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0D22B6D9-D0D1-466C-A07F-D6EBCCB17B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D22B6D9-D0D1-466C-A07F-D6EBCCB17B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
