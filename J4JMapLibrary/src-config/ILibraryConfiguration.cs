@@ -2,7 +2,7 @@
 
 public interface ILibraryConfiguration
 {
-    List<SourceConfiguration> SourceConfigurations { get; set; }
+    List<ISourceConfiguration> SourceConfigurations { get; set; }
     List<Credential> Credentials { get; set; }
     bool ValidateConfiguration();
 }
