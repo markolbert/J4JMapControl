@@ -1,6 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.ObjectModel;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
-using Serilog;
 
 namespace J4JMapLibrary;
 
@@ -14,6 +15,8 @@ public abstract partial class MapProjection : IMapProjection
     protected static Func<IMapProjection, IJ4JLogger, Cartesian> CreateCartesianInternal;
 #pragma warning restore CS8618
 
+    private readonly ILibraryConfiguration? _libConfiguration;
+
     protected MapProjection(
         ISourceConfiguration srcConfig,
         IJ4JLogger logger
@@ -23,7 +26,6 @@ public abstract partial class MapProjection : IMapProjection
         // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
         RuntimeHelpers.RunClassConstructor(typeof(MapPoint).TypeHandle);
 
-        Name = srcConfig.Name;
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
@@ -34,9 +36,70 @@ public abstract partial class MapProjection : IMapProjection
 
         Logger = logger;
         Logger.SetLoggedType( GetType() );
+
+        var attributes = GetType().GetCustomAttributes<MapProjectionAttribute>().ToList();
+        if (!attributes.Any())
+        {
+            Logger.Fatal("Map projection class is not decorated with MapProjectionAttribute(s)");
+            throw new ApplicationException( "Map projection class is not decorated with MapProjectionAttribute(s)" );
+        }
+
+        Name = attributes.First().Name;
+    }
+
+    protected MapProjection(
+        ILibraryConfiguration libConfiguration,
+        IJ4JLogger logger
+    )
+    {
+        // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
+        // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
+        RuntimeHelpers.RunClassConstructor(typeof(MapPoint).TypeHandle);
+
+        Logger = logger;
+        Logger.SetLoggedType(GetType());
+
+        var attributes = GetType().GetCustomAttributes<MapProjectionAttribute>().ToList();
+        if (!attributes.Any())
+        {
+            Logger.Fatal("Map projection class is not decorated with MapProjectionAttribute(s)");
+            throw new ApplicationException("Map projection class is not decorated with MapProjectionAttribute(s)");
+        }
+
+        Name = attributes.First().Name;
+
+        _libConfiguration = libConfiguration;
+
+        var srcConfig = GetSourceConfiguration<ISourceConfiguration>( Name );
+
+        if( srcConfig == null )
+        {
+            Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
+            throw new ApplicationException(
+                $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
+        }
+
+        Copyright = srcConfig.Copyright;
+        CopyrightUri = srcConfig.CopyrightUri;
+
+        MaxLatitude = srcConfig.MaxLatitude;
+        MinLatitude = srcConfig.MinLatitude;
+        MaxLongitude = srcConfig.MaxLongitude;
+        MinLongitude = srcConfig.MinLongitude;
     }
 
     protected IJ4JLogger Logger { get; }
+
+    protected T? GetSourceConfiguration<T>( string name )
+        where T : class, ISourceConfiguration
+    {
+        var retVal = _libConfiguration?.SourceConfigurations
+                                       .FirstOrDefault( x => x.Name.Equals( Name,
+                                                                            StringComparison.OrdinalIgnoreCase ) )
+            as T;
+
+        return retVal;
+    }
 
     public bool Initialized { get; protected set; }
 

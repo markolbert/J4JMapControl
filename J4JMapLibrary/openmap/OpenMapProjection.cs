@@ -8,7 +8,7 @@ public class OpenMapProjection : TiledProjection
 
     private string _userAgent = string.Empty;
 
-    public OpenMapProjection(
+    protected OpenMapProjection(
         IStaticConfiguration staticConfig,
         IJ4JLogger logger
     )
@@ -21,6 +21,30 @@ public class OpenMapProjection : TiledProjection
         MaxScale = staticConfig.MaxScale;
 
         SetSizes( 0 );
+    }
+
+    protected OpenMapProjection(
+        ILibraryConfiguration libConfiguration,
+        IJ4JLogger logger
+    )
+        : base( libConfiguration, logger )
+    {
+        var srcConfig = GetSourceConfiguration<IStaticConfiguration>(Name);
+
+        if (srcConfig == null)
+        {
+            Logger.Fatal("No configuration information for {0} was found in ILibraryConfiguration", GetType());
+            throw new ApplicationException(
+                $"No configuration information for {GetType()} was found in ILibraryConfiguration");
+        }
+
+        _retrievalUrl = srcConfig.RetrievalUrl;
+
+        TileHeightWidth = srcConfig.TileHeightWidth;
+        MinScale = srcConfig.MinScale;
+        MaxScale = srcConfig.MaxScale;
+
+        SetSizes(0);
     }
 
     public void Initialize( string userAgent )
@@ -42,7 +66,7 @@ public class OpenMapProjection : TiledProjection
 
         if( string.IsNullOrEmpty( _userAgent ) )
         {
-            Logger?.Error( "Undefined or empty User-Agent" );
+            Logger.Error( "Undefined or empty User-Agent" );
             return false;
         }
 

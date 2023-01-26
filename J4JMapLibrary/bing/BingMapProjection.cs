@@ -5,6 +5,7 @@ using System.Text.Json;
 
 namespace J4JMapLibrary;
 
+[MapProjection("BingMaps", ServerConfiguration.Dynamic)]
 public class BingMapProjection : TiledProjection
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
@@ -26,6 +27,27 @@ public class BingMapProjection : TiledProjection
 
         TileHeightWidth = 256;
         SetSizes( 0 );
+    }
+
+    public BingMapProjection(
+        ILibraryConfiguration libConfiguration,
+        IJ4JLogger logger
+    )
+        : base( libConfiguration, logger )
+    {
+        var srcConfig = GetSourceConfiguration<IDynamicConfiguration>( Name );
+
+        if( srcConfig == null )
+        {
+            Logger.Fatal("No configuration information for {0} was found in ILibraryConfiguration", GetType());
+            throw new ApplicationException(
+                $"No configuration information for {GetType()} was found in ILibraryConfiguration");
+        }
+
+        _metadataUrlTemplate = srcConfig.MetadataRetrievalUrl;
+
+        TileHeightWidth = 256;
+        SetSizes(0);
     }
 
     public BingMapType MapType { get; private set; } = BingMapType.Aerial;

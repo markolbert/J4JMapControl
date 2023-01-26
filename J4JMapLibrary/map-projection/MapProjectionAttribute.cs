@@ -1,14 +1,17 @@
 ﻿namespace J4JMapLibrary;
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited=false)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple=true, Inherited=false)]
 public class MapProjectionAttribute : Attribute
 {
     public MapProjectionAttribute(
-        string name
+        string name,
+        ServerConfiguration serverConfig
     )
     {
         Name = name;
+        ServerConfiguration = serverConfig;
     }
 
     public string Name { get; }
+    public ServerConfiguration ServerConfiguration { get; }
 }
