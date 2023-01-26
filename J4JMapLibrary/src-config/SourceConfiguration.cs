@@ -1,14 +1,12 @@
-﻿using System.Text.Json.Serialization;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 public class SourceConfiguration : ISourceConfiguration
 {
     #region Comparer
 
-    private sealed class NameEqualityComparer : IEqualityComparer<SourceConfiguration>
+    private sealed class NameEqualityComparer : IEqualityComparer<ISourceConfiguration>
     {
-        public bool Equals( SourceConfiguration? x, SourceConfiguration? y )
+        public bool Equals( ISourceConfiguration? x, ISourceConfiguration? y )
         {
             if( ReferenceEquals( x, y ) )
                 return true;
@@ -22,19 +20,17 @@ public class SourceConfiguration : ISourceConfiguration
             return x.Name == y.Name;
         }
 
-        public int GetHashCode( SourceConfiguration obj )
+        public int GetHashCode( ISourceConfiguration obj )
         {
             return obj.Name.GetHashCode();
         }
     }
 
-    public static IEqualityComparer<SourceConfiguration> DefaultComparer { get; } = new NameEqualityComparer();
+    public static IEqualityComparer<ISourceConfiguration> DefaultComparer { get; } = new NameEqualityComparer();
 
     #endregion
 
-    protected SourceConfiguration(
-        ServerConfiguration serverConfig
-        )
+    protected SourceConfiguration()
     {
         MaxLatitude = Math.Atan(Math.Sinh(Math.PI)) * 180 / Math.PI;
         MinLatitude = -MaxLatitude;

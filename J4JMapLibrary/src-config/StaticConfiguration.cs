@@ -3,8 +3,8 @@
 public class StaticConfiguration : SourceConfiguration, IStaticConfiguration
 {
     public StaticConfiguration()
-        : base( ServerConfiguration.Static )
     {
+        ConfigurationStyle = ServerConfiguration.Static;
     }
 
     public string RetrievalUrl { get; set; } = string.Empty;
