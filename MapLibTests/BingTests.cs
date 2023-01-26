@@ -10,7 +10,7 @@ public class BingTests : TestBase
     [Fact]
     public async void EmptyBingApiKey()
     {
-        var bingMaps = J4JDeusEx.ServiceProvider.GetRequiredService<BingMapProjection>();
+        var bingMaps = await GetBingMapProjection();
         var temp = await bingMaps.InitializeAsync( string.Empty, BingMapType.Aerial );
 
         temp.Should().Be( false );
