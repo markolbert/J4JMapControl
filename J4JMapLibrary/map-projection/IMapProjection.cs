@@ -1,4 +1,6 @@
-﻿namespace J4JMapLibrary;
+﻿using System.Collections.ObjectModel;
+
+namespace J4JMapLibrary;
 
 public interface IMapProjection
 {
