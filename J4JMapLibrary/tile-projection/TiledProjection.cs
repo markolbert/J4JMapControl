@@ -38,6 +38,21 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         MaxTile = CreateMapTileInternal(this, 0, 0);
     }
 
+    protected TiledProjection(
+        ILibraryConfiguration libConfiguration,
+        IJ4JLogger logger
+    )
+        : base( libConfiguration, logger )
+    {
+        // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
+        // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
+        RuntimeHelpers.RunClassConstructor(typeof(MapTile).TypeHandle);
+        RuntimeHelpers.RunClassConstructor(typeof(TileImageStream).TypeHandle);
+
+        MinTile = CreateMapTileInternal(this, 0, 0);
+        MaxTile = CreateMapTileInternal(this, 0, 0);
+    }
+
     public MapTile MinTile { get; protected set; }
     public MapTile MaxTile { get; protected set; }
 
