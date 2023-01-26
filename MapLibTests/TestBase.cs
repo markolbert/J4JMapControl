@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using J4JMapLibrary;
+using J4JSoftware.DependencyInjection;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,14 +18,14 @@ public class TestBase
         logger.Should().NotBeNull();
         Logger = logger;
 
-        var config = J4JDeusEx.ServiceProvider.GetRequiredService<LibraryConfiguration>();
+        var config = J4JDeusEx.ServiceProvider.GetRequiredService<ILibraryConfiguration>();
         config.Should().NotBeNull();
         config.ValidateConfiguration().Should().BeTrue();
         Configuration = config;
     }
 
     protected IJ4JLogger Logger { get; }
-    protected LibraryConfiguration Configuration { get; }
+    protected ILibraryConfiguration Configuration { get; }
 
     protected async Task<BingMapProjection> GetBingMapProjection()
     {
