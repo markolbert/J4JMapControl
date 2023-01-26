@@ -18,15 +18,15 @@ public class MapProjectionFactory
     private readonly Dictionary<string, SourceConfigurationInfo> _sources = new( StringComparer.OrdinalIgnoreCase );
 
     private readonly IJ4JLogger _logger;
-    private readonly ILibraryConfiguration? _libraryConfiguration;
+    private readonly ILibraryConfiguration? _libConfig;
 
     public MapProjectionFactory(
-        ILibraryConfiguration libraryConfiguration,
+        ILibraryConfiguration libConfig,
         IJ4JLogger logger
     )
         : this( logger )
     {
-        _libraryConfiguration = libraryConfiguration;
+        _libConfig = libConfig;
     }
 
     public MapProjectionFactory(
@@ -51,7 +51,7 @@ public class MapProjectionFactory
         foreach (var assembly in toScan.Distinct())
         {
             foreach (var projectionType in assembly.GetTypes()
-                                                   .Where(t => t.IsAssignableTo(typeof(IMapProjection))
+                                                   .Where(t => t.GetInterface(nameof(IMapProjection)) != null
                                                             && publicCtors.MeetsRequirements(t)))
             {
                 foreach (var curAttr in projectionType.GetCustomAttributes<MapProjectionAttribute>())
@@ -96,14 +96,39 @@ public class MapProjectionFactory
         }
     }
 
-    public IMapProjection? CreateMapProjection( string name, ISourceConfiguration? srcConfig = null )
+    public async Task<IMapProjection?> CreateMapProjection(
+        string name,
+        ISourceConfiguration? srcConfig = null,
+        string? credentials = null
+    )
     {
-        return srcConfig switch
+        var retVal = srcConfig switch
         {
             IDynamicConfiguration dynamicConfig => CreateDynamicStatic( name, srcConfig, ServerConfiguration.Dynamic ),
             IStaticConfiguration staticConfig => CreateDynamicStatic( name, srcConfig, ServerConfiguration.Static ),
             _ => CreateLibConfig( name )
         };
+
+        if( retVal == null )
+            return retVal;
+
+        if( string.IsNullOrEmpty( credentials ) )
+        {
+            if( _libConfig != null && !_libConfig.TryGetCredential( name, out credentials ) )
+            {
+                _logger.Information<string>(
+                    "No credentials specified or found for map projection '{0}', could not authenticate",
+                    name );
+
+                return null;
+            }
+        }
+
+        if( await retVal.Authenticate( credentials ) )
+            return retVal;
+
+        _logger.Warning<string>( "Authentication failed for map projection '{0}'", name );
+        return retVal;
     }
 
     private IMapProjection? CreateDynamicStatic( string name, ISourceConfiguration config, ServerConfiguration serverConfig )
@@ -156,26 +181,28 @@ public class MapProjectionFactory
             return null;
         }
 
-        if ( _libraryConfiguration == null )
+        if ( _libConfig == null )
         {
             _logger.Error("No ILibraryConfiguration was provided when the factory was created");
             return null;
         }
 
-        if( !_libraryConfiguration.SourceConfigurations.Any(
+        if( !_libConfig.SourceConfigurations.Any(
                x => x.Name.Equals( name, StringComparison.OrdinalIgnoreCase ) ) )
         {
             _logger.Error<string>( "No ISourceConfiguration was found for the name '{0}'", name );
             return null;
         }
 
+        IMapProjection? retVal = null;
+
         try
         {
-            if (Activator.CreateInstance(ctorInfo.MapProjectionType,
-                                         new object[] { _libraryConfiguration, _logger }) is IMapProjection retVal)
-                return retVal;
+            retVal = Activator.CreateInstance(ctorInfo.MapProjectionType,
+                                         new object[] { _libConfig, _logger }) as IMapProjection;
 
-            _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
+            if( retVal == null )
+                _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
         }
         catch (Exception ex)
         {
@@ -184,28 +211,28 @@ public class MapProjectionFactory
                                         ex.Message);
         }
 
-        return null;
+        return retVal;
     }
 
-    public bool TryGetCredentials( string name, out string? result )
-    {
-        result = null;
+    //public bool TryGetCredentials( string name, out string? result )
+    //{
+    //    result = null;
 
-        if (_libraryConfiguration == null)
-        {
-            _logger.Error("No ILibraryConfiguration was provided when the factory was created");
-            return false;
-        }
+    //    if (_libConfig == null)
+    //    {
+    //        _logger.Error("No ILibraryConfiguration was provided when the factory was created");
+    //        return false;
+    //    }
 
-        result = _libraryConfiguration.Credentials
-                                      .FirstOrDefault( x => x.Name.Equals( name, StringComparison.OrdinalIgnoreCase ) )
-                                     ?.Key;
+    //    result = _libConfig.Credentials
+    //                                  .FirstOrDefault( x => x.Name.Equals( name, StringComparison.OrdinalIgnoreCase ) )
+    //                                 ?.Key;
 
-        if( result == null )
-            _logger.Error<string>("No credentials for '{0}' were found", name);
+    //    if( result == null )
+    //        _logger.Error<string>("No credentials for '{0}' were found", name);
 
-        return result != null;
-    }
+    //    return result != null;
+    //}
 
     public ReadOnlyCollection<Type> ProjectionTypes =>
         _sources.Select( x => x.Value.MapProjectionType )
