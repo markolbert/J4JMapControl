@@ -29,30 +29,38 @@ public class OpenMapProjection : TiledProjection
     )
         : base( libConfiguration, logger )
     {
-        var srcConfig = GetSourceConfiguration<IStaticConfiguration>(Name);
-
-        if (srcConfig == null)
+        if( !TryGetSourceConfiguration<IStaticConfiguration>( Name, out var srcConfig ) )
         {
-            Logger.Fatal("No configuration information for {0} was found in ILibraryConfiguration", GetType());
+            Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
             throw new ApplicationException(
-                $"No configuration information for {GetType()} was found in ILibraryConfiguration");
+                $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
         }
 
-        _retrievalUrl = srcConfig.RetrievalUrl;
+        _retrievalUrl = srcConfig!.RetrievalUrl;
 
         TileHeightWidth = srcConfig.TileHeightWidth;
         MinScale = srcConfig.MinScale;
         MaxScale = srcConfig.MaxScale;
 
-        SetSizes(0);
+        SetSizes( 0 );
     }
 
-    public void Initialize( string userAgent )
+#pragma warning disable CS1998
+    public override async Task<bool> Authenticate( string? credentials = null )
+#pragma warning restore CS1998
     {
-        _userAgent = userAgent;
+        if( string.IsNullOrEmpty( credentials ) && !TryGetCredentials( Name, out credentials ) )
+        {
+            Logger.Error("No credentials were provided or found");
+            return false;
+        }
+
+        _userAgent = credentials!;
         Initialized = true;
 
         Scale = MinScale;
+
+        return true;
     }
 
     protected override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )

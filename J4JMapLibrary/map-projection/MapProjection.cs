@@ -70,16 +70,14 @@ public abstract partial class MapProjection : IMapProjection
 
         _libConfiguration = libConfiguration;
 
-        var srcConfig = GetSourceConfiguration<ISourceConfiguration>( Name );
-
-        if( srcConfig == null )
+        if( !TryGetSourceConfiguration<ISourceConfiguration>(Name, out var srcConfig ))
         {
             Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
             throw new ApplicationException(
                 $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
         }
 
-        Copyright = srcConfig.Copyright;
+        Copyright = srcConfig!.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
         MaxLatitude = srcConfig.MaxLatitude;
@@ -90,16 +88,28 @@ public abstract partial class MapProjection : IMapProjection
 
     protected IJ4JLogger Logger { get; }
 
-    protected T? GetSourceConfiguration<T>( string name )
+    protected bool TryGetSourceConfiguration<T>( string name, out T? result )
         where T : class, ISourceConfiguration
     {
-        var retVal = _libConfiguration?.SourceConfigurations
+        result = _libConfiguration?.SourceConfigurations
                                        .FirstOrDefault( x => x.Name.Equals( Name,
                                                                             StringComparison.OrdinalIgnoreCase ) )
             as T;
 
-        return retVal;
+        return result != null;
     }
+
+    protected bool TryGetCredentials( string name, out string? result )
+    {
+        result = _libConfiguration?.Credentials
+                                   .FirstOrDefault( x => x.Name.Equals( Name,
+                                                                        StringComparison.OrdinalIgnoreCase ) )
+                                  ?.Key;
+
+        return result != null;
+    }
+
+    public abstract Task<bool> Authenticate( string? credentials = null );
 
     public bool Initialized { get; protected set; }
 

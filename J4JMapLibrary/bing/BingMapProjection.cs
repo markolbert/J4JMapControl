@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using static J4JMapLibrary.TiledProjection;
 
 namespace J4JMapLibrary;
 
@@ -13,7 +14,8 @@ public class BingMapProjection : TiledProjection
 
     private readonly Random _random = new( Environment.TickCount );
 
-    private string _apiKey = string.Empty;
+    private string? _apiKey;
+    private BingMapType _mapType = BingMapType.Aerial;
     private string? _cultureCode;
 
     public BingMapProjection(
@@ -35,85 +37,107 @@ public class BingMapProjection : TiledProjection
     )
         : base( libConfiguration, logger )
     {
-        var srcConfig = GetSourceConfiguration<IDynamicConfiguration>( Name );
-
-        if( srcConfig == null )
+        if( !TryGetSourceConfiguration<IDynamicConfiguration>( Name, out var srcConfig ) )
         {
-            Logger.Fatal("No configuration information for {0} was found in ILibraryConfiguration", GetType());
+            Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
             throw new ApplicationException(
-                $"No configuration information for {GetType()} was found in ILibraryConfiguration");
+                $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
         }
 
-        _metadataUrlTemplate = srcConfig.MetadataRetrievalUrl;
+        _metadataUrlTemplate = srcConfig!.MetadataRetrievalUrl;
 
         TileHeightWidth = 256;
         SetSizes(0);
     }
 
-    public BingMapType MapType { get; private set; } = BingMapType.Aerial;
+    public BingMapType MapType
+    {
+        get => _mapType;
+
+        private set
+        {
+            _mapType = value;
+
+            if( string.IsNullOrEmpty( _apiKey ) )
+                return;
+
+            var authenticated = false;
+
+            Task.Run( async () => { authenticated = await Authenticate(); } );
+
+            if( !authenticated )
+                Logger.Warning("Map type was changed but subsequent authentication failed");
+        }
+    }
+
     public BingImageryMetadata? Metadata { get; private set; }
 
-    public async Task<bool> InitializeAsync( string apiKey, BingMapType mapType )
+    public override async Task<bool> Authenticate( string? credentials = null )
     {
-        _apiKey = apiKey;
-        MapType = mapType;
+        if (string.IsNullOrEmpty(credentials) && !TryGetCredentials(Name, out credentials))
+        {
+            Logger.Error("No credentials were provided or found");
+            return false;
+        }
+
+        _apiKey = credentials!;
         Initialized = false;
 
-        var uri = new Uri( _metadataUrlTemplate.Replace( "Mode", MapType.ToString() )
-                                              .Replace( "ApiKey", _apiKey ) );
+        var uri = new Uri(_metadataUrlTemplate.Replace("Mode", MapType.ToString())
+                                              .Replace("ApiKey", _apiKey));
 
-        var request = new HttpRequestMessage( HttpMethod.Get, uri );
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
         var uriText = uri.AbsoluteUri;
         var httpClient = new HttpClient();
 
         HttpResponseMessage? response;
 
-        Logger.Verbose( "Attempting to retrieve Bing Maps metadata" );
+        Logger.Verbose("Attempting to retrieve Bing Maps metadata");
         try
         {
-            response = await httpClient.SendAsync( request );
+            response = await httpClient.SendAsync(request);
         }
-        catch( Exception ex )
+        catch (Exception ex)
         {
-            Logger.Error<string, string>( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
+            Logger.Error<string, string>("Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
                                           uriText,
-                                          ex.Message );
+                                          ex.Message);
 
             return false;
         }
 
-        if( response.StatusCode != HttpStatusCode.OK )
+        if (response.StatusCode != HttpStatusCode.OK)
         {
             var error = await response.Content.ReadAsStringAsync();
 
             Logger.Error<string, string>(
                 "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
                 uriText,
-                error );
+                error);
 
             return false;
         }
 
-        Logger.Verbose( "Attempting to parse Bing Maps metadata" );
+        Logger.Verbose("Attempting to parse Bing Maps metadata");
         try
         {
             var respText = await response.Content.ReadAsStringAsync();
 
             var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-            Metadata = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
-            Logger.Verbose( "Bing Maps metadata retrieved" );
+            Metadata = JsonSerializer.Deserialize<BingImageryMetadata>(respText, options);
+            Logger.Verbose("Bing Maps metadata retrieved");
         }
-        catch( Exception ex )
+        catch (Exception ex)
         {
-            Logger.Error<string>( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
+            Logger.Error<string>("Could not parse Bing Maps metadata, message was '{0}'", ex.Message);
 
             return false;
         }
 
-        if( Metadata!.PrimaryResource == null )
+        if (Metadata!.PrimaryResource == null)
         {
-            Logger.Error("Primary resource is not defined"  );
+            Logger.Error("Primary resource is not defined");
             return false;
         }
 
