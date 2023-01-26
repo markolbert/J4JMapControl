@@ -13,7 +13,6 @@ public class BingMapProjection : TiledProjection
     private readonly Random _random = new( Environment.TickCount );
 
     private string _apiKey = string.Empty;
-    private int _scale;
     private string? _cultureCode;
 
     public BingMapProjection(
