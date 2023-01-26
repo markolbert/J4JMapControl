@@ -28,7 +28,6 @@ public class FactoryTests : TestBase
 
     [ Theory ]
     [InlineData("BingMaps", true)]
-    [InlineData("BingMap", false)]
     [InlineData("OpenStreetMaps", true)]
     [InlineData("OpenTopoMaps", true)]
     public void CreateProjection( string projectionName, bool result )

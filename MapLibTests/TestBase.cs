@@ -27,21 +27,32 @@ public class TestBase
     protected IJ4JLogger Logger { get; }
     protected ILibraryConfiguration Configuration { get; }
 
-    protected async Task<BingMapProjection> GetBingMapProjection()
+    protected MapProjectionFactory GetFactory( bool searchDefaults = true )
     {
-        var key = Configuration.Credentials
-                               .FirstOrDefault(x => x.Name.Equals("Bing",
-                                                                  StringComparison.OrdinalIgnoreCase))
-                              ?.Key;
-
-        key.Should().NotBeNull().And.NotBeEmpty();
-
-        var retVal = J4JDeusEx.ServiceProvider.GetService<BingMapProjection>();
+        var retVal = J4JDeusEx.ServiceProvider.GetRequiredService<MapProjectionFactory>();
         retVal.Should().NotBeNull();
-        
-        var okay = await retVal!.InitializeAsync( key!, BingMapType.Aerial );
-        okay.Should().BeTrue();
+
+        if( searchDefaults )
+            retVal.Search( typeof( MapProjectionFactory ) );
 
         return retVal;
     }
+
+    //protected async Task<BingMapProjection> GetBingMapProjection()
+    //{
+    //    var key = Configuration.Credentials
+    //                           .FirstOrDefault(x => x.Name.Equals("Bing",
+    //                                                              StringComparison.OrdinalIgnoreCase))
+    //                          ?.Key;
+
+    //    key.Should().NotBeNull().And.NotBeEmpty();
+
+    //    var retVal = J4JDeusEx.ServiceProvider.GetService<BingMapProjection>();
+    //    retVal.Should().NotBeNull();
+        
+    //    var okay = await retVal!.InitializeAsync( key!, BingMapType.Aerial );
+    //    okay.Should().BeTrue();
+
+    //    return retVal;
+    //}
 }

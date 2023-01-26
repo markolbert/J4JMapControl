@@ -18,25 +18,9 @@ internal partial class DeusEx
 
                     return retVal;
                 })
-               .AsSelf()
-               .SingleInstance();
+               .AsSelf();
 
-        builder.Register( c =>
-                {
-                    var config = c.Resolve<LibraryConfiguration>();
-
-                    if( !config.TryGetConfiguration( "Bing", out var srcConfig ) )
-                        throw new ApplicationException( "Could not find configuration information for Bing Maps" );
-
-                    if( srcConfig is not DynamicConfiguration dynamicConfig )
-                        throw new ApplicationException( "Bing Maps configuration information is invalid" );
-
-                    return new BingMapProjection( dynamicConfig, c.Resolve<IJ4JLogger>() );
-                } )
-               .As<BingMapProjection>()
-               .SingleInstance();
-
-        builder.Register( c =>
+        builder.Register( _ =>
                 {
                     LibraryConfiguration? config;
 
@@ -54,9 +38,11 @@ internal partial class DeusEx
                     var sourceIdx = 0;
                     var keyValuePairs = hbc.Configuration.AsEnumerable().ToList();
 
+                    // ReSharper disable once AccessToModifiedClosure
                     while( keyValuePairs.Any( x => x.Key.Equals( $"SourceConfigurations:{sourceIdx}" ) ) )
                     {
                         if( keyValuePairs.Any(
+                               // ReSharper disable once AccessToModifiedClosure
                                x => x.Key.Equals( $"SourceConfigurations:{sourceIdx}:MetadataRetrievalUrl" ) ) )
                         {
                             var dynamicConfig = new DynamicConfiguration();

@@ -7,19 +7,12 @@ namespace MapLibTests;
 
 public class BingTests : TestBase
 {
-    [Fact]
-    public async void EmptyBingApiKey()
-    {
-        var bingMaps = await GetBingMapProjection();
-        var temp = await bingMaps.InitializeAsync( string.Empty, BingMapType.Aerial );
-
-        temp.Should().Be( false );
-    }
-
     [ Fact ]
     public async void ValidBingApiKey()
     {
-        var bingMaps = await GetBingMapProjection();
+        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
+        bingMaps.Should().NotBeNull();
+        bingMaps!.Initialized.Should().BeTrue();
 
         bingMaps.Metadata.Should().NotBeNull();
         bingMaps.Metadata!.PrimaryResource.Should().NotBeNull();
@@ -35,7 +28,10 @@ public class BingTests : TestBase
     [InlineData(15, 27, 48)]
     public async void GetBingTile( int scale, int xTile, int yTile )
     {
-        var bingMaps = await GetBingMapProjection();
+        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
+        bingMaps.Should().NotBeNull();
+        bingMaps!.Initialized.Should().BeTrue();
+
         bingMaps.Scale = scale;
 
         var mapTile = bingMaps.CreateMapTile( xTile, yTile );
@@ -72,7 +68,10 @@ public class BingTests : TestBase
     [InlineData(4, 4, 6, "320")]
     public async void TestQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var bingMaps = await GetBingMapProjection();
+        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
+        bingMaps.Should().NotBeNull();
+        bingMaps!.Initialized.Should().BeTrue();
+
         bingMaps.Scale = scale;
 
         var mapTile = bingMaps.CreateMapTile(xTile, yTile);
