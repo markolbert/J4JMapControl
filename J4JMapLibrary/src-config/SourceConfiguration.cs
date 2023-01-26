@@ -2,7 +2,6 @@
 
 namespace J4JMapLibrary;
 
-[JsonConverter(typeof(SourceConfigurationConverter))]
 public class SourceConfiguration : ISourceConfiguration
 {
     #region Comparer
