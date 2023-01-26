@@ -3,6 +3,7 @@
 public interface ISourceConfiguration
 {
     string Name { get; }
+    ServerConfiguration? ConfigurationStyle { get; }
     bool CredentialsRequired { get; }
     string Copyright { get; }
     Uri? CopyrightUri { get; }

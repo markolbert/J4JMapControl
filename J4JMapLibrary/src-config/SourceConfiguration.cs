@@ -2,8 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[JsonDerivedType(typeof(StaticConfiguration))]
-[JsonDerivedType(typeof(DynamicConfiguration))]
+[JsonConverter(typeof(SourceConfigurationConverter))]
 public class SourceConfiguration : ISourceConfiguration
 {
     #region Comparer
@@ -34,7 +33,9 @@ public class SourceConfiguration : ISourceConfiguration
 
     #endregion
 
-    protected SourceConfiguration()
+    protected SourceConfiguration(
+        ServerConfiguration serverConfig
+        )
     {
         MaxLatitude = Math.Atan(Math.Sinh(Math.PI)) * 180 / Math.PI;
         MinLatitude = -MaxLatitude;
@@ -43,6 +44,7 @@ public class SourceConfiguration : ISourceConfiguration
     }
 
     public string Name { get; set; } = string.Empty;
+    public ServerConfiguration? ConfigurationStyle { get; set; }
     public bool CredentialsRequired { get; set; } = true;
     public string Copyright { get; set; } = string.Empty;
     public Uri? CopyrightUri { get; set; }

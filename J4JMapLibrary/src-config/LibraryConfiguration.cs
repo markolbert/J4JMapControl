@@ -20,6 +20,22 @@ public class LibraryConfiguration : ILibraryConfiguration
     public List<SourceConfiguration> SourceConfigurations { get; set; } = new();
     public List<Credential> Credentials { get; set; } = new();
 
+    public bool TryGetConfiguration( string name, out SourceConfiguration? result )
+    {
+        result = SourceConfigurations
+           .FirstOrDefault( x => x.Name.Equals( name, StringComparison.OrdinalIgnoreCase ) );
+
+        return result != null;
+    }
+
+    public bool TryGetCredential(string name, out string? result)
+    {
+        result = Credentials
+           .FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase))?.Key;
+
+        return result != null;
+    }
+
     public bool ValidateConfiguration()
     {
         if( SourceConfigurations.Any( x => string.IsNullOrEmpty( x.Name ) ) )
