@@ -4,9 +4,9 @@ public class SourceConfiguration : ISourceConfiguration
 {
     #region Comparer
 
-    private sealed class NameEqualityComparer : IEqualityComparer<ISourceConfiguration>
+    private sealed class NameEqualityComparer : IEqualityComparer<SourceConfiguration>
     {
-        public bool Equals( ISourceConfiguration? x, ISourceConfiguration? y )
+        public bool Equals( SourceConfiguration? x, SourceConfiguration? y )
         {
             if( ReferenceEquals( x, y ) )
                 return true;
@@ -20,13 +20,13 @@ public class SourceConfiguration : ISourceConfiguration
             return x.Name == y.Name;
         }
 
-        public int GetHashCode( ISourceConfiguration obj )
+        public int GetHashCode( SourceConfiguration obj )
         {
             return obj.Name.GetHashCode();
         }
     }
 
-    public static IEqualityComparer<ISourceConfiguration> DefaultComparer { get; } = new NameEqualityComparer();
+    public static IEqualityComparer<SourceConfiguration> DefaultComparer { get; } = new NameEqualityComparer();
 
     #endregion
 

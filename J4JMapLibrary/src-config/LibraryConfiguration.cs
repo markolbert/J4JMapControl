@@ -17,10 +17,10 @@ public class LibraryConfiguration : ILibraryConfiguration
         _logger?.SetLoggedType( GetType() );
     }
 
-    public List<ISourceConfiguration> SourceConfigurations { get; set; } = new();
+    public List<SourceConfiguration> SourceConfigurations { get; set; } = new();
     public List<Credential> Credentials { get; set; } = new();
 
-    public bool TryGetConfiguration( string name, out ISourceConfiguration? result )
+    public bool TryGetConfiguration( string name, out SourceConfiguration? result )
     {
         result = SourceConfigurations
            .FirstOrDefault( x => x.Name.Equals( name, StringComparison.OrdinalIgnoreCase ) );
