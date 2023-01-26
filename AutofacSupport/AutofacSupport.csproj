@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\J4JLogging\J4JLogging\J4JLogging.csproj" />
+    <ProjectReference Include="..\..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj" />
+    <ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
