@@ -18,7 +18,7 @@ public class FactoryTests : TestBase
     [InlineData(typeof(string), 0)]
     public void FindsProjectionsByType( Type assemblyType, int numResults )
     {
-        var factory = J4JDeusEx.ServiceProvider.GetService<MapProjectionFactory>();
+        var factory = GetFactory(false);
         factory.Should().NotBeNull();
 
         factory!.Search( assemblyType );
@@ -30,16 +30,41 @@ public class FactoryTests : TestBase
     [InlineData("BingMaps", true)]
     [InlineData("OpenStreetMaps", true)]
     [InlineData("OpenTopoMaps", true)]
-    public void CreateProjection( string projectionName, bool result )
+    public void CreateProjectionFromName( string projectionName, bool result )
     {
-        var factory = J4JDeusEx.ServiceProvider.GetService<MapProjectionFactory>();
+        var factory = GetFactory();
         factory.Should().NotBeNull();
-
-        factory!.Search( typeof( MapProjectionFactory ) );
 
         var projection = factory.CreateMapProjection( projectionName );
 
         if( result )
+            projection.Should().NotBeNull();
+        else projection.Should().BeNull();
+    }
+
+    [ Theory ]
+    [InlineData(typeof(BingMapProjection), true)]
+    [InlineData(typeof(OpenStreetMapsProjection), true)]
+    [InlineData(typeof(OpenTopoMapsProjection), true)]
+    public void CreateProjectionFromType( Type type, bool result )
+    {
+        var factory = GetFactory();
+        factory.Should().NotBeNull();
+
+        var methods = typeof( MapProjectionFactory )
+                        .GetMethods()
+                        .Where( x => x.Name.Equals( "CreateMapProjection",
+                                                    StringComparison.OrdinalIgnoreCase ) 
+                                && x.IsGenericMethod )
+                        .ToList();
+
+        methods.Count.Should().Be( 1 );
+
+        var method = methods[ 0 ].MakeGenericMethod( type );
+
+        var projection = method.Invoke( factory, new object?[] { null, null } );
+
+        if (result)
             projection.Should().NotBeNull();
         else projection.Should().BeNull();
     }
