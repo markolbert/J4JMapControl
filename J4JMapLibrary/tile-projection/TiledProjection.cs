@@ -1,4 +1,5 @@
 ﻿using J4JSoftware.Logging;
+using System.Drawing;
 using System.Net;
 using System.Runtime.CompilerServices;
 
@@ -12,7 +13,8 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     protected static Func<ITiledProjection, IJ4JLogger, LatLong> CreateLatLongInternal;
     protected static Func<ITiledProjection, IJ4JLogger, Cartesian> CreateCartesianInternal;
     protected static Func<ITiledProjection, IJ4JLogger, MapPoint> CreateMapPointInternal;
-    protected static Func<ITiledProjection, int, int, IJ4JLogger, MapTile> MapTileFromCoordinates;
+    protected static Func<ITiledProjection, int, int, IJ4JLogger, MapTile> MapTileFromTileCoordinates;
+    protected static Func<ITiledProjection, Cartesian, IJ4JLogger, MapTile> MapTileFromCartesian;
     protected static Func<MapPoint, IJ4JLogger, MapTile> MapTileFromMapPoint;
     protected static Func<LatLong, IJ4JLogger, MapTile> MapTileFromLatLong;
     protected static Func<ITiledProjection, MapTile, MemoryStream?, TileImageStream> CreateTileImageStream;
@@ -38,8 +40,8 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
         CanBeCached = canBeCached;
 
-        MinTile = MapTileFromCoordinates( this, 0, 0, Logger );
-        MaxTile = MapTileFromCoordinates(this, 0, 0, Logger);
+        MinTile = MapTileFromTileCoordinates( this, 0, 0, Logger );
+        MaxTile = MapTileFromTileCoordinates(this, 0, 0, Logger);
     }
 
     protected TiledProjection(
@@ -53,8 +55,8 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
         CanBeCached = canBeCached;
 
-        MinTile = MapTileFromCoordinates(this, 0, 0, Logger);
-        MaxTile = MapTileFromCoordinates(this, 0, 0, Logger);
+        MinTile = MapTileFromTileCoordinates(this, 0, 0, Logger);
+        MaxTile = MapTileFromTileCoordinates(this, 0, 0, Logger);
     }
 
     private void ExecuteRuntimeHelpers()
@@ -120,7 +122,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         MinY = 0;
         MaxY = heightWidth - 1;
 
-        MaxTile = MapTileFromCoordinates(this, numCells - 1, numCells - 1, Logger);
+        MaxTile = MapTileFromTileCoordinates(this, numCells - 1, numCells - 1, Logger);
     }
 
     public int TileHeightWidth { get; protected set; }
@@ -143,7 +145,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     public string MapScale( double latitude, double dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public virtual MapTile? CreateMapTile( int xTile, int yTile )
+    public virtual MapTile? CreateMapTileFromTileCoordinates( int xTile, int yTile )
     {
         if( !Initialized )
         {
@@ -151,24 +153,36 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return null;
         }
 
-        var retVal = MapTileFromCoordinates( this, xTile, yTile, Logger);
+        var retVal = MapTileFromTileCoordinates( this, xTile, yTile, Logger);
 
         return Cap( retVal )!;
     }
 
     public MapTile? CreateMapTileFromXY( int x, int y )
     {
-        if (!Initialized)
-        {
-            Logger.Error("Not initialized");
-            return null;
-        }
+        var point = CreateCartesianInternal( this, Logger );
+        point.X = x;
+        point.Y = y;
 
-        x = InternalExtensions.ConformValueToRange( x, MinX, MaxX, "X coordinate", Logger );
-        y = InternalExtensions.ConformValueToRange( y, MinY, MaxY, "Y coordinate", Logger );
+        return CreateMapTileFromCartesian( point );
+    }
 
-        return CreateMapTile(Convert.ToInt32( Math.Floor( x / 256.0 ) ),
-                                    Convert.ToInt32( Math.Floor( y / 256.0 ) ) );
+    public MapTile? CreateMapTileFromCartesian( Cartesian point )
+    {
+        if( Initialized )
+            return MapTileFromCartesian( this, point, Logger );
+
+        Logger.Error("Not initialized");
+        return null;
+    }
+
+    public MapTile? CreateMapTileFromLatLong(LatLong point)
+    {
+        if( Initialized )
+            return MapTileFromLatLong( point, Logger );
+
+        Logger.Error("Not initialized");
+        return null;
     }
 
     protected MapTile? Cap( MapTile toCheck )
@@ -182,7 +196,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         var xTile = InternalExtensions.ConformValueToRange( toCheck.X, MinTile.X, MaxTile.X, "Tile X Coordinate", Logger );
         var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, MinTile.Y, MaxTile.Y, "Tile Y Coordinate", Logger );
 
-        return MapTileFromCoordinates(this, xTile, yTile, Logger );
+        return MapTileFromTileCoordinates(this, xTile, yTile, Logger );
     }
 
     public async Task<TileImageStream> GetTileImageAsync( MapTile tile )

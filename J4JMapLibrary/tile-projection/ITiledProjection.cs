@@ -12,19 +12,21 @@ public interface ITiledProjection : IMapProjection
 
     int TileHeightWidth { get; }
 
-    TiledProjection.MapTile MinTile { get; }
-    TiledProjection.MapTile MaxTile { get; }
+    MapTile MinTile { get; }
+    MapTile MaxTile { get; }
 
-    TiledProjection.MapPoint CreateMapPoint();
+    MapPoint CreateMapPoint();
 
-    TiledProjection.MapTile? CreateMapTile( int xTile, int yTile );
+    MapTile? CreateMapTileFromTileCoordinates( int xTile, int yTile );
     MapTile? CreateMapTileFromXY( int x, int y );
+    MapTile? CreateMapTileFromCartesian( Cartesian point );
+    MapTile? CreateMapTileFromLatLong(LatLong point);
 
     double GroundResolution( double latitude );
     string MapScale( double latitude, double dotsPerInch );
 
-    TiledProjection.LatLong CartesianToLatLong(int x, int y);
-    TiledProjection.Cartesian LatLongToCartesian(double latitude, double longitude);
+    LatLong CartesianToLatLong(int x, int y);
+    Cartesian LatLongToCartesian(double latitude, double longitude);
 
     Task<TileImageStream> GetTileImageAsync( MapTile tile );
     IAsyncEnumerable<TileImageStream> GetTileImagesAsync( IEnumerable<MapTile> tiles );

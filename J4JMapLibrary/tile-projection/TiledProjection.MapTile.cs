@@ -39,7 +39,8 @@ public abstract partial class TiledProjection
 
         static MapTile()
         {
-            MapTileFromCoordinates = ( proj, x, y, logger ) => new MapTile( proj, x, y, logger );
+            MapTileFromTileCoordinates = ( proj, x, y, logger ) => new MapTile( proj, x, y, logger );
+            MapTileFromCartesian = (proj, pt, logger)=>new MapTile(proj,pt,logger );
             MapTileFromMapPoint = ( pt, logger ) => new MapTile( pt, logger );
             MapTileFromLatLong = ( latLong, logger ) => new MapTile( latLong, logger );
         }
@@ -69,6 +70,28 @@ public abstract partial class TiledProjection
 
             X = x < 0 ? 0 : x;
             Y = y < 0 ? 0 : y;
+            QuadKey = this.GetQuadKey();
+        }
+
+        private MapTile(
+            ITiledProjection projection,
+            Cartesian point,
+            IJ4JLogger logger
+        )
+        {
+            _logger = logger;
+            _logger.SetLoggedType(GetType());
+
+            Projection = projection;
+            Scale = projection.Scale;
+
+            var center = CreateMapPointInternal(projection, _logger);
+            center.Cartesian.X = point.X;
+            center.Cartesian.Y = point.Y;
+            Center = center;
+
+            X = point.X / projection.TileHeightWidth;
+            Y = point.Y / projection.TileHeightWidth;
             QuadKey = this.GetQuadKey();
         }
 
