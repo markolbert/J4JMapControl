@@ -9,8 +9,12 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
     // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
 #pragma warning disable CS8618
-    protected static Func<ITiledProjection, int, int, MapTile> CreateMapTileInternal;
-    //protected static Func<ITiledProjection, IJ4JLogger, MapPoint> CreateMapPointInternal;
+    protected static Func<ITiledProjection, IJ4JLogger, LatLong> CreateLatLongInternal;
+    protected static Func<ITiledProjection, IJ4JLogger, Cartesian> CreateCartesianInternal;
+    protected static Func<ITiledProjection, IJ4JLogger, MapPoint> CreateMapPointInternal;
+    protected static Func<ITiledProjection, int, int, IJ4JLogger, MapTile> MapTileFromCoordinates;
+    protected static Func<MapPoint, IJ4JLogger, MapTile> MapTileFromMapPoint;
+    protected static Func<LatLong, IJ4JLogger, MapTile> MapTileFromLatLong;
     protected static Func<ITiledProjection, MapTile, MemoryStream?, TileImageStream> CreateTileImageStream;
 #pragma warning restore CS8618
 
@@ -25,39 +29,62 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
     protected TiledProjection(
         ISourceConfiguration srcConfig,
+        bool canBeCached,
         IJ4JLogger logger
     )
     :base(srcConfig, logger)
     {
-        // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
-        // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
-        RuntimeHelpers.RunClassConstructor( typeof( MapTile ).TypeHandle );
-        RuntimeHelpers.RunClassConstructor( typeof( TileImageStream ).TypeHandle );
+        ExecuteRuntimeHelpers();
 
-        MinTile = CreateMapTileInternal( this, 0, 0 );
-        MaxTile = CreateMapTileInternal(this, 0, 0);
+        CanBeCached = canBeCached;
+
+        MinTile = MapTileFromCoordinates( this, 0, 0, Logger );
+        MaxTile = MapTileFromCoordinates(this, 0, 0, Logger);
     }
 
     protected TiledProjection(
         ILibraryConfiguration libConfiguration,
+        bool canBeCached,
         IJ4JLogger logger
     )
         : base( libConfiguration, logger )
     {
+        ExecuteRuntimeHelpers();
+
+        CanBeCached = canBeCached;
+
+        MinTile = MapTileFromCoordinates(this, 0, 0, Logger);
+        MaxTile = MapTileFromCoordinates(this, 0, 0, Logger);
+    }
+
+    private void ExecuteRuntimeHelpers()
+    {
         // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
         // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
+        RuntimeHelpers.RunClassConstructor(typeof(Cartesian).TypeHandle);
+        RuntimeHelpers.RunClassConstructor(typeof(LatLong).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(MapTile).TypeHandle);
         RuntimeHelpers.RunClassConstructor(typeof(TileImageStream).TypeHandle);
-
-        MinTile = CreateMapTileInternal(this, 0, 0);
-        MaxTile = CreateMapTileInternal(this, 0, 0);
+        RuntimeHelpers.RunClassConstructor(typeof(MapPoint).TypeHandle);
     }
+
+    public bool CanBeCached { get; }
 
     public MapTile MinTile { get; protected set; }
     public MapTile MaxTile { get; protected set; }
 
     public int MaxScale { get; protected set; }
     public int MinScale { get; protected set; }
+
+    protected List<MapPoint> RegisteredPoints { get; } = new();
+
+    public virtual MapPoint CreateMapPoint()
+    {
+        var retVal = CreateMapPointInternal(this, Logger);
+        RegisteredPoints.Add(retVal);
+
+        return retVal;
+    }
 
     public virtual int Scale
     {
@@ -71,7 +98,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
                 return;
             }
 
-            _scale = MapExtensions.ConformValueToRange(value, MinScale, MaxScale, "Scale", Logger);
+            _scale = InternalExtensions.ConformValueToRange(value, MinScale, MaxScale, "Scale", Logger);
             SetSizes(_scale - MinScale);
 
             foreach (var point in RegisteredPoints)
@@ -93,7 +120,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         MinY = 0;
         MaxY = heightWidth - 1;
 
-        MaxTile = CreateMapTileInternal(this, numCells - 1, numCells - 1);
+        MaxTile = MapTileFromCoordinates(this, numCells - 1, numCells - 1, Logger);
     }
 
     public int TileHeightWidth { get; protected set; }
@@ -106,7 +133,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return 0;
         }
 
-        latitude = MapExtensions.ConformValueToRange( latitude, MinLatitude, MaxLatitude, "Latitude", Logger );
+        latitude = InternalExtensions.ConformValueToRange( latitude, MinLatitude, MaxLatitude, "Latitude", Logger );
 
         return Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters
@@ -124,7 +151,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return null;
         }
 
-        var retVal = CreateMapTileInternal( this, xTile, yTile );
+        var retVal = MapTileFromCoordinates( this, xTile, yTile, Logger);
 
         return Cap( retVal )!;
     }
@@ -137,8 +164,8 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return null;
         }
 
-        x = MapExtensions.ConformValueToRange( x, MinX, MaxX, "X coordinate", Logger );
-        y = MapExtensions.ConformValueToRange( y, MinY, MaxY, "Y coordinate", Logger );
+        x = InternalExtensions.ConformValueToRange( x, MinX, MaxX, "X coordinate", Logger );
+        y = InternalExtensions.ConformValueToRange( y, MinY, MaxY, "Y coordinate", Logger );
 
         return CreateMapTile(Convert.ToInt32( Math.Floor( x / 256.0 ) ),
                                     Convert.ToInt32( Math.Floor( y / 256.0 ) ) );
@@ -152,10 +179,10 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return null;
         }
 
-        var xTile = MapExtensions.ConformValueToRange( toCheck.X, MinTile.X, MaxTile.X, "Tile X Coordinate", Logger );
-        var yTile = MapExtensions.ConformValueToRange( toCheck.Y, MinTile.Y, MaxTile.Y, "Tile Y Coordinate", Logger );
+        var xTile = InternalExtensions.ConformValueToRange( toCheck.X, MinTile.X, MaxTile.X, "Tile X Coordinate", Logger );
+        var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, MinTile.Y, MaxTile.Y, "Tile Y Coordinate", Logger );
 
-        return CreateMapTileInternal(this, xTile, yTile );
+        return MapTileFromCoordinates(this, xTile, yTile, Logger );
     }
 
     public async Task<TileImageStream> GetTileImageAsync( MapTile tile )
@@ -218,6 +245,55 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         {
             yield return await GetTileImageAsync( curTile );
         }
+    }
+
+    public LatLong CartesianToLatLong(int x, int y)
+    {
+        var retVal = CreateLatLongInternal(this, Logger);
+
+        if (!Initialized)
+        {
+            Logger.Error("Not initialized");
+            return retVal;
+        }
+
+        x = InternalExtensions.ConformValueToRange(x, MinX, MaxX, "X coordinate", Logger);
+        y = InternalExtensions.ConformValueToRange(y, MinY, MaxY, "Y coordinate", Logger);
+
+        retVal.Latitude = (2 * Math.Atan(Math.Exp(MapConstants.TwoPi * y / Height)) - MapConstants.HalfPi)
+          / MapConstants.RadiansPerDegree;
+        retVal.Longitude = 360 * x / Width - 180;
+
+        return retVal;
+    }
+
+    public Cartesian LatLongToCartesian(double latitude, double longitude)
+    {
+        var retVal = CreateCartesianInternal(this, Logger);
+
+        if (!Initialized)
+        {
+            Logger.Error("Not initialized");
+            return retVal;
+        }
+
+        latitude = InternalExtensions.ConformValueToRange(latitude, MinLatitude, MaxLatitude, "Latitude", Logger);
+        longitude = InternalExtensions.ConformValueToRange(longitude, MinLongitude, MaxLongitude, "Longitude", Logger);
+
+        var x = Width * (longitude / 360 + 0.5);
+        var y = Width * Math.Log(Math.Tan(MapConstants.QuarterPi + latitude * MapConstants.RadiansPerDegree / 2)) / MapConstants.TwoPi;
+
+        try
+        {
+            retVal.X = Convert.ToInt32(Math.Round(x));
+            retVal.Y = Convert.ToInt32(Math.Round(y));
+        }
+        catch (Exception ex)
+        {
+            Logger.Error<string>("Could not convert double to int32, message was '{0}'", ex.Message);
+        }
+
+        return retVal;
     }
 
     protected abstract bool TryGetRequest( MapTile tile, out HttpRequestMessage? result );

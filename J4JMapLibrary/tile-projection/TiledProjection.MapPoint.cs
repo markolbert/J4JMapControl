@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-public abstract partial class MapProjection
+public abstract partial class TiledProjection
 {
     public class MapPoint
     {
@@ -12,23 +12,23 @@ public abstract partial class MapProjection
         }
 
         private MapPoint(
-            IMapProjection projection,
+            ITiledProjection projection,
             IJ4JLogger logger
         )
         {
             Projection = projection;
+            Scale = projection.Scale;
 
             LatLong = CreateLatLongInternal( projection, logger );
-            LatLong.Changed += ( _, _ ) => UpdateCartesian();
-
             Cartesian = CreateCartesianInternal( projection, logger );
-            Cartesian.Changed += ( _, _ ) => UpdateLatLong();
         }
 
-        public IMapProjection Projection { get; }
+        public ITiledProjection Projection { get; }
 
         public LatLong LatLong { get; }
         public Cartesian Cartesian { get; }
+        public int Scale { get; }
+        public bool ReflectsProjection => Scale == Projection.Scale;
 
         // X & Y are presumed to be valid if this method is called
         protected internal void UpdateLatLong()

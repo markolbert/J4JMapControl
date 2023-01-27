@@ -22,8 +22,4 @@ public interface IMapProjection
     int Height { get; }
 
     Task<bool> Authenticate( string? credentials = null );
-
-    MapProjection.MapPoint CreateMapPoint();
-    MapProjection.LatLong CartesianToLatLong(int x, int y);
-    MapProjection.Cartesian LatLongToCartesian(double latitude, double longitude);
 }
