@@ -5,6 +5,7 @@ namespace J4JMapLibrary;
 public interface IMapProjection
 {
     string Name { get; }
+    bool Initialized { get; }
 
     double MaxLatitude { get; }
     double MinLatitude { get; }
