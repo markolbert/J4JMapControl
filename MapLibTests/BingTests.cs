@@ -76,6 +76,6 @@ public class BingTests : TestBase
 
         var mapTile = bingMaps.CreateMapTile(xTile, yTile);
         mapTile.Should().NotBeNull();
-        bingMaps.GetQuadKey( mapTile! ).Should().Be( quadKey );
+        mapTile!.GetQuadKey().Should().Be( quadKey );
     }
 }
