@@ -4,7 +4,7 @@ namespace J4JMapLibrary;
 
 public static class MapExtensions
 {
-    public static string GetQuadKey(this TiledProjection.MapTile tile)
+    public static string GetQuadKey(this MapTile tile)
     {
         var retVal = new StringBuilder();
 

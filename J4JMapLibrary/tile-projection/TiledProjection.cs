@@ -7,19 +7,6 @@ namespace J4JMapLibrary;
 
 public abstract partial class TiledProjection : MapProjection, ITiledProjection
 {
-    // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
-    // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
-#pragma warning disable CS8618
-    protected static Func<ITiledProjection, IJ4JLogger, LatLong> CreateLatLongInternal;
-    protected static Func<ITiledProjection, IJ4JLogger, Cartesian> CreateCartesianInternal;
-    protected static Func<ITiledProjection, IJ4JLogger, MapPoint> CreateMapPointInternal;
-    protected static Func<ITiledProjection, int, int, IJ4JLogger, MapTile> MapTileFromTileCoordinates;
-    protected static Func<ITiledProjection, Cartesian, IJ4JLogger, MapTile> MapTileFromCartesian;
-    protected static Func<MapPoint, IJ4JLogger, MapTile> MapTileFromMapPoint;
-    protected static Func<LatLong, IJ4JLogger, MapTile> MapTileFromLatLong;
-    protected static Func<ITiledProjection, MapTile, MemoryStream?, TileImageStream> CreateTileImageStream;
-#pragma warning restore CS8618
-
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
     public static int Pow(int numBase, int exp) =>
@@ -36,12 +23,10 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     )
     :base(srcConfig, logger)
     {
-        ExecuteRuntimeHelpers();
-
         CanBeCached = canBeCached;
 
-        MinTile = MapTileFromTileCoordinates( this, 0, 0, Logger );
-        MaxTile = MapTileFromTileCoordinates(this, 0, 0, Logger);
+        MinTile = new MapTile( this, 0, 0, Logger );
+        MaxTile = new MapTile( this, 0, 0, Logger );
     }
 
     protected TiledProjection(
@@ -51,23 +36,10 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     )
         : base( libConfiguration, logger )
     {
-        ExecuteRuntimeHelpers();
-
         CanBeCached = canBeCached;
 
-        MinTile = MapTileFromTileCoordinates(this, 0, 0, Logger);
-        MaxTile = MapTileFromTileCoordinates(this, 0, 0, Logger);
-    }
-
-    private void ExecuteRuntimeHelpers()
-    {
-        // thanx to Benjamin Hodgson, Ray Burns, Regent et al for this!
-        // https://stackoverflow.com/questions/1664793/how-to-restrict-access-to-nested-class-member-to-enclosing-class
-        RuntimeHelpers.RunClassConstructor(typeof(Cartesian).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(LatLong).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(MapTile).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(TileImageStream).TypeHandle);
-        RuntimeHelpers.RunClassConstructor(typeof(MapPoint).TypeHandle);
+        MinTile = new MapTile( this, 0, 0, Logger );
+        MaxTile = new MapTile( this, 0, 0, Logger );
     }
 
     public bool CanBeCached { get; }
@@ -77,16 +49,6 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
     public int MaxScale { get; protected set; }
     public int MinScale { get; protected set; }
-
-    protected List<MapPoint> RegisteredPoints { get; } = new();
-
-    public virtual MapPoint CreateMapPoint()
-    {
-        var retVal = CreateMapPointInternal(this, Logger);
-        RegisteredPoints.Add(retVal);
-
-        return retVal;
-    }
 
     public virtual int Scale
     {
@@ -102,11 +64,6 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
             _scale = InternalExtensions.ConformValueToRange(value, MinScale, MaxScale, "Scale", Logger);
             SetSizes(_scale - MinScale);
-
-            foreach (var point in RegisteredPoints)
-            {
-                point.UpdateCartesian();
-            }
         }
     }
 
@@ -122,7 +79,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         MinY = 0;
         MaxY = heightWidth - 1;
 
-        MaxTile = MapTileFromTileCoordinates(this, numCells - 1, numCells - 1, Logger);
+        MaxTile = new MapTile(this, numCells - 1, numCells - 1, Logger);
     }
 
     public int TileHeightWidth { get; protected set; }
@@ -145,46 +102,6 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     public string MapScale( double latitude, double dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public virtual MapTile? CreateMapTileFromTileCoordinates( int xTile, int yTile )
-    {
-        if( !Initialized )
-        {
-            Logger.Error("Projection is not initialized");
-            return null;
-        }
-
-        var retVal = MapTileFromTileCoordinates( this, xTile, yTile, Logger);
-
-        return Cap( retVal )!;
-    }
-
-    public MapTile? CreateMapTileFromXY( int x, int y )
-    {
-        var point = CreateCartesianInternal( this, Logger );
-        point.X = x;
-        point.Y = y;
-
-        return CreateMapTileFromCartesian( point );
-    }
-
-    public MapTile? CreateMapTileFromCartesian( Cartesian point )
-    {
-        if( Initialized )
-            return MapTileFromCartesian( this, point, Logger );
-
-        Logger.Error("Not initialized");
-        return null;
-    }
-
-    public MapTile? CreateMapTileFromLatLong(LatLong point)
-    {
-        if( Initialized )
-            return MapTileFromLatLong( point, Logger );
-
-        Logger.Error("Not initialized");
-        return null;
-    }
-
     protected MapTile? Cap( MapTile toCheck )
     {
         if( !Initialized )
@@ -196,74 +113,12 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         var xTile = InternalExtensions.ConformValueToRange( toCheck.X, MinTile.X, MaxTile.X, "Tile X Coordinate", Logger );
         var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, MinTile.Y, MaxTile.Y, "Tile Y Coordinate", Logger );
 
-        return MapTileFromTileCoordinates(this, xTile, yTile, Logger );
-    }
-
-    public async Task<TileImageStream> GetTileImageAsync( MapTile tile )
-    {
-        if( !Initialized )
-        {
-            Logger.Error( "Projection is not initialized" );
-            return CreateTileImageStream( this, tile, null );
-        }
-
-        tile = Cap( tile )!;
-
-        Logger.Verbose( "Beginning image retrieval from web" );
-
-        if( !TryGetRequest( tile, out var request ) )
-        {
-            Logger.Error( "Could not create HttpRequestMessage for tile ({0}, {1})", tile.X, tile.Y );
-            return CreateTileImageStream(this, tile, null);
-        }
-
-        var uriText = request!.RequestUri!.AbsoluteUri;
-        var httpClient = new HttpClient();
-
-        Logger.Verbose<string>( "Querying {0}", uriText );
-
-        HttpResponseMessage? response;
-
-        try
-        {
-            response = await httpClient.SendAsync( request );
-            Logger.Verbose<string>( "Got response from {0}", uriText );
-        }
-        catch( Exception ex )
-        {
-            Logger.Error<Uri, string>( "Image request from {0} failed, message was '{1}'",
-                                       request.RequestUri,
-                                       ex.Message );
-            return CreateTileImageStream(this, tile, null);
-        }
-
-        if ( response.StatusCode != HttpStatusCode.OK )
-        {
-            Logger.Error<string, HttpStatusCode, string>(
-                "Image request from {0} failed with response code {1}, message was '{2}'",
-                uriText,
-                response.StatusCode,
-                await response.Content.ReadAsStringAsync() );
-
-            return CreateTileImageStream(this, tile, null);
-        }
-
-        Logger.Verbose<string>( "Reading response from {0}", uriText );
-
-        return CreateTileImageStream( this, tile, await ExtractImageDataAsync( response ) );
-    }
-
-    public async IAsyncEnumerable<TileImageStream> GetTileImagesAsync( IEnumerable<MapTile> tiles )
-    {
-        foreach( var curTile in tiles.Distinct( MapTile.DefaultComparer ) )
-        {
-            yield return await GetTileImageAsync( curTile );
-        }
+        return new MapTile(this, xTile, yTile, Logger );
     }
 
     public LatLong CartesianToLatLong(int x, int y)
     {
-        var retVal = CreateLatLongInternal(this, Logger);
+        var retVal = new LatLong(this, Logger);
 
         if (!Initialized)
         {
@@ -283,7 +138,7 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
 
     public Cartesian LatLongToCartesian(double latitude, double longitude)
     {
-        var retVal = CreateCartesianInternal(this, Logger);
+        var retVal = new Cartesian(this, Logger);
 
         if (!Initialized)
         {
@@ -310,9 +165,9 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         return retVal;
     }
 
-    protected abstract bool TryGetRequest( MapTile tile, out HttpRequestMessage? result );
+    public abstract bool TryGetRequest( MapTile tile, out HttpRequestMessage? result );
 
-    protected virtual async Task<MemoryStream?> ExtractImageDataAsync( HttpResponseMessage response )
+    public virtual async Task<MemoryStream?> ExtractImageDataAsync( HttpResponseMessage response )
     {
         try
         {
