@@ -15,19 +15,12 @@ public interface ITiledProjection : IMapProjection
     MapTile MinTile { get; }
     MapTile MaxTile { get; }
 
-    MapPoint CreateMapPoint();
-
-    MapTile? CreateMapTileFromTileCoordinates( int xTile, int yTile );
-    MapTile? CreateMapTileFromXY( int x, int y );
-    MapTile? CreateMapTileFromCartesian( Cartesian point );
-    MapTile? CreateMapTileFromLatLong(LatLong point);
-
     double GroundResolution( double latitude );
     string MapScale( double latitude, double dotsPerInch );
 
     LatLong CartesianToLatLong(int x, int y);
     Cartesian LatLongToCartesian(double latitude, double longitude);
 
-    Task<TileImageStream> GetTileImageAsync( MapTile tile );
-    IAsyncEnumerable<TileImageStream> GetTileImagesAsync( IEnumerable<MapTile> tiles );
+    bool TryGetRequest( MapTile tile, out HttpRequestMessage? result );
+    Task<MemoryStream?> ExtractImageDataAsync( HttpResponseMessage response );
 }
