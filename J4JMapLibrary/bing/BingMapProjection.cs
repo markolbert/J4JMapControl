@@ -22,8 +22,7 @@ public class BingMapProjection : TiledProjection
         IDynamicConfiguration dynamicConfig,
         IJ4JLogger logger
     )
-        : base( dynamicConfig,
-                logger )
+        : base( dynamicConfig, true, logger )
     {
         _metadataUrlTemplate = dynamicConfig.MetadataRetrievalUrl;
 
@@ -35,7 +34,7 @@ public class BingMapProjection : TiledProjection
         ILibraryConfiguration libConfiguration,
         IJ4JLogger logger
     )
-        : base( libConfiguration, logger )
+        : base( libConfiguration, true, logger )
     {
         if( !TryGetSourceConfiguration<IDynamicConfiguration>( Name, out var srcConfig ) )
         {
@@ -173,30 +172,6 @@ public class BingMapProjection : TiledProjection
         return true;
     }
 
-    public string GetQuadKey(MapTile coordinates)
-    {
-        var retVal = new StringBuilder();
-
-        for (var i = Scale - 1; i > 0; i--)
-        {
-            var digit = '0';
-            var mask = 1 << (i - 1);
-
-            if ((coordinates.X & mask) != 0)
-                digit++;
-
-            if ((coordinates.Y & mask) != 0)
-            {
-                digit++;
-                digit++;
-            }
-
-            retVal.Append(digit);
-        }
-
-        return retVal.Length == 0 ? "0" : retVal.ToString();
-    }
-
     protected override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )
     {
         result = null;
@@ -212,7 +187,7 @@ public class BingMapProjection : TiledProjection
                                                                    .ImageUrlSubdomains
                                                                    .Length ) ];
 
-        var quadKey = GetQuadKey( coordinates );
+        var quadKey = coordinates.GetQuadKey();
 
         var uriText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", subDomain )
                                .Replace( "{quadkey}", quadKey )

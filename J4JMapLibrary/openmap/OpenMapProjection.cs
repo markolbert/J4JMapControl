@@ -12,7 +12,7 @@ public class OpenMapProjection : TiledProjection
         IStaticConfiguration staticConfig,
         IJ4JLogger logger
     )
-        : base( staticConfig, logger )
+        : base( staticConfig, true, logger )
     {
         _retrievalUrl = staticConfig.RetrievalUrl;
 
@@ -27,7 +27,7 @@ public class OpenMapProjection : TiledProjection
         ILibraryConfiguration libConfiguration,
         IJ4JLogger logger
     )
-        : base( libConfiguration, logger )
+        : base( libConfiguration, true, logger )
     {
         if( !TryGetSourceConfiguration<IStaticConfiguration>( Name, out var srcConfig ) )
         {
