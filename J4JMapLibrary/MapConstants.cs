@@ -2,6 +2,9 @@
 
 public static class MapConstants
 {
+    public static MinMax<double> DefaultDouble = new(0, 0);
+    public static MinMax<int> DefaultInt = new(0, 0);
+
     public const double TwoPi = Math.PI * 2;
     public const double HalfPi = Math.PI / 2;
     public const double QuarterPi = Math.PI / 4;

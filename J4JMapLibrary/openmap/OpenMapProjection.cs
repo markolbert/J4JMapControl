@@ -17,8 +17,7 @@ public class OpenMapProjection : TiledProjection
         _retrievalUrl = staticConfig.RetrievalUrl;
 
         TileHeightWidth = staticConfig.TileHeightWidth;
-        MinScale = staticConfig.MinScale;
-        MaxScale = staticConfig.MaxScale;
+        Metrics = Metrics with { ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale ) };
 
         SetSizes( 0 );
     }
@@ -39,8 +38,7 @@ public class OpenMapProjection : TiledProjection
         _retrievalUrl = srcConfig!.RetrievalUrl;
 
         TileHeightWidth = srcConfig.TileHeightWidth;
-        MinScale = srcConfig.MinScale;
-        MaxScale = srcConfig.MaxScale;
+        Metrics = Metrics with { ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale) };
 
         SetSizes( 0 );
     }
@@ -58,33 +56,31 @@ public class OpenMapProjection : TiledProjection
         _userAgent = credentials!;
         Initialized = true;
 
-        Scale = MinScale;
+        Scale = Metrics.ScaleRange.Minimum;
 
         return true;
     }
 
-    public override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )
+    public override HttpRequestMessage? GetRequest( MapTile coordinates )
     {
-        result = null;
-
         if( !Initialized )
-            return false;
+            return null;
 
         coordinates = Cap( coordinates )!;
 
         if( string.IsNullOrEmpty( _userAgent ) )
         {
             Logger.Error( "Undefined or empty User-Agent" );
-            return false;
+            return null;
         }
 
         var uriText = _retrievalUrl.Replace( "ZoomLevel", Scale.ToString() )
                                    .Replace( "XTile", coordinates.X.ToString() )
                                    .Replace( "YTile", coordinates.Y.ToString() );
 
-        result = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
-        result.Headers.Add( "User-Agent", _userAgent );
+        var retVal = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
+        retVal.Headers.Add( "User-Agent", _userAgent );
 
-        return true;
+        return retVal;
     }
 }

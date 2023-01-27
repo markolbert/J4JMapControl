@@ -4,26 +4,20 @@ namespace J4JMapLibrary;
 
 public class Cartesian
 {
-    private readonly IJ4JLogger _logger;
-
     private int _x;
     private int _y;
 
     public Cartesian(
-        ITiledProjection projection,
-        IJ4JLogger logger
+        ProjectionMetrics metrics
     )
     {
-        Projection = projection;
-        Scale = projection.Scale;
-
-        _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        Metrics = metrics;
+        Scale = metrics.Scale;
     }
 
-    public ITiledProjection Projection { get; }
+    public ProjectionMetrics Metrics { get; }
     public int Scale { get; }
-    public bool ReflectsProjection => Scale == Projection.Scale;
+    public bool ReflectsProjection => Scale == Metrics.Scale;
 
     public int X
     {
@@ -31,10 +25,8 @@ public class Cartesian
 
         set =>
             _x = InternalExtensions.ConformValueToRange( value,
-                                                         Projection.MinX,
-                                                         Projection.MaxX,
-                                                         "X",
-                                                         _logger );
+                                                         Metrics.XRange,
+                                                         "X" );
     }
 
     public int Y
@@ -44,9 +36,7 @@ public class Cartesian
         set =>
             _y =
                 InternalExtensions.ConformValueToRange( value,
-                                                        Projection.MinY,
-                                                        Projection.MaxY,
-                                                        "Y",
-                                                        _logger );
+                                                        Metrics.YRange,
+                                                        "Y" );
     }
 }

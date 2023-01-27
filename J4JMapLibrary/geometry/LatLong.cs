@@ -1,29 +1,24 @@
-﻿using J4JSoftware.Logging;
+﻿using J4JSoftware.DeusEx;
+using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
 public class LatLong
 {
-    private readonly IJ4JLogger _logger;
-
     private double _latitude;
     private double _longitude;
 
     public LatLong(
-        ITiledProjection projection,
-        IJ4JLogger logger
+        ProjectionMetrics metrics
     )
     {
-        Projection = projection;
-        Scale = projection.Scale;
-
-        _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        Metrics = metrics;
+        Scale = metrics.Scale;
     }
 
-    public ITiledProjection Projection { get; }
+    public ProjectionMetrics Metrics { get; }
     public int Scale { get; }
-    public bool ReflectsProjection => Scale == Projection.Scale;
+    public bool ReflectsProjection => Scale == Metrics.Scale;
 
     public double Latitude
     {
@@ -31,10 +26,8 @@ public class LatLong
 
         set =>
             _latitude = InternalExtensions.ConformValueToRange( value,
-                                                                Projection.MinLatitude,
-                                                                Projection.MaxLatitude,
-                                                                "Latitude",
-                                                                _logger );
+                                                                Metrics.LatitudeRange,
+                                                                "Latitude" );
     }
 
     public double Longitude
@@ -44,9 +37,7 @@ public class LatLong
         set =>
             _longitude =
                 InternalExtensions.ConformValueToRange( value,
-                                                        Projection.MinLongitude,
-                                                        Projection.MaxLongitude,
-                                                        "Longitude",
-                                                        _logger );
+                                                        Metrics.LongitudeRange,
+                                                        "Longitude" );
     }
 }

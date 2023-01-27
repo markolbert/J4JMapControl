@@ -1,23 +1,72 @@
-﻿using J4JSoftware.Logging;
-using static System.Formats.Asn1.AsnWriter;
+﻿using J4JSoftware.DeusEx;
+using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
 internal static class InternalExtensions
 {
-    internal static T ConformValueToRange<T>(T toCheck, T min, T max, string name, IJ4JLogger logger)
-        where T : IComparable<T>
+    private static readonly IJ4JLogger? Logger;
+
+    static InternalExtensions()
     {
-        if (toCheck.CompareTo(min) < 0)
+        Logger = J4JDeusEx.GetLogger();
+    }
+
+    internal static T ConformValueToRange<T>(T toCheck, MinMax<T> range, string name)
+        where T : struct, IComparable
+    {
+        if (toCheck.CompareTo(range.Minimum) < 0)
         {
-            logger.Warning("{0} ({1}) < minimum ({2}), capping", name, toCheck, min);
-            return min;
+            Logger?.Warning("{0} ({1}) < minimum ({2}), capping", name, toCheck, range.Minimum);
+            return range.Minimum;
         }
 
-        if (toCheck.CompareTo(max) <= 0)
+        if (toCheck.CompareTo(range.Maximum) <= 0)
             return toCheck;
 
-        logger.Warning("{0} ({1}) > maximum ({2}), capping", name, toCheck, max);
-        return max;
+        Logger?.Warning("{0} ({1}) > maximum ({2}), capping", name, toCheck, range.Maximum);
+        return range.Maximum;
     }
+
+    internal static LatLong CartesianToLatLong( this ProjectionMetrics metrics, Cartesian cartesian )
+    {
+        // ReSharper disable once UseObjectOrCollectionInitializer
+        var retVal = new LatLong( metrics );
+
+        retVal.Latitude = ( 2
+              * Math.Atan( Math.Exp( MapConstants.TwoPi
+                                   * cartesian.Y
+                                   / ( cartesian.Metrics.YRange.Maximum - cartesian.Metrics.YRange.Minimum ) ) )
+              - MapConstants.HalfPi )
+          / MapConstants.RadiansPerDegree;
+
+        retVal.Longitude = 360 * cartesian.X / (cartesian.Metrics.XRange.Maximum - cartesian.Metrics.XRange.Minimum) - 180;
+
+        return retVal;
+    }
+
+    internal static Cartesian LatLongToCartesian( this ProjectionMetrics metrics, LatLong latLong )
+    {
+        var retVal = new Cartesian( metrics );
+
+        var x = ( metrics.XRange.Maximum - metrics.XRange.Minimum ) * (latLong.Longitude / 360 + 0.5);
+
+        var y = ( metrics.YRange.Maximum - metrics.YRange.Minimum )
+          * Math.Log( Math.Tan( MapConstants.QuarterPi + latLong.Latitude * MapConstants.RadiansPerDegree / 2 ) )
+          / MapConstants.TwoPi;
+
+        try
+        {
+            retVal.X = Convert.ToInt32(Math.Round(x));
+            retVal.Y = Convert.ToInt32(Math.Round(y));
+        }
+        catch (Exception ex)
+        {
+            Logger?.Error<string>( "Could not convert double to int32, message was '{0}'", ex.Message );
+        }
+
+        return retVal;
+    }
+
+
 }

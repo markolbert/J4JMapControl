@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
@@ -20,14 +21,14 @@ public record MapTile
             if( x.GetType() != y.GetType() )
                 return false;
 
-            return x.Projection.Equals( y.Projection )
+            return x.Metrics.Equals( y.Metrics )
              && x.X == y.X
              && x.Y == y.Y;
         }
 
         public int GetHashCode( MapTile obj )
         {
-            return HashCode.Combine( obj.Projection, obj.X, obj.Y );
+            return HashCode.Combine( obj.Metrics, obj.X, obj.Y );
         }
     }
 
@@ -38,27 +39,32 @@ public record MapTile
     public event EventHandler? ImageChanged;
 
     private readonly IJ4JLogger _logger;
+    private readonly Func<MapTile, HttpRequestMessage?> _createRequest;
+    private readonly Func<HttpResponseMessage, Task<MemoryStream?>> _extractImageStream;
+
     private MemoryStream? _imageStream;
 
     public MapTile(
         ITiledProjection projection,
         int x,
-        int y,
-        IJ4JLogger logger
+        int y
     )
     {
-        _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        _logger = J4JDeusEx.GetLogger<MapTile>()!;
+        _createRequest = projection.GetRequest;
+        _extractImageStream = projection.ExtractImageDataAsync;
 
-        Projection = projection;
+        Metrics = projection.Metrics;
         Scale = projection.Scale;
+        CanBeCached = projection.CanBeCached;
+        HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint( projection, _logger )
+        Center = new MapPoint( Metrics )
         {
             Cartesian =
             {
-                X = x * Projection.TileHeightWidth + Projection.TileHeightWidth / 2,
-                Y = y * Projection.TileHeightWidth + Projection.TileHeightWidth / 2
+                X = x * projection.TileHeightWidth + projection.TileHeightWidth / 2,
+                Y = y * projection.TileHeightWidth + projection.TileHeightWidth / 2
             }
         };
 
@@ -69,17 +75,19 @@ public record MapTile
 
     public MapTile(
         ITiledProjection projection,
-        Cartesian point,
-        IJ4JLogger logger
+        Cartesian point
     )
     {
-        _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        _logger = J4JDeusEx.GetLogger<MapTile>()!;
+        _createRequest = projection.GetRequest;
+        _extractImageStream = projection.ExtractImageDataAsync;
 
-        Projection = projection;
+        Metrics = projection.Metrics;
         Scale = projection.Scale;
+        CanBeCached = projection.CanBeCached;
+        HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint( projection, _logger ) { Cartesian = { X = point.X, Y = point.Y } };
+        Center = new MapPoint( Metrics ) { Cartesian = { X = point.X, Y = point.Y } };
 
         X = point.X / projection.TileHeightWidth;
         Y = point.Y / projection.TileHeightWidth;
@@ -87,32 +95,38 @@ public record MapTile
     }
 
     public MapTile(
-        MapPoint center,
-        IJ4JLogger logger
+        ITiledProjection projection,
+        MapPoint center
     )
     {
-        _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        _logger = J4JDeusEx.GetLogger<MapTile>()!;
+        _createRequest = projection.GetRequest;
+        _extractImageStream = projection.ExtractImageDataAsync;
 
-        Projection = center.Projection;
-        Scale = center.Projection.Scale;
+        Metrics = projection.Metrics;
+        Scale = projection.Scale;
+        CanBeCached = projection.CanBeCached;
+        HeightWidth = projection.TileHeightWidth;
 
         Center = center;
         QuadKey = this.GetQuadKey();
     }
 
     public MapTile(
-        LatLong latLong,
-        IJ4JLogger logger
+        ITiledProjection projection,
+        LatLong latLong
     )
     {
-        _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        _logger = J4JDeusEx.GetLogger<MapTile>()!;
+        _createRequest = projection.GetRequest;
+        _extractImageStream = projection.ExtractImageDataAsync;
 
-        Projection = latLong.Projection;
-        Scale = latLong.Projection.Scale;
+        Metrics = projection.Metrics;
+        Scale = projection.Scale;
+        CanBeCached = projection.CanBeCached;
+        HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint( Projection, _logger )
+        Center = new MapPoint( Metrics )
         {
             LatLong = { Latitude = latLong.Latitude, Longitude = latLong.Longitude }
         };
@@ -120,25 +134,19 @@ public record MapTile
         QuadKey = this.GetQuadKey();
     }
 
-    public ITiledProjection Projection { get; }
+    public ProjectionMetrics Metrics { get; }
     public int Scale { get; }
-    public bool ReflectsProjection => Scale == Projection.Scale;
-    public bool CanBeCached => Projection.CanBeCached;
+    public bool ReflectsProjection => Scale == Metrics.Scale;
+    public bool CanBeCached { get; }
 
     public MapPoint Center { get; }
-    public int HeightWidth => Projection.TileHeightWidth;
+    public int HeightWidth { get; }
     public string QuadKey { get; }
     public int X { get; }
     public int Y { get; }
 
     public async Task<MemoryStream?> GetImageAsync( bool forceRetrieval = false )
     {
-        if( !Projection.Initialized )
-        {
-            _logger.Error( "Projection is not initialized" );
-            return null;
-        }
-
         if( _imageStream != null && !forceRetrieval )
             return _imageStream;
 
@@ -148,7 +156,8 @@ public record MapTile
 
         _logger.Verbose( "Beginning image retrieval from web" );
 
-        if( !Projection.TryGetRequest( this, out var request ) )
+        var request = _createRequest( this );
+        if( request == null )
         {
             _logger.Error( "Could not create HttpRequestMessage for tile ({0}, {1})", X, Y );
             if( wasNull )
@@ -157,7 +166,7 @@ public record MapTile
             return null;
         }
 
-        var uriText = request!.RequestUri!.AbsoluteUri;
+        var uriText = request.RequestUri!.AbsoluteUri;
         var httpClient = new HttpClient();
 
         _logger.Verbose<string>( "Querying {0}", uriText );
@@ -197,9 +206,8 @@ public record MapTile
 
         _logger.Verbose<string>( "Reading response from {0}", uriText );
 
-        _imageStream = await Projection.ExtractImageDataAsync( response );
+        _imageStream = await _extractImageStream( response );
         ImageChanged?.Invoke( this, EventArgs.Empty );
-
 
         return _imageStream;
     }

@@ -8,7 +8,7 @@ public static class MapExtensions
     {
         var retVal = new StringBuilder();
 
-        for (var i = tile.Projection.Scale - tile.Projection.MinScale; i > 0; i--)
+        for (var i = tile.Metrics.Scale - tile.Metrics.ScaleRange.Minimum; i > 0; i--)
         {
             var digit = '0';
             var mask = 1 << (i - 1);

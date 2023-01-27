@@ -17,10 +17,13 @@ public abstract class MapProjection : IMapProjection
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
-        MaxLatitude = srcConfig.MaxLatitude;
-        MinLatitude = srcConfig.MinLatitude;
-        MaxLongitude = srcConfig.MaxLongitude;
-        MinLongitude = srcConfig.MinLongitude;
+        Metrics = new ProjectionMetrics()
+        {
+            LatitudeRange = new MinMax<double>( srcConfig.MinLatitude, srcConfig.MaxLatitude ),
+            LongitudeRange = new MinMax<double>( srcConfig.MinLongitude, srcConfig.MaxLongitude ),
+            XRange = new MinMax<int>( 0, 0 ),
+            YRange = new MinMax<int>( 0, 0 )
+        };
 
         Logger = logger;
         Logger.SetLoggedType( GetType() );
@@ -64,10 +67,13 @@ public abstract class MapProjection : IMapProjection
         Copyright = srcConfig!.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
-        MaxLatitude = srcConfig.MaxLatitude;
-        MinLatitude = srcConfig.MinLatitude;
-        MaxLongitude = srcConfig.MaxLongitude;
-        MinLongitude = srcConfig.MinLongitude;
+        Metrics = new ProjectionMetrics()
+        {
+            LatitudeRange = new MinMax<double>(srcConfig.MinLatitude, srcConfig.MaxLatitude),
+            LongitudeRange = new MinMax<double>(srcConfig.MinLongitude, srcConfig.MaxLongitude),
+            XRange = new MinMax<int>(0, 0),
+            YRange = new MinMax<int>(0, 0)
+        };
     }
 
     protected IJ4JLogger Logger { get; }
@@ -93,6 +99,8 @@ public abstract class MapProjection : IMapProjection
         return result != null;
     }
 
+    public ProjectionMetrics Metrics { get; protected set; }
+
     public abstract Task<bool> Authenticate( string? credentials = null );
 
     public bool Initialized { get; protected set; }
@@ -101,16 +109,6 @@ public abstract class MapProjection : IMapProjection
     public string Copyright { get; }
     public Uri? CopyrightUri { get; }
 
-    public double MaxLatitude { get; }
-    public double MinLatitude { get; }
-    public double MaxLongitude { get; }
-    public double MinLongitude { get; }
-
-    public int MinX { get; protected set; }
-    public int MaxX { get; protected set; }
-    public int MinY { get; protected set; }
-    public int MaxY { get; protected set; }
-
-    public int Width => MaxX - MinX;
-    public int Height => MaxY - MinY;
+    public int Width => Metrics.XRange.Maximum - Metrics.XRange.Maximum;
+    public int Height => Metrics.YRange.Maximum - Metrics.YRange.Minimum;
 }

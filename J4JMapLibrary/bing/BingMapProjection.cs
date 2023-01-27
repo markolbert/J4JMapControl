@@ -142,8 +142,10 @@ public class BingMapProjection : TiledProjection
 
         TileHeightWidth = Metadata.PrimaryResource.ImageWidth;
 
-        MaxScale = Metadata.PrimaryResource.ZoomMax;
-        MinScale = Metadata.PrimaryResource.ZoomMin;
+        Metrics = Metrics with
+        {
+            ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax )
+        };
 
         // check to ensure we're dealing with square tiles
         if (TileHeightWidth != Metadata.PrimaryResource.ImageHeight)
@@ -154,7 +156,7 @@ public class BingMapProjection : TiledProjection
 
         Initialized = true;
 
-        Scale = MinScale;
+        Scale = Metrics.ScaleRange.Minimum;
 
         return true;
     }
@@ -172,12 +174,10 @@ public class BingMapProjection : TiledProjection
         return true;
     }
 
-    public override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )
+    public override HttpRequestMessage? GetRequest( MapTile coordinates )
     {
-        result = null;
-
         if( !Initialized )
-            return false;
+            return null;
 
         coordinates = Cap( coordinates )!;
 
@@ -193,8 +193,6 @@ public class BingMapProjection : TiledProjection
                                .Replace( "{quadkey}", quadKey )
                                .Replace( "{culture}", _cultureCode );
 
-        result = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
-
-        return true;
+        return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
 }

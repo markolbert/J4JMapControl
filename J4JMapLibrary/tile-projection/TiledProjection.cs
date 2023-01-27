@@ -1,11 +1,8 @@
 ﻿using J4JSoftware.Logging;
-using System.Drawing;
-using System.Net;
-using System.Runtime.CompilerServices;
 
 namespace J4JMapLibrary;
 
-public abstract partial class TiledProjection : MapProjection, ITiledProjection
+public abstract class TiledProjection : MapProjection, ITiledProjection
 {
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
@@ -24,9 +21,6 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
     :base(srcConfig, logger)
     {
         CanBeCached = canBeCached;
-
-        MinTile = new MapTile( this, 0, 0, Logger );
-        MaxTile = new MapTile( this, 0, 0, Logger );
     }
 
     protected TiledProjection(
@@ -37,18 +31,9 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         : base( libConfiguration, logger )
     {
         CanBeCached = canBeCached;
-
-        MinTile = new MapTile( this, 0, 0, Logger );
-        MaxTile = new MapTile( this, 0, 0, Logger );
     }
 
     public bool CanBeCached { get; }
-
-    public MapTile MinTile { get; protected set; }
-    public MapTile MaxTile { get; protected set; }
-
-    public int MaxScale { get; protected set; }
-    public int MinScale { get; protected set; }
 
     public virtual int Scale
     {
@@ -62,8 +47,8 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
                 return;
             }
 
-            _scale = InternalExtensions.ConformValueToRange(value, MinScale, MaxScale, "Scale", Logger);
-            SetSizes(_scale - MinScale);
+            _scale = InternalExtensions.ConformValueToRange(value, Metrics.ScaleRange, "Scale");
+            SetSizes( _scale - Metrics.ScaleRange.Minimum );
         }
     }
 
@@ -74,12 +59,13 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
         var numCells = Pow(2, scale);
         var heightWidth = TileHeightWidth * numCells;
 
-        MinX = 0;
-        MaxX = heightWidth - 1;
-        MinY = 0;
-        MaxY = heightWidth - 1;
-
-        MaxTile = new MapTile(this, numCells - 1, numCells - 1, Logger);
+        Metrics = Metrics with
+        {
+            XRange = new MinMax<int>( 0, heightWidth - 1 ),
+            YRange = new MinMax<int>( 0, heightWidth - 1 ),
+            TileXRange = new MinMax<int>( 0, numCells - 1 ),
+            TileYRange = new MinMax<int>( 0, numCells - 1 )
+        };
     }
 
     public int TileHeightWidth { get; protected set; }
@@ -92,11 +78,11 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return 0;
         }
 
-        latitude = InternalExtensions.ConformValueToRange( latitude, MinLatitude, MaxLatitude, "Latitude", Logger );
+        latitude = InternalExtensions.ConformValueToRange( latitude, Metrics.LatitudeRange, "Latitude" );
 
         return Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters
-          / ( MaxX - MinX );
+          / Width;
     }
 
     public string MapScale( double latitude, double dotsPerInch ) =>
@@ -110,62 +96,13 @@ public abstract partial class TiledProjection : MapProjection, ITiledProjection
             return null;
         }
 
-        var xTile = InternalExtensions.ConformValueToRange( toCheck.X, MinTile.X, MaxTile.X, "Tile X Coordinate", Logger );
-        var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, MinTile.Y, MaxTile.Y, "Tile Y Coordinate", Logger );
+        var xTile = InternalExtensions.ConformValueToRange( toCheck.X, Metrics.TileXRange, "Tile X Coordinate" );
+        var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, Metrics.TileYRange, "Tile Y Coordinate" );
 
-        return new MapTile(this, xTile, yTile, Logger );
+        return new MapTile(this, xTile, yTile );
     }
 
-    public LatLong CartesianToLatLong(int x, int y)
-    {
-        var retVal = new LatLong(this, Logger);
-
-        if (!Initialized)
-        {
-            Logger.Error("Not initialized");
-            return retVal;
-        }
-
-        x = InternalExtensions.ConformValueToRange(x, MinX, MaxX, "X coordinate", Logger);
-        y = InternalExtensions.ConformValueToRange(y, MinY, MaxY, "Y coordinate", Logger);
-
-        retVal.Latitude = (2 * Math.Atan(Math.Exp(MapConstants.TwoPi * y / Height)) - MapConstants.HalfPi)
-          / MapConstants.RadiansPerDegree;
-        retVal.Longitude = 360 * x / Width - 180;
-
-        return retVal;
-    }
-
-    public Cartesian LatLongToCartesian(double latitude, double longitude)
-    {
-        var retVal = new Cartesian(this, Logger);
-
-        if (!Initialized)
-        {
-            Logger.Error("Not initialized");
-            return retVal;
-        }
-
-        latitude = InternalExtensions.ConformValueToRange(latitude, MinLatitude, MaxLatitude, "Latitude", Logger);
-        longitude = InternalExtensions.ConformValueToRange(longitude, MinLongitude, MaxLongitude, "Longitude", Logger);
-
-        var x = Width * (longitude / 360 + 0.5);
-        var y = Width * Math.Log(Math.Tan(MapConstants.QuarterPi + latitude * MapConstants.RadiansPerDegree / 2)) / MapConstants.TwoPi;
-
-        try
-        {
-            retVal.X = Convert.ToInt32(Math.Round(x));
-            retVal.Y = Convert.ToInt32(Math.Round(y));
-        }
-        catch (Exception ex)
-        {
-            Logger.Error<string>("Could not convert double to int32, message was '{0}'", ex.Message);
-        }
-
-        return retVal;
-    }
-
-    public abstract bool TryGetRequest( MapTile tile, out HttpRequestMessage? result );
+    public abstract HttpRequestMessage? GetRequest( MapTile tile  );
 
     public virtual async Task<MemoryStream?> ExtractImageDataAsync( HttpResponseMessage response )
     {
