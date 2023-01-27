@@ -1,22 +1,30 @@
-﻿using J4JSoftware.Logging;
+﻿using System.Text;
 
 namespace J4JMapLibrary;
 
-internal static class MapExtensions
+public static class MapExtensions
 {
-    internal static T ConformValueToRange<T>(T toCheck, T min, T max, string name, IJ4JLogger logger)
-        where T : IComparable<T>
+    public static string GetQuadKey(this TiledProjection.MapTile tile)
     {
-        if (toCheck.CompareTo(min) < 0)
+        var retVal = new StringBuilder();
+
+        for (var i = tile.Projection.Scale - tile.Projection.MinScale; i > 0; i--)
         {
-            logger.Warning("{0} ({1}) < minimum ({2}), capping", name, toCheck, min);
-            return min;
+            var digit = '0';
+            var mask = 1 << (i - 1);
+
+            if ((tile.X & mask) != 0)
+                digit++;
+
+            if ((tile.Y & mask) != 0)
+            {
+                digit++;
+                digit++;
+            }
+
+            retVal.Append(digit);
         }
 
-        if (toCheck.CompareTo(max) <= 0)
-            return toCheck;
-
-        logger.Warning("{0} ({1}) > maximum ({2}), capping", name, toCheck, max);
-        return max;
+        return retVal.Length == 0 ? "0" : retVal.ToString();
     }
 }
