@@ -34,7 +34,7 @@ public class BingTests : TestBase
 
         bingMaps.Scale = scale;
 
-        var mapTile = bingMaps.CreateMapTile( xTile, yTile );
+        var mapTile = bingMaps.CreateMapTileFromTileCoordinates( xTile, yTile );
         mapTile.Should().NotBeNull();
         var stream = await bingMaps.GetTileImageAsync( mapTile! );
 
@@ -74,7 +74,7 @@ public class BingTests : TestBase
 
         bingMaps.Scale = scale;
 
-        var mapTile = bingMaps.CreateMapTile(xTile, yTile);
+        var mapTile = bingMaps.CreateMapTileFromTileCoordinates(xTile, yTile);
         mapTile.Should().NotBeNull();
         mapTile!.GetQuadKey().Should().Be( quadKey );
     }
