@@ -172,7 +172,7 @@ public class BingMapProjection : TiledProjection
         return true;
     }
 
-    protected override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )
+    public override bool TryGetRequest( MapTile coordinates, out HttpRequestMessage? result )
     {
         result = null;
 
