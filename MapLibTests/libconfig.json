@@ -9,7 +9,7 @@
       "RetrievalUrl": "https://tile.openstreetmap.org/ZoomLevel/XTile/YTile.png",
       "Copyright": "© OpenStreetMap Contributors",
       "CopyrightUri": "http://www.openstreetmap.org/copyright",
-      "MinScale": 0,
+      "MinScale": 1,
       "MaxScale": 20,
       "TileHeightWidth": 256
     },
@@ -18,7 +18,7 @@
       "RetrievalUrl": "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png",
       "Copyright": "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
       "CopyrightUri": "http://opentopomap.org/",
-      "MinScale": 0,
+      "MinScale": 1,
       "MaxScale": 20,
       "TileHeightWidth": 256
     }

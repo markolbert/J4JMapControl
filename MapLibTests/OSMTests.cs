@@ -1,25 +1,16 @@
 using FluentAssertions;
 using J4JMapLibrary;
-using J4JSoftware.DeusEx;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MapLibTests;
 
-public class BingTests : TestBase
+public class OSMTests : TestBase
 {
     [ Fact ]
     public async void ValidApiKey()
     {
-        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
-        bingMaps.Should().NotBeNull();
-        bingMaps!.Initialized.Should().BeTrue();
-
-        bingMaps.Metadata.Should().NotBeNull();
-        bingMaps.Metadata!.PrimaryResource.Should().NotBeNull();
-        bingMaps.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
-        bingMaps.Metadata.PrimaryResource.ZoomMin.Should().Be( 1 );
-        bingMaps.Metadata.PrimaryResource.ImageHeight.Should().Be( 256 );
-        bingMaps.Metadata.PrimaryResource.ImageWidth.Should().Be( 256 );
+        var projection = await GetFactory().CreateMapProjection("OpenStreetMaps") as OpenStreetMapsProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
     }
 
     [ Theory ]
@@ -28,13 +19,13 @@ public class BingTests : TestBase
     [InlineData(15, 27, 48)]
     public async void GetTile( int scale, int xTile, int yTile )
     {
-        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
-        bingMaps.Should().NotBeNull();
-        bingMaps!.Initialized.Should().BeTrue();
+        var projection = await GetFactory().CreateMapProjection("OpenStreetMaps") as OpenStreetMapsProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        bingMaps.Scale = scale;
+        projection.Scale = scale;
 
-        var mapTile = new MapTile( bingMaps, xTile, yTile );
+        var mapTile = new MapTile( projection, xTile, yTile );
         var stream = await mapTile.GetImageAsync();
 
         stream.Should().NotBeNull();
@@ -67,14 +58,13 @@ public class BingTests : TestBase
     [ InlineData( 4, 4, 6, "320" ) ]
     public async void TestQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var bingMaps = await GetFactory().CreateMapProjection( "BingMaps" ) as BingMapProjection;
-        bingMaps.Should().NotBeNull();
-        bingMaps!.Initialized.Should().BeTrue();
+        var projection = await GetFactory().CreateMapProjection( "OpenStreetMaps" ) as OpenStreetMapsProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        bingMaps.Scale = scale;
+        projection.Scale = scale;
 
-        var mapTile = new MapTile( bingMaps, xTile, yTile );
-        mapTile.Should().NotBeNull();
+        var mapTile = new MapTile( projection, xTile, yTile );
         mapTile.GetQuadKey().Should().Be( quadKey );
     }
 }
