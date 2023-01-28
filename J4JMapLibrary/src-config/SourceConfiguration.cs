@@ -39,7 +39,6 @@ public class SourceConfiguration : ISourceConfiguration
     }
 
     public string Name { get; set; } = string.Empty;
-    public ServerConfiguration? ConfigurationStyle { get; set; }
     public bool CredentialsRequired { get; set; } = true;
     public string Copyright { get; set; } = string.Empty;
     public Uri? CopyrightUri { get; set; }
