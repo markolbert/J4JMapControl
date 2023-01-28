@@ -1,7 +1,11 @@
-﻿namespace J4JMapLibrary;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace J4JMapLibrary;
 
 public interface ILibraryConfiguration
 {
+    bool IsInitialized { get; }
+
     List<SourceConfiguration> SourceConfigurations { get; set; }
     List<Credential> Credentials { get; set; }
     bool ValidateConfiguration();

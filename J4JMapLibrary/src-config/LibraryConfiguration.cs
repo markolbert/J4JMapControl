@@ -1,5 +1,6 @@
 ﻿using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace J4JMapLibrary;
@@ -15,6 +16,61 @@ public class LibraryConfiguration : ILibraryConfiguration
 
         _logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
         _logger?.SetLoggedType( GetType() );
+    }
+
+    public bool IsInitialized { get; private set; }
+
+    public bool Initialize( IConfiguration config )
+    {
+        var sourceIdx = 0;
+        var kvPairs = config.AsEnumerable().ToList();
+        var retVal = true;
+
+        // ReSharper disable once AccessToModifiedClosure
+        while( kvPairs.Any( x => x.Key.Equals( $"{nameof( SourceConfigurations )}:{sourceIdx}" ) ) )
+        {
+            var identifiedType = false;
+
+            if( kvPairs.Any(
+
+                   // ReSharper disable once AccessToModifiedClosure
+                   x => x.Key.Equals(
+                       $"{nameof( SourceConfigurations )}:{sourceIdx}:{nameof( DynamicConfiguration.MetadataRetrievalUrl )}" ) ) )
+            {
+                var dynamicConfig = new DynamicConfiguration();
+                config.GetSection( $"{nameof( SourceConfigurations )}:{sourceIdx}" ).Bind( dynamicConfig );
+
+                SourceConfigurations.Add( dynamicConfig );
+
+                identifiedType = true;
+            }
+
+            if( kvPairs.Any(
+
+                   // ReSharper disable once AccessToModifiedClosure
+                   x => x.Key.Equals(
+                       $"{nameof( SourceConfigurations )}:{sourceIdx}:{nameof( StaticConfiguration.RetrievalUrl )}" ) ) )
+            {
+                var staticConfig = new StaticConfiguration();
+
+                config.GetSection( $"{nameof( SourceConfigurations )}:{sourceIdx}" ).Bind( staticConfig );
+                SourceConfigurations.Add( staticConfig );
+
+                identifiedType = true;
+            }
+
+            sourceIdx++;
+
+            if( !identifiedType )
+                _logger?.Error( "Failed to identify correct source configuration type derived from {0}",
+                                typeof( SourceConfiguration ) );
+
+            retVal &= identifiedType;
+        }
+
+        IsInitialized = retVal;
+
+        return retVal;
     }
 
     public List<SourceConfiguration> SourceConfigurations { get; set; } = new();
