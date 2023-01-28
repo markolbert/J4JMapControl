@@ -70,7 +70,7 @@ public record MapTile
 
         X = x < 0 ? 0 : x;
         Y = y < 0 ? 0 : y;
-        QuadKey = this.GetQuadKey();
+        QuadKey = this.ToQuadKey();
     }
 
     public MapTile(
@@ -91,7 +91,7 @@ public record MapTile
 
         X = point.X / projection.TileHeightWidth;
         Y = point.Y / projection.TileHeightWidth;
-        QuadKey = this.GetQuadKey();
+        QuadKey = this.ToQuadKey();
     }
 
     public MapTile(
@@ -109,7 +109,7 @@ public record MapTile
         HeightWidth = projection.TileHeightWidth;
 
         Center = center;
-        QuadKey = this.GetQuadKey();
+        QuadKey = this.ToQuadKey();
     }
 
     public MapTile(
@@ -131,7 +131,7 @@ public record MapTile
             LatLong = { Latitude = latLong.Latitude, Longitude = latLong.Longitude }
         };
 
-        QuadKey = this.GetQuadKey();
+        QuadKey = this.ToQuadKey();
     }
 
     public ProjectionMetrics Metrics { get; }
