@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("OpenStreetMaps", ServerConfiguration.Static)]
+[MapProjection("OpenStreetMaps", ServerConfigurationStyle.Static)]
 public class OpenStreetMapsProjection : OpenMapProjection
 {
     public OpenStreetMapsProjection( 

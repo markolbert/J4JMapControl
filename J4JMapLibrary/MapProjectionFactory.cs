@@ -11,7 +11,7 @@ public class MapProjectionFactory
     private record SourceConfigurationInfo(
         string Name,
         bool HasLibraryConfigurationConstructor,
-        ServerConfiguration ServerConfiguration,
+        ServerConfigurationStyle ServerConfigurationStyle,
         Type MapProjectionType
     );
 
@@ -77,16 +77,16 @@ public class MapProjectionFactory
                         continue;
                     }
 
-                    var srcConfigTester = curAttr.ServerConfiguration switch
+                    var srcConfigTester = curAttr.ServerConfigurationStyle switch
                     {
-                        ServerConfiguration.Dynamic => new ConstructorParameterTester<IMapProjection>(
+                        ServerConfigurationStyle.Dynamic => new ConstructorParameterTester<IMapProjection>(
                             typeof( IDynamicConfiguration ),
                             typeof( IJ4JLogger ) ),
-                        ServerConfiguration.Static => new ConstructorParameterTester<IMapProjection>(
+                        ServerConfigurationStyle.Static => new ConstructorParameterTester<IMapProjection>(
                             typeof( IStaticConfiguration ),
                             typeof( IJ4JLogger ) ),
                         _ => throw new InvalidEnumArgumentException(
-                            $"Unsupported ServerConfiguration '{curAttr.ServerConfiguration}'" )
+                            $"Unsupported ServerConfigurationStyle '{curAttr.ServerConfigurationStyle}'" )
                     };
 
                     var hasSrcCtor = srcConfigTester.MeetsRequirements(projectionType);
@@ -99,7 +99,7 @@ public class MapProjectionFactory
                         _sources.Add(curAttr.Name,
                                       new SourceConfigurationInfo(curAttr.Name,
                                                                    hasLibCtor,
-                                                                   curAttr.ServerConfiguration,
+                                                                   curAttr.ServerConfigurationStyle,
                                                                    projectionType));
                 }
             }
@@ -145,8 +145,8 @@ public class MapProjectionFactory
         {
             IDynamicConfiguration dynamicConfig => CreateDynamicStatic( ctorInfo,
                                                                         srcConfig,
-                                                                        ServerConfiguration.Dynamic ),
-            IStaticConfiguration staticConfig => CreateDynamicStatic( ctorInfo, srcConfig, ServerConfiguration.Static ),
+                                                                        ServerConfigurationStyle.Dynamic ),
+            IStaticConfiguration staticConfig => CreateDynamicStatic( ctorInfo, srcConfig, ServerConfigurationStyle.Static ),
             _ => CreateLibConfig( ctorInfo )
         };
 
@@ -172,9 +172,9 @@ public class MapProjectionFactory
         return retVal;
     }
 
-    private IMapProjection? CreateDynamicStatic( SourceConfigurationInfo ctorInfo, ISourceConfiguration config, ServerConfiguration serverConfig )
+    private IMapProjection? CreateDynamicStatic( SourceConfigurationInfo ctorInfo, ISourceConfiguration config, ServerConfigurationStyle serverConfig )
     {
-        if( ctorInfo.ServerConfiguration != serverConfig )
+        if( ctorInfo.ServerConfigurationStyle != serverConfig )
         {
             _logger.Error("'{0}' requires an I{1}Configuration argument", ctorInfo.MapProjectionType, serverConfig);
             return null;

@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace J4JMapLibrary;
 
-[MapProjection("BingMaps", ServerConfiguration.Dynamic)]
+[MapProjection("BingMaps", ServerConfigurationStyle.Dynamic)]
 public class BingMapsProjection : TiledProjection
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";

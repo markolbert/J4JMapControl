@@ -5,13 +5,13 @@ public class MapProjectionAttribute : Attribute
 {
     public MapProjectionAttribute(
         string name,
-        ServerConfiguration serverConfig
+        ServerConfigurationStyle serverConfig
     )
     {
         Name = name;
-        ServerConfiguration = serverConfig;
+        ServerConfigurationStyle = serverConfig;
     }
 
     public string Name { get; }
-    public ServerConfiguration ServerConfiguration { get; }
+    public ServerConfigurationStyle ServerConfigurationStyle { get; }
 }

@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public enum ServerConfiguration
+public enum ServerConfigurationStyle
 {
     Static,
     Dynamic
