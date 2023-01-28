@@ -10,7 +10,7 @@ public class BingTests : TestBase
     [ Fact ]
     public async void ValidApiKey()
     {
-        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
+        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapsProjection;
         bingMaps.Should().NotBeNull();
         bingMaps!.Initialized.Should().BeTrue();
 
@@ -28,7 +28,7 @@ public class BingTests : TestBase
     [InlineData(15, 27, 48)]
     public async void GetTile( int scale, int xTile, int yTile )
     {
-        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapProjection;
+        var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapsProjection;
         bingMaps.Should().NotBeNull();
         bingMaps!.Initialized.Should().BeTrue();
 
@@ -67,7 +67,7 @@ public class BingTests : TestBase
     [ InlineData( 4, 4, 6, "320" ) ]
     public async void TestQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var bingMaps = await GetFactory().CreateMapProjection( "BingMaps" ) as BingMapProjection;
+        var bingMaps = await GetFactory().CreateMapProjection( "BingMaps" ) as BingMapsProjection;
         bingMaps.Should().NotBeNull();
         bingMaps!.Initialized.Should().BeTrue();
 
