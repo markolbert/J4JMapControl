@@ -1,7 +1,5 @@
 using FluentAssertions;
 using J4JMapLibrary;
-using J4JSoftware.DeusEx;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MapLibTests;
 
@@ -64,15 +62,15 @@ public class BingTests : TestBase
     [ InlineData( 3, 1, 3, "023" ) ]
     [ InlineData( 3, 2, 3, "032" ) ]
     [ InlineData( 3, 3, 3, "033" ) ]
-    public async void TestQuadKeys( int scale, int xTile, int yTile, string quadKey )
+    public async void CreateQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var bingMaps = await GetFactory().CreateMapProjection( "BingMaps" ) as BingMapsProjection;
-        bingMaps.Should().NotBeNull();
-        bingMaps!.Initialized.Should().BeTrue();
+        var projection = await GetFactory().CreateMapProjection( "BingMaps" ) as BingMapsProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        bingMaps.Scale = scale;
+        projection.Scale = scale;
 
-        var mapTile = new MapTile( bingMaps, xTile, yTile );
+        var mapTile = new MapTile( projection, xTile, yTile );
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be( quadKey );
     }

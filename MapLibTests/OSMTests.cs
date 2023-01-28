@@ -53,7 +53,7 @@ public class OSMTests : TestBase
     [InlineData(3, 1, 3, "023")]
     [InlineData(3, 2, 3, "032")]
     [InlineData(3, 3, 3, "033")]
-    public async void TestQuadKeys( int scale, int xTile, int yTile, string quadKey )
+    public async void CreateQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
         var projection = await GetFactory().CreateMapProjection( "OpenStreetMaps" ) as OpenStreetMapsProjection;
         projection.Should().NotBeNull();
@@ -62,6 +62,6 @@ public class OSMTests : TestBase
         projection.Scale = scale;
 
         var mapTile = new MapTile( projection, xTile, yTile );
-        mapTile.GetQuadKey().Should().Be( quadKey );
+        mapTile.ToQuadKey().Should().Be( quadKey );
     }
 }
