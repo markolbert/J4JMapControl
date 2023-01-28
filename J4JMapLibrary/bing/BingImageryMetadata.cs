@@ -7,7 +7,7 @@ public class BingImageryMetadata
     public int StatusCode { get; set; }
     public string StatusDescription { get; set; } = string.Empty;
     public string AuthenticationResultCode { get; set; } = string.Empty;
-    public string[] ErrorDetails { get; set; } = new string[0];
+    public string[] ErrorDetails { get; set; } = Array.Empty<string>();
     public string TraceId { get; set; } = string.Empty;
     public BingResourceSet[] ResourceSets { get; set; }= Array.Empty<BingResourceSet>();
 
