@@ -10,6 +10,7 @@ internal static class InternalExtensions
     static InternalExtensions()
     {
         Logger = J4JDeusEx.GetLogger();
+        Logger?.SetLoggedType( typeof( InternalExtensions ) );
     }
 
     internal static T ConformValueToRange<T>(T toCheck, MinMax<T> range, string name)
