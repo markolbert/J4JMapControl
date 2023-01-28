@@ -1,6 +1,4 @@
-﻿using static J4JMapLibrary.TiledProjection;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 public interface ITiledProjection : IMapProjection
 {

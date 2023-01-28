@@ -1,8 +1,6 @@
 ﻿using J4JSoftware.Logging;
 using System.Net;
-using System.Text;
 using System.Text.Json;
-using static J4JMapLibrary.TiledProjection;
 
 namespace J4JMapLibrary;
 
