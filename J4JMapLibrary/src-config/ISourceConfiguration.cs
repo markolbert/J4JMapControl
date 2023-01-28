@@ -3,6 +3,7 @@
 public interface ISourceConfiguration
 {
     string Name { get; }
+    int MaxRequestLatency { get; }
     string Copyright { get; }
     Uri? CopyrightUri { get; }
     double MaxLatitude { get; }

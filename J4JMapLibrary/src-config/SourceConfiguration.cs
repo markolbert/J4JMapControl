@@ -1,4 +1,6 @@
-﻿namespace J4JMapLibrary;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace J4JMapLibrary;
 
 public class SourceConfiguration : ISourceConfiguration
 {
@@ -39,6 +41,7 @@ public class SourceConfiguration : ISourceConfiguration
     }
 
     public string Name { get; set; } = string.Empty;
+    public int MaxRequestLatency { get; set; }
     public bool CredentialsRequired { get; set; } = true;
     public string Copyright { get; set; } = string.Empty;
     public Uri? CopyrightUri { get; set; }
