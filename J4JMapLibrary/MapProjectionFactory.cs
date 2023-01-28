@@ -42,6 +42,11 @@ public class MapProjectionFactory
                 .ToList()
                 .AsReadOnly();
 
+    public ReadOnlyCollection<string> ProjectionNames => 
+        _sources.Select( x => x.Key )
+                .ToList()
+                .AsReadOnly();
+
     public void Search( params Type[] types ) => Search( types.Select( x => x.Assembly ).ToArray() );
 
     public void Search( params Assembly[] assemblies )
