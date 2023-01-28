@@ -15,6 +15,7 @@ public class OpenMapProjection : TiledProjection
         : base( staticConfig, true, logger )
     {
         _retrievalUrl = staticConfig.RetrievalUrl;
+        SetImageFileExtension( _retrievalUrl );
 
         TileHeightWidth = staticConfig.TileHeightWidth;
         Metrics = Metrics with { ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale ) };
@@ -36,6 +37,7 @@ public class OpenMapProjection : TiledProjection
         }
 
         _retrievalUrl = srcConfig!.RetrievalUrl;
+        SetImageFileExtension( _retrievalUrl );
 
         TileHeightWidth = srcConfig.TileHeightWidth;
         Metrics = Metrics with { ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale) };

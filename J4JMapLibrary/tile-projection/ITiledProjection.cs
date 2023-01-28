@@ -3,10 +3,10 @@
 public interface ITiledProjection : IMapProjection
 {
     bool CanBeCached { get; }
+    int TileHeightWidth { get; }
+    string ImageFileExtension { get; }
 
     int Scale { get; set; }
-
-    int TileHeightWidth { get; }
 
     double GroundResolution( double latitude );
     string MapScale( double latitude, double dotsPerInch );

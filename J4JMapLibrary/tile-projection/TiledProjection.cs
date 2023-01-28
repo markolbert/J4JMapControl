@@ -70,6 +70,20 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
     }
 
     public int TileHeightWidth { get; protected set; }
+    public string ImageFileExtension { get; private set; } = string.Empty;
+
+    protected void SetImageFileExtension( string urlText )
+    {
+        try
+        {
+            var imageUrl = new Uri( urlText );
+            ImageFileExtension = Path.GetExtension( imageUrl.LocalPath );
+        }
+        catch( Exception ex )
+        {
+            Logger.Error<string>( "Could not determine image file extension, message was '{0}'", ex.Message );
+        }
+    }
 
     public double GroundResolution( double latitude )
     {
