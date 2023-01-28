@@ -64,7 +64,8 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
             XRange = new MinMax<int>( 0, heightWidth - 1 ),
             YRange = new MinMax<int>( 0, heightWidth - 1 ),
             TileXRange = new MinMax<int>( 0, numCells - 1 ),
-            TileYRange = new MinMax<int>( 0, numCells - 1 )
+            TileYRange = new MinMax<int>( 0, numCells - 1 ),
+            Scale = Scale
         };
     }
 
