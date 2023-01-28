@@ -13,7 +13,7 @@ public class FactoryTests : TestBase
         var factory = GetFactory(false);
         factory.Should().NotBeNull();
 
-        factory!.Search( assemblyType );
+        factory.Search( assemblyType );
 
         factory.ProjectionTypes.Count.Should().Be( numResults );
     }

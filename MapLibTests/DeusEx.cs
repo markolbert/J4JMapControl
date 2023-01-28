@@ -7,7 +7,7 @@ namespace MapLibTests;
 
 internal partial class DeusEx : J4JDeusExHosted
 {
-    protected override J4JHostConfiguration? GetHostConfiguration() =>
+    protected override J4JHostConfiguration GetHostConfiguration() =>
         new J4JHostConfiguration( AppEnvironment.Console )
            .Publisher("J4JSoftware"  )
            .ApplicationName("Test.MapLibrary")

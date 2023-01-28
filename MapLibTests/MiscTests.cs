@@ -10,12 +10,12 @@ public class MiscTests
     [InlineData("0", 1, 0, 0)]
     [InlineData("01", 2, 1, 0)]
     [InlineData("032", 3, 2, 3)]
-    public async void DecodeQuadKeys(string quadKey, int scale, int xCoord, int yCoord)
+    public void DecodeQuadKeys(string quadKey, int scale, int x, int y)
     {
-        var components = MapExtensions.ToTileCoordinates(quadKey);
+        var (calcScale, xTile, yTile) = MapExtensions.ToTileCoordinates(quadKey);
 
-        components.Scale.Should().Be(scale);
-        components.XTile.Should().Be(xCoord);
-        components.YTile.Should().Be(yCoord);
+        calcScale.Should().Be(scale);
+        xTile.Should().Be(x);
+        yTile.Should().Be(y);
     }
 }
