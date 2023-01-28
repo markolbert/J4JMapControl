@@ -25,7 +25,7 @@ public class BingTests : TestBase
     [ Theory ]
     [ InlineData( 1, 0, 0 ) ]
     [ InlineData( 2, 0, 0 ) ]
-    [InlineData(15, 27, 48)]
+    [InlineData(5, 27, 48)]
     public async void GetTile( int scale, int xTile, int yTile )
     {
         var bingMaps = await GetFactory().CreateMapProjection("BingMaps") as BingMapsProjection;
@@ -38,6 +38,8 @@ public class BingTests : TestBase
         var stream = await mapTile.GetImageAsync();
 
         stream.Should().NotBeNull();
+
+        await WriteImageFileAsync( $"BingMaps{mapTile.QuadKey}{bingMaps.ImageFileExtension}", stream! );
     }
 
     [ Theory ]

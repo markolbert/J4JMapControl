@@ -37,4 +37,12 @@ public class TestBase
 
         return retVal;
     }
+
+    protected async Task WriteImageFileAsync( string fileName, MemoryStream stream, string? folder = null )
+    {
+        folder ??= Environment.GetFolderPath( Environment.SpecialFolder.DesktopDirectory );
+        var filePath = Path.Combine( folder, fileName );
+
+        await File.WriteAllBytesAsync( filePath, stream.ToArray() );
+    }
 }
