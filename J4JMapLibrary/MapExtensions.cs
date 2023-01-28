@@ -8,7 +8,7 @@ public static class MapExtensions
     {
         var retVal = new StringBuilder();
 
-        for (var i = tile.Metrics.Scale - tile.Metrics.ScaleRange.Minimum; i > 0; i--)
+        for (var i = tile.Metrics.Scale; i > 0; i--)
         {
             var digit = '0';
             var mask = 1 << (i - 1);
@@ -16,7 +16,7 @@ public static class MapExtensions
             if ((tile.X & mask) != 0)
                 digit++;
 
-            if ((tile.Y & mask) != 0)
+            if( ( tile.Y & mask ) != 0 )
             {
                 digit++;
                 digit++;
@@ -25,6 +25,6 @@ public static class MapExtensions
             retVal.Append(digit);
         }
 
-        return retVal.Length == 0 ? "0" : retVal.ToString();
+        return retVal.ToString();
     }
 }

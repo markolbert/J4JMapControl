@@ -47,24 +47,24 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
                 return;
             }
 
-            _scale = InternalExtensions.ConformValueToRange(value, Metrics.ScaleRange, "Scale");
-            SetSizes( _scale - Metrics.ScaleRange.Minimum );
+            _scale = InternalExtensions.ConformValueToRange( value, Metrics.ScaleRange, "Scale" );
+
+            SetSizes( _scale  );
         }
     }
 
-    // this assumes *scale* has been normalized (i.e., x -> x - MinScale)
-    // and TileHeightWidth has been set
-    protected void SetSizes(int scale)
+    // this assumes TileHeightWidth has been set
+    protected void SetSizes( int scale )
     {
-        var numCells = Pow(2, scale);
-        var heightWidth = TileHeightWidth * numCells;
+        var cellsInDimension = Pow( 2, scale );
+        var projHeightWidth = TileHeightWidth * cellsInDimension;
 
         Metrics = Metrics with
         {
-            XRange = new MinMax<int>( 0, heightWidth - 1 ),
-            YRange = new MinMax<int>( 0, heightWidth - 1 ),
-            TileXRange = new MinMax<int>( 0, numCells - 1 ),
-            TileYRange = new MinMax<int>( 0, numCells - 1 ),
+            XRange = new MinMax<int>( 0, projHeightWidth - 1 ),
+            YRange = new MinMax<int>( 0, projHeightWidth - 1 ),
+            TileXRange = new MinMax<int>( 0, cellsInDimension - 1 ),
+            TileYRange = new MinMax<int>( 0, cellsInDimension - 1 ),
             Scale = Scale
         };
     }
