@@ -1,10 +1,6 @@
-﻿using System.Text.Json;
-using Autofac;
-using J4JMapLibrary;
-using J4JSoftware.DependencyInjection;
+﻿using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace MapLibTests;
