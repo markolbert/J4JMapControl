@@ -37,22 +37,4 @@ public class TestBase
 
         return retVal;
     }
-
-    //protected async Task<BingMapProjection> GetBingMapProjection()
-    //{
-    //    var key = Configuration.Credentials
-    //                           .FirstOrDefault(x => x.Name.Equals("Bing",
-    //                                                              StringComparison.OrdinalIgnoreCase))
-    //                          ?.Key;
-
-    //    key.Should().NotBeNull().And.NotBeEmpty();
-
-    //    var retVal = J4JDeusEx.ServiceProvider.GetService<BingMapProjection>();
-    //    retVal.Should().NotBeNull();
-        
-    //    var okay = await retVal!.InitializeAsync( key!, BingMapType.Aerial );
-    //    okay.Should().BeTrue();
-
-    //    return retVal;
-    //}
 }
