@@ -43,10 +43,10 @@ public class FactoryTests : TestBase
     }
 
     [ Theory ]
-    [InlineData(typeof(BingMapProjection), true)]
+    [InlineData(typeof(BingMapsProjection), true)]
     [InlineData(typeof(OpenStreetMapsProjection), true)]
     [InlineData(typeof(OpenTopoMapsProjection), true)]
-    public void CreateProjectionFromType( Type type, bool result )
+    public async void CreateProjectionFromType( Type type, bool result )
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();
@@ -62,10 +62,43 @@ public class FactoryTests : TestBase
 
         var method = methods[ 0 ].MakeGenericMethod( type );
 
-        var projection = method.Invoke( factory, new object?[] { null, null } );
+        var projTask = method.Invoke(factory, new object?[] { null, null }) as Task;
+        projTask.Should().NotBeNull();
+        await projTask!;
+
+        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as ITiledProjection;
 
         if (result)
             projection.Should().NotBeNull();
         else projection.Should().BeNull();
     }
+
+    [Theory]
+    [InlineData(typeof(BingMapsProjection),".jpeg")]
+    [InlineData(typeof(OpenStreetMapsProjection), ".png")]
+    [InlineData(typeof(OpenTopoMapsProjection), ".png")]
+    public async void CheckImageFileExtension(Type type, string fileExtension)
+    {
+        var factory = GetFactory();
+        factory.Should().NotBeNull();
+
+        var methods = typeof(MapProjectionFactory)
+                     .GetMethods()
+                     .Where(x => x.Name.Equals("CreateMapProjection",
+                                               StringComparison.OrdinalIgnoreCase)
+                             && x.IsGenericMethod)
+                     .ToList();
+
+        methods.Count.Should().Be(1);
+
+        var method = methods[0].MakeGenericMethod(type);
+
+        var projTask = method.Invoke( factory, new object?[] { null, null } ) as Task;
+        projTask.Should().NotBeNull();
+        await projTask!;
+
+        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as ITiledProjection;
+        projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
+    }
+
 }
