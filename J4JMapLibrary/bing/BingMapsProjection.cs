@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace J4JMapLibrary;
 
 [MapProjection("BingMaps", ServerConfiguration.Dynamic)]
-public class BingMapProjection : TiledProjection
+public class BingMapsProjection : TiledProjection
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
     private readonly string _metadataUrlTemplate;
@@ -16,7 +16,7 @@ public class BingMapProjection : TiledProjection
     private BingMapType _mapType = BingMapType.Aerial;
     private string? _cultureCode;
 
-    public BingMapProjection(
+    public BingMapsProjection(
         IDynamicConfiguration dynamicConfig,
         IJ4JLogger logger
     )
@@ -28,7 +28,7 @@ public class BingMapProjection : TiledProjection
         SetSizes( 0 );
     }
 
-    public BingMapProjection(
+    public BingMapsProjection(
         ILibraryConfiguration libConfiguration,
         IJ4JLogger logger
     )
@@ -140,6 +140,12 @@ public class BingMapProjection : TiledProjection
 
         TileHeightWidth = Metadata.PrimaryResource.ImageWidth;
 
+        var urlText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", "subdomain" )
+                                   .Replace( "{quadkey}", "0" )
+                                   .Replace( "{culture}", _cultureCode );
+
+        SetImageFileExtension( urlText );
+        
         Metrics = Metrics with
         {
             ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax )
