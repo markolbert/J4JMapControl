@@ -3,7 +3,7 @@ using J4JSoftware.DeusEx;
 
 namespace J4JMapLibrary;
 
-public class CacheEntry : ICacheEntry
+public class CacheEntry
 {
     internal CacheEntry(
         ITiledProjection projection,
