@@ -40,29 +40,6 @@ internal partial class DeusEx
 
                     Logger?.Fatal("Failed to initialize ILibraryConfiguration");
                     throw new ApplicationException( "Failed to initialize ILibraryConfiguration" );
-                    //var sourceIdx = 0;
-                    //var keyValuePairs = hbc.Configuration.AsEnumerable().ToList();
-
-                    //// ReSharper disable once AccessToModifiedClosure
-                    //while( keyValuePairs.Any( x => x.Key.Equals( $"SourceConfigurations:{sourceIdx}" ) ) )
-                    //{
-                    //    if( keyValuePairs.Any(
-                    //           // ReSharper disable once AccessToModifiedClosure
-                    //           x => x.Key.Equals( $"SourceConfigurations:{sourceIdx}:MetadataRetrievalUrl" ) ) )
-                    //    {
-                    //        var dynamicConfig = new DynamicConfiguration();
-                    //        hbc.Configuration.GetSection( $"SourceConfigurations:{sourceIdx}" ).Bind( dynamicConfig );
-                    //        config!.SourceConfigurations.Add( dynamicConfig );
-                    //    }
-                    //    else
-                    //    {
-                    //        var staticConfig = new StaticConfiguration();
-                    //        hbc.Configuration.GetSection( $"SourceConfigurations:{sourceIdx}" ).Bind( staticConfig );
-                    //        config!.SourceConfigurations.Add( staticConfig );
-                    //    }
-
-                    //    sourceIdx++;
-                    //}
                 } )
                .As<ILibraryConfiguration>()
                .SingleInstance();
