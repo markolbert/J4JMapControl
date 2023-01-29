@@ -111,15 +111,38 @@ public class MapProjectionFactory
         bool authenticate = true,
         string? credentials = null
     )
-        where TProj : class, IMapProjection
+        where TProj : class, ITiledProjection
     {
         var ctorInfo = _sources.Values
-                      .FirstOrDefault( x => x.MapProjectionType == typeof( TProj ) );
+                               .FirstOrDefault(x => x.MapProjectionType == typeof(TProj));
+
+        if (ctorInfo != null)
+            return (TProj?)await CreateMapProjectionInternal(ctorInfo, srcConfig, authenticate, credentials);
+
+        _logger.Error("{0} is not a known map projection type", typeof(TProj));
+        return null;
+    }
+
+    public async Task<ITiledProjection?> CreateMapProjection(
+        Type projectionType,
+        ISourceConfiguration? srcConfig = null,
+        bool authenticate = true,
+        string? credentials = null
+    )
+    {
+        if( !projectionType.IsAssignableTo( typeof( TiledProjection ) ) )
+        {
+            _logger.Error("{0} is not derived from {1}", projectionType, typeof(TiledProjection));
+            return null;
+        }
+
+        var ctorInfo = _sources.Values
+                      .FirstOrDefault( x => x.MapProjectionType == projectionType );
 
         if( ctorInfo != null )
-            return (TProj?) await CreateMapProjectionInternal( ctorInfo, srcConfig, authenticate, credentials );
+            return (ITiledProjection?) await CreateMapProjectionInternal( ctorInfo, srcConfig, authenticate, credentials );
 
-        _logger.Error( "{0} is not a known map projection type", typeof( TProj ) );
+        _logger.Error( "{0} is not a known map projection type", projectionType );
         return null;
     }
 
