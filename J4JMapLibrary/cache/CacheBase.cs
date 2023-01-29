@@ -19,26 +19,26 @@ public abstract class CacheBase : ITileCache
     public abstract void Clear();
     public abstract void PurgeExpired();
 
-    public virtual CacheEntry? GetEntry( ITiledProjection projection, int xTile, int yTile )
+    public virtual async Task<CacheEntry?> GetEntryAsync( ITiledProjection projection, int xTile, int yTile )
     {
         xTile = InternalExtensions.ConformValueToRange( xTile, projection.Metrics.TileXRange, "X Tile" );
         yTile = InternalExtensions.ConformValueToRange( yTile, projection.Metrics.TileYRange, "Y Tile" );
 
-        var retVal = GetEntryInternal( projection, xTile, yTile );
+        var retVal = await GetEntryInternalAsync( projection, xTile, yTile );
         if( retVal != null )
         {
             retVal.LastAccessedUtc = DateTime.UtcNow;
             return retVal;
         }
 
-        retVal = ParentCache?.GetEntry( projection, xTile, yTile );
+        retVal = ParentCache == null ? null : await ParentCache.GetEntryAsync( projection, xTile, yTile );
         if( retVal == null )
-            return AddEntry( projection, xTile, yTile );
+            return await AddEntryAsync( projection, xTile, yTile );
 
         retVal.LastAccessedUtc = DateTime.UtcNow;
         return retVal;
     }
 
-    protected abstract CacheEntry? GetEntryInternal( ITiledProjection projection, int xTile, int yTile );
-    protected abstract CacheEntry? AddEntry( ITiledProjection projection, int xTile, int yTile );
+    protected abstract Task<CacheEntry?> GetEntryInternalAsync( ITiledProjection projection, int xTile, int yTile );
+    protected abstract Task<CacheEntry?> AddEntryAsync( ITiledProjection projection, int xTile, int yTile );
 }
