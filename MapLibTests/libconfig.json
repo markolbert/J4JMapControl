@@ -19,7 +19,7 @@
       "Copyright": "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA",
       "CopyrightUri": "http://opentopomap.org/",
       "MinScale": 1,
-      "MaxScale": 20,
+      "MaxScale": 15,
       "TileHeightWidth": 256
     }
   ]
