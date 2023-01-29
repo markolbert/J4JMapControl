@@ -6,6 +6,7 @@ namespace MapLibTests;
 public class CheckImages : TestBase
 {
     [Theory(Skip="image files already created")]
+    //[Theory]
     [InlineData(1, 0, 0)]
     [InlineData(2, 0, 0)]
     [InlineData(5, 27, 48)]
