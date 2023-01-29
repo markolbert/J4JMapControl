@@ -1,15 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\J4JLogging\J4JLogging\J4JLogging.csproj" />
-    <ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
-    <ProjectReference Include="..\..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="cache\FileSystemCache.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\J4JLogging\J4JLogging\J4JLogging.csproj" />
+		<ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
+		<ProjectReference Include="..\..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj" />
+	</ItemGroup>
 
 </Project>
