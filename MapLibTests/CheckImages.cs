@@ -59,12 +59,12 @@ public class CheckImages : TestBase
         await CompareImageFileAsync( filePath, await mapTile.GetImageAsync(), true );
     }
 
-    private async Task CompareImageFileAsync( string filePath, MemoryStream? stream, bool sleep = true )
+    private async Task CompareImageFileAsync( string filePath, byte[]? imageData, bool sleep = true )
     {
-        stream.Should().NotBeNull();
+        imageData.Should().NotBeNull();
 
         var imageBytes = await File.ReadAllBytesAsync( filePath );
-        var checkBytes = stream!.ToArray();
+        var checkBytes = imageData!.ToArray();
 
         imageBytes.Length.Should().Be( checkBytes.Length );
 

@@ -12,5 +12,5 @@ public interface ITiledProjection : IMapProjection
     string MapScale( double latitude, double dotsPerInch );
 
     HttpRequestMessage? GetRequest( MapTile tile );
-    Task<MemoryStream?> ExtractImageDataAsync( HttpResponseMessage response );
+    Task<byte[]?> ExtractImageDataAsync( HttpResponseMessage response );
 }

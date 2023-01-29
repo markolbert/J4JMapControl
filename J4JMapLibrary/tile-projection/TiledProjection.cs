@@ -119,7 +119,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
 
     public abstract HttpRequestMessage? GetRequest( MapTile tile  );
 
-    public virtual async Task<MemoryStream?> ExtractImageDataAsync( HttpResponseMessage response )
+    public virtual async Task<byte[]?> ExtractImageDataAsync( HttpResponseMessage response )
     {
         try
         {
@@ -128,7 +128,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
             var memStream = new MemoryStream();
             await responseStream.CopyToAsync( memStream );
 
-            return memStream;
+            return memStream.ToArray();
         }
         catch( Exception ex )
         {

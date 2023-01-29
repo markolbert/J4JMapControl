@@ -40,9 +40,20 @@ public record MapTile
 
     private readonly IJ4JLogger _logger;
     private readonly Func<MapTile, HttpRequestMessage?> _createRequest;
-    private readonly Func<HttpResponseMessage, Task<MemoryStream?>> _extractImageStream;
+    private readonly Func<HttpResponseMessage, Task<byte[]?>> _extractImageStream;
 
-    private MemoryStream? _imageStream;
+    private byte[]? _imageData;
+
+    public MapTile(
+        ITiledProjection projection,
+        int x,
+        int y,
+        byte[] imageData
+    )
+        : this( projection, x, y )
+    {
+        _imageData = imageData;
+    }
 
     public MapTile(
         ITiledProjection projection,
@@ -150,17 +161,17 @@ public record MapTile
     public int X { get; }
     public int Y { get; }
 
-    public async Task<MemoryStream?> GetImageAsync( bool forceRetrieval = false ) =>
+    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false ) =>
         await GetImageAsync( CancellationToken.None, forceRetrieval );
 
-    public async Task<MemoryStream?> GetImageAsync(CancellationToken cancellationToken, bool forceRetrieval = false )
+    public async Task<byte[]?> GetImageAsync(CancellationToken cancellationToken, bool forceRetrieval = false )
     {
-        if( _imageStream != null && !forceRetrieval )
-            return _imageStream;
+        if( _imageData != null && !forceRetrieval )
+            return _imageData;
 
-        var wasNull = _imageStream == null;
+        var wasNull = _imageData == null;
 
-        _imageStream = null;
+        _imageData = null;
 
         _logger.Verbose( "Beginning image retrieval from web" );
 
@@ -218,9 +229,9 @@ public record MapTile
 
         _logger.Verbose<string>( "Reading response from {0}", uriText );
 
-        _imageStream = await _extractImageStream( response );
+        _imageData = await _extractImageStream( response );
         ImageChanged?.Invoke( this, EventArgs.Empty );
 
-        return _imageStream;
+        return _imageData;
     }
 }
