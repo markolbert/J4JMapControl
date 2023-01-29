@@ -80,7 +80,7 @@ public class MapTests : TestBase
 
             projection.Scale = scale;
 
-            var mapTile = new MapTile( projection, xTile, yTile );
+            var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
             mapTile.Should().NotBeNull();
             mapTile.QuadKey.Should().Be( quadKey );
         }

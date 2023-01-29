@@ -37,7 +37,7 @@ public class MemoryCache : CacheBase
     protected override async Task<CacheEntry?> GetEntryInternalAsync( ITiledProjection projection, int xTile, int yTile )
 #pragma warning restore CS1998
     {
-        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
+        var key = $"{projection.Name}{projection.GetQuadKeyAsync( xTile, yTile )}";
 
         return _cached.ContainsKey(key) ? _cached[key] : null;
     }

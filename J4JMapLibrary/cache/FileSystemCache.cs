@@ -105,7 +105,7 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
+        var key = $"{projection.Name}{projection.GetQuadKeyAsync( xTile, yTile )}";
         var filePath = Path.Combine( _cacheDir, key );
 
         return File.Exists( filePath )

@@ -15,7 +15,7 @@ public class CreateImages : TestBase
 
         projection.Scale = scale;
 
-        var mapTile = new MapTile( projection, xTile, yTile );
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -29,7 +29,7 @@ public class CreateImages : TestBase
 
         projection.Scale = scale;
 
-        var mapTile = new MapTile(projection, xTile, yTile);
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -43,7 +43,7 @@ public class CreateImages : TestBase
 
         projection.Scale = scale;
 
-        var mapTile = new MapTile(projection, xTile, yTile);
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile, true);
     }
 
