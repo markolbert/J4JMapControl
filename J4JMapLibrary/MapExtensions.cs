@@ -15,7 +15,7 @@ public static class MapExtensions
         Logger?.SetLoggedType( typeof( MapExtensions ) );
     }
 
-    public static string ToQuadKey( this MapTile tile )
+    public static string GetQuadKey( this MapTile tile )
     {
         var retVal = new StringBuilder();
 
@@ -39,22 +39,29 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static (int Scale, int XTile, int YTile) ToTileCoordinates( string quadKey )
+    public static string GetQuadKey(this ITiledProjection projection, int xTile, int yTile )
     {
-        (int scale, int x, int y ) retVal = ( 0, 0, 0 );
+        var tile = new MapTile( projection, xTile, yTile );
+
+        return tile.GetQuadKey();
+    }
+
+    public static bool TryParseQuadKey( string quadKey, out DeconstructedQuadKey? result )
+    {
+        result = null;
 
         if( quadKey.Length < 1 )
         {
             Logger?.Error( "Empty quadkey string" );
-            return retVal;
+            return false;
         }
 
-        retVal.scale = quadKey.Length;
+        result = new DeconstructedQuadKey { Scale = quadKey.Length };
 
         if( !quadKey.Any( x => ValidQuadKeyCharacters.Any( y => y == x ) ) )
         {
             Logger?.Error( "Invalid characters in quadkey string" );
-            return retVal;
+            return false;
         }
 
         var levelOfDetail = quadKey.Length;
@@ -68,16 +75,16 @@ public static class MapExtensions
                     break;
 
                 case '1':
-                    retVal.x |= mask;
+                    result.XTile |= mask;
                     break;
 
                 case '2':
-                    retVal.y |= mask;
+                    result.YTile |= mask;
                     break;
 
                 case '3':
-                    retVal.x |= mask;
-                    retVal.y |= mask;
+                    result.XTile |= mask;
+                    result.YTile |= mask;
                     break;
 
                 default:
@@ -86,6 +93,6 @@ public static class MapExtensions
             }
         }
 
-        return retVal;
+        return true;
     }
 }
