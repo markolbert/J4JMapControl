@@ -1,0 +1,149 @@
+<Playlist Version="2.0">
+  <Rule Name="Includes" Match="Any">
+    <Rule Match="All">
+      <Property Name="Solution" />
+      <Rule Match="Any">
+        <Rule Match="All">
+          <Property Name="Project" Value="MapLibTests" />
+          <Rule Match="Any">
+            <Rule Match="All">
+              <Property Name="Namespace" Value="MapLibTests" />
+              <Rule Match="Any">
+                <Rule Match="All">
+                  <Property Name="Class" Value="FactoryTests" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.CheckImageFileExtension" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CheckImageFileExtension(type: typeof(J4JMapLibrary.OpenTopoMapsProjection), fileExtension: &quot;.png&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CheckImageFileExtension(type: typeof(J4JMapLibrary.BingMapsProjection), fileExtension: &quot;.jpeg&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CheckImageFileExtension(type: typeof(J4JMapLibrary.OpenStreetMapsProjection), fileExtension: &quot;.png&quot;)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.CreateProjectionFromName" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromName(projectionName: &quot;BingMaps&quot;, result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromName(projectionName: &quot;OpenStreetMaps&quot;, result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromName(projectionName: &quot;OpenTopoMaps&quot;, result: True)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.CreateProjectionFromType" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.BingMapsProjection), result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.OpenStreetMapsProjection), result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.OpenTopoMapsProjection), result: True)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.BingMapsProjection), result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.OpenStreetMapsProjection), result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.OpenTopoMapsProjection), result: True)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.FindsProjectionsByType" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.FindsProjectionsByType(assemblyType: typeof(J4JMapLibrary.MapProjectionFactory), numResults: 3)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.FindsProjectionsByType(assemblyType: typeof(string), numResults: 0)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
+                  <Property Name="Class" Value="MapTests" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.MapTests.BingApiKeyLatency" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.BingApiKeyLatency(maxLatency: 0, result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.BingApiKeyLatency(maxLatency: 1, result: False)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.MapTests.CreateQuadKeys" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 3, yTile: 3, quadKey: &quot;033&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 2, xTile: 0, yTile: 0, quadKey: &quot;00&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 2, xTile: 0, yTile: 1, quadKey: &quot;02&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 0, yTile: 0, quadKey: &quot;000&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 2, yTile: 0, quadKey: &quot;010&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 1, yTile: 1, quadKey: &quot;003&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 2, yTile: 1, quadKey: &quot;012&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 0, yTile: 2, quadKey: &quot;020&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 2, yTile: 2, quadKey: &quot;030&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 0, yTile: 3, quadKey: &quot;022&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 1, xTile: 0, yTile: 0, quadKey: &quot;0&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 1, yTile: 3, quadKey: &quot;023&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 3, yTile: 0, quadKey: &quot;011&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 1, yTile: 0, quadKey: &quot;001&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 3, yTile: 1, quadKey: &quot;013&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 1, yTile: 2, quadKey: &quot;021&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 0, yTile: 1, quadKey: &quot;002&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 2, xTile: 1, yTile: 0, quadKey: &quot;01&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 2, xTile: 1, yTile: 1, quadKey: &quot;03&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 3, yTile: 2, quadKey: &quot;031&quot;)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.CreateQuadKeys(scale: 3, xTile: 2, yTile: 3, quadKey: &quot;032&quot;)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.MapTests.ValidApiKey" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.MapTests.ValidApiKey" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
+                  <Property Name="Class" Value="MiscTests" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.MiscTests.DecodeQuadKeys" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.MiscTests.DecodeQuadKeys(quadKey: &quot;01&quot;, scale: 2, x: 1, y: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MiscTests.DecodeQuadKeys(quadKey: &quot;032&quot;, scale: 3, x: 2, y: 3)" />
+                        <Property Name="DisplayName" Value="MapLibTests.MiscTests.DecodeQuadKeys(quadKey: &quot;0&quot;, scale: 1, x: 0, y: 0)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+                <Rule Match="All">
+                  <Property Name="Class" Value="CheckImages" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CheckImages.BingMaps" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.BingMaps(scale: 1, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.BingMaps(scale: 2, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.BingMaps(scale: 5, xTile: 27, yTile: 48)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CheckImages.OpenStreetMaps" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenStreetMaps(scale: 1, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenStreetMaps(scale: 2, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenStreetMaps(scale: 5, xTile: 27, yTile: 48)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CheckImages.OpenTopoMaps" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenTopoMaps(scale: 1, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenTopoMaps(scale: 2, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenTopoMaps(scale: 5, xTile: 27, yTile: 48)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+              </Rule>
+            </Rule>
+          </Rule>
+        </Rule>
+      </Rule>
+    </Rule>
+  </Rule>
+</Playlist>

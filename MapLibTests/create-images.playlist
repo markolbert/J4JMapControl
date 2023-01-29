@@ -1,0 +1,48 @@
+<Playlist Version="2.0">
+  <Rule Name="Includes" Match="Any">
+    <Rule Match="All">
+      <Property Name="Solution" />
+      <Rule Match="Any">
+        <Rule Match="All">
+          <Property Name="Project" Value="MapLibTests" />
+          <Rule Match="Any">
+            <Rule Match="All">
+              <Property Name="Namespace" Value="MapLibTests" />
+              <Rule Match="Any">
+                <Rule Match="All">
+                  <Property Name="Class" Value="CreateImages" />
+                  <Rule Match="Any">
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CreateImages.BingMaps" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.BingMaps(scale: 1, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.BingMaps(scale: 2, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.BingMaps(scale: 5, xTile: 27, yTile: 27)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CreateImages.OpenStreetMaps" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.OpenStreetMaps(scale: 1, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.OpenStreetMaps(scale: 2, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.OpenStreetMaps(scale: 5, xTile: 27, yTile: 27)" />
+                      </Rule>
+                    </Rule>
+                    <Rule Match="All">
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CreateImages.OpenTopoMaps" />
+                      <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.OpenTopoMaps(scale: 1, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.OpenTopoMaps(scale: 2, xTile: 0, yTile: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CreateImages.OpenTopoMaps(scale: 5, xTile: 27, yTile: 27)" />
+                      </Rule>
+                    </Rule>
+                  </Rule>
+                </Rule>
+              </Rule>
+            </Rule>
+          </Rule>
+        </Rule>
+      </Rule>
+    </Rule>
+  </Rule>
+</Playlist>
