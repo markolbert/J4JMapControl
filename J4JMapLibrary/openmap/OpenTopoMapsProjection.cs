@@ -7,17 +7,19 @@ public class OpenTopoMapsProjection : OpenMapProjection
 {
     public OpenTopoMapsProjection( 
         IStaticConfiguration staticConfig, 
-        IJ4JLogger logger 
+        IJ4JLogger logger,
+        ITileCache? cache = null
     )
-        : base( staticConfig, logger )
+        : base( staticConfig, logger, cache )
     {
     }
 
     public OpenTopoMapsProjection(
         ILibraryConfiguration libConfiguration,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        ITileCache? cache = null
     )
-        : base(libConfiguration, logger)
+        : base(libConfiguration, logger, cache )
     {
     }
 }
