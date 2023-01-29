@@ -57,6 +57,7 @@ public record MapTile
         Metrics = projection.Metrics;
         Scale = projection.Scale;
         CanBeCached = projection.CanBeCached;
+        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
         Center = new MapPoint( Metrics )
@@ -85,6 +86,7 @@ public record MapTile
         Metrics = projection.Metrics;
         Scale = projection.Scale;
         CanBeCached = projection.CanBeCached;
+        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
         Center = new MapPoint( Metrics ) { Cartesian = { X = point.X, Y = point.Y } };
@@ -106,6 +108,7 @@ public record MapTile
         Metrics = projection.Metrics;
         Scale = projection.Scale;
         CanBeCached = projection.CanBeCached;
+        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
         Center = center;
@@ -124,6 +127,7 @@ public record MapTile
         Metrics = projection.Metrics;
         Scale = projection.Scale;
         CanBeCached = projection.CanBeCached;
+        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
         Center = new MapPoint( Metrics )
@@ -138,6 +142,7 @@ public record MapTile
     public int Scale { get; }
     public bool ReflectsProjection => Scale == Metrics.Scale;
     public bool CanBeCached { get; }
+    public int MaxRequestLatency { get; }
 
     public MapPoint Center { get; }
     public int HeightWidth { get; }
@@ -145,7 +150,10 @@ public record MapTile
     public int X { get; }
     public int Y { get; }
 
-    public async Task<MemoryStream?> GetImageAsync( bool forceRetrieval = false )
+    public async Task<MemoryStream?> GetImageAsync( bool forceRetrieval = false ) =>
+        await GetImageAsync( CancellationToken.None, forceRetrieval );
+
+    public async Task<MemoryStream?> GetImageAsync(CancellationToken cancellationToken, bool forceRetrieval = false )
     {
         if( _imageStream != null && !forceRetrieval )
             return _imageStream;
@@ -175,7 +183,11 @@ public record MapTile
 
         try
         {
-            response = await httpClient.SendAsync( request );
+            response = MaxRequestLatency <= 0
+                ? await httpClient.SendAsync( request, cancellationToken )
+                : await httpClient.SendAsync( request, cancellationToken )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), cancellationToken );
+
             _logger.Verbose<string>( "Got response from {0}", uriText );
         }
         catch( Exception ex )
@@ -195,7 +207,7 @@ public record MapTile
                 "Image request from {0} failed with response code {1}, message was '{2}'",
                 uriText,
                 response.StatusCode,
-                await response.Content.ReadAsStringAsync() );
+                await response.Content.ReadAsStringAsync( cancellationToken ) );
 
             if( wasNull )
                 ImageChanged?.Invoke( this, EventArgs.Empty );

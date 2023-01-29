@@ -12,6 +12,8 @@ public abstract class MapProjection : IMapProjection
         IJ4JLogger logger
     )
     {
+        MaxRequestLatency = srcConfig.MaxRequestLatency;
+
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
@@ -62,7 +64,9 @@ public abstract class MapProjection : IMapProjection
                 $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
         }
 
-        Copyright = srcConfig!.Copyright;
+        MaxRequestLatency = srcConfig!.MaxRequestLatency;
+
+        Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
         Metrics = new ProjectionMetrics()
@@ -99,8 +103,7 @@ public abstract class MapProjection : IMapProjection
 
     public ProjectionMetrics Metrics { get; protected set; }
 
-    public abstract Task<bool> Authenticate( string? credentials = null );
-
+    public int MaxRequestLatency { get; set; }
     public bool Initialized { get; protected set; }
 
     public string Name { get; }
@@ -109,4 +112,7 @@ public abstract class MapProjection : IMapProjection
 
     public int Width => Metrics.XRange.Maximum - Metrics.XRange.Maximum;
     public int Height => Metrics.YRange.Maximum - Metrics.YRange.Minimum;
+
+    public Task<bool> Authenticate(string? credentials = null) => Authenticate(CancellationToken.None, credentials);
+    public abstract Task<bool> Authenticate(CancellationToken cancellationToken, string? credentials = null);
 }

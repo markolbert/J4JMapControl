@@ -46,7 +46,7 @@ public class OpenMapProjection : TiledProjection
     }
 
 #pragma warning disable CS1998
-    public override async Task<bool> Authenticate( string? credentials = null )
+    public override async Task<bool> Authenticate( CancellationToken cancellationToken, string? credentials = null )
 #pragma warning restore CS1998
     {
         if( string.IsNullOrEmpty( credentials ) && !TryGetCredentials( Name, out credentials ) )

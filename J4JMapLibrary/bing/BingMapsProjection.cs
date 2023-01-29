@@ -69,7 +69,7 @@ public class BingMapsProjection : TiledProjection
 
     public BingImageryMetadata? Metadata { get; private set; }
 
-    public override async Task<bool> Authenticate( string? credentials = null )
+    public override async Task<bool> Authenticate(  CancellationToken cancellationToken, string ? credentials = null)
     {
         if (string.IsNullOrEmpty(credentials) && !TryGetCredentials(Name, out credentials))
         {
@@ -93,7 +93,10 @@ public class BingMapsProjection : TiledProjection
         Logger.Verbose("Attempting to retrieve Bing Maps metadata");
         try
         {
-            response = await httpClient.SendAsync(request);
+           response = MaxRequestLatency <= 0
+                ? await httpClient.SendAsync( request, cancellationToken )
+                : await httpClient.SendAsync( request, cancellationToken )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), cancellationToken );
         }
         catch (Exception ex)
         {
@@ -106,7 +109,7 @@ public class BingMapsProjection : TiledProjection
 
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            var error = await response.Content.ReadAsStringAsync();
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
 
             Logger.Error<string, string>(
                 "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
@@ -119,7 +122,7 @@ public class BingMapsProjection : TiledProjection
         Logger.Verbose("Attempting to parse Bing Maps metadata");
         try
         {
-            var respText = await response.Content.ReadAsStringAsync();
+            var respText = await response.Content.ReadAsStringAsync(cancellationToken);
 
             var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
             Metadata = JsonSerializer.Deserialize<BingImageryMetadata>(respText, options);
