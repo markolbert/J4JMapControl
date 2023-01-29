@@ -9,10 +9,3 @@ public interface ITileCache
     CacheEntry? GetEntry( ITiledProjection projection, int xTile, int yTile );
     ITileCache? ParentCache { get; }
 }
-
-//public interface ITileCache<out TEntry> : ITileCache
-//    where TEntry : class, ICacheEntry
-//{
-//    ITileCache<TEntry>? ParentCache { get; }
-//    TEntry? GetCachedEntry( ITiledProjection projection, int xTile, int yTile);
-//}
