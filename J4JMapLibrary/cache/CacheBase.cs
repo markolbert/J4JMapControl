@@ -5,19 +5,16 @@ namespace J4JMapLibrary;
 public abstract class CacheBase : ITileCache
 {
     protected CacheBase(
-        IJ4JLogger logger,
-        ITileCache? parentCache = null
+        IJ4JLogger logger
     )
     {
-        ParentCache = parentCache;
-
         Logger = logger;
         Logger.SetLoggedType( GetType() );
     }
 
     protected IJ4JLogger Logger { get; }
 
-    public ITileCache? ParentCache { get; }
+    public ITileCache? ParentCache { get; set; }
 
     public abstract void Clear();
     public abstract void PurgeExpired();

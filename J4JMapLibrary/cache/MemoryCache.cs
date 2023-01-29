@@ -7,10 +7,9 @@ public class MemoryCache : CacheBase
     private readonly Dictionary<string, CacheEntry> _cached = new(StringComparer.OrdinalIgnoreCase);
 
     public MemoryCache( 
-        IJ4JLogger logger, 
-        ITileCache? parentCache = null 
+        IJ4JLogger logger
     )
-        : base( logger, parentCache )
+        : base( logger )
     {
     }
 
