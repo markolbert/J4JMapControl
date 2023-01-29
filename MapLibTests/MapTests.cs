@@ -12,7 +12,7 @@ public class MapTests : TestBase
 
         foreach( var projectionName in factory.ProjectionNames )
         {
-            var projection = await GetFactory().CreateMapProjection(projectionName) as ITiledProjection;
+            var projection = await factory.CreateMapProjection(projectionName) as ITiledProjection;
             projection.Should().NotBeNull();
             projection!.Initialized.Should().BeTrue();
 
@@ -29,6 +29,24 @@ public class MapTests : TestBase
     }
 
     [ Theory ]
+    [ InlineData( 0, true ) ]
+    [ InlineData( 1, false ) ]
+    public async void BingApiKeyLatency( int maxLatency, bool result )
+    {
+        var factory = GetFactory();
+
+        var projection = await factory.CreateMapProjection( "BingMaps", authenticate: false ) as BingMapsProjection;
+        projection.Should().NotBeNull();
+
+        projection!.MaxRequestLatency = maxLatency;
+
+        Configuration.TryGetCredential( "BingMaps", out var credentials ).Should().BeTrue();
+        await projection.Authenticate(credentials!);
+
+        projection.Initialized.Should().Be( result );
+    }
+
+    [Theory ]
     [ InlineData( 1, 0, 0, "0" ) ]
     [ InlineData( 2, 0, 0, "00" ) ]
     [ InlineData( 2, 1, 0, "01" ) ]
