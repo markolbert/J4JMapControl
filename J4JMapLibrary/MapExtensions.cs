@@ -39,9 +39,9 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static string GetQuadKey(this ITiledProjection projection, int xTile, int yTile )
+    public static async Task<string> GetQuadKeyAsync(this ITiledProjection projection, int xTile, int yTile )
     {
-        var tile = new MapTile( projection, xTile, yTile );
+        var tile = await MapTile.CreateAsync( projection, xTile, yTile );
 
         return tile.GetQuadKey();
     }
