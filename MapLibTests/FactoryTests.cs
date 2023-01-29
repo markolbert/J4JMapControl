@@ -38,7 +38,7 @@ public class FactoryTests : TestBase
     [InlineData(typeof(BingMapsProjection), true)]
     [InlineData(typeof(OpenStreetMapsProjection), true)]
     [InlineData(typeof(OpenTopoMapsProjection), true)]
-    public async void CreateProjectionFromType( Type type, bool result )
+    public async void CreateProjectionFromTypeGeneric( Type projectionType, bool result )
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();
@@ -52,13 +52,29 @@ public class FactoryTests : TestBase
 
         methods.Count.Should().Be( 1 );
 
-        var method = methods[ 0 ].MakeGenericMethod( type );
+        var method = methods[ 0 ].MakeGenericMethod( projectionType );
 
         var projTask = method.Invoke(factory, new object?[] { null, true, null }) as Task;
         projTask.Should().NotBeNull();
         await projTask!;
 
         var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as ITiledProjection;
+
+        if (result)
+            projection.Should().NotBeNull();
+        else projection.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(typeof(BingMapsProjection), true)]
+    [InlineData(typeof(OpenStreetMapsProjection), true)]
+    [InlineData(typeof(OpenTopoMapsProjection), true)]
+    public async void CreateProjectionFromType(Type projectionType, bool result)
+    {
+        var factory = GetFactory();
+        factory.Should().NotBeNull();
+
+        var projection = await factory.CreateMapProjection( projectionType );
 
         if (result)
             projection.Should().NotBeNull();
