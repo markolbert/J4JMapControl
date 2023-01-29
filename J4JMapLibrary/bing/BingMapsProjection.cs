@@ -194,7 +194,7 @@ public class BingMapsProjection : TiledProjection
                                                                    .ImageUrlSubdomains
                                                                    .Length ) ];
 
-        var quadKey = coordinates.ToQuadKey();
+        var quadKey = coordinates.GetQuadKey();
 
         var uriText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", subDomain )
                                .Replace( "{quadkey}", quadKey )
