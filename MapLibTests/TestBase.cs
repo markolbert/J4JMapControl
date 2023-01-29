@@ -36,4 +36,19 @@ public class TestBase
 
         return retVal;
     }
+    protected string GetCheckImagesFolder(string projectionName)
+    {
+        var retVal = Environment.CurrentDirectory;
+
+        for (var idx = 0; idx < 3; idx++)
+        {
+            retVal = Path.GetDirectoryName(retVal)!;
+        }
+
+        retVal = Path.Combine(retVal, "check-images", projectionName);
+        Directory.CreateDirectory(retVal);
+
+        return retVal;
+    }
+
 }
