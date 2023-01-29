@@ -8,6 +8,17 @@ public class CacheEntry
     internal CacheEntry(
         ITiledProjection projection,
         int xTile,
+        int yTile,
+        byte[] imageData
+    )
+    {
+        Tile = new MapTile( projection, xTile, yTile, imageData );
+        CreatedUtc = DateTime.UtcNow;
+    }
+
+    internal CacheEntry(
+        ITiledProjection projection,
+        int xTile,
         int yTile
     )
     {

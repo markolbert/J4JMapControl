@@ -1,4 +1,5 @@
-﻿using J4JSoftware.Logging;
+﻿using J4JSoftware.DependencyInjection;
+using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
@@ -13,9 +14,10 @@ public class FileSystemCache : CacheBase
     )
         : base( logger )
     {
+        _fileLocator = new FileLocator().StopOnFirstMatch().Readable().Writeable();
     }
 
-    public int MaxEntries { get; set; }
+    public int MaxBytes { get; set; }
     public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
 
     public string? CacheDirectory
@@ -24,52 +26,108 @@ public class FileSystemCache : CacheBase
 
         set
         {
+            if( value == null )
+            {
+                _cacheDir = null;
+                return;
+            }
 
+            _fileLocator.FileToFind( new Guid().ToString() );
+            _fileLocator.ScanDirectory( value );
+
+            if( _fileLocator.Matches == 0 )
+                Logger.Error<string>( "Cache path '{0}' is not accessible", value );
+            else _cacheDir = value;
         }
     }
 
-    public override void Clear() => _cached.Clear();
+    public override void Clear()
+    {
+        if( string.IsNullOrEmpty( _cacheDir ) )
+        {
+            Logger.Error("Caching directory is undefined");
+            return;
+        }
+
+        foreach( var fileInfo in GetFiles() )
+        {
+            File.Delete( fileInfo.FullName );
+        }
+    }
+
+    // assumes _cacheDir is defined
+    private List<FileInfo> GetFiles() =>
+        Directory.GetFiles( _cacheDir!,
+                            "*.*",
+                            enumerationOptions: new EnumerationOptions()
+                            {
+                                IgnoreInaccessible = true, RecurseSubdirectories = true
+                            } )
+                 .Select( x => new FileInfo( x ) )
+                 .ToList();
 
     public override void PurgeExpired()
     {
+        if( string.IsNullOrEmpty( _cacheDir ) )
+        {
+            Logger.Error("Caching directory is undefined"  );
+            return;
+        }
+
         if( RetentionPeriod == TimeSpan.Zero ) 
             return;
 
-        var toDelete = _cached.Where( x => x.Value.LastAccessedUtc < DateTime.UtcNow - RetentionPeriod )
-                              .Select( x => x.Key )
-                              .ToList();
+        var files = GetFiles();
+        var deleted = new List<string>();
 
-        foreach( var key in toDelete )
+        foreach( var fileInfo in files.Where(x=> x.LastAccessTime < DateTime.UtcNow - RetentionPeriod  ) )
         {
-            _cached.Remove( key );
+            File.Delete(fileInfo.FullName);
+            deleted.Add( fileInfo.FullName );
+        }
+
+        files = files.Where( x => !deleted.Any( y => y.Equals( x.FullName ) ) )
+                     .OrderByDescending( x => x.Length )
+                     .ToList();
+
+        while( MaxBytes >= 0 && files.Sum( x => x.Length ) > MaxBytes )
+        {
+            File.Delete(files.First().FullName  );
+            files.RemoveAt( 0 );
         }
     }
 
-    protected override CacheEntry? GetEntryInternal( ITiledProjection projection, int xTile, int yTile )
+    protected override async Task<CacheEntry?> GetEntryInternalAsync( ITiledProjection projection, int xTile, int yTile )
     {
-        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
+        if( string.IsNullOrEmpty( _cacheDir ) )
+        {
+            Logger.Error( "Caching directory is undefined" );
+            return null;
+        }
 
-        return _cached.ContainsKey(key) ? _cached[key] : null;
+        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
+        var filePath = Path.Combine( _cacheDir, key );
+
+        return File.Exists( filePath )
+            ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath ) )
+            : null;
     }
 
-    protected override CacheEntry? AddEntry( ITiledProjection projection, int xTile, int yTile )
+    protected override async Task<CacheEntry?> AddEntryAsync( ITiledProjection projection, int xTile, int yTile )
     {
+        if (string.IsNullOrEmpty(_cacheDir))
+        {
+            Logger.Error("Caching directory is undefined");
+            return null;
+        }
+
         var retVal = new CacheEntry( projection, xTile, yTile );
 
         var key = $"{projection.Name}{retVal.Tile.QuadKey}";
+        var filePath = Path.Combine(_cacheDir, key);
 
-        if( _cached.ContainsKey( key ) )
-        {
-            Logger.Warning<string>( "Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey );
-            _cached[ key ] = retVal;
-        }
-        else
-        {
-            _cached.Add( key, retVal );
-
-            if( MaxEntries > 0 && _cached.Count > MaxEntries )
-                PurgeExpired();
-        }
+        var imgFile = File.Create( filePath );
+        await imgFile.WriteAsync( await retVal.Tile.GetImageAsync() );
 
         return retVal;
     }
