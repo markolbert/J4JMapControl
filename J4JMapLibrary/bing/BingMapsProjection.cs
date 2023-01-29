@@ -18,9 +18,10 @@ public class BingMapsProjection : TiledProjection
 
     public BingMapsProjection(
         IDynamicConfiguration dynamicConfig,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        ITileCache? tileCache = null
     )
-        : base( dynamicConfig, true, logger )
+        : base( dynamicConfig, logger, tileCache )
     {
         _metadataUrlTemplate = dynamicConfig.MetadataRetrievalUrl;
 
@@ -30,9 +31,10 @@ public class BingMapsProjection : TiledProjection
 
     public BingMapsProjection(
         ILibraryConfiguration libConfiguration,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        ITileCache? tileCache = null
     )
-        : base( libConfiguration, true, logger )
+        : base( libConfiguration, logger, tileCache )
     {
         if( !TryGetSourceConfiguration<IDynamicConfiguration>( Name, out var srcConfig ) )
         {
@@ -51,7 +53,7 @@ public class BingMapsProjection : TiledProjection
     {
         get => _mapType;
 
-        private set
+        set
         {
             _mapType = value;
 
@@ -181,12 +183,12 @@ public class BingMapsProjection : TiledProjection
         return true;
     }
 
-    public override HttpRequestMessage? GetRequest( MapTile coordinates )
+    public override async Task<HttpRequestMessage?> GetRequestAsync( MapTile coordinates )
     {
         if( !Initialized )
             return null;
 
-        coordinates = Cap( coordinates )!;
+        coordinates = (await CapAsync( coordinates ))!;
 
         var subDomain = Metadata!.PrimaryResource!
                                  .ImageUrlSubdomains[ _random.Next( Metadata!

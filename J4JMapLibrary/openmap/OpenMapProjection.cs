@@ -10,9 +10,10 @@ public class OpenMapProjection : TiledProjection
 
     protected OpenMapProjection(
         IStaticConfiguration staticConfig,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        ITileCache? tileCache = null
     )
-        : base( staticConfig, true, logger )
+        : base( staticConfig, logger, tileCache )
     {
         _retrievalUrl = staticConfig.RetrievalUrl;
         SetImageFileExtension( _retrievalUrl );
@@ -25,9 +26,10 @@ public class OpenMapProjection : TiledProjection
 
     protected OpenMapProjection(
         ILibraryConfiguration libConfiguration,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        ITileCache? tileCache = null
     )
-        : base( libConfiguration, true, logger )
+        : base( libConfiguration, logger, tileCache )
     {
         if( !TryGetSourceConfiguration<IStaticConfiguration>( Name, out var srcConfig ) )
         {
@@ -63,12 +65,12 @@ public class OpenMapProjection : TiledProjection
         return true;
     }
 
-    public override HttpRequestMessage? GetRequest( MapTile coordinates )
+    public override async Task<HttpRequestMessage?> GetRequestAsync( MapTile coordinates )
     {
         if( !Initialized )
             return null;
 
-        coordinates = Cap( coordinates )!;
+        coordinates = (await CapAsync( coordinates ))!;
 
         if( string.IsNullOrEmpty( _userAgent ) )
         {
