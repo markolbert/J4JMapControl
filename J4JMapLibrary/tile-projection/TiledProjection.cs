@@ -15,25 +15,25 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
 
     protected TiledProjection(
         ISourceConfiguration srcConfig,
-        bool canBeCached,
-        IJ4JLogger logger
+        IJ4JLogger logger, 
+        ITileCache? tileCache = null
     )
     :base(srcConfig, logger)
     {
-        CanBeCached = canBeCached;
+        TileCache = tileCache;
     }
 
     protected TiledProjection(
         ILibraryConfiguration libConfiguration,
-        bool canBeCached,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        ITileCache? tileCache = null
     )
         : base( libConfiguration, logger )
     {
-        CanBeCached = canBeCached;
+        TileCache = tileCache;
     }
 
-    public bool CanBeCached { get; }
+    public ITileCache? TileCache { get; }
 
     public virtual int Scale
     {
@@ -103,7 +103,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
     public string MapScale( double latitude, double dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    protected MapTile? Cap( MapTile toCheck )
+    protected async Task<MapTile?> CapAsync( MapTile toCheck )
     {
         if( !Initialized )
         {
@@ -114,10 +114,10 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         var xTile = InternalExtensions.ConformValueToRange( toCheck.X, Metrics.TileXRange, "Tile X Coordinate" );
         var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, Metrics.TileYRange, "Tile Y Coordinate" );
 
-        return new MapTile(this, xTile, yTile );
+        return await MapTile.CreateAsync(this, xTile, yTile);
     }
 
-    public abstract HttpRequestMessage? GetRequest( MapTile tile  );
+    public abstract Task<HttpRequestMessage?> GetRequestAsync( MapTile tile  );
 
     public virtual async Task<byte[]?> ExtractImageDataAsync( HttpResponseMessage response )
     {
