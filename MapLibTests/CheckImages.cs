@@ -5,88 +5,61 @@ namespace MapLibTests;
 
 public class CheckImages : TestBase
 {
-    [Theory(Skip="image files already created")]
-    //[Theory]
-    [InlineData(1, 0, 0)]
-    [InlineData(2, 0, 0)]
-    [InlineData(5, 27, 48)]
-    public async void CreateImage(int scale, int xTile, int yTile)
+    [ Theory ]
+    [ ClassData( typeof( TileImageData ) ) ]
+    public async void BingMaps( int scale, int xTile, int yTile )
     {
-        var factory = GetFactory();
+        var projection = await GetFactory().CreateMapProjection( typeof( BingMapsProjection ) );
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        foreach( var projectionName in factory.ProjectionNames )
-        {
-            if( projectionName == "OpenTopoMaps" )
-                Thread.Sleep( 1000 );
+        projection.Scale = scale;
 
-            var projection = await factory.CreateMapProjection( projectionName ) as ITiledProjection;
-            projection.Should().NotBeNull();
-            projection!.Initialized.Should().BeTrue();
+        var mapTile = new MapTile( projection, xTile, yTile );
 
-            projection.Scale = scale;
+        var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
+                                     $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
 
-            var mapTile = new MapTile( projection, xTile, yTile );
-            var stream = await mapTile.GetImageAsync();
-
-            stream.Should().NotBeNull();
-
-            var filePath = Path.Combine( GetCheckImagesFolder( projectionName ),
-                                         $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
-
-            await WriteImageFileAsync( filePath, stream! );
-        }
+        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
 
-    [Theory]
-    [InlineData(1, 0, 0)]
-    [InlineData(2, 0, 0)]
-    [InlineData(5, 27, 48)]
-    public async void GetImage(int scale, int xTile, int yTile)
+    [ Theory ]
+    [ ClassData( typeof( TileImageData ) ) ]
+    public async void OpenStreetMaps( int scale, int xTile, int yTile )
     {
-        var factory = GetFactory();
+        var projection = await GetFactory().CreateMapProjection( typeof( OpenStreetMapsProjection ) );
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        foreach( var projectionName in factory.ProjectionNames )
-        {
-            if (projectionName == "OpenTopoMaps")
-                Thread.Sleep(1000);
+        projection.Scale = scale;
 
-            var projection = await GetFactory().CreateMapProjection( projectionName ) as ITiledProjection;
-            projection.Should().NotBeNull();
-            projection!.Initialized.Should().BeTrue();
+        var mapTile = new MapTile( projection, xTile, yTile );
 
-            projection.Scale = scale;
+        var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
+                                     $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
 
-            var mapTile = new MapTile( projection, xTile, yTile );
-
-            var filePath = Path.Combine( GetCheckImagesFolder( projectionName ),
-                                         $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
-
-            var result = await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
-            result.Should().BeTrue();
-        }
+        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
 
-    private string GetCheckImagesFolder(string projectionName)
+    [ Theory ]
+    [ ClassData( typeof( TileImageData ) ) ]
+    public async void OpenTopoMaps( int scale, int xTile, int yTile )
     {
-        var retVal = Environment.CurrentDirectory;
+        var projection = await GetFactory().CreateMapProjection( typeof( OpenTopoMapsProjection ) );
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        for (var idx = 0; idx < 3; idx++)
-        {
-            retVal = Path.GetDirectoryName(retVal)!;
-        }
+        projection.Scale = scale;
 
-        retVal = Path.Combine(retVal, "check-images", projectionName);
-        Directory.CreateDirectory(retVal);
+        var mapTile = new MapTile( projection, xTile, yTile );
 
-        return retVal;
+        var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
+                                     $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
+
+        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync(), true );
     }
 
-    private async Task WriteImageFileAsync(string filePath, MemoryStream stream)
-    {
-        await File.WriteAllBytesAsync(filePath, stream.ToArray());
-    }
-
-    private async Task<bool> CompareImageFileAsync(string filePath, MemoryStream? stream)
+    private async Task CompareImageFileAsync( string filePath, MemoryStream? stream, bool sleep = true )
     {
         stream.Should().NotBeNull();
 
@@ -100,7 +73,7 @@ public class CheckImages : TestBase
             imageBytes[ idx ].Should().Be( checkBytes[ idx ], $"because data at {idx} should match" );
         }
 
-        return true;
+        if( sleep )
+            Thread.Sleep( 5000 );
     }
-
 }
