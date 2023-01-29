@@ -1,4 +1,5 @@
-﻿using J4JSoftware.DependencyInjection;
+﻿using System.Collections.ObjectModel;
+using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
@@ -19,6 +20,20 @@ public class FileSystemCache : CacheBase
 
     public int MaxBytes { get; set; }
     public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
+
+    public override int Count => GetFiles().Count;
+
+    public override ReadOnlyCollection<string> QuadKeys =>
+        GetFiles().Select(x =>
+            {
+                var woExt = Path.GetFileNameWithoutExtension(x.Name);
+                var lastDash = woExt.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase);
+                return lastDash > 0 && lastDash < woExt.Length ? woExt[(lastDash + 1)..] : string.Empty;
+            })
+            .Where(x => !string.IsNullOrEmpty(x))
+            .OrderBy(x => x)
+            .ToList()
+            .AsReadOnly();
 
     public string? CacheDirectory
     {
@@ -106,7 +121,7 @@ public class FileSystemCache : CacheBase
         }
 
         var key = $"{projection.Name}{projection.GetQuadKeyAsync( xTile, yTile )}";
-        var filePath = Path.Combine( _cacheDir, key );
+        var filePath = Path.Combine(_cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}");
 
         return File.Exists( filePath )
             ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath ) )
@@ -124,7 +139,7 @@ public class FileSystemCache : CacheBase
         var retVal = new CacheEntry( projection, xTile, yTile );
 
         var key = $"{projection.Name}{retVal.Tile.QuadKey}";
-        var filePath = Path.Combine(_cacheDir, key);
+        var filePath = Path.Combine(_cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}");
 
         var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( await retVal.Tile.GetImageAsync() );

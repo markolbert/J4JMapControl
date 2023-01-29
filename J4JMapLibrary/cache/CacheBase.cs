@@ -1,4 +1,5 @@
-﻿using J4JSoftware.Logging;
+﻿using System.Collections.ObjectModel;
+using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
@@ -15,6 +16,8 @@ public abstract class CacheBase : ITileCache
     protected IJ4JLogger Logger { get; }
 
     public ITileCache? ParentCache { get; set; }
+    public abstract int Count { get; }
+    public abstract ReadOnlyCollection<string> QuadKeys { get; }
 
     public abstract void Clear();
     public abstract void PurgeExpired();
