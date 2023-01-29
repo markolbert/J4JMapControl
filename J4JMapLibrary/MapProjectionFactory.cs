@@ -108,6 +108,7 @@ public class MapProjectionFactory
 
     public async Task<TProj?> CreateMapProjection<TProj>(
         ISourceConfiguration? srcConfig = null,
+        bool authenticate = true,
         string? credentials = null
     )
         where TProj : class, IMapProjection
@@ -116,7 +117,7 @@ public class MapProjectionFactory
                       .FirstOrDefault( x => x.MapProjectionType == typeof( TProj ) );
 
         if( ctorInfo != null )
-            return (TProj?) await CreateMapProjectionInternal( ctorInfo, srcConfig, credentials );
+            return (TProj?) await CreateMapProjectionInternal( ctorInfo, srcConfig, authenticate, credentials );
 
         _logger.Error( "{0} is not a known map projection type", typeof( TProj ) );
         return null;
@@ -125,6 +126,7 @@ public class MapProjectionFactory
     public async Task<IMapProjection?> CreateMapProjection(
         string name,
         ISourceConfiguration? srcConfig = null,
+        bool authenticate = true,
         string? credentials = null
     )
     {
@@ -132,12 +134,13 @@ public class MapProjectionFactory
         if( ctorInfo == null )
             return null;
 
-        return await CreateMapProjectionInternal( ctorInfo, srcConfig, credentials );
+        return await CreateMapProjectionInternal( ctorInfo, srcConfig, authenticate, credentials );
     }
 
     private async Task<IMapProjection?> CreateMapProjectionInternal(
         SourceConfigurationInfo ctorInfo,
         ISourceConfiguration? srcConfig = null,
+        bool authenticate = true,
         string? credentials = null
     )
     {
@@ -165,7 +168,7 @@ public class MapProjectionFactory
             }
         }
 
-        if( await retVal.Authenticate( credentials ) )
+        if( !authenticate || await retVal.Authenticate( credentials ) )
             return retVal;
 
         _logger.Warning<string>( "Authentication failed for map projection '{0}'", ctorInfo.Name );
