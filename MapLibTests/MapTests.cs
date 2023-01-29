@@ -35,7 +35,9 @@ public class MapTests : TestBase
     {
         var factory = GetFactory();
 
-        var projection = await factory.CreateMapProjection( "BingMaps", authenticate: false ) as BingMapsProjection;
+        var options = new MapProjectionOptions(Authenticate: false);
+
+        var projection = await factory.CreateMapProjection( "BingMaps", options ) as BingMapsProjection;
         projection.Should().NotBeNull();
 
         projection!.MaxRequestLatency = maxLatency;
