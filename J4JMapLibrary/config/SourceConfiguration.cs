@@ -32,7 +32,7 @@ public class SourceConfiguration : ISourceConfiguration
 
     protected SourceConfiguration()
     {
-        MaxLatitude = Math.Atan(Math.Sinh(Math.PI)) * 180 / Math.PI;
+        MaxLatitude = MapConstants.MaxMercatorLatitude;
         MinLatitude = -MaxLatitude;
         MaxLongitude = 180;
         MinLongitude = -MaxLongitude;
