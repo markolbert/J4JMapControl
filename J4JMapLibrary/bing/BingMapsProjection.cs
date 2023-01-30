@@ -183,12 +183,10 @@ public class BingMapsProjection : TiledProjection
         return true;
     }
 
-    public override async Task<HttpRequestMessage?> GetRequestAsync( MapTile coordinates )
+    public override HttpRequestMessage? GetRequest( MapTile coordinates )
     {
         if( !Initialized )
             return null;
-
-        coordinates = (await CapAsync( coordinates ))!;
 
         var subDomain = Metadata!.PrimaryResource!
                                  .ImageUrlSubdomains[ _random.Next( Metadata!

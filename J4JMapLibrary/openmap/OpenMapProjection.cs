@@ -65,12 +65,10 @@ public class OpenMapProjection : TiledProjection
         return true;
     }
 
-    public override async Task<HttpRequestMessage?> GetRequestAsync( MapTile coordinates )
+    public override HttpRequestMessage? GetRequest( MapTile coordinates )
     {
         if( !Initialized )
             return null;
-
-        coordinates = (await CapAsync( coordinates ))!;
 
         if( string.IsNullOrEmpty( _userAgent ) )
         {

@@ -103,21 +103,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
     public string MapScale( double latitude, double dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    protected async Task<MapTile?> CapAsync( MapTile toCheck )
-    {
-        if( !Initialized )
-        {
-            Logger.Error("Projection is not initialized");
-            return null;
-        }
-
-        var xTile = InternalExtensions.ConformValueToRange( toCheck.X, Metrics.TileXRange, "Tile X Coordinate" );
-        var yTile = InternalExtensions.ConformValueToRange( toCheck.Y, Metrics.TileYRange, "Tile Y Coordinate" );
-
-        return await MapTile.CreateAsync(this, xTile, yTile);
-    }
-
-    public abstract Task<HttpRequestMessage?> GetRequestAsync( MapTile tile  );
+    public abstract HttpRequestMessage? GetRequest( MapTile tile  );
 
     public virtual async Task<byte[]?> ExtractImageDataAsync( HttpResponseMessage response )
     {
