@@ -2,9 +2,10 @@
 
 public partial class MapTile
 {
-    public static async Task<MapTile> CreateAsync( ITiledProjection projection, int x, int y )
+    // ignoreCaches prevents loops when creating tiles from within the caching system
+    public static async Task<MapTile> CreateAsync( ITiledProjection projection, int x, int y, bool ignoreCache = false )
     {
-        if( projection.TileCache == null )
+        if( projection.TileCache == null || ignoreCache )
             return new MapTile( projection, x, y );
 
         var entry = await projection.TileCache.GetEntryAsync( projection, x, y );
