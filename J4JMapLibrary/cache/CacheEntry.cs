@@ -22,7 +22,7 @@ public class CacheEntry
         int yTile
     )
     {
-        Tile = MapTile.CreateAsync( projection, xTile, yTile ).Result;
+        Tile = MapTile.CreateAsync( projection, xTile, yTile, true ).Result;
         CreatedUtc = DateTime.UtcNow;
     }
 
