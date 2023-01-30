@@ -9,6 +9,8 @@ public class FileSystemCache : CacheBase
     private readonly FileLocator _fileLocator;
 
     private string? _cacheDir;
+    private int _tilesCached;
+    private long _bytesCached;
 
     public FileSystemCache( 
         IJ4JLogger logger
@@ -17,9 +19,6 @@ public class FileSystemCache : CacheBase
     {
         _fileLocator = new FileLocator().StopOnFirstMatch().Readable().Writeable();
     }
-
-    public int MaxBytes { get; set; }
-    public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
 
     public override int Count => GetFiles().Count;
 
@@ -35,6 +34,8 @@ public class FileSystemCache : CacheBase
             .ToList()
             .AsReadOnly();
 
+    public bool IsValid => _cacheDir != null;
+
     public string? CacheDirectory
     {
         get => _cacheDir;
@@ -47,12 +48,15 @@ public class FileSystemCache : CacheBase
                 return;
             }
 
-            _fileLocator.FileToFind( new Guid().ToString() );
-            _fileLocator.ScanDirectory( value );
-
-            if( _fileLocator.Matches == 0 )
-                Logger.Error<string>( "Cache path '{0}' is not accessible", value );
-            else _cacheDir = value;
+            try
+            {
+                var dirInfo = Directory.CreateDirectory( value );
+                _cacheDir = dirInfo.FullName;
+            }
+            catch( Exception ex )
+            {
+                Logger.Error<string>("Cache path '{0}' is not accessible", value);
+            }
         }
     }
 
@@ -71,44 +75,66 @@ public class FileSystemCache : CacheBase
     }
 
     // assumes _cacheDir is defined
-    private List<FileInfo> GetFiles() =>
-        Directory.GetFiles( _cacheDir!,
-                            "*.*",
-                            enumerationOptions: new EnumerationOptions()
-                            {
-                                IgnoreInaccessible = true, RecurseSubdirectories = true
-                            } )
-                 .Select( x => new FileInfo( x ) )
-                 .ToList();
+    private List<FileInfo> GetFiles()
+    {
+        var retVal = Directory.GetFiles( _cacheDir!,
+                                   "*.*",
+                                   enumerationOptions: new EnumerationOptions()
+                                   {
+                                       IgnoreInaccessible = true, RecurseSubdirectories = true
+                                   } )
+                        .Select( x => new FileInfo( x ) )
+                        .ToList();
+
+        _tilesCached = retVal.Count;
+        _bytesCached = retVal.Sum( x => x.Length );
+
+        return retVal;
+    }
 
     public override void PurgeExpired()
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger.Error("Caching directory is undefined"  );
+            Logger.Error( "Caching directory is undefined" );
             return;
         }
-
-        if( RetentionPeriod == TimeSpan.Zero ) 
-            return;
 
         var files = GetFiles();
         var deleted = new List<string>();
 
-        foreach( var fileInfo in files.Where(x=> x.LastAccessTime < DateTime.UtcNow - RetentionPeriod  ) )
+        foreach( var fileInfo in files.Where( x => RetentionPeriod != TimeSpan.Zero
+                                               && ( x.LastAccessTime < DateTime.Now - RetentionPeriod ) ) )
         {
-            File.Delete(fileInfo.FullName);
+            File.Delete( fileInfo.FullName );
             deleted.Add( fileInfo.FullName );
         }
 
         files = files.Where( x => !deleted.Any( y => y.Equals( x.FullName ) ) )
-                     .OrderByDescending( x => x.Length )
                      .ToList();
 
-        while( MaxBytes >= 0 && files.Sum( x => x.Length ) > MaxBytes )
+        if( MaxEntries > 0 && files.Count > MaxEntries )
         {
-            File.Delete(files.First().FullName  );
-            files.RemoveAt( 0 );
+            var filesByOldest = files.OrderBy( x => x.CreationTime )
+                                   .ToList();
+
+            while( filesByOldest.Count > MaxEntries )
+            {
+                File.Delete( filesByOldest.First().FullName );
+                filesByOldest.RemoveAt( 0 );
+            }
+        }
+
+        if( MaxBytes <= 0 || files.Sum( x => x.Length ) <= MaxBytes )
+            return;
+
+        var filesByLargest = files.OrderByDescending( x => x.Length )
+                               .ToList();
+
+        while( MaxBytes >= 0 && filesByLargest.Sum( x => x.Length ) > MaxBytes )
+        {
+            File.Delete( filesByLargest.First().FullName );
+            filesByLargest.RemoveAt( 0 );
         }
     }
 
@@ -120,7 +146,7 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var key = $"{projection.Name}{projection.GetQuadKeyAsync( xTile, yTile )}";
+        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
         var filePath = Path.Combine(_cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}");
 
         return File.Exists( filePath )
@@ -138,11 +164,30 @@ public class FileSystemCache : CacheBase
 
         var retVal = new CacheEntry( projection, xTile, yTile );
 
-        var key = $"{projection.Name}{retVal.Tile.QuadKey}";
-        var filePath = Path.Combine(_cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}");
+        var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.ImageFileExtension}";
+        var filePath = Path.Combine( _cacheDir, fileName );
 
-        var imgFile = File.Create( filePath );
-        await imgFile.WriteAsync( await retVal.Tile.GetImageAsync() );
+        if( File.Exists( filePath ) )
+            Logger.Warning<string>("Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey);
+
+        var bytesToWrite = await retVal.Tile.GetImageAsync() ?? Array.Empty<byte>();
+
+        if( bytesToWrite.Length == 0 )
+        {
+            Logger.Error("Failed to retrieve image data"  );
+            return null;
+        }
+
+        await using var imgFile = File.Create(filePath);
+        await imgFile.WriteAsync( bytesToWrite );
+        imgFile.Close();
+
+        _tilesCached++;
+        _bytesCached += bytesToWrite.Length;
+
+        if( MaxEntries > 0 && _tilesCached > MaxEntries
+        || MaxBytes > 0 && _bytesCached > MaxBytes )
+            PurgeExpired();
 
         return retVal;
     }
