@@ -8,7 +8,7 @@ public partial class MapTile
     public event EventHandler? ImageChanged;
 
     private readonly IJ4JLogger _logger;
-    private readonly Func<MapTile, Task<HttpRequestMessage?>> _createRequestAsync;
+    private readonly Func<MapTile, HttpRequestMessage?> _createRequest;
     private readonly Func<HttpResponseMessage, Task<byte[]?>> _extractImageStreamAsync;
 
     private byte[]? _imageData;
@@ -24,6 +24,8 @@ public partial class MapTile
     public int X { get; }
     public int Y { get; }
 
+    public long ImageBytes { get; private set; } = -1L;
+
     public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false ) =>
         await GetImageAsync( CancellationToken.None, forceRetrieval );
 
@@ -38,7 +40,7 @@ public partial class MapTile
 
         _logger.Verbose( "Beginning image retrieval from web" );
 
-        var request = await _createRequestAsync( this );
+        var request = _createRequest( this );
         if( request == null )
         {
             _logger.Error( "Could not create HttpRequestMessage for tile ({0}, {1})", X, Y );
@@ -93,7 +95,12 @@ public partial class MapTile
         _logger.Verbose<string>( "Reading response from {0}", uriText );
 
         _imageData = await _extractImageStreamAsync( response );
-        ImageChanged?.Invoke( this, EventArgs.Empty );
+        ImageChanged?.Invoke(this, EventArgs.Empty);
+
+        if ( _imageData == null )
+            return null;
+
+        ImageBytes = _imageData.Length;
 
         return _imageData;
     }

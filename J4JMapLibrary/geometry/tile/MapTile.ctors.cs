@@ -23,7 +23,7 @@ public partial class MapTile
     )
     {
         _logger = J4JDeusEx.GetLogger<MapTile>()!;
-        _createRequestAsync = projection.GetRequestAsync;
+        _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
         Metrics = projection.Metrics;
@@ -51,7 +51,7 @@ public partial class MapTile
     )
     {
         _logger = J4JDeusEx.GetLogger<MapTile>()!;
-        _createRequestAsync = projection.GetRequestAsync;
+        _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
         Metrics = projection.Metrics;
@@ -72,7 +72,7 @@ public partial class MapTile
     )
     {
         _logger = J4JDeusEx.GetLogger<MapTile>()!;
-        _createRequestAsync = projection.GetRequestAsync;
+        _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
         Metrics = projection.Metrics;
@@ -90,7 +90,7 @@ public partial class MapTile
     )
     {
         _logger = J4JDeusEx.GetLogger<MapTile>()!;
-        _createRequestAsync = projection.GetRequestAsync;
+        _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
         Metrics = projection.Metrics;
