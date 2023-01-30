@@ -43,5 +43,11 @@ internal partial class DeusEx
                 } )
                .As<ILibraryConfiguration>()
                .SingleInstance();
+
+        builder.RegisterType<MemoryCache>()
+               .AsSelf();
+
+        builder.RegisterType<FileSystemCache>()
+               .AsSelf();
     }
 }

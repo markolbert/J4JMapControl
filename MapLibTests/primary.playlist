@@ -31,17 +31,17 @@
                     <Rule Match="All">
                       <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.CreateProjectionFromType" />
                       <Rule Match="Any">
-                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.BingMapsProjection), result: True)" />
-                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.OpenStreetMapsProjection), result: True)" />
                         <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.OpenTopoMapsProjection), result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.OpenStreetMapsProjection), result: True)" />
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromType(projectionType: typeof(J4JMapLibrary.BingMapsProjection), result: True)" />
                       </Rule>
                     </Rule>
                     <Rule Match="All">
                       <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric" />
                       <Rule Match="Any">
+                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.OpenTopoMapsProjection), result: True)" />
                         <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.BingMapsProjection), result: True)" />
                         <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.OpenStreetMapsProjection), result: True)" />
-                        <Property Name="DisplayName" Value="MapLibTests.FactoryTests.CreateProjectionFromTypeGeneric(projectionType: typeof(J4JMapLibrary.OpenTopoMapsProjection), result: True)" />
                       </Rule>
                     </Rule>
                     <Rule Match="All">
@@ -111,30 +111,20 @@
                   </Rule>
                 </Rule>
                 <Rule Match="All">
-                  <Property Name="Class" Value="CheckImages" />
+                  <Property Name="Class" Value="CacheTests" />
                   <Rule Match="Any">
                     <Rule Match="All">
-                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CheckImages.BingMaps" />
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CacheTests.FileSystemCacheCount" />
                       <Rule Match="Any">
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.BingMaps(scale: 1, xTile: 0, yTile: 0)" />
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.BingMaps(scale: 2, xTile: 0, yTile: 0)" />
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.BingMaps(scale: 5, xTile: 27, yTile: 48)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CacheTests.FileSystemCacheCount(scale: 4, maxCached: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CacheTests.FileSystemCacheCount(scale: 4, maxCached: 30)" />
                       </Rule>
                     </Rule>
                     <Rule Match="All">
-                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CheckImages.OpenStreetMaps" />
+                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CacheTests.MemoryCacheCount" />
                       <Rule Match="Any">
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenStreetMaps(scale: 1, xTile: 0, yTile: 0)" />
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenStreetMaps(scale: 2, xTile: 0, yTile: 0)" />
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenStreetMaps(scale: 5, xTile: 27, yTile: 48)" />
-                      </Rule>
-                    </Rule>
-                    <Rule Match="All">
-                      <Property Name="TestWithNormalizedFullyQualifiedName" Value="MapLibTests.CheckImages.OpenTopoMaps" />
-                      <Rule Match="Any">
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenTopoMaps(scale: 1, xTile: 0, yTile: 0)" />
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenTopoMaps(scale: 2, xTile: 0, yTile: 0)" />
-                        <Property Name="DisplayName" Value="MapLibTests.CheckImages.OpenTopoMaps(scale: 5, xTile: 27, yTile: 48)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CacheTests.MemoryCacheCount(scale: 4, maxCached: 0)" />
+                        <Property Name="DisplayName" Value="MapLibTests.CacheTests.MemoryCacheCount(scale: 4, maxCached: 30)" />
                       </Rule>
                     </Rule>
                   </Rule>

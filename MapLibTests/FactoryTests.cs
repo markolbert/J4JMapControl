@@ -54,7 +54,7 @@ public class FactoryTests : TestBase
 
         var method = methods[ 0 ].MakeGenericMethod( projectionType );
 
-        var projTask = method.Invoke(factory, new object?[] { null, true, null }) as Task;
+        var projTask = method.Invoke(factory, new object?[] { null }) as Task;
         projTask.Should().NotBeNull();
         await projTask!;
 
@@ -101,7 +101,7 @@ public class FactoryTests : TestBase
 
         var method = methods[0].MakeGenericMethod(type);
 
-        var projTask = method.Invoke( factory, new object?[] { null, true, null } ) as Task;
+        var projTask = method.Invoke( factory, new object?[] { null } ) as Task;
         projTask.Should().NotBeNull();
         await projTask!;
 
