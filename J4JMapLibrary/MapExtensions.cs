@@ -39,11 +39,41 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static async Task<string> GetQuadKeyAsync(this ITiledProjection projection, int xTile, int yTile )
+    public static string? GetQuadKey(this ITiledProjection projection, int xTile, int yTile )
     {
-        var tile = await MapTile.CreateAsync( projection, xTile, yTile );
+        var x = InternalExtensions.ConformValueToRange( xTile, projection.Metrics.TileXRange, "X Tile" );
+        var y = InternalExtensions.ConformValueToRange( yTile, projection.Metrics.TileYRange, "Y Tile" );
 
-        return tile.GetQuadKey();
+        if( x != xTile || y != yTile )
+        {
+            Logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
+                          xTile,
+                          yTile,
+                          projection.Scale );
+
+            return null;
+        }
+
+        var retVal = new StringBuilder();
+
+        for (var i = projection.Scale; i > 0; i--)
+        {
+            var digit = '0';
+            var mask = 1 << (i - 1);
+
+            if ((xTile & mask) != 0)
+                digit++;
+
+            if ((yTile & mask) != 0)
+            {
+                digit++;
+                digit++;
+            }
+
+            retVal.Append(digit);
+        }
+
+        return retVal.ToString();
     }
 
     public static bool TryParseQuadKey( string quadKey, out DeconstructedQuadKey? result )
