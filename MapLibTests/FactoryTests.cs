@@ -38,7 +38,7 @@ public class FactoryTests : TestBase
     [InlineData(typeof(BingMapsProjection), true)]
     [InlineData(typeof(OpenStreetMapsProjection), true)]
     [InlineData(typeof(OpenTopoMapsProjection), true)]
-    public async void CreateProjectionFromTypeGeneric( Type projectionType, bool result )
+    public async Task CreateProjectionFromTypeGeneric( Type projectionType, bool result )
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();
@@ -69,7 +69,7 @@ public class FactoryTests : TestBase
     [InlineData(typeof(BingMapsProjection), true)]
     [InlineData(typeof(OpenStreetMapsProjection), true)]
     [InlineData(typeof(OpenTopoMapsProjection), true)]
-    public async void CreateProjectionFromType(Type projectionType, bool result)
+    public async Task CreateProjectionFromType(Type projectionType, bool result)
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();
@@ -85,7 +85,7 @@ public class FactoryTests : TestBase
     [InlineData(typeof(BingMapsProjection),".jpeg")]
     [InlineData(typeof(OpenStreetMapsProjection), ".png")]
     [InlineData(typeof(OpenTopoMapsProjection), ".png")]
-    public async void CheckImageFileExtension(Type type, string fileExtension)
+    public async Task CheckImageFileExtension(Type type, string fileExtension)
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();

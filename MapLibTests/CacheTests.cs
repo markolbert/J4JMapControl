@@ -11,7 +11,7 @@ public class CacheTests : TestBase
     [ Theory ]
     [ InlineData( 4, 0 ) ]
     [ InlineData( 4, 30 ) ]
-    public async void MemoryCacheCount( int scale, int maxCached )
+    public async Task MemoryCacheCount( int scale, int maxCached )
     {
         var cache = J4JDeusEx.ServiceProvider.GetService<MemoryCache>();
         cache.Should().NotBeNull();
@@ -40,7 +40,7 @@ public class CacheTests : TestBase
     [Theory]
     [InlineData(4, 0 )]
     [InlineData(4, 30 )]
-    public async void FileSystemCacheCount( int scale, int maxCached )
+    public async Task FileSystemCacheCount( int scale, int maxCached )
     {
         var cache = J4JDeusEx.ServiceProvider.GetService<FileSystemCache>();
         cache.Should().NotBeNull();

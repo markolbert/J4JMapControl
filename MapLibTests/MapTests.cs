@@ -6,7 +6,7 @@ namespace MapLibTests;
 public class MapTests : TestBase
 {
     [ Fact ]
-    public async void ValidApiKey()
+    public async Task ValidApiKey()
     {
         var factory = GetFactory();
 
@@ -31,7 +31,7 @@ public class MapTests : TestBase
     [ Theory ]
     [ InlineData( 0, true ) ]
     [ InlineData( 1, false ) ]
-    public async void BingApiKeyLatency( int maxLatency, bool result )
+    public async Task BingApiKeyLatency( int maxLatency, bool result )
     {
         var factory = GetFactory();
 
@@ -70,7 +70,7 @@ public class MapTests : TestBase
     [ InlineData( 3, 1, 3, "023" ) ]
     [ InlineData( 3, 2, 3, "032" ) ]
     [ InlineData( 3, 3, 3, "033" ) ]
-    public async void CreateQuadKeys( int scale, int xTile, int yTile, string quadKey )
+    public async Task CreateQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
         var factory = GetFactory();
 

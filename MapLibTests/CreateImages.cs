@@ -7,7 +7,7 @@ public class CreateImages : TestBase
 {
     [ Theory ]
     [ClassData(typeof(TileImageData))]
-    public async void BingMaps( int scale, int xTile, int yTile )
+    public async Task BingMaps( int scale, int xTile, int yTile )
     {
         var projection = await GetFactory().CreateMapProjection( typeof( BingMapsProjection ) );
         projection.Should().NotBeNull();
@@ -21,7 +21,7 @@ public class CreateImages : TestBase
 
     [Theory]
     [ClassData(typeof(TileImageData))]
-    public async void OpenStreetMaps(int scale, int xTile, int yTile)
+    public async Task OpenStreetMaps(int scale, int xTile, int yTile)
     {
         var projection = await GetFactory().CreateMapProjection(typeof(OpenStreetMapsProjection));
         projection.Should().NotBeNull();
@@ -35,7 +35,7 @@ public class CreateImages : TestBase
 
     [Theory]
     [ClassData(typeof(TileImageData))]
-    public async void OpenTopoMaps(int scale, int xTile, int yTile)
+    public async Task OpenTopoMaps(int scale, int xTile, int yTile)
     {
         var projection = await GetFactory().CreateMapProjection(typeof(OpenTopoMapsProjection));
         projection.Should().NotBeNull();
