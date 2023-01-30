@@ -19,6 +19,10 @@ public abstract class CacheBase : ITileCache
     public abstract int Count { get; }
     public abstract ReadOnlyCollection<string> QuadKeys { get; }
 
+    public int MaxEntries { get; set; }
+    public long MaxBytes { get; set; }
+    public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
+
     public abstract void Clear();
     public abstract void PurgeExpired();
 
@@ -35,8 +39,17 @@ public abstract class CacheBase : ITileCache
         }
 
         retVal = ParentCache == null ? null : await ParentCache.GetEntryAsync( projection, xTile, yTile );
+        retVal ??= await AddEntryAsync( projection, xTile, yTile );
+
         if( retVal == null )
-            return await AddEntryAsync( projection, xTile, yTile );
+        {
+            Logger.Error( "Failed to create {0} cache entry for tile ({1}, {2})",
+                          projection.Name,
+                          xTile,
+                          yTile );
+
+            return null;
+        }
 
         retVal.LastAccessedUtc = DateTime.UtcNow;
         return retVal;
