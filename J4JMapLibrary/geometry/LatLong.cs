@@ -2,6 +2,8 @@
 
 public class LatLong
 {
+    public EventHandler? Changed;
+
     private double _latitude;
     private double _longitude;
 
@@ -17,24 +19,37 @@ public class LatLong
     public int Scale { get; }
     public bool ReflectsProjection => Scale == Metrics.Scale;
 
-    public double Latitude
-    {
-        get => _latitude;
+    public double Latitude => _latitude;
+    public double Longitude => _longitude;
 
-        set =>
-            _latitude = InternalExtensions.ConformValueToRange( value,
-                                                                Metrics.LatitudeRange,
-                                                                "Latitude" );
+    public void SetLatLong(double? latitude, double? longitude)
+    {
+        if (latitude == null && longitude == null)
+            return;
+
+        if (latitude.HasValue)
+            _latitude = InternalExtensions.ConformValueToRange(latitude.Value,
+                Metrics.LatitudeRange,
+                "Latitude");
+
+        if (longitude.HasValue)
+            _longitude = InternalExtensions.ConformValueToRange(longitude.Value,
+                Metrics.LongitudeRange,
+                "Longitude");
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    public double Longitude
+    public void SetLatLong(LatLong latLong)
     {
-        get => _longitude;
+        _latitude = InternalExtensions.ConformValueToRange(latLong.Latitude,
+            Metrics.LatitudeRange,
+            "Latitude");
 
-        set =>
-            _longitude =
-                InternalExtensions.ConformValueToRange( value,
-                                                        Metrics.LongitudeRange,
-                                                        "Longitude" );
+        _longitude = InternalExtensions.ConformValueToRange(latLong.Longitude,
+            Metrics.LongitudeRange,
+            "Longitude");
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 }

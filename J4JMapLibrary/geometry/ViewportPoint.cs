@@ -12,11 +12,10 @@ public class ViewportPoint : MapPoint
     )
         :base(CreateMetrics(height, width))
     {
-        Height = height; 
-        Width = width;
+        _height = height; 
+        _width = width;
 
-        LatLong.Latitude = latLong.Latitude;
-        LatLong.Longitude = latLong.Longitude;
+        LatLong.SetLatLong(latLong);
     }
 
     private static ProjectionMetrics CreateMetrics(int height, int width)
@@ -35,41 +34,27 @@ public class ViewportPoint : MapPoint
         };
     }
 
-    public int Height
+    public int Height => _height;
+    public int Width => _width;
+
+    public void SetHeightWidth(int? height, int? width)
     {
-        get => _height;
+        if (height == null && width == null)
+            return;
 
-        set
+        // Metrics is about to change, but its XRange and YRange limits never do
+        if (height.HasValue)
+            _height = InternalExtensions.ConformValueToRange(height.Value, Metrics.YRange, "Y");
+
+        if (width.HasValue)
+            _width = InternalExtensions.ConformValueToRange(width.Value, Metrics.XRange, "X");
+
+        Metrics = Metrics with
         {
-            if( value <= 0 )
-            {
-                Logger?.Error("Trying to set ViewportPoint height to <= 0 value, ignoring");
-                return;
-            }
+            XRange = new MinMax<int>(0, _width),
+            YRange = new MinMax<int>(0, _height)
+        };
 
-            _height = value;
-
-            Metrics = Metrics with { XRange = new MinMax<int>( 0, _width ), YRange = new MinMax<int>( 0, _height ) };
-            Cartesian = Metrics.LatLongToCartesian( LatLong );
-        }
-    }
-
-    public int Width
-    {
-        get => _width;
-
-        set
-        {
-            if (value <= 0)
-            {
-                Logger?.Error("Trying to set ViewportPoint width to <= 0 value, ignoring");
-                return;
-            }
-
-            _width = value;
-
-            Metrics = Metrics with { XRange = new MinMax<int>(0, _width), YRange = new MinMax<int>(0, _height) };
-            Cartesian = Metrics.LatLongToCartesian(LatLong);
-        }
+        Cartesian = Metrics.LatLongToCartesian(LatLong);
     }
 }

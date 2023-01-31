@@ -41,10 +41,8 @@ public partial class MapTile
         if( projection.TileCache == null )
             return new MapTile( projection, latLong );
 
-        var center = new MapPoint( projection.Metrics )
-        {
-            LatLong = { Latitude = latLong.Latitude, Longitude = latLong.Longitude }
-        };
+        var center = new MapPoint(projection.Metrics);
+        center.LatLong.SetLatLong(latLong);
 
         var x = center.Cartesian.X / projection.TileHeightWidth;
         var y = center.Cartesian.Y / projection.TileHeightWidth;

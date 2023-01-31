@@ -29,19 +29,17 @@ internal static class InternalExtensions
         return range.Maximum;
     }
 
-    internal static LatLong CartesianToLatLong( this ProjectionMetrics metrics, Cartesian cartesian )
+    internal static LatLong CartesianToLatLong(this ProjectionMetrics metrics, Cartesian cartesian)
     {
         // ReSharper disable once UseObjectOrCollectionInitializer
-        var retVal = new LatLong( metrics );
+        var retVal = new LatLong(metrics);
 
-        retVal.Latitude = ( 2
-              * Math.Atan( Math.Exp( MapConstants.TwoPi
-                                   * cartesian.Y
-                                   / ( cartesian.Metrics.YRange.Maximum - cartesian.Metrics.YRange.Minimum ) ) )
-              - MapConstants.HalfPi )
-          / MapConstants.RadiansPerDegree;
-
-        retVal.Longitude = 360 * cartesian.X / (cartesian.Metrics.XRange.Maximum - cartesian.Metrics.XRange.Minimum) - 180;
+        retVal.SetLatLong((2 * Math.Atan(
+                               Math.Exp(MapConstants.TwoPi * cartesian.Y /
+                                        (cartesian.Metrics.YRange.Maximum - cartesian.Metrics.YRange.Minimum)))
+                           - MapConstants.HalfPi)
+                          / MapConstants.RadiansPerDegree,
+            360 * cartesian.X / (cartesian.Metrics.XRange.Maximum - cartesian.Metrics.XRange.Minimum) - 180);
 
         return retVal;
     }
@@ -58,8 +56,7 @@ internal static class InternalExtensions
 
         try
         {
-            retVal.X = Convert.ToInt32(Math.Round(x));
-            retVal.Y = Convert.ToInt32(Math.Round(y));
+            retVal.SetCartesian(Convert.ToInt32(Math.Round(x)), Convert.ToInt32(Math.Round(y)));
         }
         catch (Exception ex)
         {

@@ -31,14 +31,9 @@ public partial class MapTile
         MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint( Metrics )
-        {
-            Cartesian =
-            {
-                X = x * projection.TileHeightWidth + projection.TileHeightWidth / 2,
-                Y = y * projection.TileHeightWidth + projection.TileHeightWidth / 2
-            }
-        };
+        Center = new MapPoint(Metrics);
+        Center.Cartesian.SetCartesian(x * projection.TileHeightWidth + projection.TileHeightWidth / 2,
+            y * projection.TileHeightWidth + projection.TileHeightWidth / 2);
 
         X = x < 0 ? 0 : x;
         Y = y < 0 ? 0 : y;
@@ -59,7 +54,8 @@ public partial class MapTile
         MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint( Metrics ) { Cartesian = { X = point.X, Y = point.Y } };
+        Center = new MapPoint(Metrics);
+        Center.Cartesian.SetCartesian(point);
 
         X = point.X / projection.TileHeightWidth;
         Y = point.Y / projection.TileHeightWidth;
@@ -98,7 +94,8 @@ public partial class MapTile
         MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint( Metrics ) { LatLong = { Latitude = latLong.Latitude, Longitude = latLong.Longitude } };
+        Center = new MapPoint(Metrics);
+        Center.LatLong.SetLatLong(latLong);
 
         QuadKey = this.GetQuadKey();
     }

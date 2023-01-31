@@ -2,6 +2,8 @@
 
 public class Cartesian
 {
+    public EventHandler? Changed;
+
     private int _x;
     private int _y;
 
@@ -17,24 +19,37 @@ public class Cartesian
     public int Scale { get; }
     public bool ReflectsProjection => Scale == Metrics.Scale;
 
-    public int X
-    {
-        get => _x;
+    public int X => _x;
+    public int Y => _y;
 
-        set =>
-            _x = InternalExtensions.ConformValueToRange( value,
-                                                         Metrics.XRange,
-                                                         "X" );
+    public void SetCartesian(int? x, int? y)
+    {
+        if (x == null && y == null)
+            return;
+
+        if( x.HasValue)
+            _x = InternalExtensions.ConformValueToRange(x.Value,
+                Metrics.YRange,
+                "X");
+
+        if ( y.HasValue)
+            _y = InternalExtensions.ConformValueToRange(y.Value,
+                Metrics.YRange,
+                "Y");
+
+        Changed?.Invoke( this, EventArgs.Empty );
     }
 
-    public int Y
+    public void SetCartesian(Cartesian cartesian)
     {
-        get => _y;
+            _x = InternalExtensions.ConformValueToRange(cartesian.X,
+                Metrics.YRange,
+                "X");
 
-        set =>
-            _y =
-                InternalExtensions.ConformValueToRange( value,
-                                                        Metrics.YRange,
-                                                        "Y" );
+            _y = InternalExtensions.ConformValueToRange(cartesian.Y,
+                Metrics.YRange,
+                "Y");
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 }
