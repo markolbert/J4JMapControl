@@ -53,7 +53,7 @@ public class FileSystemCache : CacheBase
                 var dirInfo = Directory.CreateDirectory( value );
                 _cacheDir = dirInfo.FullName;
             }
-            catch( Exception ex )
+            catch
             {
                 Logger.Error<string>("Cache path '{0}' is not accessible", value);
             }
