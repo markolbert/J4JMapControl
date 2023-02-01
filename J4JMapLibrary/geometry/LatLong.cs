@@ -4,52 +4,48 @@ public class LatLong
 {
     public EventHandler? Changed;
 
-    private double _latitude;
-    private double _longitude;
+    private readonly MinMax<float> _latitudeRange;
+    private readonly MinMax<float> _longitudeRange;
 
     public LatLong(
         ProjectionMetrics metrics
     )
     {
-        Metrics = metrics;
+        _latitudeRange = metrics.LatitudeRange;
+        _longitudeRange = metrics.LongitudeRange;
+
         Scale = metrics.Scale;
     }
 
-    public ProjectionMetrics Metrics { get; }
-    public int Scale { get; }
-    public bool ReflectsProjection => Scale == Metrics.Scale;
+    public int Scale { get; internal set; }
 
-    public double Latitude => _latitude;
-    public double Longitude => _longitude;
+    public float Latitude { get; private set; }
+    public float Longitude { get; private set; }
 
-    public void SetLatLong(double? latitude, double? longitude)
+    public void SetLatLong( float? latitude, float? longitude )
     {
-        if (latitude == null && longitude == null)
+        if( latitude == null && longitude == null )
             return;
 
-        if (latitude.HasValue)
-            _latitude = InternalExtensions.ConformValueToRange(latitude.Value,
-                Metrics.LatitudeRange,
-                "Latitude");
+        if( latitude.HasValue )
+            Latitude = InternalExtensions
+               .ConformValueToRange( latitude.Value, _latitudeRange, "Latitude" );
 
-        if (longitude.HasValue)
-            _longitude = InternalExtensions.ConformValueToRange(longitude.Value,
-                Metrics.LongitudeRange,
-                "Longitude");
+        if( longitude.HasValue )
+            Longitude = InternalExtensions
+               .ConformValueToRange( longitude.Value, _longitudeRange, "Longitude" );
 
-        Changed?.Invoke(this, EventArgs.Empty);
+        Changed?.Invoke( this, EventArgs.Empty );
     }
 
-    public void SetLatLong(LatLong latLong)
+    public void SetLatLong( LatLong latLong )
     {
-        _latitude = InternalExtensions.ConformValueToRange(latLong.Latitude,
-            Metrics.LatitudeRange,
-            "Latitude");
+        Latitude = InternalExtensions
+           .ConformValueToRange( latLong.Latitude, _latitudeRange, "Latitude" );
 
-        _longitude = InternalExtensions.ConformValueToRange(latLong.Longitude,
-            Metrics.LongitudeRange,
-            "Longitude");
+        Longitude = InternalExtensions
+           .ConformValueToRange( latLong.Longitude, _longitudeRange, "Longitude" );
 
-        Changed?.Invoke(this, EventArgs.Empty);
+        Changed?.Invoke( this, EventArgs.Empty );
     }
 }

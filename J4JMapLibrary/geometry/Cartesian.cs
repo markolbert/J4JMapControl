@@ -4,52 +4,43 @@ public class Cartesian
 {
     public EventHandler? Changed;
 
-    private int _x;
-    private int _y;
-
     public Cartesian(
         ProjectionMetrics metrics
     )
     {
-        Metrics = metrics;
+        XRange = metrics.XRange;
+        YRange = metrics.YRange;
+
         Scale = metrics.Scale;
     }
 
-    public ProjectionMetrics Metrics { get; }
-    public int Scale { get; }
-    public bool ReflectsProjection => Scale == Metrics.Scale;
+    public int Scale { get; internal set; }
 
-    public int X => _x;
-    public int Y => _y;
+    public MinMax<int> XRange { get; internal set; }
+    public int X { get; private set; }
+
+    public MinMax<int> YRange { get; internal set; }
+    public int Y { get; private set; }
 
     public void SetCartesian(int? x, int? y)
     {
         if (x == null && y == null)
             return;
 
-        if( x.HasValue)
-            _x = InternalExtensions.ConformValueToRange(x.Value,
-                Metrics.YRange,
-                "X");
+        if( x.HasValue )
+            X = InternalExtensions.ConformValueToRange( x.Value, XRange, "X" );
 
-        if ( y.HasValue)
-            _y = InternalExtensions.ConformValueToRange(y.Value,
-                Metrics.YRange,
-                "Y");
+        if( y.HasValue )
+            Y = InternalExtensions.ConformValueToRange( y.Value, YRange, "Y" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
-    public void SetCartesian(Cartesian cartesian)
+    public void SetCartesian( Cartesian cartesian )
     {
-            _x = InternalExtensions.ConformValueToRange(cartesian.X,
-                Metrics.YRange,
-                "X");
+        X = InternalExtensions.ConformValueToRange( cartesian.X, XRange, "X" );
+        Y = InternalExtensions.ConformValueToRange( cartesian.Y, YRange, "Y" );
 
-            _y = InternalExtensions.ConformValueToRange(cartesian.Y,
-                Metrics.YRange,
-                "Y");
-
-        Changed?.Invoke(this, EventArgs.Empty);
+        Changed?.Invoke( this, EventArgs.Empty );
     }
 }
