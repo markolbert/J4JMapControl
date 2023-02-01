@@ -1,4 +1,5 @@
-﻿using J4JSoftware.DeusEx;
+﻿using System.Numerics;
+using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
@@ -34,12 +35,12 @@ internal static class InternalExtensions
         // ReSharper disable once UseObjectOrCollectionInitializer
         var retVal = new LatLong(metrics);
 
-        retVal.SetLatLong((2 * Math.Atan(
+        retVal.SetLatLong((float) (2 * Math.Atan(
                                Math.Exp(MapConstants.TwoPi * cartesian.Y /
-                                        (cartesian.Metrics.YRange.Maximum - cartesian.Metrics.YRange.Minimum)))
+                                        (cartesian.YRange.Maximum - cartesian.YRange.Minimum)))
                            - MapConstants.HalfPi)
                           / MapConstants.RadiansPerDegree,
-            360 * cartesian.X / (cartesian.Metrics.XRange.Maximum - cartesian.Metrics.XRange.Minimum) - 180);
+            360 * cartesian.X / (cartesian.XRange.Maximum - cartesian.XRange.Minimum) - 180);
 
         return retVal;
     }
@@ -60,11 +61,21 @@ internal static class InternalExtensions
         }
         catch (Exception ex)
         {
-            Logger?.Error<string>( "Could not convert double to int32, message was '{0}'", ex.Message );
+            Logger?.Error<string>( "Could not convert float to int32, message was '{0}'", ex.Message );
         }
 
         return retVal;
     }
 
+    internal static Vector3[] ApplyTransform( this Vector3[] points, Matrix4x4 transform )
+    {
+        var retVal = new Vector3[ points.Length ];
 
+        for (var idx = 0; idx < points.Length; idx++)
+        {
+            retVal[idx] = Vector3.Transform(points[idx], transform);
+        }
+
+        return retVal;
+    }
 }
