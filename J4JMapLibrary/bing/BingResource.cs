@@ -7,7 +7,7 @@ public class BingResource
     [ JsonPropertyName( "__type" ) ]
     public string Type { get; set; } = string.Empty;
 
-    public double[] BoundingBox { get; set; } = Array.Empty<double>();
+    public float[] BoundingBox { get; set; } = Array.Empty<float>();
     public int ImageHeight { get; set; }
     public int ImageWidth { get; set; }
     public string ImageUrl { get; set; } = string.Empty;

@@ -2,8 +2,8 @@
 
 public record ProjectionMetrics
 {
-    public MinMax<double> LatitudeRange { get; init; } = MapConstants.ZeroDouble;
-    public MinMax<double> LongitudeRange { get; init; } = MapConstants.ZeroDouble;
+    public MinMax<float> LatitudeRange { get; init; } = MapConstants.ZeroFloat;
+    public MinMax<float> LongitudeRange { get; init; } = MapConstants.ZeroFloat;
     public MinMax<int> XRange { get; init; } = MapConstants.ZeroInt;
     public MinMax<int> YRange { get; init; } = MapConstants.ZeroInt;
     public MinMax<int> ScaleRange { get; init; } = MapConstants.ZeroInt;

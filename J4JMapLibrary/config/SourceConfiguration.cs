@@ -32,7 +32,7 @@ public class SourceConfiguration : ISourceConfiguration
 
     protected SourceConfiguration()
     {
-        MaxLatitude = MapConstants.MaxMercatorLatitude;
+        MaxLatitude = MapConstants.Wgs84MaxLatitude;
         MinLatitude = -MaxLatitude;
         MaxLongitude = 180;
         MinLongitude = -MaxLongitude;
@@ -43,8 +43,8 @@ public class SourceConfiguration : ISourceConfiguration
     public bool CredentialsRequired { get; set; } = true;
     public string Copyright { get; set; } = string.Empty;
     public Uri? CopyrightUri { get; set; }
-    public double MaxLatitude { get; set; }
-    public double MinLatitude { get; set; }
-    public double MaxLongitude { get; set; }
-    public double MinLongitude { get; set; }
+    public float MaxLatitude { get; set; }
+    public float MinLatitude { get; set; }
+    public float MaxLongitude { get; set; }
+    public float MinLongitude { get; set; }
 }

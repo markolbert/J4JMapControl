@@ -19,8 +19,8 @@ public abstract class MapProjection : IMapProjection
 
         Metrics = new ProjectionMetrics()
         {
-            LatitudeRange = new MinMax<double>( srcConfig.MinLatitude, srcConfig.MaxLatitude ),
-            LongitudeRange = new MinMax<double>( srcConfig.MinLongitude, srcConfig.MaxLongitude ),
+            LatitudeRange = new MinMax<float>( srcConfig.MinLatitude, srcConfig.MaxLatitude ),
+            LongitudeRange = new MinMax<float>( srcConfig.MinLongitude, srcConfig.MaxLongitude ),
             XRange = new MinMax<int>( 0, 0 ),
             YRange = new MinMax<int>( 0, 0 )
         };
@@ -71,8 +71,8 @@ public abstract class MapProjection : IMapProjection
 
         Metrics = new ProjectionMetrics()
         {
-            LatitudeRange = new MinMax<double>(srcConfig.MinLatitude, srcConfig.MaxLatitude),
-            LongitudeRange = new MinMax<double>(srcConfig.MinLongitude, srcConfig.MaxLongitude),
+            LatitudeRange = new MinMax<float>(srcConfig.MinLatitude, srcConfig.MaxLatitude),
+            LongitudeRange = new MinMax<float>(srcConfig.MinLongitude, srcConfig.MaxLongitude),
             XRange = new MinMax<int>(0, 0),
             YRange = new MinMax<int>(0, 0)
         };

@@ -11,6 +11,8 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
            .Repeat(numBase, Math.Abs(exp))
            .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
 
+    public event EventHandler<int>? ScaleChanged; 
+
     private int _scale;
 
     protected TiledProjection(
@@ -50,6 +52,8 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
             _scale = InternalExtensions.ConformValueToRange( value, Metrics.ScaleRange, "Scale" );
 
             SetSizes( _scale  );
+
+            ScaleChanged?.Invoke( this, _scale );
         }
     }
 
@@ -85,7 +89,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         }
     }
 
-    public double GroundResolution( double latitude )
+    public float GroundResolution( float latitude )
     {
         if( !Initialized )
         {
@@ -95,12 +99,12 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
 
         latitude = InternalExtensions.ConformValueToRange( latitude, Metrics.LatitudeRange, "Latitude" );
 
-        return Math.Cos( latitude * MapConstants.RadiansPerDegree )
+        return (float) Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters
           / Width;
     }
 
-    public string MapScale( double latitude, double dotsPerInch ) =>
+    public string MapScale( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
     public abstract HttpRequestMessage? GetRequest( MapTile tile  );
