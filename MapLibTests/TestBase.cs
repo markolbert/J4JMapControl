@@ -28,15 +28,17 @@ public class TestBase
 
     protected CancellationToken GetCancellationToken( string mapType )
     {
-        var source = new CancellationTokenSource();
+        var latency = Configuration.TryGetConfiguration( mapType, out var mapConfig )
+            ? mapConfig!.MaxRequestLatency
+            : 500;
 
-        if( Configuration.TryGetConfiguration( mapType, out var mapConfig ) )
-            source.CancelAfter( mapConfig!.MaxRequestLatency );
-        else
-        {
-            Logger.Warning<string>( "Could not retrieve MaxRequestLatency for {0}, defaulting to 500ms", mapType );
-            source.CancelAfter( 500 );
-        }
+        return GetCancellationToken( latency );
+    }
+
+    protected CancellationToken GetCancellationToken( int latency )
+    {
+        var source = new CancellationTokenSource();
+        source.CancelAfter( latency < 0 ? 500 : latency );
 
         return source.Token;
     }
