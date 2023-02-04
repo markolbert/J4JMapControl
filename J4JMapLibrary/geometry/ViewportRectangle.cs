@@ -6,27 +6,37 @@ namespace J4JMapLibrary;
 
 public class ViewportRectangle
 {
-    public static MinMax<int> XRange = new MinMax<int>( 0, int.MaxValue );
-    public static MinMax<int> YRange = new MinMax<int>(0, int.MaxValue);
+#pragma warning disable CA2211
+    public static MinMax<int> XRange = new( 0, int.MaxValue );
+    public static MinMax<int> YRange = new(0, int.MaxValue);
+#pragma warning restore CA2211
+
+    private readonly CancellationTokenSource _cancellationTokenSource;
 
     private readonly List<MapTile> _tiles = new();
     private readonly IJ4JLogger _logger;
 
-    private float _rotation;
+    private float _heading;
+    private bool _deferImageLoad;
 
     public ViewportRectangle(
         ITiledProjection projection,
         int height,
         int width,
+        int maxRequestLatency,
         IJ4JLogger logger
     )
     {
         Projection = projection;
         SetHeightWidth( height, width );
-        Projection.ScaleChanged += ( _, _ ) => CreateTileCollection();
+
+        _cancellationTokenSource = new();
+        _cancellationTokenSource.CancelAfter( maxRequestLatency <= 0 ? 0 : maxRequestLatency );
+
+        Projection.ScaleChanged += ( _, _ ) => CreateTileCollection( _cancellationTokenSource.Token ).Wait();
 
         Center = new LatLong( projection.Metrics );
-        Center.Changed += (_, _) => CreateTileCollection();
+        Center.Changed += (_, _) => CreateTileCollection(_cancellationTokenSource.Token).Wait();
 
         _logger = logger;
         _logger.SetLoggedType( GetType() );
@@ -47,13 +57,14 @@ public class ViewportRectangle
 
     public LatLong Center { get; }
 
-    public float Rotation
+    // in degrees; north is 0/360
+    public float Heading
     {
-        get => _rotation;
+        get => _heading;
 
         set
         {
-            _rotation = value;
+            _heading = value % 360;
             UpdateNeeded = true;
         }
     }
@@ -79,15 +90,21 @@ public class ViewportRectangle
         UpdateNeeded = true;
     }
 
-    public async Task<ReadOnlyCollection<MapTile>> GetTilesAsync( bool forceUpdate )
+    public async Task<ReadOnlyCollection<MapTile>> GetTilesAsync(
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false,
+        bool forceUpdate = false
+    )
     {
-        if( UpdateNeeded || forceUpdate)
-            await CreateTileCollection();
+        _deferImageLoad = deferImageLoad;
+
+        if( UpdateNeeded || forceUpdate )
+            await CreateTileCollection( cancellationToken );
 
         return _tiles.AsReadOnly();
     }
 
-    private async Task CreateTileCollection()
+    private async Task CreateTileCollection( CancellationToken cancellationToken )
     {
         _tiles.Clear();
 
@@ -98,43 +115,49 @@ public class ViewportRectangle
         CartesianCorners.CopyTo( projCorners, 0 );
 
         // apply rotation if one is defined
-        if( _rotation != 0 )
+        // heading == 270 is rotation == 90, hence the angle adjustment
+        if( _heading != 0 )
             projCorners = projCorners.ApplyTransform(
-                Matrix4x4.CreateRotationZ( _rotation * MapConstants.RadiansPerDegree, CartesianCenter ) );
+                Matrix4x4.CreateRotationZ( ( 360 - _heading ) * MapConstants.RadiansPerDegree, CartesianCenter ) );
 
         // translate to the Cartesian coordinates of our center point
         // >>in the TiledProjection space<<
-        var projPoint = new MapPoint( Projection.Metrics );
-        projPoint.LatLong.SetLatLong( Center );
+        var cartesianCenter = new Cartesian( Projection.Metrics );
+        cartesianCenter.SetCartesian( Projection.Metrics.LatLongToCartesian( Center ) );
 
         projCorners = projCorners.ApplyTransform(
-            Matrix4x4.CreateTranslation( new Vector3( projPoint.Cartesian.X, projPoint.Cartesian.Y, 0F ) ) );
+            Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
 
         // find the range of tiles covering the mapped rectangle
         var minCartesianX = RoundFloatToInt( projCorners.Min( x => x.X ) );
-        var maxCartesianX = RoundFloatToInt(projCorners.Max( x => x.X ));
-        var minCartesianY = RoundFloatToInt(projCorners.Min( y => y.Y ));
-        var maxCartesianY = RoundFloatToInt(projCorners.Max(y => y.Y));
+        var maxCartesianX = RoundFloatToInt( projCorners.Max( x => x.X ) );
+        var minCartesianY = RoundFloatToInt( projCorners.Min( y => y.Y ) );
+        var maxCartesianY = RoundFloatToInt( projCorners.Max( y => y.Y ) );
 
-        var upperLeftTile = await CreateMapTile(minCartesianX, maxCartesianY);
-        var lowerRightTile = await CreateMapTile( maxCartesianX, minCartesianY );
+        var upperLeftTile = await CreateMapTile( minCartesianX, maxCartesianY, cancellationToken );
+        var lowerRightTile = await CreateMapTile( maxCartesianX, minCartesianY, cancellationToken );
 
         for( var xTile = upperLeftTile.X; xTile <= lowerRightTile.X; xTile++ )
         {
             for( var yTile = upperLeftTile.Y; yTile >= lowerRightTile.Y; yTile-- )
             {
-                _tiles.Add( await MapTile.CreateAsync( Projection, xTile, yTile ) );
+                var mapTile = await MapTile.CreateAsync( Projection, xTile, yTile, cancellationToken );
+
+                if( !_deferImageLoad )
+                    await mapTile.GetImageAsync( cancellationToken );
+
+                _tiles.Add( mapTile );
             }
         }
     }
 
     private int RoundFloatToInt( float value ) => Convert.ToInt32( Math.Round( value, MidpointRounding.AwayFromZero ) );
 
-    private async Task<MapTile> CreateMapTile( int x, int y )
+    private async Task<MapTile> CreateMapTile( int x, int y, CancellationToken cancellationToken )
     {
         var retVal = new Cartesian(Projection.Metrics);
         retVal.SetCartesian( x, y );
 
-        return await MapTile.CreateAsync(Projection, retVal);
+        return await MapTile.CreateAsync( Projection, retVal, cancellationToken );
     }
 }
