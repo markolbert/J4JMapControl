@@ -21,7 +21,7 @@ public class OpenMapProjection : TiledProjection
         TileHeightWidth = staticConfig.TileHeightWidth;
         Metrics = Metrics with { ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale ) };
 
-        SetSizes( 0 );
+        SetSizes(0  );
     }
 
     protected OpenMapProjection(
