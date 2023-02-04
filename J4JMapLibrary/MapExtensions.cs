@@ -19,7 +19,7 @@ public static class MapExtensions
     {
         var retVal = new StringBuilder();
 
-        for( var i = tile.Metrics.Scale; i > 0; i-- )
+        for( var i = tile.Metrics.Scale; i > tile.Metrics.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
