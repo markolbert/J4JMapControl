@@ -7,7 +7,7 @@ namespace J4JMapLibrary;
 public static class MapExtensions
 {
     private static readonly IJ4JLogger? Logger;
-    private static char[] ValidQuadKeyCharacters = new[] { '0', '1', '2', '3' };
+    private static readonly char[] ValidQuadKeyCharacters = new[] { '0', '1', '2', '3' };
 
     static MapExtensions()
     {
@@ -124,5 +124,18 @@ public static class MapExtensions
         }
 
         return true;
+    }
+
+    public static LatLong CenterLatLong( this MapTile tile ) =>
+        tile.Metrics.CartesianToLatLong( tile.CenterCartesian() );
+
+    public static Cartesian CenterCartesian( this MapTile tile )
+    {
+        var retVal = new Cartesian( tile.Metrics );
+
+        retVal.SetCartesian( tile.X * tile.HeightWidth + tile.HeightWidth / 2,
+                             tile.Y * tile.HeightWidth + tile.HeightWidth / 2 );
+
+        return retVal;
     }
 }
