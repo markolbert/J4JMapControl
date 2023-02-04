@@ -26,20 +26,29 @@ public abstract class CacheBase : ITileCache
     public abstract void Clear();
     public abstract void PurgeExpired();
 
-    public virtual async Task<CacheEntry?> GetEntryAsync( ITiledProjection projection, int xTile, int yTile )
+    public virtual async Task<CacheEntry?> GetEntryAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    )
     {
         xTile = InternalExtensions.ConformValueToRange( xTile, projection.Metrics.TileXRange, "X Tile" );
         yTile = InternalExtensions.ConformValueToRange( yTile, projection.Metrics.TileYRange, "Y Tile" );
 
-        var retVal = await GetEntryInternalAsync( projection, xTile, yTile );
+        var retVal = await GetEntryInternalAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
         if( retVal != null )
         {
             retVal.LastAccessedUtc = DateTime.UtcNow;
             return retVal;
         }
 
-        retVal = ParentCache == null ? null : await ParentCache.GetEntryAsync( projection, xTile, yTile );
-        retVal ??= await AddEntryAsync( projection, xTile, yTile );
+        retVal = ParentCache == null
+            ? null
+            : await ParentCache.GetEntryAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
+
+        retVal ??= await AddEntryAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
 
         if( retVal == null )
         {
@@ -55,6 +64,19 @@ public abstract class CacheBase : ITileCache
         return retVal;
     }
 
-    protected abstract Task<CacheEntry?> GetEntryInternalAsync( ITiledProjection projection, int xTile, int yTile );
-    protected abstract Task<CacheEntry?> AddEntryAsync( ITiledProjection projection, int xTile, int yTile );
+    protected abstract Task<CacheEntry?> GetEntryInternalAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    );
+
+    protected abstract Task<CacheEntry?> AddEntryAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    );
 }

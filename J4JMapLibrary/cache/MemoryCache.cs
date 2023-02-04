@@ -61,9 +61,13 @@ public class MemoryCache : CacheBase
         }
     }
 
-#pragma warning disable CS1998
-    protected override async Task<CacheEntry?> GetEntryInternalAsync(ITiledProjection projection, int xTile, int yTile)
-#pragma warning restore CS1998
+    protected override async Task<CacheEntry?> GetEntryInternalAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    )
     {
         var quadKey = projection.GetQuadKey( xTile, yTile );
         if( string.IsNullOrEmpty( quadKey ) )
@@ -71,35 +75,51 @@ public class MemoryCache : CacheBase
 
         var key = $"{projection.Name}-{quadKey}";
 
-        return _cached.ContainsKey(key) ? _cached[key] : null;
+        var retVal = _cached.ContainsKey( key ) ? _cached[ key ] : null;
+        if( retVal == null )
+            return retVal;
+
+        if( !retVal.ImageIsLoaded && !deferImageLoad )
+            await retVal.Tile.GetImageAsync( cancellationToken );
+
+        return retVal;
     }
 
-    protected override async Task<CacheEntry?> AddEntryAsync(ITiledProjection projection, int xTile, int yTile)
+    protected override async Task<CacheEntry?> AddEntryAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    )
     {
-        var quadKey = projection.GetQuadKey(xTile, yTile);
-        if (string.IsNullOrEmpty(quadKey))
+        var quadKey = projection.GetQuadKey( xTile, yTile );
+        if( string.IsNullOrEmpty( quadKey ) )
             return null;
 
-        var retVal = new CacheEntry(projection, xTile, yTile);
+        var retVal = new CacheEntry( projection, xTile, yTile, cancellationToken );
 
-        var imageData = await retVal.Tile.GetImageAsync() ?? Array.Empty<byte>();
-
-        if ( imageData.Length == 0 )
+        if( !deferImageLoad )
         {
-            Logger.Error("Failed to retrieve image data");
-            return null;
+            var imageData = await retVal.Tile.GetImageAsync( cancellationToken ) ?? Array.Empty<byte>();
+
+            if( imageData.Length == 0 )
+            {
+                Logger.Error( "Failed to retrieve image data" );
+                return null;
+            }
         }
 
         var key = $"{projection.Name}-{quadKey}";
 
-        if (_cached.ContainsKey(key))
+        if( _cached.ContainsKey( key ) )
         {
-            Logger.Warning<string>("Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey);
-            _cached[key] = retVal;
+            Logger.Warning<string>( "Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey );
+            _cached[ key ] = retVal;
         }
         else
         {
-            _cached.Add(key, retVal);
+            _cached.Add( key, retVal );
 
             if( MaxEntries > 0 && _cached.Count > MaxEntries
             || MaxBytes > 0 && _cached.Sum( x => x.Value.Tile.ImageBytes ) > MaxBytes )

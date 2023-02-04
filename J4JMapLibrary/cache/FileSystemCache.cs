@@ -138,7 +138,13 @@ public class FileSystemCache : CacheBase
         }
     }
 
-    protected override async Task<CacheEntry?> GetEntryInternalAsync( ITiledProjection projection, int xTile, int yTile )
+    protected override async Task<CacheEntry?> GetEntryInternalAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
@@ -147,39 +153,51 @@ public class FileSystemCache : CacheBase
         }
 
         var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
-        var filePath = Path.Combine(_cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}");
+        var filePath = Path.Combine( _cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}" );
 
         return File.Exists( filePath )
-            ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath ) )
-            : null;
+            ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath, cancellationToken ) )
+            : deferImageLoad
+                ? new CacheEntry( projection, xTile, yTile, cancellationToken )
+                : null;
     }
 
-    protected override async Task<CacheEntry?> AddEntryAsync( ITiledProjection projection, int xTile, int yTile )
+    protected override async Task<CacheEntry?> AddEntryAsync(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    )
     {
-        if (string.IsNullOrEmpty(_cacheDir))
+        if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger.Error("Caching directory is undefined");
+            Logger.Error( "Caching directory is undefined" );
             return null;
         }
 
-        var retVal = new CacheEntry( projection, xTile, yTile );
+        var retVal = new CacheEntry( projection, xTile, yTile, cancellationToken );
 
         var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
-        if( File.Exists( filePath ) )
-            Logger.Warning<string>("Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey);
+        var bytesToWrite = retVal.Tile.ImageBytes <= 0L
+            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( cancellationToken ) ?? null
+            : await retVal.Tile.GetImageAsync( cancellationToken ) ?? null;
 
-        var bytesToWrite = await retVal.Tile.GetImageAsync() ?? Array.Empty<byte>();
-
-        if( bytesToWrite.Length == 0 )
+        if( bytesToWrite == null )
         {
-            Logger.Error("Failed to retrieve image data"  );
+            if( !deferImageLoad )
+                Logger.Error( "Failed to retrieve image data" );
+
             return null;
         }
 
-        await using var imgFile = File.Create(filePath);
-        await imgFile.WriteAsync( bytesToWrite );
+        if (File.Exists(filePath))
+            Logger.Warning<string>("Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey);
+
+        await using var imgFile = File.Create( filePath );
+        await imgFile.WriteAsync( bytesToWrite, cancellationToken );
         imgFile.Close();
 
         _tilesCached++;
