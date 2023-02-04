@@ -14,6 +14,9 @@ public abstract class MapProjection : IMapProjection
     {
         MaxRequestLatency = srcConfig.MaxRequestLatency;
 
+        CancellationTokenSource = new CancellationTokenSource();
+        CancellationTokenSource.CancelAfter( MaxRequestLatency );
+
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
@@ -66,6 +69,9 @@ public abstract class MapProjection : IMapProjection
 
         MaxRequestLatency = srcConfig!.MaxRequestLatency;
 
+        CancellationTokenSource = new CancellationTokenSource();
+        CancellationTokenSource.CancelAfter(MaxRequestLatency);
+
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
@@ -78,6 +84,7 @@ public abstract class MapProjection : IMapProjection
         };
     }
 
+    protected CancellationTokenSource CancellationTokenSource { get; }
     protected IJ4JLogger Logger { get; }
 
     protected bool TryGetSourceConfiguration<T>( string name, out T? result )
@@ -113,6 +120,8 @@ public abstract class MapProjection : IMapProjection
     public int Width => Metrics.XRange.Maximum - Metrics.XRange.Maximum;
     public int Height => Metrics.YRange.Maximum - Metrics.YRange.Minimum;
 
-    public Task<bool> Authenticate(string? credentials = null) => Authenticate(CancellationToken.None, credentials);
+    public Task<bool> Authenticate( string? credentials = null ) =>
+        Authenticate( CancellationTokenSource.Token, credentials );
+
     public abstract Task<bool> Authenticate(CancellationToken cancellationToken, string? credentials = null);
 }
