@@ -26,7 +26,7 @@ public class BingMapsProjection : TiledProjection
         _metadataUrlTemplate = dynamicConfig.MetadataRetrievalUrl;
 
         TileHeightWidth = 256;
-        SetSizes( 0 );
+        SetSizes( 1 );
     }
 
     public BingMapsProjection(
@@ -46,7 +46,7 @@ public class BingMapsProjection : TiledProjection
         _metadataUrlTemplate = srcConfig!.MetadataRetrievalUrl;
 
         TileHeightWidth = 256;
-        SetSizes(0);
+        SetSizes( 1 );
     }
 
     public BingMapType MapType
@@ -95,10 +95,12 @@ public class BingMapsProjection : TiledProjection
         Logger.Verbose("Attempting to retrieve Bing Maps metadata");
         try
         {
-           response = MaxRequestLatency <= 0
-                ? await httpClient.SendAsync( request, cancellationToken )
-                : await httpClient.SendAsync( request, cancellationToken )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), cancellationToken );
+            //response = await httpClient.SendAsync( request, cancellationToken );
+
+            response = MaxRequestLatency <= 0
+                 ? await httpClient.SendAsync(request, cancellationToken)
+                 : await httpClient.SendAsync(request, cancellationToken)
+                                   .WaitAsync(TimeSpan.FromMilliseconds(MaxRequestLatency), cancellationToken);
         }
         catch (Exception ex)
         {
