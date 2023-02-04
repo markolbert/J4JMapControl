@@ -12,7 +12,7 @@ public class MapTests : TestBase
 
         foreach( var projectionName in factory.ProjectionNames )
         {
-            var projection = await factory.CreateMapProjection(projectionName) as ITiledProjection;
+            var projection = await factory.CreateMapProjection( projectionName ) as ITiledProjection;
             projection.Should().NotBeNull();
             projection!.Initialized.Should().BeTrue();
 
@@ -21,10 +21,10 @@ public class MapTests : TestBase
 
             bingMaps.Metadata.Should().NotBeNull();
             bingMaps.Metadata!.PrimaryResource.Should().NotBeNull();
-            bingMaps.Metadata.PrimaryResource!.ZoomMax.Should().Be(21);
-            bingMaps.Metadata.PrimaryResource.ZoomMin.Should().Be(1);
-            bingMaps.Metadata.PrimaryResource.ImageHeight.Should().Be(256);
-            bingMaps.Metadata.PrimaryResource.ImageWidth.Should().Be(256);
+            bingMaps.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
+            bingMaps.Metadata.PrimaryResource.ZoomMin.Should().Be( 1 );
+            bingMaps.Metadata.PrimaryResource.ImageHeight.Should().Be( 256 );
+            bingMaps.Metadata.PrimaryResource.ImageWidth.Should().Be( 256 );
         }
     }
 
@@ -35,7 +35,7 @@ public class MapTests : TestBase
     {
         var factory = GetFactory();
 
-        var options = new MapProjectionOptions(Authenticate: false);
+        var options = new MapProjectionOptions( Authenticate: false );
 
         var projection = await factory.CreateMapProjection( "BingMaps", options ) as BingMapsProjection;
         projection.Should().NotBeNull();
@@ -43,12 +43,12 @@ public class MapTests : TestBase
         projection!.MaxRequestLatency = maxLatency;
 
         Configuration.TryGetCredential( "BingMaps", out var credentials ).Should().BeTrue();
-        await projection.Authenticate(credentials!);
+        await projection.Authenticate( credentials! );
 
         projection.Initialized.Should().Be( result );
     }
 
-    [Theory ]
+    [ Theory ]
     [ InlineData( 1, 0, 0, "0" ) ]
     [ InlineData( 2, 0, 0, "00" ) ]
     [ InlineData( 2, 1, 0, "01" ) ]
@@ -82,7 +82,7 @@ public class MapTests : TestBase
 
             projection.Scale = scale;
 
-            var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
+            var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( projectionName ) );
             mapTile.Should().NotBeNull();
             mapTile.QuadKey.Should().Be( quadKey );
         }

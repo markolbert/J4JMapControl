@@ -29,7 +29,7 @@ public class CacheTests : TestBase
         {
             for( var yTile = 0; yTile <= projection.Metrics.TileYRange.Maximum; yTile++ )
             {
-                var tile = await MapTile.CreateAsync( projection, xTile, yTile );
+                var tile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
                 numCreated++;
 
                 cache.Count.Should().Be( maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached );
@@ -70,7 +70,7 @@ public class CacheTests : TestBase
         {
             for (var yTile = 0; yTile <= projection.Metrics.TileYRange.Maximum; yTile++)
             {
-                var tile = await MapTile.CreateAsync(projection, xTile, yTile);
+                var tile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("BingMaps"));
                 numCreated++;
 
                 cache.Count.Should().Be(maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached);

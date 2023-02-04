@@ -15,7 +15,7 @@ public class CreateImages : TestBase
 
         projection.Scale = scale;
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("BingMaps"));
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -29,7 +29,7 @@ public class CreateImages : TestBase
 
         projection.Scale = scale;
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -43,7 +43,7 @@ public class CreateImages : TestBase
 
         projection.Scale = scale;
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
         await WriteImageFileAsync(projection, mapTile, true);
     }
 

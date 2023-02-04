@@ -26,6 +26,21 @@ public class TestBase
     protected IJ4JLogger Logger { get; }
     protected ILibraryConfiguration Configuration { get; }
 
+    protected CancellationToken GetCancellationToken( string mapType )
+    {
+        var source = new CancellationTokenSource();
+
+        if( Configuration.TryGetConfiguration( mapType, out var mapConfig ) )
+            source.CancelAfter( mapConfig!.MaxRequestLatency );
+        else
+        {
+            Logger.Warning<string>( "Could not retrieve MaxRequestLatency for {0}, defaulting to 500ms", mapType );
+            source.CancelAfter( 500 );
+        }
+
+        return source.Token;
+    }
+
     protected MapProjectionFactory GetFactory( bool searchDefaults = true )
     {
         var retVal = J4JDeusEx.ServiceProvider.GetRequiredService<MapProjectionFactory>();
