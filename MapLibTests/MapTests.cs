@@ -49,42 +49,120 @@ public class MapTests : TestBase
     }
 
     [ Theory ]
-    [ InlineData( 1, 0, 0, "0" ) ]
-    [ InlineData( 2, 0, 0, "00" ) ]
-    [ InlineData( 2, 1, 0, "01" ) ]
-    [ InlineData( 2, 0, 1, "02" ) ]
-    [ InlineData( 2, 1, 1, "03" ) ]
-    [ InlineData( 3, 0, 0, "000" ) ]
-    [ InlineData( 3, 1, 0, "001" ) ]
-    [ InlineData( 3, 2, 0, "010" ) ]
-    [ InlineData( 3, 3, 0, "011" ) ]
-    [ InlineData( 3, 0, 1, "002" ) ]
-    [ InlineData( 3, 1, 1, "003" ) ]
-    [ InlineData( 3, 2, 1, "012" ) ]
-    [ InlineData( 3, 3, 1, "013" ) ]
-    [ InlineData( 3, 0, 2, "020" ) ]
-    [ InlineData( 3, 1, 2, "021" ) ]
-    [ InlineData( 3, 2, 2, "030" ) ]
-    [ InlineData( 3, 3, 2, "031" ) ]
-    [ InlineData( 3, 0, 3, "022" ) ]
-    [ InlineData( 3, 1, 3, "023" ) ]
-    [ InlineData( 3, 2, 3, "032" ) ]
-    [ InlineData( 3, 3, 3, "033" ) ]
-    public async Task CreateQuadKeys( int scale, int xTile, int yTile, string quadKey )
+    [InlineData(0, 0, 0, "0")]
+    [InlineData(1, 0, 0, "0")]
+    [InlineData(1, 1, 0, "1")]
+    [InlineData(1, 0, 1, "2")]
+    [InlineData(1, 1, 1, "3")]
+    [InlineData(2, 0, 0, "00")]
+    [InlineData( 2, 1, 0, "01" )]
+    [InlineData( 2, 0, 1, "02" )]
+    [InlineData( 2, 1, 1, "03" )]
+    [InlineData( 3, 0, 0, "000" )]
+    [InlineData( 3, 1, 0, "001" )]
+    [InlineData( 3, 2, 0, "010" )]
+    [InlineData( 3, 3, 0, "011" )]
+    [InlineData( 3, 0, 1, "002" )]
+    [InlineData( 3, 1, 1, "003" )]
+    [InlineData( 3, 2, 1, "012" )]
+    [InlineData( 3, 3, 1, "013" )]
+    [InlineData( 3, 0, 2, "020" )]
+    [InlineData( 3, 1, 2, "021" )]
+    [InlineData( 3, 2, 2, "030" )]
+    [InlineData( 3, 3, 2, "031" )]
+    [InlineData( 3, 0, 3, "022" )]
+    [InlineData( 3, 1, 3, "023" )]
+    [InlineData( 3, 2, 3, "032" )]
+    [InlineData( 3, 3, 3, "033" )]
+    public async Task BingMapsQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var factory = GetFactory();
+        var projection = await GetFactory().CreateMapProjection( "BingMaps" ) as ITiledProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
 
-        foreach( var projectionName in factory.ProjectionNames )
-        {
-            var projection = await GetFactory().CreateMapProjection( projectionName ) as ITiledProjection;
-            projection.Should().NotBeNull();
-            projection!.Initialized.Should().BeTrue();
+        projection.Scale = scale;
 
-            projection.Scale = scale;
+        var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( 500 ) );
+        mapTile.Should().NotBeNull();
+        mapTile.QuadKey.Should().Be( quadKey );
+    }
 
-            var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( projectionName ) );
-            mapTile.Should().NotBeNull();
-            mapTile.QuadKey.Should().Be( quadKey );
-        }
+
+    [Theory]
+    [InlineData(0, 0, 0, "0")]
+    [InlineData(1, 0, 0, "00")]
+    [InlineData(1, 1, 0, "10")]
+    [InlineData(1, 0, 1, "20")]
+    [InlineData(1, 1, 1, "30")]
+    [InlineData(2, 0, 0, "000")]
+    [InlineData(2, 1, 0, "010")]
+    [InlineData(2, 0, 1, "020")]
+    [InlineData(2, 1, 1, "030")]
+    [InlineData(3, 0, 0, "0000")]
+    [InlineData(3, 1, 0, "0010")]
+    [InlineData(3, 2, 0, "0100")]
+    [InlineData(3, 3, 0, "0110")]
+    [InlineData(3, 0, 1, "0020")]
+    [InlineData(3, 1, 1, "0030")]
+    [InlineData(3, 2, 1, "0120")]
+    [InlineData(3, 3, 1, "0130")]
+    [InlineData(3, 0, 2, "0200")]
+    [InlineData(3, 1, 2, "0210")]
+    [InlineData(3, 2, 2, "0300")]
+    [InlineData(3, 3, 2, "0310")]
+    [InlineData(3, 0, 3, "0220")]
+    [InlineData(3, 1, 3, "0230")]
+    [InlineData(3, 2, 3, "0320")]
+    [InlineData(3, 3, 3, "0330")]
+    public async Task OpenStreetMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
+    {
+        var projection = await GetFactory().CreateMapProjection("OpenStreetMaps") as ITiledProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
+
+        projection.Scale = scale;
+
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
+        mapTile.Should().NotBeNull();
+        mapTile.QuadKey.Should().Be(quadKey);
+    }
+
+    [Theory]
+    [InlineData(0, 0, 0, "0")]
+    [InlineData(1, 0, 0, "00")]
+    [InlineData(1, 1, 0, "10")]
+    [InlineData(1, 0, 1, "20")]
+    [InlineData(1, 1, 1, "30")]
+    [InlineData(2, 0, 0, "000")]
+    [InlineData(2, 1, 0, "010")]
+    [InlineData(2, 0, 1, "020")]
+    [InlineData(2, 1, 1, "030")]
+    [InlineData(3, 0, 0, "0000")]
+    [InlineData(3, 1, 0, "0010")]
+    [InlineData(3, 2, 0, "0100")]
+    [InlineData(3, 3, 0, "0110")]
+    [InlineData(3, 0, 1, "0020")]
+    [InlineData(3, 1, 1, "0030")]
+    [InlineData(3, 2, 1, "0120")]
+    [InlineData(3, 3, 1, "0130")]
+    [InlineData(3, 0, 2, "0200")]
+    [InlineData(3, 1, 2, "0210")]
+    [InlineData(3, 2, 2, "0300")]
+    [InlineData(3, 3, 2, "0310")]
+    [InlineData(3, 0, 3, "0220")]
+    [InlineData(3, 1, 3, "0230")]
+    [InlineData(3, 2, 3, "0320")]
+    [InlineData(3, 3, 3, "0330")]
+    public async Task OpenTopoMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
+    {
+        var projection = await GetFactory().CreateMapProjection("OpenTopoMaps") as ITiledProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
+
+        projection.Scale = scale;
+
+        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
+        mapTile.Should().NotBeNull();
+        mapTile.QuadKey.Should().Be(quadKey);
     }
 }
