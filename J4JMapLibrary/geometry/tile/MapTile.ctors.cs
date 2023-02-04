@@ -7,19 +7,19 @@ public partial class MapTile
     // internal to hopefully avoid stack overflow
     internal MapTile(
         ITiledProjection projection,
-        int x,
-        int y,
+        int xTile,
+        int yTile,
         byte[] imageData
     )
-        : this( projection, x, y )
+        : this( projection, xTile, yTile )
     {
         _imageData = imageData;
     }
 
     private MapTile(
         ITiledProjection projection,
-        int x,
-        int y
+        int xTile,
+        int yTile
     )
     {
         _logger = J4JDeusEx.GetLogger<MapTile>()!;
@@ -28,15 +28,13 @@ public partial class MapTile
 
         Metrics = projection.Metrics;
         Scale = projection.Scale;
-        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint(Metrics);
-        Center.Cartesian.SetCartesian(x * projection.TileHeightWidth + projection.TileHeightWidth / 2,
-            y * projection.TileHeightWidth + projection.TileHeightWidth / 2);
+        MaxRequestLatency = projection.MaxRequestLatency;
+        _cancellationTokenSource.CancelAfter( MaxRequestLatency );
 
-        X = x < 0 ? 0 : x;
-        Y = y < 0 ? 0 : y;
+        X = xTile < 0 ? 0 : xTile;
+        Y = yTile < 0 ? 0 : yTile;
         QuadKey = this.GetQuadKey();
     }
 
@@ -51,32 +49,13 @@ public partial class MapTile
 
         Metrics = projection.Metrics;
         Scale = projection.Scale;
-        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint(Metrics);
-        Center.Cartesian.SetCartesian(point);
+        MaxRequestLatency = projection.MaxRequestLatency;
+        _cancellationTokenSource.CancelAfter( MaxRequestLatency );
 
         X = point.X / projection.TileHeightWidth;
         Y = point.Y / projection.TileHeightWidth;
-        QuadKey = this.GetQuadKey();
-    }
-
-    private MapTile(
-        ITiledProjection projection,
-        MapPoint center
-    )
-    {
-        _logger = J4JDeusEx.GetLogger<MapTile>()!;
-        _createRequest = projection.GetRequest;
-        _extractImageStreamAsync = projection.ExtractImageDataAsync;
-
-        Metrics = projection.Metrics;
-        Scale = projection.Scale;
-        MaxRequestLatency = projection.MaxRequestLatency;
-        HeightWidth = projection.TileHeightWidth;
-
-        Center = center;
         QuadKey = this.GetQuadKey();
     }
 
@@ -91,11 +70,10 @@ public partial class MapTile
 
         Metrics = projection.Metrics;
         Scale = projection.Scale;
-        MaxRequestLatency = projection.MaxRequestLatency;
         HeightWidth = projection.TileHeightWidth;
 
-        Center = new MapPoint(Metrics);
-        Center.LatLong.SetLatLong(latLong);
+        MaxRequestLatency = projection.MaxRequestLatency;
+        _cancellationTokenSource.CancelAfter( MaxRequestLatency );
 
         QuadKey = this.GetQuadKey();
     }

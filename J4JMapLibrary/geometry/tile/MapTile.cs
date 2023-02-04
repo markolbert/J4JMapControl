@@ -7,6 +7,7 @@ public partial class MapTile
 {
     public event EventHandler? ImageChanged;
 
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly IJ4JLogger _logger;
     private readonly Func<MapTile, HttpRequestMessage?> _createRequest;
     private readonly Func<HttpResponseMessage, Task<byte[]?>> _extractImageStreamAsync;
@@ -15,10 +16,8 @@ public partial class MapTile
 
     public ProjectionMetrics Metrics { get; }
     public int Scale { get; }
-    public bool ReflectsProjection => Scale == Metrics.Scale;
     public int MaxRequestLatency { get; }
 
-    public MapPoint Center { get; }
     public int HeightWidth { get; }
     public string QuadKey { get; }
     public int X { get; }
@@ -26,8 +25,10 @@ public partial class MapTile
 
     public long ImageBytes { get; private set; } = -1L;
 
-    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false ) =>
-        await GetImageAsync( CancellationToken.None, forceRetrieval );
+    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false )
+    {
+        return await GetImageAsync( _cancellationTokenSource.Token, forceRetrieval );
+    }
 
     public async Task<byte[]?> GetImageAsync(CancellationToken cancellationToken, bool forceRetrieval = false )
     {
@@ -37,6 +38,7 @@ public partial class MapTile
         var wasNull = _imageData == null;
 
         _imageData = null;
+        ImageBytes = -1L;
 
         _logger.Verbose( "Beginning image retrieval from web" );
 
