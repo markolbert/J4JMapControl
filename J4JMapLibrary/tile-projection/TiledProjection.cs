@@ -1,4 +1,5 @@
-﻿using J4JSoftware.Logging;
+﻿using System.Reflection.Metadata.Ecma335;
+using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
@@ -57,7 +58,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         }
     }
 
-    // this assumes TileHeightWidth has been set
+    // this assumes TileHeightWidth has been set and scale is valid
     protected void SetSizes( int scale )
     {
         var cellsInDimension = Pow( 2, scale );
