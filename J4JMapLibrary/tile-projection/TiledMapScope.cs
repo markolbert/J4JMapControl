@@ -2,33 +2,7 @@
 
 public class TiledMapScope : MapScope, ITiledMapScope
 {
-    #region IEqualityComparer...
-
-    public bool Equals(ITiledMapScope? x, ITiledMapScope? y)
-    {
-        if (ReferenceEquals(x, y))
-            return true;
-        if (ReferenceEquals(x, null))
-            return false;
-        if (ReferenceEquals(y, null))
-            return false;
-        if (x.GetType() != y.GetType())
-            return false;
-
-        return x.Scale == y.Scale
-         && x.ScaleRange.Equals(y.ScaleRange)
-         && x.XRange.Equals(y.XRange)
-         && x.YRange.Equals(y.YRange);
-    }
-
-    public int GetHashCode(ITiledMapScope obj)
-    {
-        return HashCode.Combine(obj.Scale, obj.ScaleRange, obj.XRange, obj.YRange);
-    }
-
-    #endregion
-
-    public static TiledMapScope Copy( TiledMapScope toCopy ) => new TiledMapScope( toCopy );
+ public static TiledMapScope Copy( TiledMapScope toCopy ) => new TiledMapScope( toCopy );
 
     public TiledMapScope()
     {
@@ -50,4 +24,33 @@ public class TiledMapScope : MapScope, ITiledMapScope
     public MinMax<int> ScaleRange { get; internal set; }
     public MinMax<int> XRange { get; internal set; }
     public MinMax<int> YRange { get; internal set; }
+
+    public bool Equals(TiledMapScope? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return base.Equals(other) && Scale == other.Scale && ScaleRange.Equals(other.ScaleRange) && XRange.Equals(other.XRange) && YRange.Equals(other.YRange);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        return obj.GetType() == this.GetType() && Equals((TiledMapScope)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(base.GetHashCode(), Scale, ScaleRange, XRange, YRange);
+    }
+
+    public static bool operator ==(TiledMapScope? left, TiledMapScope? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(TiledMapScope? left, TiledMapScope? right)
+    {
+        return !Equals(left, right);
+    }
 }

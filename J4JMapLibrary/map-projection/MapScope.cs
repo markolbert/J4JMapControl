@@ -2,30 +2,6 @@
 
 public class MapScope : IMapScope
 {
-    #region IEqualityComparer...
-
-    public bool Equals(IMapScope? x, IMapScope? y)
-    {
-        if (ReferenceEquals(x, y))
-            return true;
-        if (ReferenceEquals(x, null))
-            return false;
-        if (ReferenceEquals(y, null))
-            return false;
-        if (x.GetType() != y.GetType())
-            return false;
-
-        return x.LatitudeRange.Equals(y.LatitudeRange)
-         && x.LongitudeRange.Equals(y.LongitudeRange);
-    }
-
-    public int GetHashCode(IMapScope obj)
-    {
-        return HashCode.Combine(obj.LatitudeRange, obj.LongitudeRange);
-    }
-
-    #endregion
-
     public static MapScope Copy(MapScope toCopy) => new(toCopy);
 
     public MapScope()
@@ -36,10 +12,40 @@ public class MapScope : IMapScope
 
     protected MapScope( MapScope toCopy )
     {
-        LatitudeRange = new MinMax<float>( toCopy.LatitudeRange.Maximum, toCopy.LatitudeRange.Maximum );
-        LongitudeRange = new MinMax<float>( toCopy.LongitudeRange.Maximum, toCopy.LongitudeRange.Maximum );
+        LatitudeRange = new MinMax<float>( toCopy.LatitudeRange.Minimum, toCopy.LatitudeRange.Maximum );
+        LongitudeRange = new MinMax<float>( toCopy.LongitudeRange.Minimum, toCopy.LongitudeRange.Maximum );
     }
 
     public MinMax<float> LatitudeRange { get; internal set; } 
     public MinMax<float> LongitudeRange { get; internal set; }
+
+    public bool Equals(MapScope? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return LatitudeRange.Equals(other.LatitudeRange) && LongitudeRange.Equals(other.LongitudeRange);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((MapScope)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(LatitudeRange, LongitudeRange);
+    }
+
+    public static bool operator ==(MapScope? left, MapScope? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(MapScope? left, MapScope? right)
+    {
+        return !Equals(left, right);
+    }
 }
