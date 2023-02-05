@@ -143,15 +143,23 @@ public class ViewportRectangle
             return null;
         }
 
+        var cartesianCenter = new Cartesian(Scope);
+        cartesianCenter.SetCartesian(Scope.LatLongToCartesian(CenterLatitude, CenterLongitude));
+
+        var corner1 = new Vector3(cartesianCenter.X - Width / 2, cartesianCenter.Y + Height / 2, 0);
+        var corner2 = new Vector3(corner1.X + Width, corner1.Y, 0);
+        var corner3 = new Vector3(corner2.X, corner2.Y - Height, 0);
+        var corner4 = new Vector3(corner1.X, corner3.Y, 0);
+
         var corners = new[]
         {
-            new Vector3( 0, 0, 0 ),
-            new Vector3( Width, 0, 0 ),
-            new Vector3( Width, Height, 0 ),
-            new Vector3( 0, Height, 0 ),
+            corner1,
+            corner2,
+            corner3,
+            corner4
         };
 
-        var vpCenter = new Vector3( Width / 2F, Height / 2F, 0 );
+        var vpCenter = new Vector3( cartesianCenter.X, cartesianCenter.Y, 0 );
 
         // apply rotation if one is defined
         // heading == 270 is rotation == 90, hence the angle adjustment
@@ -159,13 +167,10 @@ public class ViewportRectangle
             corners = corners.ApplyTransform(
                 Matrix4x4.CreateRotationZ( ( 360 - _heading ) * MapConstants.RadiansPerDegree, vpCenter ) );
 
-        // translate to the Cartesian coordinates of our center point
-        // >>in the TiledProjection space<<
-        var cartesianCenter = new Cartesian( Scope );
-        cartesianCenter.SetCartesian( Scope.LatLongToCartesian( CenterLatitude, CenterLongitude ) );
-
-        corners = corners.ApplyTransform(
-            Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
+        //// translate to the Cartesian coordinates of our center point
+        //// >>in the TiledProjection space<<
+        //corners = corners.ApplyTransform(
+        //    Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
 
         // find the range of tiles covering the mapped rectangle
         var minTileX = CartesianToTile( corners.Min( x => x.X ) );
@@ -194,7 +199,7 @@ public class ViewportRectangle
 
     private int CartesianToTile( float value )
     {
-        return Convert.ToInt32( Math.Round( value / Projection.TileHeightWidth, MidpointRounding.AwayFromZero ) );
+        return Convert.ToInt32(Math.Floor(value / Projection.TileHeightWidth));
     }
 
     private async Task<MapTile> CreateMapTile( int x, int y, CancellationToken cancellationToken )
