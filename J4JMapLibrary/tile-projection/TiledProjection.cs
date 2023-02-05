@@ -2,7 +2,8 @@
 
 namespace J4JMapLibrary;
 
-public abstract class TiledProjection : MapProjection, ITiledProjection
+public abstract class TiledProjection<TScope> : MapProjection<TScope>, ITiledProjection<TScope>
+    where TScope : TiledMapScope, new()
 {
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
@@ -12,8 +13,6 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
            .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
 
     public event EventHandler<int>? ScaleChanged; 
-
-    private int _scale;
 
     protected TiledProjection(
         ISourceConfiguration srcConfig,
@@ -39,26 +38,24 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         TileYRange = new MinMax<int>(0, 0);
     }
 
+    public int Height => Scope.YRange.Maximum - Scope.YRange.Minimum;
+    public int Width => Scope.XRange.Maximum - Scope.XRange.Minimum;
+
     public ITileCache? TileCache { get; }
 
-    public override int Scale
+    public void SetScale( int scale )
     {
-        get => _scale;
-
-        set
+        if( !Initialized )
         {
-            if (!Initialized)
-            {
-                Logger.Error("Trying to set scale before projection is initialized, ignoring");
-                return;
-            }
-
-            _scale = ScaleRange.ConformValueToRange(value, "Scale");
-
-            SetSizes( _scale  );
-
-            ScaleChanged?.Invoke( this, _scale );
+            Logger.Error( "Trying to set scale before projection is initialized, ignoring" );
+            return;
         }
+
+        Scope.Scale = Scope.ScaleRange.ConformValueToRange( scale, "Scale" );
+
+        SetSizes( scale );
+
+        ScaleChanged?.Invoke( this, scale );
     }
 
     // this assumes TileHeightWidth has been set and scale is valid
@@ -67,8 +64,8 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         var cellsInDimension = Pow( 2, scale );
         var projHeightWidth = TileHeightWidth * cellsInDimension;
 
-        XRange = new MinMax<int>( 0, projHeightWidth - 1 );
-        YRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        Scope.XRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        Scope.YRange = new MinMax<int>( 0, projHeightWidth - 1 );
         TileXRange = new MinMax<int>( 0, cellsInDimension - 1 );
         TileYRange = new MinMax<int>( 0, cellsInDimension - 1 );
     }
@@ -100,7 +97,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
             return 0;
         }
 
-        latitude = LatitudeRange.ConformValueToRange( latitude, "Latitude" );
+        latitude = Scope.LatitudeRange.ConformValueToRange( latitude, "Latitude" );
 
         return (float) Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters
