@@ -1,29 +1,45 @@
 ﻿namespace J4JMapLibrary;
 
-public record TileBounds(TileCoordinates UpperLeft, TileCoordinates LowerRight)
+public class TileBounds : IEquatable<TileBounds>
 {
-    private sealed class TileBoundsComparer : IEqualityComparer<TileBounds>
+    public TileBounds(
+        TileCoordinates upperLeft, 
+        TileCoordinates lowerRight
+        )
     {
-        public bool Equals( TileBounds? x, TileBounds? y )
-        {
-            if( ReferenceEquals( x, y ) )
-                return true;
-            if( ReferenceEquals( x, null ) )
-                return false;
-            if( ReferenceEquals( y, null ) )
-                return false;
-            if( x.GetType() != y.GetType() )
-                return false;
-
-            return x.UpperLeft.Equals( y.UpperLeft )
-             && x.LowerRight.Equals( y.LowerRight );
-        }
-
-        public int GetHashCode( TileBounds obj )
-        {
-            return HashCode.Combine( obj.UpperLeft, obj.LowerRight );
-        }
+        this.UpperLeft = upperLeft;
+        this.LowerRight = lowerRight;
     }
 
-    public static IEqualityComparer<TileBounds> DefaultComparer { get; } = new TileBoundsComparer();
+    public TileCoordinates UpperLeft { get; init; }
+    public TileCoordinates LowerRight { get; init; }
+
+    public bool Equals(TileBounds? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return UpperLeft.Equals(other.UpperLeft) && LowerRight.Equals(other.LowerRight);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        return obj.GetType() == this.GetType() && Equals((TileBounds)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(UpperLeft, LowerRight);
+    }
+
+    public static bool operator ==(TileBounds? left, TileBounds? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(TileBounds? left, TileBounds? right)
+    {
+        return !Equals(left, right);
+    }
 }

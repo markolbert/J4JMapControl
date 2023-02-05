@@ -1,29 +1,45 @@
 ﻿namespace J4JMapLibrary;
 
-public record TileCoordinates(int X, int Y)
+public class TileCoordinates : IEquatable<TileCoordinates>
 {
-    private sealed class TileCoordinatesComparer : IEqualityComparer<TileCoordinates>
+    public TileCoordinates(
+        int x, 
+        int y
+        )
     {
-        public bool Equals( TileCoordinates? x, TileCoordinates? y )
-        {
-            if( ReferenceEquals( x, y ) )
-                return true;
-            if( ReferenceEquals( x, null ) )
-                return false;
-            if( ReferenceEquals( y, null ) )
-                return false;
-            if( x.GetType() != y.GetType() )
-                return false;
-
-            return x.X == y.X
-             && x.Y == y.Y;
-        }
-
-        public int GetHashCode( TileCoordinates obj )
-        {
-            return HashCode.Combine( obj.X, obj.Y );
-        }
+        this.X = x;
+        this.Y = y;
     }
 
-    public static IEqualityComparer<TileCoordinates> DefaultComparer { get; } = new TileCoordinatesComparer();
+    public int X { get; init; }
+    public int Y { get; init; }
+
+    public bool Equals(TileCoordinates? other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return X == other.X && Y == other.Y;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        return obj.GetType() == this.GetType() && Equals((TileCoordinates)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y);
+    }
+
+    public static bool operator ==(TileCoordinates? left, TileCoordinates? right)
+    {
+        return Equals(left, right);
+    }
+
+    public static bool operator !=(TileCoordinates? left, TileCoordinates? right)
+    {
+        return !Equals(left, right);
+    }
 }
