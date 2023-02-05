@@ -80,7 +80,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
+        projection.SetScale(scale);
 
         var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( 500 ) );
         mapTile.Should().NotBeNull();
@@ -120,7 +120,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
+        projection.SetScale(scale);
 
         var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
         mapTile.Should().NotBeNull();
@@ -159,7 +159,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
+        projection.SetScale(scale);
 
         var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
         mapTile.Should().NotBeNull();

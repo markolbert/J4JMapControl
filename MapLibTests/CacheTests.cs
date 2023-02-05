@@ -21,7 +21,7 @@ public class CacheTests : TestBase
 
         var projection = await GetFactory().CreateMapProjection<BingMapsProjection>( options );
         projection.Should().NotBeNull();
-        projection!.Scale = scale;
+        projection!.SetScale(scale);
 
         var numCreated = 0;
 
@@ -62,7 +62,7 @@ public class CacheTests : TestBase
 
         var projection = await GetFactory().CreateMapProjection<BingMapsProjection>(options);
         projection.Should().NotBeNull();
-        projection!.Scale = scale;
+        projection!.SetScale(scale);
 
         var numCreated = 0;
 

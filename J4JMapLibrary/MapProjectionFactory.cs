@@ -130,9 +130,9 @@ public class MapProjectionFactory
         MapProjectionOptions? options = null
     )
     {
-        if (!projectionType.IsAssignableTo(typeof(TiledProjection)))
+        if (!projectionType.IsAssignableTo(typeof(ITiledProjection)))
         {
-            _logger.Error("{0} is not derived from {1}", projectionType, typeof(TiledProjection));
+            _logger.Error("{0} is not derived from {1}", projectionType, typeof(ITiledProjection));
             return null;
         }
 

@@ -9,11 +9,11 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task BingMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection( typeof( BingMapsProjection ) );
+        var projection = await GetFactory().CreateMapProjection( typeof( BingMapsProjection ) ) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
+        projection.SetScale(scale);
 
         var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
 
@@ -31,7 +31,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
+        projection.SetScale(scale);
 
         var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
 
@@ -49,7 +49,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
+        projection.SetScale(scale);
 
         var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
 
