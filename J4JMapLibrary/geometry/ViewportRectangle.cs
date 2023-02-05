@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
 
 namespace J4JMapLibrary.Viewport;
@@ -10,30 +9,27 @@ public class ViewportRectangle
 
     private readonly IJ4JLogger _logger;
 
-    private List<MapTile>? _tiles;
     private ITiledProjection? _projection;
     private float _height;
     private float _width;
     private float _centerLat;
     private float _centerLong;
     private float _heading;
-    private bool _deferImageLoad;
-    private bool _updateNeeded = true;
 
     public ViewportRectangle(
         IJ4JLogger logger
     )
     {
-        Projection.ScaleChanged += Projection_ScaleChanged;
-
         _logger = logger;
         _logger.SetLoggedType( GetType() );
     }
 
     private void Projection_ScaleChanged( object? sender, int e )
     {
-        _updateNeeded = true;
+        UpdateNeeded = true;
     }
+
+    public bool UpdateNeeded { get; private set; } = true;
 
     public ITiledProjection Projection
     {
@@ -50,9 +46,11 @@ public class ViewportRectangle
         internal set
         {
             _projection = value;
+            _projection.ScaleChanged += Projection_ScaleChanged;
+
             Scope = TiledMapScope.Copy( (TiledMapScope) _projection.GetScope() );
             
-            _updateNeeded = true;
+            UpdateNeeded = true;
         }
     }
 
@@ -65,7 +63,7 @@ public class ViewportRectangle
         internal set
         {
             _centerLat = Scope.LatitudeRange.ConformValueToRange( value, "Latitude" );
-            _updateNeeded = true;
+            UpdateNeeded = true;
         }
     }
 
@@ -76,7 +74,7 @@ public class ViewportRectangle
         internal set
         {
             _centerLong = Scope.LongitudeRange.ConformValueToRange(value, "Longitude");
-            _updateNeeded = true;
+            UpdateNeeded = true;
         }
     }
 
@@ -87,7 +85,7 @@ public class ViewportRectangle
         internal set
         {
             _height = NonNegativeRange.ConformValueToRange(value, "Height");
-            _updateNeeded = true;
+            UpdateNeeded = true;
         }
     }
 
@@ -98,7 +96,7 @@ public class ViewportRectangle
         internal set
         {
             _width = NonNegativeRange.ConformValueToRange(value, "Width");
-            _updateNeeded = true;
+            UpdateNeeded = true;
         }
     }
 
@@ -110,25 +108,28 @@ public class ViewportRectangle
         internal set
         {
             _heading = value % 360;
-            _updateNeeded = true;
+            UpdateNeeded = true;
         }
     }
 
-    public async Task<List<MapTile>?> GetTilesAsync(
+    public async Task<List<MapTile>?> GetViewportRegionAsync(
         CancellationToken cancellationToken,
-        bool deferImageLoad = false,
-        bool forceUpdate = false
+        bool deferImageLoad = false
     )
     {
-        _deferImageLoad = deferImageLoad;
+        var tileList = await GetViewportTilesAsync( cancellationToken );
 
-        if( _updateNeeded || forceUpdate )
-            _tiles = await CreateTileCollection( cancellationToken );
+        if( tileList == null )
+            return null;
 
-        return _tiles;
+        return await tileList.GetTilesAsync( Projection, cancellationToken )
+                             .ToListAsync( cancellationToken );
     }
 
-    private async Task<List<MapTile>?> CreateTileCollection( CancellationToken cancellationToken )
+    public async Task<MapTileList?> GetViewportTilesAsync(
+        CancellationToken cancellationToken,
+        bool deferImageLoad = false
+    )
     {
         if( Height == 0 || Width == 0 )
         {
@@ -167,34 +168,34 @@ public class ViewportRectangle
             Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
 
         // find the range of tiles covering the mapped rectangle
-        var minCartesianX = RoundFloatToInt( corners.Min( x => x.X ) );
-        var maxCartesianX = RoundFloatToInt( corners.Max( x => x.X ) );
-        var minCartesianY = RoundFloatToInt( corners.Min( y => y.Y ) );
-        var maxCartesianY = RoundFloatToInt( corners.Max( y => y.Y ) );
+        var minTileX = CartesianToTile( corners.Min( x => x.X ) );
+        var maxTileX = CartesianToTile( corners.Max( x => x.X ) );
+        var minTileY = CartesianToTile( corners.Min( y => y.Y ) );
+        var maxTileY = CartesianToTile( corners.Max( y => y.Y ) );
 
-        var upperLeftTile = await CreateMapTile( minCartesianX, maxCartesianY, cancellationToken );
-        var lowerRightTile = await CreateMapTile( maxCartesianX, minCartesianY, cancellationToken );
+        var retVal = new MapTileList();
 
-        var mapTileList = new MapTileList();
-
-        for( var xTile = upperLeftTile.X; xTile <= lowerRightTile.X; xTile++ )
+        for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
         {
-            for( var yTile = upperLeftTile.Y; yTile >= lowerRightTile.Y; yTile-- )
+            for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
             {
                 var mapTile = await MapTile.CreateAsync( Projection, xTile, yTile, cancellationToken );
 
-                if( !_deferImageLoad )
+                if( !deferImageLoad )
                     await mapTile.GetImageAsync( cancellationToken );
 
-                if( !mapTileList.Add( mapTile ) )
-                    _logger.Error("Problem adding MapTile to collection (probably differing ITiledMapScope)"  );
+                if( !retVal.Add( mapTile ) )
+                    _logger.Error( "Problem adding MapTile to collection (probably differing ITiledMapScope)" );
             }
         }
 
-        return await mapTileList.GetBoundingBoxAsync( Projection, cancellationToken );
+        return retVal;
     }
 
-    private int RoundFloatToInt( float value ) => Convert.ToInt32( Math.Round( value, MidpointRounding.AwayFromZero ) );
+    private int CartesianToTile( float value )
+    {
+        return Convert.ToInt32( Math.Round( value / Projection.TileHeightWidth, MidpointRounding.AwayFromZero ) );
+    }
 
     private async Task<MapTile> CreateMapTile( int x, int y, CancellationToken cancellationToken )
     {
