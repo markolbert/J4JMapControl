@@ -29,11 +29,11 @@ public class TileDataSource
                       0,
                       0,
                       0,
-                      50,
-                      100,
+                      128,
+                      256,
                       0,
-                      new TileBounds( new TileCoordinates( 0, 1 ),
-                                      new TileCoordinates( 1, 0 ) ) )
+                      new TileBounds( new TileCoordinates( 0, 0 ),
+                                      new TileCoordinates( 1, 1 ) ) )
         };
     }
 
@@ -45,11 +45,11 @@ public class TileDataSource
                       1,
                       0,
                       0,
-                      50,
-                      100,
+                      128,
+                      256,
                       0,
-                      new TileBounds( new TileCoordinates( 0, 1 ),
-                                      new TileCoordinates( 1, 0 ) ) )
+                      new TileBounds( new TileCoordinates( 0, 0 ),
+                                      new TileCoordinates( 1, 1 ) ) )
         };
     }
 }
