@@ -34,8 +34,8 @@ public abstract class CacheBase : ITileCache
         bool deferImageLoad = false
     )
     {
-        xTile = InternalExtensions.ConformValueToRange( xTile, projection.Metrics.TileXRange, "X Tile" );
-        yTile = InternalExtensions.ConformValueToRange( yTile, projection.Metrics.TileYRange, "Y Tile" );
+        xTile = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
+        yTile = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
         var retVal = await GetEntryInternalAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
         if( retVal != null )
