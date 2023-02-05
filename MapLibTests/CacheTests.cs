@@ -17,7 +17,7 @@ public class CacheTests : TestBase
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
 
-        var options = new MapProjectionOptions( Cache: cache! );
+        var options = new MapProjectionOptions( Cache: cache );
 
         var projection = await GetFactory().CreateMapProjection<BingMapsProjection>( options );
         projection.Should().NotBeNull();
@@ -25,11 +25,11 @@ public class CacheTests : TestBase
 
         var numCreated = 0;
 
-        for( var xTile = 0; xTile <= projection.Metrics.TileXRange.Maximum; xTile++ )
+        for( var xTile = 0; xTile <= projection.TileXRange.Maximum; xTile++ )
         {
-            for( var yTile = 0; yTile <= projection.Metrics.TileYRange.Maximum; yTile++ )
+            for( var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++ )
             {
-                var tile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
+                await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
                 numCreated++;
 
                 cache.Count.Should().Be( maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached );
@@ -58,7 +58,7 @@ public class CacheTests : TestBase
             File.Delete( fileName );
         }
 
-        var options = new MapProjectionOptions(Cache: cache!);
+        var options = new MapProjectionOptions(Cache: cache);
 
         var projection = await GetFactory().CreateMapProjection<BingMapsProjection>(options);
         projection.Should().NotBeNull();
@@ -66,11 +66,11 @@ public class CacheTests : TestBase
 
         var numCreated = 0;
 
-        for (var xTile = 0; xTile <= projection.Metrics.TileXRange.Maximum; xTile++)
+        for (var xTile = 0; xTile <= projection.TileXRange.Maximum; xTile++)
         {
-            for (var yTile = 0; yTile <= projection.Metrics.TileYRange.Maximum; yTile++)
+            for (var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++)
             {
-                var tile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("BingMaps"));
+                await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("BingMaps"));
                 numCreated++;
 
                 cache.Count.Should().Be(maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached);
