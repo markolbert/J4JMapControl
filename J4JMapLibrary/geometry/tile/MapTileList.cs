@@ -1,11 +1,9 @@
-﻿using System.Collections;
+﻿using System.Runtime.CompilerServices;
 
 namespace J4JMapLibrary;
 
-public class MapTileList : IEnumerable<MapTile>
+public class MapTileList
 {
-    public record Bounds( MapTile UpperLeft, MapTile LowerRight );
-
     private readonly List<MapTile> _tiles = new();
 
     public bool Add( MapTile mapTile )
@@ -33,32 +31,37 @@ public class MapTileList : IEnumerable<MapTile>
 
     public void Clear() => _tiles.Clear();
 
-    public async Task<List<MapTile>> GetBoundingBoxAsync(
-        ITiledProjection projection,
-        CancellationToken cancellationToken
-    )
+    public bool TryGetBounds( out TileBounds? bounds )
     {
-        var retVal = new List<MapTile>();
+        bounds = null;
 
         if( _tiles.Count == 0 )
-            return retVal;
+            return false;
 
         var minX = _tiles.Min( x => x.X );
         var maxX = _tiles.Max( x => x.X );
         var minY = _tiles.Min( x => x.Y );
         var maxY = _tiles.Max( x => x.Y );
 
-        for( var x = minX; x <= maxX; x++ )
-        {
-            for( var y = minY; y <= maxY; y++ )
-            {
-                retVal.Add( await MapTile.CreateAsync( projection, x, y, cancellationToken ) );
-            }
-        }
+        bounds = new TileBounds( new TileCoordinates( minX, minY ), new TileCoordinates( maxX, maxY ) );
 
-        return retVal;
+        return true;
     }
 
-    public IEnumerator<MapTile> GetEnumerator() => ((IEnumerable<MapTile>) _tiles).GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public async IAsyncEnumerable<MapTile> GetTilesAsync(
+        ITiledProjection projection,
+        [ EnumeratorCancellation ] CancellationToken cancellationToken
+    )
+    {
+        if( !TryGetBounds( out var bounds ) )
+            yield break;
+
+        for( var x = bounds!.UpperLeft.X; x <= bounds.LowerRight.X; x++ )
+        {
+            for( var y = bounds.UpperLeft.Y; y <= bounds.LowerRight.Y; y++ )
+            {
+                yield return await MapTile.CreateAsync( projection, x, y, cancellationToken );
+            }
+        }
+    }
 }
