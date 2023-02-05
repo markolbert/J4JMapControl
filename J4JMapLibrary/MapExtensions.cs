@@ -19,7 +19,7 @@ public static class MapExtensions
     {
         var retVal = new StringBuilder();
 
-        for( var i = tile.Scale; i > tile.ScaleRange.Minimum - 1; i-- )
+        for( var i = tile.Scope.Scale; i > tile.Scope.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
@@ -44,19 +44,21 @@ public static class MapExtensions
         var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
-        if( x != xTile || y != yTile )
+        var scope = (TiledMapScope)projection.GetScope();
+
+        if ( x != xTile || y != yTile )
         {
             Logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
                           xTile,
                           yTile,
-                          projection.Scale );
+                          scope.Scale );
 
             return null;
         }
 
         var retVal = new StringBuilder();
 
-        for (var i = projection.Scale; i > 0; i--)
+        for (var i = scope.Scale; i > 0; i--)
         {
             var digit = '0';
             var mask = 1 << (i - 1);
@@ -126,11 +128,11 @@ public static class MapExtensions
         return true;
     }
 
-    public static LatLong CenterLatLong( this MapTile tile ) => tile.CartesianToLatLong( tile.CenterCartesian() );
+    public static LatLong CenterLatLong( this MapTile tile ) => tile.Scope.CartesianToLatLong( tile.CenterCartesian() );
 
     public static Cartesian CenterCartesian( this MapTile tile )
     {
-        var retVal = new Cartesian( tile );
+        var retVal = new Cartesian( tile.Scope );
 
         retVal.SetCartesian( tile.X * tile.HeightWidth + tile.HeightWidth / 2,
                              tile.Y * tile.HeightWidth + tile.HeightWidth / 2 );

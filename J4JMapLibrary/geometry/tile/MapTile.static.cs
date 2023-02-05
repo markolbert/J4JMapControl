@@ -43,7 +43,9 @@ public partial class MapTile
         if( projection.TileCache == null )
             return new MapTile( projection, latLong );
 
-        var cartesianCenter = projection.LatLongToCartesian( latLong );
+        var scope = (TiledMapScope) projection.GetScope();
+
+        var cartesianCenter = scope.LatLongToCartesian( latLong );
 
         var x = cartesianCenter.X / projection.TileHeightWidth;
         var y = cartesianCenter.Y / projection.TileHeightWidth;
@@ -51,13 +53,4 @@ public partial class MapTile
         var entry = await projection.TileCache.GetEntryAsync( projection, x, y, cancellationToken );
         return entry != null ? entry.Tile : new MapTile( projection, latLong );
     }
-
-    public static bool InSameProjectionScope( IProjectionScope a, IProjectionScope b ) =>
-        a.Scale == b.Scale
-     && Math.Abs( a.LatitudeRange.Minimum - b.LatitudeRange.Minimum ) < 0.000001
-     && a.LatitudeRange.Equals( b.LatitudeRange )
-     && a.LongitudeRange.Equals( b.LongitudeRange )
-     && a.XRange.Equals( b.XRange )
-     && a.YRange.Equals( b.YRange )
-     && a.ScaleRange.Equals( b.ScaleRange );
 }

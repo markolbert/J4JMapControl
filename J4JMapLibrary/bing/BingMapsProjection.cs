@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace J4JMapLibrary;
 
 [MapProjection("BingMaps", ServerConfigurationStyle.Dynamic)]
-public class BingMapsProjection : TiledProjection
+public class BingMapsProjection : TiledProjection<TiledMapScope>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
     private readonly string _metadataUrlTemplate;
@@ -153,7 +153,7 @@ public class BingMapsProjection : TiledProjection
 
         SetImageFileExtension( urlText );
 
-        ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax );
+        Scope.ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax );
 
         // check to ensure we're dealing with square tiles
         if (TileHeightWidth != Metadata.PrimaryResource.ImageHeight)
@@ -164,7 +164,7 @@ public class BingMapsProjection : TiledProjection
 
         Initialized = true;
 
-        Scale = ScaleRange.Minimum;
+        SetScale( Scope.ScaleRange.Minimum );
 
         return true;
     }

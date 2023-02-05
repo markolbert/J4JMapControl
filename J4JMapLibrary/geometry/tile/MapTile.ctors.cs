@@ -26,14 +26,8 @@ public partial class MapTile
         _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
-        _scale = projection.Scale;
         HeightWidth = projection.TileHeightWidth;
-
-        ScaleRange = projection.ScaleRange;
-        XRange = projection.XRange;
-        YRange = projection.YRange;
-        LatitudeRange = projection.LatitudeRange;
-        LongitudeRange = projection.LongitudeRange;
+        Scope = TiledMapScope.Copy( (TiledMapScope) projection.GetScope() );
 
         MaxRequestLatency = projection.MaxRequestLatency;
         _cancellationTokenSource.CancelAfter( MaxRequestLatency );
@@ -52,14 +46,8 @@ public partial class MapTile
         _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
-        _scale = projection.Scale;
         HeightWidth = projection.TileHeightWidth;
-
-        ScaleRange = projection.ScaleRange;
-        XRange = projection.XRange;
-        YRange = projection.YRange;
-        LatitudeRange = projection.LatitudeRange;
-        LongitudeRange = projection.LongitudeRange;
+        Scope = TiledMapScope.Copy((TiledMapScope)projection.GetScope());
 
         MaxRequestLatency = projection.MaxRequestLatency;
         _cancellationTokenSource.CancelAfter( MaxRequestLatency );
@@ -78,16 +66,10 @@ public partial class MapTile
         _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
-        _scale = projection.Scale;
         HeightWidth = projection.TileHeightWidth;
+        Scope = TiledMapScope.Copy((TiledMapScope)projection.GetScope());
 
-        ScaleRange = projection.ScaleRange;
-        XRange = projection.XRange;
-        YRange = projection.YRange;
-        LatitudeRange = projection.LatitudeRange;
-        LongitudeRange = projection.LongitudeRange;
-
-        var cartesian = this.LatLongToCartesian( latLong );
+        var cartesian = Scope.LatLongToCartesian( latLong );
         X = cartesian.X;
         Y = cartesian.Y;
 

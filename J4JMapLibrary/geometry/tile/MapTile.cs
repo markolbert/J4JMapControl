@@ -3,7 +3,7 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public partial class MapTile : IProjectionScope
+public partial class MapTile
 {
     public event EventHandler? ImageChanged;
 
@@ -13,19 +13,8 @@ public partial class MapTile : IProjectionScope
     private readonly Func<HttpResponseMessage, Task<byte[]?>> _extractImageStreamAsync;
 
     private byte[]? _imageData;
-    private int _scale;
 
-    // attempts to set this value will be ignored
-    public int Scale
-    {
-        get => _scale;
-        set { }
-    }
-    public MinMax<int> ScaleRange { get; }
-    public MinMax<int> XRange { get; }
-    public MinMax<int> YRange { get; }
-    public MinMax<float> LatitudeRange { get; }
-    public MinMax<float> LongitudeRange { get; }
+    public TiledMapScope Scope { get; }
 
     public int MaxRequestLatency { get; }
 

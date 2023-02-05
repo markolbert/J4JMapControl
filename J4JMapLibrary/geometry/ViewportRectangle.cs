@@ -10,8 +10,6 @@ public class ViewportRectangle
 
     private readonly IJ4JLogger _logger;
 
-    private MinMax<float> _latRange;
-    private MinMax<float> _longRange;
     private List<MapTile>? _tiles;
     private ITiledProjection? _projection;
     private float _height;
@@ -26,9 +24,6 @@ public class ViewportRectangle
         IJ4JLogger logger
     )
     {
-        _latRange = new MinMax<float>( -MapConstants.Wgs84MaxLatitude, MapConstants.Wgs84MaxLatitude );
-        _longRange = new MinMax<float>( -180F, 180F );
-
         Projection.ScaleChanged += Projection_ScaleChanged;
 
         _logger = logger;
@@ -55,13 +50,13 @@ public class ViewportRectangle
         internal set
         {
             _projection = value;
-
-            _latRange = new MinMax<float>( _projection.LatitudeRange.Minimum, _projection.LatitudeRange.Maximum );
-            _longRange = new MinMax<float>( _projection.LongitudeRange.Minimum, _projection.LongitudeRange.Maximum );
+            Scope = TiledMapScope.Copy( (TiledMapScope) _projection.GetScope() );
             
             _updateNeeded = true;
         }
     }
+
+    public TiledMapScope Scope { get; private set; } = new();
 
     public float CenterLatitude
     {
@@ -69,7 +64,7 @@ public class ViewportRectangle
 
         internal set
         {
-            _centerLat = _latRange.ConformValueToRange( value, "Latitude" );
+            _centerLat = Scope.LatitudeRange.ConformValueToRange( value, "Latitude" );
             _updateNeeded = true;
         }
     }
@@ -80,7 +75,7 @@ public class ViewportRectangle
 
         internal set
         {
-            _centerLong = _longRange.ConformValueToRange(value, "Longitude");
+            _centerLong = Scope.LongitudeRange.ConformValueToRange(value, "Longitude");
             _updateNeeded = true;
         }
     }
@@ -165,8 +160,8 @@ public class ViewportRectangle
 
         // translate to the Cartesian coordinates of our center point
         // >>in the TiledProjection space<<
-        var cartesianCenter = new Cartesian( Projection );
-        cartesianCenter.SetCartesian( Projection.LatLongToCartesian( CenterLatitude, CenterLongitude ) );
+        var cartesianCenter = new Cartesian( Scope );
+        cartesianCenter.SetCartesian( Scope.LatLongToCartesian( CenterLatitude, CenterLongitude ) );
 
         corners = corners.ApplyTransform(
             Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
@@ -192,7 +187,7 @@ public class ViewportRectangle
                     await mapTile.GetImageAsync( cancellationToken );
 
                 if( !mapTileList.Add( mapTile ) )
-                    _logger.Error("Problem adding MapTile to collection (probably differing IProjectionScope)"  );
+                    _logger.Error("Problem adding MapTile to collection (probably differing ITiledMapScope)"  );
             }
         }
 
@@ -203,7 +198,7 @@ public class ViewportRectangle
 
     private async Task<MapTile> CreateMapTile( int x, int y, CancellationToken cancellationToken )
     {
-        var retVal = new Cartesian(Projection);
+        var retVal = new Cartesian(Scope);
         retVal.SetCartesian( x, y );
 
         return await MapTile.CreateAsync( Projection, retVal, cancellationToken );

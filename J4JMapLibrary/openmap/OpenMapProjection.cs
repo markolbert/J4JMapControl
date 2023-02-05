@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-public class OpenMapProjection : TiledProjection
+public class OpenMapProjection : TiledProjection<TiledMapScope>
 {
     private readonly string _retrievalUrl;
 
@@ -19,7 +19,7 @@ public class OpenMapProjection : TiledProjection
         SetImageFileExtension( _retrievalUrl );
 
         TileHeightWidth = staticConfig.TileHeightWidth;
-        ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale );
+        Scope.ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale );
 
         SetSizes(0  );
     }
@@ -42,7 +42,7 @@ public class OpenMapProjection : TiledProjection
         SetImageFileExtension( _retrievalUrl );
 
         TileHeightWidth = srcConfig.TileHeightWidth;
-        ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale);
+        Scope.ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale);
 
         SetSizes( 0 );
     }
@@ -60,7 +60,7 @@ public class OpenMapProjection : TiledProjection
         _userAgent = credentials!;
         Initialized = true;
 
-        Scale = ScaleRange.Minimum;
+        SetScale(Scope.ScaleRange.Minimum);
 
         return true;
     }
@@ -76,7 +76,7 @@ public class OpenMapProjection : TiledProjection
             return null;
         }
 
-        var uriText = _retrievalUrl.Replace( "ZoomLevel", Scale.ToString() )
+        var uriText = _retrievalUrl.Replace( "ZoomLevel", Scope.Scale.ToString() )
                                    .Replace( "XTile", coordinates.X.ToString() )
                                    .Replace( "YTile", coordinates.Y.ToString() );
 
