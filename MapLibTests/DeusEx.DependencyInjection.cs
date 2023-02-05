@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using J4JMapLibrary;
+using J4JMapLibrary.Viewport;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -48,6 +49,9 @@ internal partial class DeusEx
                .AsSelf();
 
         builder.RegisterType<FileSystemCache>()
+               .AsSelf();
+
+        builder.RegisterType<ViewportRectangle>()
                .AsSelf();
     }
 }

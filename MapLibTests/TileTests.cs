@@ -12,7 +12,7 @@ public class TileTests : TestBase
 {
     [Theory]
     [MemberData(nameof(TileDataSource.GetTestData), "BingMaps", MemberType = typeof(TileDataSource))]
-    public async Task CheckTileRegion( TileDataSource.Data item )
+    public async Task BingMapsTileRegion( TileDataSource.Data item )
     {
         var projection = await GetFactory().CreateMapProjection( item.ProjectionName ) as ITiledProjection;
         projection.Should().NotBeNull();
@@ -26,6 +26,15 @@ public class TileTests : TestBase
                                .Height( item.Height )
                                .Width( item.Width )
                                .Heading( item.Heading )
-                               .GetTilesAsync( GetCancellationToken( 500 ) );
+                               .GetViewportTilesAsync( GetCancellationToken( 500 ), true );
+
+        tiles.Should().NotBeNull();
+        tiles!.TryGetBounds( out var bounds ).Should().BeTrue();
+        bounds!.Should().Be( item.TileBounds );
+
+        await foreach( var tile in tiles!.GetTilesAsync( projection, GetCancellationToken( 500 ) ) )
+        {
+            tile.ImageBytes.Should().BeNegative();
+        }
     }
 }
