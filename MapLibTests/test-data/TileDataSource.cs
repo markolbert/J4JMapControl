@@ -1,4 +1,6 @@
-﻿namespace MapLibTests;
+﻿using J4JMapLibrary;
+
+namespace MapLibTests;
 
 public class TileDataSource
 {
@@ -10,11 +12,8 @@ public class TileDataSource
         float CenterLongitude,
         int Height,
         int Width,
-        int Heading,
-        int UpperLeftX,
-        int UpperLeftY,
-        int LowerRightX,
-        int LowerRightY
+        float Heading,
+        TileBounds TileBounds
     );
 
     public static IEnumerable<object[]> GetTestData( string projectionName ) =>
@@ -24,11 +23,33 @@ public class TileDataSource
 
     private static IEnumerable<object[]> GetZeroBased( string projectionName )
     {
-        yield return new object[] { new Data( projectionName, 0, 0, 0, 50, 100, 0, 0, 0, 0, 0 ) };
+        yield return new object[]
+        {
+            new Data( projectionName,
+                      0,
+                      0,
+                      0,
+                      50,
+                      100,
+                      0,
+                      new TileBounds( new TileCoordinates( 0, 1 ),
+                                      new TileCoordinates( 1, 0 ) ) )
+        };
     }
 
     private static IEnumerable<object[]> GetOneBased( string projectionName )
     {
-        yield return new object[] { new Data(projectionName, 1, 0, 0, 50, 100, 0, 0, 0, 0, 0) };
+        yield return new object[]
+        {
+            new Data( projectionName,
+                      1,
+                      0,
+                      0,
+                      50,
+                      100,
+                      0,
+                      new TileBounds( new TileCoordinates( 0, 1 ),
+                                      new TileCoordinates( 1, 0 ) ) )
+        };
     }
 }
