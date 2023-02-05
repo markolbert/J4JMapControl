@@ -18,11 +18,13 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
+        projection.SetScale(item.Scale);
+
         var test = J4JDeusEx.ServiceProvider.GetService<ViewportRectangle>();
         test.Should().NotBeNull();
 
         var tiles = await test!.Projection( projection )
-                               .Center( item.CenterLatitude, item.CenterLongitude )
+            .Center( item.CenterLatitude, item.CenterLongitude )
                                .Height( item.Height )
                                .Width( item.Width )
                                .Heading( item.Heading )
