@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using J4JSoftware.Logging;
+﻿using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
@@ -24,6 +23,8 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
     :base(srcConfig, logger)
     {
         TileCache = tileCache;
+        TileXRange = new MinMax<int>( 0, 0 );
+        TileYRange = new MinMax<int>(0, 0);
     }
 
     protected TiledProjection(
@@ -34,11 +35,13 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         : base( libConfiguration, logger )
     {
         TileCache = tileCache;
+        TileXRange = new MinMax<int>(0, 0);
+        TileYRange = new MinMax<int>(0, 0);
     }
 
     public ITileCache? TileCache { get; }
 
-    public virtual int Scale
+    public override int Scale
     {
         get => _scale;
 
@@ -50,7 +53,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
                 return;
             }
 
-            _scale = InternalExtensions.ConformValueToRange( value, Metrics.ScaleRange, "Scale" );
+            _scale = ScaleRange.ConformValueToRange(value, "Scale");
 
             SetSizes( _scale  );
 
@@ -64,15 +67,14 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
         var cellsInDimension = Pow( 2, scale );
         var projHeightWidth = TileHeightWidth * cellsInDimension;
 
-        Metrics = Metrics with
-        {
-            XRange = new MinMax<int>( 0, projHeightWidth - 1 ),
-            YRange = new MinMax<int>( 0, projHeightWidth - 1 ),
-            TileXRange = new MinMax<int>( 0, cellsInDimension - 1 ),
-            TileYRange = new MinMax<int>( 0, cellsInDimension - 1 ),
-            Scale = Scale
-        };
+        XRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        YRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        TileXRange = new MinMax<int>( 0, cellsInDimension - 1 );
+        TileYRange = new MinMax<int>( 0, cellsInDimension - 1 );
     }
+
+    public MinMax<int> TileXRange { get; private set; }
+    public MinMax<int> TileYRange { get; private set; }
 
     public int TileHeightWidth { get; protected set; }
     public string ImageFileExtension { get; private set; } = string.Empty;
@@ -98,7 +100,7 @@ public abstract class TiledProjection : MapProjection, ITiledProjection
             return 0;
         }
 
-        latitude = InternalExtensions.ConformValueToRange( latitude, Metrics.LatitudeRange, "Latitude" );
+        latitude = LatitudeRange.ConformValueToRange( latitude, "Latitude" );
 
         return (float) Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters

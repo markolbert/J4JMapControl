@@ -1,12 +1,10 @@
 ﻿namespace J4JMapLibrary;
 
-public interface IMapProjection
+public interface IMapProjection: IProjectionScope
 {
     string Name { get; }
     int MaxRequestLatency { get; set; }
     bool Initialized { get; }
-
-    ProjectionMetrics Metrics { get; }
 
     int Width { get; }
     int Height { get; }

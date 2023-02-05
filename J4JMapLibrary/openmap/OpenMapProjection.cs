@@ -19,7 +19,7 @@ public class OpenMapProjection : TiledProjection
         SetImageFileExtension( _retrievalUrl );
 
         TileHeightWidth = staticConfig.TileHeightWidth;
-        Metrics = Metrics with { ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale ) };
+        ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale );
 
         SetSizes(0  );
     }
@@ -42,7 +42,7 @@ public class OpenMapProjection : TiledProjection
         SetImageFileExtension( _retrievalUrl );
 
         TileHeightWidth = srcConfig.TileHeightWidth;
-        Metrics = Metrics with { ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale) };
+        ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale);
 
         SetSizes( 0 );
     }
@@ -60,7 +60,7 @@ public class OpenMapProjection : TiledProjection
         _userAgent = credentials!;
         Initialized = true;
 
-        Scale = Metrics.ScaleRange.Minimum;
+        Scale = ScaleRange.Minimum;
 
         return true;
     }

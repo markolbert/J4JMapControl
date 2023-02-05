@@ -14,7 +14,7 @@ internal static class InternalExtensions
         Logger?.SetLoggedType( typeof( InternalExtensions ) );
     }
 
-    internal static T ConformValueToRange<T>(T toCheck, MinMax<T> range, string name)
+    internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name )
         where T : struct, IComparable
     {
         if (toCheck.CompareTo(range.Minimum) < 0)
@@ -30,29 +30,38 @@ internal static class InternalExtensions
         return range.Maximum;
     }
 
-    internal static LatLong CartesianToLatLong(this ProjectionMetrics metrics, Cartesian cartesian)
+    internal static LatLong CartesianToLatLong(this IProjectionScope scope, Cartesian cartesian )
     {
         // ReSharper disable once UseObjectOrCollectionInitializer
-        var retVal = new LatLong(metrics);
+        var retVal = new LatLong(scope);
 
         retVal.SetLatLong((float) (2 * Math.Atan(
                                Math.Exp(MapConstants.TwoPi * cartesian.Y /
-                                        (cartesian.YRange.Maximum - cartesian.YRange.Minimum)))
+                                        (scope.YRange.Maximum - scope.YRange.Minimum)))
                            - MapConstants.HalfPi)
                           / MapConstants.RadiansPerDegree,
-            360 * cartesian.X / (cartesian.XRange.Maximum - cartesian.XRange.Minimum) - 180);
+            360 * cartesian.X / (scope.XRange.Maximum - scope.XRange.Minimum) - 180);
 
         return retVal;
     }
 
-    internal static Cartesian LatLongToCartesian( this ProjectionMetrics metrics, LatLong latLong )
+    internal static Cartesian LatLongToCartesian( this IProjectionScope scope, float latitude, float longitude ) =>
+        scope
+           .LatLongToCartesianInternal( scope.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
+                                        scope.LongitudeRange
+                                               .ConformValueToRange( longitude, "Longitude" ) );
+
+    internal static Cartesian LatLongToCartesian( this IProjectionScope scope, LatLong latLong ) =>
+        scope.LatLongToCartesianInternal( latLong.Latitude, latLong.Longitude );
+
+    private static Cartesian LatLongToCartesianInternal(this IProjectionScope scope, float latitude, float longitude)
     {
-        var retVal = new Cartesian( metrics );
+        var retVal = new Cartesian(scope);
 
-        var x = ( metrics.XRange.Maximum - metrics.XRange.Minimum ) * (latLong.Longitude / 360 + 0.5);
+        var x = (scope.XRange.Maximum - scope.XRange.Minimum) * (longitude / 360 + 0.5);
 
-        var y = ( metrics.YRange.Maximum - metrics.YRange.Minimum )
-          * Math.Log( Math.Tan( MapConstants.QuarterPi + latLong.Latitude * MapConstants.RadiansPerDegree / 2 ) )
+        var y = (scope.YRange.Maximum - scope.YRange.Minimum)
+          * Math.Log(Math.Tan(MapConstants.QuarterPi + latitude * MapConstants.RadiansPerDegree / 2))
           / MapConstants.TwoPi;
 
         try
@@ -61,7 +70,7 @@ internal static class InternalExtensions
         }
         catch (Exception ex)
         {
-            Logger?.Error<string>( "Could not convert float to int32, message was '{0}'", ex.Message );
+            Logger?.Error<string>("Could not convert float to int32, message was '{0}'", ex.Message);
         }
 
         return retVal;

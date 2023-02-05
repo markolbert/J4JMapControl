@@ -5,16 +5,16 @@ public class Cartesian
     public EventHandler? Changed;
 
     public Cartesian(
-        ProjectionMetrics metrics
+        IProjectionScope scope
     )
     {
-        XRange = metrics.XRange;
-        YRange = metrics.YRange;
+        XRange = scope.XRange;
+        YRange = scope.YRange;
 
-        Scale = metrics.Scale;
+        Scale = scope.Scale;
     }
 
-    public int Scale { get; internal set; }
+    public int Scale { get; }
 
     public MinMax<int> XRange { get; internal set; }
     public int X { get; private set; }
@@ -28,18 +28,18 @@ public class Cartesian
             return;
 
         if( x.HasValue )
-            X = InternalExtensions.ConformValueToRange( x.Value, XRange, "X" );
+            X = XRange.ConformValueToRange(x.Value, "X");
 
         if( y.HasValue )
-            Y = InternalExtensions.ConformValueToRange( y.Value, YRange, "Y" );
+            Y = YRange.ConformValueToRange(y.Value, "Y");
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
     public void SetCartesian( Cartesian cartesian )
     {
-        X = InternalExtensions.ConformValueToRange( cartesian.X, XRange, "X" );
-        Y = InternalExtensions.ConformValueToRange( cartesian.Y, YRange, "Y" );
+        X = XRange.ConformValueToRange(cartesian.X, "X");
+        Y = YRange.ConformValueToRange(cartesian.Y, "Y");
 
         Changed?.Invoke( this, EventArgs.Empty );
     }

@@ -152,11 +152,8 @@ public class BingMapsProjection : TiledProjection
                                    .Replace( "{culture}", _cultureCode );
 
         SetImageFileExtension( urlText );
-        
-        Metrics = Metrics with
-        {
-            ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax )
-        };
+
+        ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax );
 
         // check to ensure we're dealing with square tiles
         if (TileHeightWidth != Metadata.PrimaryResource.ImageHeight)
@@ -167,7 +164,7 @@ public class BingMapsProjection : TiledProjection
 
         Initialized = true;
 
-        Scale = Metrics.ScaleRange.Minimum;
+        Scale = ScaleRange.Minimum;
 
         return true;
     }

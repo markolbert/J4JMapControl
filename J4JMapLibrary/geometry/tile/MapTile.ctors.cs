@@ -26,9 +26,14 @@ public partial class MapTile
         _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
-        Metrics = projection.Metrics;
-        Scale = projection.Scale;
+        _scale = projection.Scale;
         HeightWidth = projection.TileHeightWidth;
+
+        ScaleRange = projection.ScaleRange;
+        XRange = projection.XRange;
+        YRange = projection.YRange;
+        LatitudeRange = projection.LatitudeRange;
+        LongitudeRange = projection.LongitudeRange;
 
         MaxRequestLatency = projection.MaxRequestLatency;
         _cancellationTokenSource.CancelAfter( MaxRequestLatency );
@@ -47,9 +52,14 @@ public partial class MapTile
         _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
-        Metrics = projection.Metrics;
-        Scale = projection.Scale;
+        _scale = projection.Scale;
         HeightWidth = projection.TileHeightWidth;
+
+        ScaleRange = projection.ScaleRange;
+        XRange = projection.XRange;
+        YRange = projection.YRange;
+        LatitudeRange = projection.LatitudeRange;
+        LongitudeRange = projection.LongitudeRange;
 
         MaxRequestLatency = projection.MaxRequestLatency;
         _cancellationTokenSource.CancelAfter( MaxRequestLatency );
@@ -68,9 +78,18 @@ public partial class MapTile
         _createRequest = projection.GetRequest;
         _extractImageStreamAsync = projection.ExtractImageDataAsync;
 
-        Metrics = projection.Metrics;
-        Scale = projection.Scale;
+        _scale = projection.Scale;
         HeightWidth = projection.TileHeightWidth;
+
+        ScaleRange = projection.ScaleRange;
+        XRange = projection.XRange;
+        YRange = projection.YRange;
+        LatitudeRange = projection.LatitudeRange;
+        LongitudeRange = projection.LongitudeRange;
+
+        var cartesian = this.LatLongToCartesian( latLong );
+        X = cartesian.X;
+        Y = cartesian.Y;
 
         MaxRequestLatency = projection.MaxRequestLatency;
         _cancellationTokenSource.CancelAfter( MaxRequestLatency );

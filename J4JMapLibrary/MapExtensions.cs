@@ -19,7 +19,7 @@ public static class MapExtensions
     {
         var retVal = new StringBuilder();
 
-        for( var i = tile.Metrics.Scale; i > tile.Metrics.ScaleRange.Minimum - 1; i-- )
+        for( var i = tile.Scale; i > tile.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
@@ -41,8 +41,8 @@ public static class MapExtensions
 
     public static string? GetQuadKey(this ITiledProjection projection, int xTile, int yTile )
     {
-        var x = InternalExtensions.ConformValueToRange( xTile, projection.Metrics.TileXRange, "X Tile" );
-        var y = InternalExtensions.ConformValueToRange( yTile, projection.Metrics.TileYRange, "Y Tile" );
+        var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
+        var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
         if( x != xTile || y != yTile )
         {
@@ -126,12 +126,11 @@ public static class MapExtensions
         return true;
     }
 
-    public static LatLong CenterLatLong( this MapTile tile ) =>
-        tile.Metrics.CartesianToLatLong( tile.CenterCartesian() );
+    public static LatLong CenterLatLong( this MapTile tile ) => tile.CartesianToLatLong( tile.CenterCartesian() );
 
     public static Cartesian CenterCartesian( this MapTile tile )
     {
-        var retVal = new Cartesian( tile.Metrics );
+        var retVal = new Cartesian( tile );
 
         retVal.SetCartesian( tile.X * tile.HeightWidth + tile.HeightWidth / 2,
                              tile.Y * tile.HeightWidth + tile.HeightWidth / 2 );

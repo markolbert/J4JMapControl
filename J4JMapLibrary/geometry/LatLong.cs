@@ -8,13 +8,13 @@ public class LatLong
     private readonly MinMax<float> _longitudeRange;
 
     public LatLong(
-        ProjectionMetrics metrics
+        IProjectionScope scope
     )
     {
-        _latitudeRange = metrics.LatitudeRange;
-        _longitudeRange = metrics.LongitudeRange;
+        _latitudeRange = scope.LatitudeRange;
+        _longitudeRange = scope.LongitudeRange;
 
-        Scale = metrics.Scale;
+        Scale = scope.Scale;
     }
 
     public int Scale { get; internal set; }
@@ -28,23 +28,18 @@ public class LatLong
             return;
 
         if( latitude.HasValue )
-            Latitude = InternalExtensions
-               .ConformValueToRange( latitude.Value, _latitudeRange, "Latitude" );
+            Latitude = _latitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
 
         if( longitude.HasValue )
-            Longitude = InternalExtensions
-               .ConformValueToRange( longitude.Value, _longitudeRange, "Longitude" );
+            Longitude = _longitudeRange.ConformValueToRange(longitude.Value, "Longitude");
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
     public void SetLatLong( LatLong latLong )
     {
-        Latitude = InternalExtensions
-           .ConformValueToRange( latLong.Latitude, _latitudeRange, "Latitude" );
-
-        Longitude = InternalExtensions
-           .ConformValueToRange( latLong.Longitude, _longitudeRange, "Longitude" );
+        Latitude = _latitudeRange.ConformValueToRange(latLong.Latitude, "Latitude");
+        Longitude = _longitudeRange.ConformValueToRange(latLong.Longitude, "Longitude");
 
         Changed?.Invoke( this, EventArgs.Empty );
     }

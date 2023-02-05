@@ -4,11 +4,13 @@ public interface ITiledProjection : IMapProjection
 {
     event EventHandler<int>? ScaleChanged;
 
+    MinMax<int> TileXRange { get; }
+    MinMax<int> TileYRange { get; }
+
     int TileHeightWidth { get; }
     string ImageFileExtension { get; }
 
     ITileCache? TileCache { get; }
-    int Scale { get; set; }
 
     float GroundResolution( float latitude );
     string MapScale( float latitude, float dotsPerInch );
