@@ -3,7 +3,8 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public abstract class MapProjection : IMapProjection
+public abstract class MapProjection<TScope> : IMapProjection<TScope>
+    where TScope : MapScope, new()
 {
     private readonly ILibraryConfiguration? _libConfiguration;
 
@@ -20,11 +21,11 @@ public abstract class MapProjection : IMapProjection
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
-        ScaleRange = new MinMax<int>( 1, 1 );
-        LatitudeRange = new MinMax<float>( srcConfig.MinLatitude, srcConfig.MaxLatitude );
-        LongitudeRange = new MinMax<float>( srcConfig.MinLongitude, srcConfig.MaxLongitude );
-        XRange = new MinMax<int>( 0, 0 );
-        YRange = new MinMax<int>( 0, 0 );
+        Scope = new TScope
+        {
+            LatitudeRange = new MinMax<float>( srcConfig.MinLatitude, srcConfig.MaxLatitude ),
+            LongitudeRange = new MinMax<float>( srcConfig.MinLongitude, srcConfig.MaxLongitude )
+        };
 
         Logger = logger;
         Logger.SetLoggedType( GetType() );
@@ -73,11 +74,11 @@ public abstract class MapProjection : IMapProjection
         Copyright = srcConfig.Copyright;
         CopyrightUri = srcConfig.CopyrightUri;
 
-        ScaleRange = new MinMax<int>(1, 1);
-        LatitudeRange = new MinMax<float>( srcConfig.MinLatitude, srcConfig.MaxLatitude );
-        LongitudeRange = new MinMax<float>( srcConfig.MinLongitude, srcConfig.MaxLongitude );
-        XRange = new MinMax<int>( 0, 0 );
-        YRange = new MinMax<int>( 0, 0 );
+        Scope = new TScope
+        {
+            LatitudeRange = new MinMax<float>(srcConfig.MinLatitude, srcConfig.MaxLatitude),
+            LongitudeRange = new MinMax<float>(srcConfig.MinLongitude, srcConfig.MaxLongitude)
+        };
     }
 
     protected CancellationTokenSource CancellationTokenSource { get; }
@@ -104,12 +105,7 @@ public abstract class MapProjection : IMapProjection
         return result != null;
     }
 
-    public abstract int Scale { get; set; }
-    public MinMax<int> ScaleRange { get; protected set; }
-    public MinMax<int> XRange { get; protected set; }
-    public MinMax<int> YRange { get; protected set; }
-    public MinMax<float> LatitudeRange { get; protected set; }
-    public MinMax<float> LongitudeRange { get; protected set; }
+    public TScope Scope { get; }
 
     public int MaxRequestLatency { get; set; }
     public bool Initialized { get; protected set; }
@@ -118,11 +114,10 @@ public abstract class MapProjection : IMapProjection
     public string Copyright { get; }
     public Uri? CopyrightUri { get; }
 
-    public int Width => XRange.Maximum - XRange.Maximum;
-    public int Height => YRange.Maximum - YRange.Minimum;
-
     public Task<bool> Authenticate( string? credentials = null ) =>
         Authenticate( CancellationTokenSource.Token, credentials );
 
     public abstract Task<bool> Authenticate(CancellationToken cancellationToken, string? credentials = null);
+
+    MapScope IMapProjection.GetScope() => Scope;
 }
