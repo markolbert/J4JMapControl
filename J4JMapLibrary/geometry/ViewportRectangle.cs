@@ -1,96 +1,125 @@
-﻿using System.Collections.ObjectModel;
-using System.Numerics;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JMapLibrary.Viewport;
 
 public class ViewportRectangle
 {
-#pragma warning disable CA2211
-    public static MinMax<int> XRange = new( 0, int.MaxValue );
-    public static MinMax<int> YRange = new(0, int.MaxValue);
-#pragma warning restore CA2211
+    private static readonly MinMax<float> NonNegativeRange = new( 0F, float.MaxValue );
 
-    private readonly CancellationTokenSource _cancellationTokenSource;
-
-    private readonly List<MapTile> _tiles = new();
     private readonly IJ4JLogger _logger;
 
+    private MinMax<float> _latRange;
+    private MinMax<float> _longRange;
+    private List<MapTile>? _tiles;
+    private ITiledProjection? _projection;
+    private float _height;
+    private float _width;
+    private float _centerLat;
+    private float _centerLong;
     private float _heading;
     private bool _deferImageLoad;
+    private bool _updateNeeded = true;
 
     public ViewportRectangle(
-        ITiledProjection projection,
-        int height,
-        int width,
-        int maxRequestLatency,
         IJ4JLogger logger
     )
     {
-        Projection = projection;
-        SetHeightWidth( height, width );
+        _latRange = new MinMax<float>( -MapConstants.Wgs84MaxLatitude, MapConstants.Wgs84MaxLatitude );
+        _longRange = new MinMax<float>( -180F, 180F );
 
-        _cancellationTokenSource = new();
-        _cancellationTokenSource.CancelAfter( maxRequestLatency <= 0 ? 0 : maxRequestLatency );
-
-        Projection.ScaleChanged += ( _, _ ) => CreateTileCollection( _cancellationTokenSource.Token ).Wait();
-
-        Center = new LatLong( projection.Metrics );
-        Center.Changed += (_, _) => CreateTileCollection(_cancellationTokenSource.Token).Wait();
+        Projection.ScaleChanged += Projection_ScaleChanged;
 
         _logger = logger;
         _logger.SetLoggedType( GetType() );
     }
 
-    public bool UpdateNeeded { get; private set; } = true;
+    private void Projection_ScaleChanged( object? sender, int e )
+    {
+        _updateNeeded = true;
+    }
 
-    public ITiledProjection Projection { get; }
+    public ITiledProjection Projection
+    {
+        get
+        {
+            if( _projection != null )
+                return _projection;
 
-    public int Height { get; private set; }
-    public int Width { get; private set; }
+            var mesg = $"{nameof( Projection )} is not defined";
+            _logger.Fatal(mesg);
+            throw new NullReferenceException( mesg );
+        }
 
-    // the CartesianCenter and CartesianCorners use traditional mathematical nomenclature,
-    // with positive display Y values being deemed negative cartesian Y values (i.e.,
-    // because display Y coordinates increase moving >>down<< the display
-    public Vector3 CartesianCenter { get; private set; } = Vector3.Zero;
-    public Vector3[] CartesianCorners { get; private set; } = new Vector3[4];
+        internal set
+        {
+            _projection = value;
 
-    public LatLong Center { get; }
+            _latRange = new MinMax<float>( _projection.LatitudeRange.Minimum, _projection.LatitudeRange.Maximum );
+            _longRange = new MinMax<float>( _projection.LongitudeRange.Minimum, _projection.LongitudeRange.Maximum );
+            
+            _updateNeeded = true;
+        }
+    }
 
-    // in degrees; north is 0/360
+    public float CenterLatitude
+    {
+        get => _centerLat;
+
+        internal set
+        {
+            _centerLat = _latRange.ConformValueToRange( value, "Latitude" );
+            _updateNeeded = true;
+        }
+    }
+
+    public float CenterLongitude
+    {
+        get => _centerLong;
+
+        internal set
+        {
+            _centerLong = _longRange.ConformValueToRange(value, "Longitude");
+            _updateNeeded = true;
+        }
+    }
+
+    public float Height
+    {
+        get => _height;
+
+        internal set
+        {
+            _height = NonNegativeRange.ConformValueToRange(value, "Height");
+            _updateNeeded = true;
+        }
+    }
+
+    public float Width
+    {
+        get => _width;
+
+        internal set
+        {
+            _width = NonNegativeRange.ConformValueToRange(value, "Width");
+            _updateNeeded = true;
+        }
+    }
+
+    // in degrees; north is 0/360; stored as mod 360
     public float Heading
     {
         get => _heading;
 
-        set
+        internal set
         {
             _heading = value % 360;
-            UpdateNeeded = true;
+            _updateNeeded = true;
         }
     }
 
-    public void SetHeightWidth(int? height, int? width)
-    {
-        if (height == null && width == null)
-            return;
-
-        // Metrics is about to change, but its XRange and YRange limits never do
-        if (height.HasValue)
-            Height = InternalExtensions.ConformValueToRange(height.Value, YRange, "Y");
-
-        if (width.HasValue)
-            Width = InternalExtensions.ConformValueToRange(width.Value, XRange, "X");
-
-        CartesianCenter = new Vector3( Width / 2F, -Height / 2F, 0 );
-        CartesianCorners = new Vector3[]
-        {
-            new( 0, 0, 0 ), new( Width, 0, 0 ), new( Width, -Height, 0 ), new( 0, -Height, 0 ),
-        };
-
-        UpdateNeeded = true;
-    }
-
-    public async Task<ReadOnlyCollection<MapTile>> GetTilesAsync(
+    public async Task<List<MapTile>?> GetTilesAsync(
         CancellationToken cancellationToken,
         bool deferImageLoad = false,
         bool forceUpdate = false
@@ -98,44 +127,60 @@ public class ViewportRectangle
     {
         _deferImageLoad = deferImageLoad;
 
-        if( UpdateNeeded || forceUpdate )
-            await CreateTileCollection( cancellationToken );
+        if( _updateNeeded || forceUpdate )
+            _tiles = await CreateTileCollection( cancellationToken );
 
-        return _tiles.AsReadOnly();
+        return _tiles;
     }
 
-    private async Task CreateTileCollection( CancellationToken cancellationToken )
+    private async Task<List<MapTile>?> CreateTileCollection( CancellationToken cancellationToken )
     {
-        _tiles.Clear();
-
         if( Height == 0 || Width == 0 )
-            return;
+        {
+            _logger.Error( "Viewport not defined" );
+            return null;
+        }
 
-        var projCorners = new Vector3[ 4 ];
-        CartesianCorners.CopyTo( projCorners, 0 );
+        if( _projection == null )
+        {
+            _logger.Error( "Projection not defined" );
+            return null;
+        }
+
+        var corners = new[]
+        {
+            new Vector3( 0, 0, 0 ),
+            new Vector3( Width, 0, 0 ),
+            new Vector3( Width, Height, 0 ),
+            new Vector3( 0, Height, 0 ),
+        };
+
+        var vpCenter = new Vector3( Width / 2F, Height / 2F, 0 );
 
         // apply rotation if one is defined
         // heading == 270 is rotation == 90, hence the angle adjustment
         if( _heading != 0 )
-            projCorners = projCorners.ApplyTransform(
-                Matrix4x4.CreateRotationZ( ( 360 - _heading ) * MapConstants.RadiansPerDegree, CartesianCenter ) );
+            corners = corners.ApplyTransform(
+                Matrix4x4.CreateRotationZ( ( 360 - _heading ) * MapConstants.RadiansPerDegree, vpCenter ) );
 
         // translate to the Cartesian coordinates of our center point
         // >>in the TiledProjection space<<
-        var cartesianCenter = new Cartesian( Projection.Metrics );
-        cartesianCenter.SetCartesian( Projection.Metrics.LatLongToCartesian( Center ) );
+        var cartesianCenter = new Cartesian( Projection );
+        cartesianCenter.SetCartesian( Projection.LatLongToCartesian( CenterLatitude, CenterLongitude ) );
 
-        projCorners = projCorners.ApplyTransform(
+        corners = corners.ApplyTransform(
             Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
 
         // find the range of tiles covering the mapped rectangle
-        var minCartesianX = RoundFloatToInt( projCorners.Min( x => x.X ) );
-        var maxCartesianX = RoundFloatToInt( projCorners.Max( x => x.X ) );
-        var minCartesianY = RoundFloatToInt( projCorners.Min( y => y.Y ) );
-        var maxCartesianY = RoundFloatToInt( projCorners.Max( y => y.Y ) );
+        var minCartesianX = RoundFloatToInt( corners.Min( x => x.X ) );
+        var maxCartesianX = RoundFloatToInt( corners.Max( x => x.X ) );
+        var minCartesianY = RoundFloatToInt( corners.Min( y => y.Y ) );
+        var maxCartesianY = RoundFloatToInt( corners.Max( y => y.Y ) );
 
         var upperLeftTile = await CreateMapTile( minCartesianX, maxCartesianY, cancellationToken );
         var lowerRightTile = await CreateMapTile( maxCartesianX, minCartesianY, cancellationToken );
+
+        var mapTileList = new MapTileList();
 
         for( var xTile = upperLeftTile.X; xTile <= lowerRightTile.X; xTile++ )
         {
@@ -146,16 +191,19 @@ public class ViewportRectangle
                 if( !_deferImageLoad )
                     await mapTile.GetImageAsync( cancellationToken );
 
-                _tiles.Add( mapTile );
+                if( !mapTileList.Add( mapTile ) )
+                    _logger.Error("Problem adding MapTile to collection (probably differing IProjectionScope)"  );
             }
         }
+
+        return await mapTileList.GetBoundingBoxAsync( Projection, cancellationToken );
     }
 
     private int RoundFloatToInt( float value ) => Convert.ToInt32( Math.Round( value, MidpointRounding.AwayFromZero ) );
 
     private async Task<MapTile> CreateMapTile( int x, int y, CancellationToken cancellationToken )
     {
-        var retVal = new Cartesian(Projection.Metrics);
+        var retVal = new Cartesian(Projection);
         retVal.SetCartesian( x, y );
 
         return await MapTile.CreateAsync( Projection, retVal, cancellationToken );
