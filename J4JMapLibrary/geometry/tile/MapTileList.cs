@@ -16,7 +16,7 @@ public class MapTileList : IEnumerable<MapTile>
             return true;
         }
 
-        if( !MapTile.InSameProjectionScope( _tiles[ 0 ], mapTile ) )
+        if( _tiles[ 0 ] != mapTile )
             return false;
 
         _tiles.Add( mapTile );
