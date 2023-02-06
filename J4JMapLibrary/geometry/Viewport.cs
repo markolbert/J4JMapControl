@@ -181,6 +181,13 @@ public class Viewport
         var minTileY = CartesianToTile( corners.Min( y => Projection.Height - y.Y ) );
         var maxTileY = CartesianToTile( corners.Max( y => Projection.Height - y.Y ) );
 
+        minTileX = minTileX < 0 ? 0 : minTileX;
+        minTileY = minTileY < 0 ? 0 : minTileY;
+
+        var maxTiles = Projection.Height / Projection.TileHeightWidth;
+        maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
+        maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
+
         var retVal = new MapTileList();
 
         for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
