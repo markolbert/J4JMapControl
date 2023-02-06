@@ -2,15 +2,15 @@
 
 namespace J4JMapLibrary;
 
-public static class ViewportRectangleExtensions
+public static class ViewportExtensions
 {
-    public static ViewportRectangle Projection(this ViewportRectangle rectangle, ITiledProjection value)
+    public static Viewport.Viewport Projection(this Viewport.Viewport rectangle, ITiledProjection value)
     {
         rectangle.Projection = value;
         return rectangle;
     }
 
-    public static ViewportRectangle Center(this ViewportRectangle rectangle, LatLong center)
+    public static Viewport.Viewport Center(this Viewport.Viewport rectangle, LatLong center)
     {
         rectangle.CenterLatitude = center.Latitude;
         rectangle.CenterLongitude = center.Longitude;
@@ -18,7 +18,7 @@ public static class ViewportRectangleExtensions
         return rectangle;
     }
 
-    public static ViewportRectangle Center( this ViewportRectangle rectangle, float latitude, float longitude )
+    public static Viewport.Viewport Center( this Viewport.Viewport rectangle, float latitude, float longitude )
     {
         rectangle.CenterLatitude = latitude;
         rectangle.CenterLongitude = longitude;
@@ -26,19 +26,19 @@ public static class ViewportRectangleExtensions
         return rectangle;
     }
 
-    public static ViewportRectangle Height(this ViewportRectangle rectangle, float value)
+    public static Viewport.Viewport Height(this Viewport.Viewport rectangle, float value)
     {
         rectangle.Height = value;
         return rectangle;
     }
 
-    public static ViewportRectangle Width(this ViewportRectangle rectangle, float value)
+    public static Viewport.Viewport Width(this Viewport.Viewport rectangle, float value)
     {
         rectangle.Width = value;
         return rectangle;
     }
 
-    public static ViewportRectangle HeightWidth(this ViewportRectangle rectangle, float height, float width)
+    public static Viewport.Viewport HeightWidth(this Viewport.Viewport rectangle, float height, float width)
     {
         rectangle.Height = height;
         rectangle.Width = width;
@@ -46,7 +46,7 @@ public static class ViewportRectangleExtensions
         return rectangle;
     }
 
-    public static ViewportRectangle Heading(this ViewportRectangle rectangle, float value)
+    public static Viewport.Viewport Heading(this Viewport.Viewport rectangle, float value)
     {
         rectangle.Heading = value;
         return rectangle;

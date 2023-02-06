@@ -1,9 +1,12 @@
 ﻿using System.Numerics;
 using J4JSoftware.Logging;
 
+// this class has to be in a different namespace from the
+// assembly's main one so that we can avoid naming conflicts between
+// property names and extension method names
 namespace J4JMapLibrary.Viewport;
 
-public class ViewportRectangle
+public class Viewport
 {
     private static readonly MinMax<float> NonNegativeRange = new( 0F, float.MaxValue );
 
@@ -16,7 +19,7 @@ public class ViewportRectangle
     private float _centerLong;
     private float _heading;
 
-    public ViewportRectangle(
+    public Viewport(
         IJ4JLogger logger
     )
     {
@@ -167,16 +170,16 @@ public class ViewportRectangle
             corners = corners.ApplyTransform(
                 Matrix4x4.CreateRotationZ( ( 360 - _heading ) * MapConstants.RadiansPerDegree, vpCenter ) );
 
-        //// translate to the Cartesian coordinates of our center point
-        //// >>in the TiledProjection space<<
-        //corners = corners.ApplyTransform(
-        //    Matrix4x4.CreateTranslation( new Vector3( cartesianCenter.X, cartesianCenter.Y, 0F ) ) );
-
         // find the range of tiles covering the mapped rectangle
         var minTileX = CartesianToTile( corners.Min( x => x.X ) );
         var maxTileX = CartesianToTile( corners.Max( x => x.X ) );
-        var minTileY = CartesianToTile( corners.Min( y => y.Y ) );
-        var maxTileY = CartesianToTile( corners.Max( y => y.Y ) );
+
+        // figuring out the min/max of y coordinates is a royal pain in the ass...
+        // because in display space, increasing y values take you >>down<< the screen,
+        // not up the screen. So the first adjustment is to subject the raw Y values from
+        // the height of the projection to reverse the direction. 
+        var minTileY = CartesianToTile( corners.Min( y => Projection.Height - y.Y ) );
+        var maxTileY = CartesianToTile( corners.Max( y => Projection.Height - y.Y ) );
 
         var retVal = new MapTileList();
 
@@ -197,16 +200,5 @@ public class ViewportRectangle
         return retVal;
     }
 
-    private int CartesianToTile( float value )
-    {
-        return Convert.ToInt32(Math.Floor(value / Projection.TileHeightWidth));
-    }
-
-    private async Task<MapTile> CreateMapTile( int x, int y, CancellationToken cancellationToken )
-    {
-        var retVal = new Cartesian(Scope);
-        retVal.SetCartesian( x, y );
-
-        return await MapTile.CreateAsync( Projection, retVal, cancellationToken );
-    }
+    private int CartesianToTile(float value) => Convert.ToInt32(Math.Floor(value / Projection.TileHeightWidth));
 }
