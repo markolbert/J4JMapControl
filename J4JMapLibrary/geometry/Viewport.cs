@@ -184,7 +184,7 @@ public class Viewport
         minTileX = minTileX < 0 ? 0 : minTileX;
         minTileY = minTileY < 0 ? 0 : minTileY;
 
-        var maxTiles = Projection.Height / Projection.TileHeightWidth;
+        var maxTiles = Projection.Height / Projection.TileHeightWidth - 1;
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 

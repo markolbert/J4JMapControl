@@ -38,8 +38,8 @@ public abstract class TiledProjection<TScope> : MapProjection<TScope>, ITiledPro
         TileYRange = new MinMax<int>(0, 0);
     }
 
-    public int Height => Scope.YRange.Maximum - Scope.YRange.Minimum;
-    public int Width => Scope.XRange.Maximum - Scope.XRange.Minimum;
+    public int Height => Scope.YRange.Maximum - Scope.YRange.Minimum + 1;
+    public int Width => Scope.XRange.Maximum - Scope.XRange.Minimum + 1;
 
     public ITileCache? TileCache { get; }
 
