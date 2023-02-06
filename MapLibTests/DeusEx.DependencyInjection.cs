@@ -51,7 +51,7 @@ internal partial class DeusEx
         builder.RegisterType<FileSystemCache>()
                .AsSelf();
 
-        builder.RegisterType<ViewportRectangle>()
+        builder.RegisterType<Viewport>()
                .AsSelf();
     }
 }
