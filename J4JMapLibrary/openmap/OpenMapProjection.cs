@@ -2,34 +2,28 @@
 
 namespace J4JMapLibrary;
 
-public class OpenMapProjection : TiledProjection<TiledMapScope>
+public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
 {
-    private readonly string _retrievalUrl;
-
-    private string _userAgent = string.Empty;
+    private bool _authenticated;
 
     protected OpenMapProjection(
         IStaticConfiguration staticConfig,
+        IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( staticConfig, logger, tileCache )
+        : base( staticConfig, mapServer, logger, tileCache )
     {
-        _retrievalUrl = staticConfig.RetrievalUrl;
-        SetImageFileExtension( _retrievalUrl );
-
-        TileHeightWidth = staticConfig.TileHeightWidth;
         Scope.ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale );
-
-        SetSizes(0  );
     }
 
     protected OpenMapProjection(
         ILibraryConfiguration libConfiguration,
+        IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( libConfiguration, logger, tileCache )
+        : base( libConfiguration, mapServer, logger, tileCache )
     {
         if( !TryGetSourceConfiguration<IStaticConfiguration>( Name, out var srcConfig ) )
         {
@@ -38,51 +32,41 @@ public class OpenMapProjection : TiledProjection<TiledMapScope>
                 $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
         }
 
-        _retrievalUrl = srcConfig!.RetrievalUrl;
-        SetImageFileExtension( _retrievalUrl );
-
-        TileHeightWidth = srcConfig.TileHeightWidth;
-        Scope.ScaleRange = new MinMax<int>(srcConfig.MinScale, srcConfig.MaxScale);
-
-        SetSizes( 0 );
+        Scope.ScaleRange = new MinMax<int>(srcConfig!.MinScale, srcConfig.MaxScale);
     }
 
+    public override bool Initialized => base.Initialized && _authenticated;
+
 #pragma warning disable CS1998
-    public override async Task<bool> Authenticate( CancellationToken cancellationToken, string? credentials = null )
+    public override async Task<bool> AuthenticateAsync( string? credentials, CancellationToken cancellationToken )
 #pragma warning restore CS1998
     {
-        if( string.IsNullOrEmpty( credentials ) && !TryGetCredentials( Name, out credentials ) )
+        credentials ??= LibraryConfiguration?.Credentials
+            .Where(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase))
+            .Select(x => x.Key)
+            .FirstOrDefault();
+
+        if (credentials == null)
         {
-            Logger.Error("No credentials were provided or found");
+            Logger.Error("No credentials provided or available");
             return false;
         }
 
-        _userAgent = credentials!;
-        Initialized = true;
+        if (MapServer is not OpenMapServer mapServer)
+        {
+            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
+            return false;
+        }
+
+        _authenticated = false;
+
+        if (!mapServer.Initialize(credentials))
+            return false;
 
         SetScale(Scope.ScaleRange.Minimum);
 
+        _authenticated = true;
+
         return true;
-    }
-
-    public override HttpRequestMessage? GetRequest( MapTile coordinates )
-    {
-        if( !Initialized )
-            return null;
-
-        if( string.IsNullOrEmpty( _userAgent ) )
-        {
-            Logger.Error( "Undefined or empty User-Agent" );
-            return null;
-        }
-
-        var uriText = _retrievalUrl.Replace( "ZoomLevel", Scope.Scale.ToString() )
-                                   .Replace( "XTile", coordinates.X.ToString() )
-                                   .Replace( "YTile", coordinates.Y.ToString() );
-
-        var retVal = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
-        retVal.Headers.Add( "User-Agent", _userAgent );
-
-        return retVal;
     }
 }
