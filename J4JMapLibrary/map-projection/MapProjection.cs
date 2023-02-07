@@ -3,13 +3,15 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public abstract class MapProjection<TScope> : IMapProjection<TScope>
+public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAuth>
     where TScope : MapScope, new()
+    where TAuth : class
 {
-    private readonly ILibraryConfiguration? _libConfiguration;
+    public event EventHandler<int>? ScaleChanged;
 
     protected MapProjection(
         ISourceConfiguration srcConfig,
+        IMapServer mapServer,
         IJ4JLogger logger
     )
     {
@@ -30,18 +32,17 @@ public abstract class MapProjection<TScope> : IMapProjection<TScope>
         Logger = logger;
         Logger.SetLoggedType( GetType() );
 
-        var attributes = GetType().GetCustomAttributes<MapProjectionAttribute>().ToList();
-        if (!attributes.Any())
-        {
-            Logger.Fatal("Map projection class is not decorated with MapProjectionAttribute(s)");
-            throw new ApplicationException( "Map projection class is not decorated with MapProjectionAttribute(s)" );
-        }
+        var attribute = GetType().GetCustomAttribute<MapProjectionAttribute>();
+        if (attribute == null)
+            Logger.Error("Map projection class is not decorated with MapProjectionAttribute(s), cannot be used");
+        else Name = attribute.Name;
 
-        Name = attributes.First().Name;
+        MapServer = mapServer;
     }
 
     protected MapProjection(
         ILibraryConfiguration libConfiguration,
+        IMapServer mapServer,
         IJ4JLogger logger
     )
     {
@@ -57,7 +58,7 @@ public abstract class MapProjection<TScope> : IMapProjection<TScope>
 
         Name = attributes.First().Name;
 
-        _libConfiguration = libConfiguration;
+        LibraryConfiguration = libConfiguration;
 
         if( !TryGetSourceConfiguration<ISourceConfiguration>(Name, out var srcConfig ))
         {
@@ -79,15 +80,23 @@ public abstract class MapProjection<TScope> : IMapProjection<TScope>
             LatitudeRange = new MinMax<float>(srcConfig.MinLatitude, srcConfig.MaxLatitude),
             LongitudeRange = new MinMax<float>(srcConfig.MinLongitude, srcConfig.MaxLongitude)
         };
+
+        var attribute = GetType().GetCustomAttribute<MapProjectionAttribute>();
+        if (attribute == null)
+            Logger.Error("Map projection class is not decorated with MapProjectionAttribute(s), cannot be used");
+        else Name = attribute.Name;
+
+        MapServer = mapServer;
     }
 
     protected CancellationTokenSource CancellationTokenSource { get; }
     protected IJ4JLogger Logger { get; }
+    protected ILibraryConfiguration? LibraryConfiguration { get; }
 
     protected bool TryGetSourceConfiguration<T>( string name, out T? result )
         where T : class, ISourceConfiguration
     {
-        result = _libConfiguration?.SourceConfigurations
+        result = LibraryConfiguration?.SourceConfigurations
                                        .FirstOrDefault( x => x.Name.Equals( Name,
                                                                             StringComparison.OrdinalIgnoreCase ) )
             as T;
@@ -95,29 +104,72 @@ public abstract class MapProjection<TScope> : IMapProjection<TScope>
         return result != null;
     }
 
-    protected bool TryGetCredentials( string name, out string? result )
-    {
-        result = _libConfiguration?.Credentials
-                                   .FirstOrDefault( x => x.Name.Equals( Name,
-                                                                        StringComparison.OrdinalIgnoreCase ) )
-                                  ?.Key;
-
-        return result != null;
-    }
-
     public TScope Scope { get; }
+    public IMapServer MapServer { get; }
 
     public int MaxRequestLatency { get; set; }
-    public bool Initialized { get; protected set; }
+    public virtual bool Initialized => !string.IsNullOrEmpty(Name) && MapServer.Initialized;
 
-    public string Name { get; }
+    public string Name { get; } = string.Empty;
     public string Copyright { get; }
     public Uri? CopyrightUri { get; }
 
-    public Task<bool> Authenticate( string? credentials = null ) =>
-        Authenticate( CancellationTokenSource.Token, credentials );
+    public void SetScale(int scale)
+    {
+        if (!Initialized)
+        {
+            Logger.Error("Trying to set scale before projection is initialized, ignoring");
+            return;
+        }
 
-    public abstract Task<bool> Authenticate(CancellationToken cancellationToken, string? credentials = null);
+        Scope.Scale = Scope.ScaleRange.ConformValueToRange(scale, "Scale");
+
+        SetSizes(scale);
+
+        ScaleChanged?.Invoke(this, scale);
+    }
+
+    // this assumes MapServer has been set and scale is valid
+    protected virtual void SetSizes(int scale)
+    {
+    }
+
+    public Task<bool> AuthenticateAsync( TAuth? credentials ) =>
+        AuthenticateAsync( credentials, CancellationToken.None );
+
+    public abstract Task<bool> AuthenticateAsync(TAuth? credentials, CancellationToken cancellationToken);
 
     MapScope IMapProjection.GetScope() => Scope;
+
+    async Task<bool> IMapProjection.AuthenticateAsync(object? credentials)
+    {
+        switch (credentials)
+        {
+            case TAuth castCredentials:
+                return await AuthenticateAsync(castCredentials);
+
+            case null:
+                return await AuthenticateAsync(null);
+
+            default:
+                Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
+                return false;
+        }
+    }
+
+    async Task<bool> IMapProjection.AuthenticateAsync(object? credentials, CancellationToken cancellationToken)
+    {
+        switch (credentials)
+        {
+            case TAuth castCredentials:
+                return await AuthenticateAsync(castCredentials, cancellationToken);
+
+            case null:
+                return await AuthenticateAsync(null, cancellationToken);
+
+            default:
+                Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
+                return false;
+        }
+    }
 }

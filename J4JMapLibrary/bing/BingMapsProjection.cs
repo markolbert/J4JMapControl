@@ -1,204 +1,87 @@
 ﻿using J4JSoftware.Logging;
-using System.Net;
-using System.Text.Json;
 
 namespace J4JMapLibrary;
 
 [MapProjection("BingMaps", ServerConfigurationStyle.Dynamic)]
-public class BingMapsProjection : TiledProjection<TiledMapScope>
+public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, BingCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
-    private readonly string _metadataUrlTemplate;
 
-    private readonly Random _random = new( Environment.TickCount );
-
-    private string? _apiKey;
-    private BingMapType _mapType = BingMapType.Aerial;
-    private string? _cultureCode;
+    private bool _authenticated;
 
     public BingMapsProjection(
         IDynamicConfiguration dynamicConfig,
+        IBingMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( dynamicConfig, logger, tileCache )
+        : base( dynamicConfig, mapServer , logger, tileCache )
     {
-        _metadataUrlTemplate = dynamicConfig.MetadataRetrievalUrl;
-
-        TileHeightWidth = 256;
         SetSizes( 1 );
     }
 
     public BingMapsProjection(
         ILibraryConfiguration libConfiguration,
+        IBingMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( libConfiguration, logger, tileCache )
+        : base( libConfiguration,mapServer, logger, tileCache )
     {
-        if( !TryGetSourceConfiguration<IDynamicConfiguration>( Name, out var srcConfig ) )
+        if( !TryGetSourceConfiguration<IDynamicConfiguration>( Name, out _ ) )
         {
             Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
             throw new ApplicationException(
                 $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
         }
 
-        _metadataUrlTemplate = srcConfig!.MetadataRetrievalUrl;
-
-        TileHeightWidth = 256;
         SetSizes( 1 );
     }
 
-    public BingMapType MapType
+    public override bool Initialized => base.Initialized && _authenticated;
+
+    public override async Task<bool> AuthenticateAsync(  BingCredentials? credentials, CancellationToken cancellationToken)
     {
-        get => _mapType;
+        credentials ??= LibraryConfiguration?.Credentials
+            .Where(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase))
+            .Select(x => new BingCredentials(x.Key, BingMapType.Aerial))
+            .FirstOrDefault();
 
-        set
+        if (credentials == null)
         {
-            _mapType = value;
-
-            if( string.IsNullOrEmpty( _apiKey ) )
-                return;
-
-            var authenticated = false;
-
-            Task.Run( async () => { authenticated = await Authenticate(); } );
-
-            if( !authenticated )
-                Logger.Warning("Map type was changed but subsequent authentication failed");
-        }
-    }
-
-    public BingImageryMetadata? Metadata { get; private set; }
-
-    public override async Task<bool> Authenticate(  CancellationToken cancellationToken, string ? credentials = null)
-    {
-        if (string.IsNullOrEmpty(credentials) && !TryGetCredentials(Name, out credentials))
-        {
-            Logger.Error("No credentials were provided or found");
+            Logger.Error("No credentials provided or available");
             return false;
         }
 
-        _apiKey = credentials!;
-        Initialized = false;
-
-        var uri = new Uri(_metadataUrlTemplate.Replace("Mode", MapType.ToString())
-                                              .Replace("ApiKey", _apiKey));
-
-        var request = new HttpRequestMessage(HttpMethod.Get, uri);
-
-        var uriText = uri.AbsoluteUri;
-        var httpClient = new HttpClient();
-
-        HttpResponseMessage? response;
-
-        Logger.Verbose("Attempting to retrieve Bing Maps metadata");
-        try
+        if (MapServer is not BingMapServer bingServer)
         {
-            //response = await httpClient.SendAsync( request, cancellationToken );
-
-            response = MaxRequestLatency <= 0
-                 ? await httpClient.SendAsync(request, cancellationToken)
-                 : await httpClient.SendAsync(request, cancellationToken)
-                                   .WaitAsync(TimeSpan.FromMilliseconds(MaxRequestLatency), cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            Logger.Error<string, string>("Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
-                                          uriText,
-                                          ex.Message);
-
+            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
             return false;
         }
 
-        if (response.StatusCode != HttpStatusCode.OK)
-        {
-            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+        _authenticated = false;
 
-            Logger.Error<string, string>(
-                "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
-                uriText,
-                error);
-
+        if (!await bingServer.InitializeAsync(credentials))
             return false;
-        }
 
-        Logger.Verbose("Attempting to parse Bing Maps metadata");
-        try
-        {
-            var respText = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-            Metadata = JsonSerializer.Deserialize<BingImageryMetadata>(respText, options);
-            Logger.Verbose("Bing Maps metadata retrieved");
-        }
-        catch (Exception ex)
-        {
-            Logger.Error<string>("Could not parse Bing Maps metadata, message was '{0}'", ex.Message);
-
+        // accessing the Metadata property retrieves it
+        if (bingServer.Metadata?.PrimaryResource == null )
             return false;
-        }
 
-        if (Metadata!.PrimaryResource == null)
-        {
-            Logger.Error("Primary resource is not defined");
-            return false;
-        }
-
-        TileHeightWidth = Metadata.PrimaryResource.ImageWidth;
-
-        var urlText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", "subdomain" )
-                                   .Replace( "{quadkey}", "0" )
-                                   .Replace( "{culture}", _cultureCode );
-
-        SetImageFileExtension( urlText );
-
-        Scope.ScaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax );
+        Scope.ScaleRange = new MinMax<int>(bingServer.Metadata.PrimaryResource.ZoomMin,
+            bingServer.Metadata.PrimaryResource.ZoomMax);
 
         // check to ensure we're dealing with square tiles
-        if (TileHeightWidth != Metadata.PrimaryResource.ImageHeight)
+        if (MapServer.TileHeightWidth != bingServer.Metadata.PrimaryResource.ImageHeight)
         {
             Logger.Error("Tile service is not using square tiles");
             return false;
         }
 
-        Initialized = true;
+        _authenticated= true;
 
         SetScale( Scope.ScaleRange.Minimum );
 
         return true;
-    }
-
-    public bool SetCultureCode(string code)
-    {
-        if (!BingMapsCultureCodes.Default.ContainsKey(code))
-        {
-            Logger.Error<string>("Invalid or unsupported culture code '{0}'", code);
-            return false;
-        }
-
-        _cultureCode = code;
-
-        return true;
-    }
-
-    public override HttpRequestMessage? GetRequest( MapTile coordinates )
-    {
-        if( !Initialized )
-            return null;
-
-        var subDomain = Metadata!.PrimaryResource!
-                                 .ImageUrlSubdomains[ _random.Next( Metadata!
-                                                                   .PrimaryResource!
-                                                                   .ImageUrlSubdomains
-                                                                   .Length ) ];
-
-        var quadKey = coordinates.GetQuadKey();
-
-        var uriText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", subDomain )
-                               .Replace( "{quadkey}", quadKey )
-                               .Replace( "{culture}", _cultureCode );
-
-        return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
 }
