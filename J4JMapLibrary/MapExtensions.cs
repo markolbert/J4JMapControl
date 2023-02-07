@@ -15,7 +15,7 @@ public static class MapExtensions
         Logger?.SetLoggedType( typeof( MapExtensions ) );
     }
 
-    public static string GetQuadKey( this MapTile tile )
+    public static string GetQuadKey( this FixedMapTile tile )
     {
         var retVal = new StringBuilder();
 
@@ -39,12 +39,12 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static string? GetQuadKey(this ITiledProjection projection, int xTile, int yTile )
+    public static string? GetQuadKey(this IFixedTileProjection projection, int xTile, int yTile )
     {
         var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
-        var scope = (TiledMapScope)projection.GetScope();
+        var scope = (FixedTileScope)projection.GetScope();
 
         if ( x != xTile || y != yTile )
         {
@@ -128,9 +128,9 @@ public static class MapExtensions
         return true;
     }
 
-    public static LatLong CenterLatLong( this MapTile tile ) => tile.Scope.CartesianToLatLong( tile.CenterCartesian() );
+    public static LatLong CenterLatLong( this FixedMapTile tile ) => tile.Scope.CartesianToLatLong( tile.CenterCartesian() );
 
-    public static Cartesian CenterCartesian( this MapTile tile )
+    public static Cartesian CenterCartesian( this FixedMapTile tile )
     {
         var retVal = new Cartesian( tile.Scope );
 

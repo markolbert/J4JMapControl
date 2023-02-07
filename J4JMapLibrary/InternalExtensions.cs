@@ -30,7 +30,7 @@ internal static class InternalExtensions
         return range.Maximum;
     }
 
-    internal static LatLong CartesianToLatLong(this ITiledMapScope scope, Cartesian cartesian )
+    internal static LatLong CartesianToLatLong(this IFixedTileScope scope, Cartesian cartesian )
     {
         // ReSharper disable once UseObjectOrCollectionInitializer
         var retVal = new LatLong(scope);
@@ -45,16 +45,16 @@ internal static class InternalExtensions
         return retVal;
     }
 
-    internal static Cartesian LatLongToCartesian( this ITiledMapScope scope, float latitude, float longitude ) =>
+    internal static Cartesian LatLongToCartesian( this IFixedTileScope scope, float latitude, float longitude ) =>
         scope
            .LatLongToCartesianInternal( scope.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
                                         scope.LongitudeRange
                                                .ConformValueToRange( longitude, "Longitude" ) );
 
-    internal static Cartesian LatLongToCartesian( this ITiledMapScope scope, LatLong latLong ) =>
+    internal static Cartesian LatLongToCartesian( this IFixedTileScope scope, LatLong latLong ) =>
         scope.LatLongToCartesianInternal( latLong.Latitude, latLong.Longitude );
 
-    private static Cartesian LatLongToCartesianInternal(this ITiledMapScope scope, float latitude, float longitude)
+    private static Cartesian LatLongToCartesianInternal(this IFixedTileScope scope, float latitude, float longitude)
     {
         var retVal = new Cartesian(scope);
 

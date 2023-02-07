@@ -113,7 +113,7 @@ public class MapProjectionFactory
     public async Task<TProj?> CreateMapProjection<TProj>(
         MapProjectionOptions? options = null
     )
-        where TProj : class, ITiledProjection
+        where TProj : class, IFixedTileProjection
     {
         var ctorInfo = _sources.Values
             .FirstOrDefault(x => x.MapProjectionType == typeof(TProj));
@@ -125,14 +125,14 @@ public class MapProjectionFactory
         return null;
     }
 
-    public async Task<ITiledProjection?> CreateMapProjection(
+    public async Task<IFixedTileProjection?> CreateMapProjection(
         Type projectionType,
         MapProjectionOptions? options = null
     )
     {
-        if (!projectionType.IsAssignableTo(typeof(ITiledProjection)))
+        if (!projectionType.IsAssignableTo(typeof(IFixedTileProjection)))
         {
-            _logger.Error("{0} is not derived from {1}", projectionType, typeof(ITiledProjection));
+            _logger.Error("{0} is not derived from {1}", projectionType, typeof(IFixedTileProjection));
             return null;
         }
 
@@ -140,7 +140,7 @@ public class MapProjectionFactory
             .FirstOrDefault(x => x.MapProjectionType == projectionType);
 
         if (ctorInfo != null)
-            return (ITiledProjection?)await CreateMapProjectionInternal(ctorInfo, options);
+            return (IFixedTileProjection?)await CreateMapProjectionInternal(ctorInfo, options);
 
         _logger.Error("{0} is not a known map projection type", projectionType);
         return null;
@@ -194,7 +194,7 @@ public class MapProjectionFactory
             }
         }
 
-        if (!options.Authenticate || await retVal.Authenticate(credentials))
+        if (!options.Authenticate || await retVal.AuthenticateAsync(credentials))
             return retVal;
 
         _logger.Warning<string>("Authentication failed for map projection '{0}'", ctorInfo.Name);
