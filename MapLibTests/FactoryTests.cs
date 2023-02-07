@@ -58,7 +58,7 @@ public class FactoryTests : TestBase
         projTask.Should().NotBeNull();
         await projTask!;
 
-        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as ITiledProjection;
+        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as IFixedTileProjection;
 
         if (result)
             projection.Should().NotBeNull();
@@ -105,7 +105,7 @@ public class FactoryTests : TestBase
         projTask.Should().NotBeNull();
         await projTask!;
 
-        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as ITiledProjection;
+        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as IFixedTileProjection;
         projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }
 

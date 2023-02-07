@@ -12,7 +12,7 @@ public class Viewport
 
     private readonly IJ4JLogger _logger;
 
-    private ITiledProjection? _projection;
+    private IFixedTileProjection? _projection;
     private float _height;
     private float _width;
     private float _centerLat;
@@ -34,7 +34,7 @@ public class Viewport
 
     public bool UpdateNeeded { get; private set; } = true;
 
-    public ITiledProjection Projection
+    public IFixedTileProjection Projection
     {
         get
         {
@@ -51,13 +51,13 @@ public class Viewport
             _projection = value;
             _projection.ScaleChanged += Projection_ScaleChanged;
 
-            Scope = TiledMapScope.Copy( (TiledMapScope) _projection.GetScope() );
+            Scope = FixedTileScope.Copy( (FixedTileScope) _projection.GetScope() );
             
             UpdateNeeded = true;
         }
     }
 
-    public TiledMapScope Scope { get; private set; } = new();
+    public FixedTileScope Scope { get; private set; } = new();
 
     public float CenterLatitude
     {
@@ -115,7 +115,7 @@ public class Viewport
         }
     }
 
-    public async Task<List<MapTile>?> GetViewportRegionAsync(
+    public async Task<List<FixedMapTile>?> GetViewportRegionAsync(
         CancellationToken cancellationToken,
         bool deferImageLoad = false
     )
@@ -184,7 +184,7 @@ public class Viewport
         minTileX = minTileX < 0 ? 0 : minTileX;
         minTileY = minTileY < 0 ? 0 : minTileY;
 
-        var maxTiles = Projection.Height / Projection.TileHeightWidth - 1;
+        var maxTiles = Projection.Height / Projection.MapServer.TileHeightWidth - 1;
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
@@ -194,18 +194,18 @@ public class Viewport
         {
             for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
             {
-                var mapTile = await MapTile.CreateAsync( Projection, xTile, yTile, cancellationToken );
+                var mapTile = await FixedMapTile.CreateAsync( Projection, xTile, yTile, cancellationToken );
 
                 if( !deferImageLoad )
                     await mapTile.GetImageAsync( cancellationToken );
 
                 if( !retVal.Add( mapTile ) )
-                    _logger.Error( "Problem adding MapTile to collection (probably differing ITiledMapScope)" );
+                    _logger.Error( "Problem adding FixedMapTile to collection (probably differing IFixedTileScope)" );
             }
         }
 
         return retVal;
     }
 
-    private int CartesianToTile(float value) => Convert.ToInt32(Math.Floor(value / Projection.TileHeightWidth));
+    private int CartesianToTile(float value) => Convert.ToInt32(Math.Floor(value / Projection.MapServer.TileHeightWidth));
 }

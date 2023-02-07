@@ -9,7 +9,7 @@ public interface ITileCache
     void PurgeExpired();
 
     Task<CacheEntry?> GetEntryAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,

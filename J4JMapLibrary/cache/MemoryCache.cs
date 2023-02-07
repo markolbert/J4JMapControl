@@ -62,7 +62,7 @@ public class MemoryCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> GetEntryInternalAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,
@@ -86,7 +86,7 @@ public class MemoryCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> AddEntryAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,

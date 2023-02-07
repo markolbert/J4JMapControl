@@ -4,7 +4,7 @@ namespace J4JMapLibrary;
 
 public static class ViewportExtensions
 {
-    public static Viewport.Viewport Projection(this Viewport.Viewport rectangle, ITiledProjection value)
+    public static Viewport.Viewport Projection(this Viewport.Viewport rectangle, IFixedTileProjection value)
     {
         rectangle.Projection = value;
         return rectangle;

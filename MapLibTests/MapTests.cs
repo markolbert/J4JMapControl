@@ -12,7 +12,7 @@ public class MapTests : TestBase
 
         foreach( var projectionName in factory.ProjectionNames )
         {
-            var projection = await factory.CreateMapProjection( projectionName ) as ITiledProjection;
+            var projection = await factory.CreateMapProjection( projectionName ) as IFixedTileProjection;
             projection.Should().NotBeNull();
             projection!.Initialized.Should().BeTrue();
 
@@ -76,13 +76,13 @@ public class MapTests : TestBase
     [InlineData( 3, 3, 3, "033" )]
     public async Task BingMapsQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var projection = await GetFactory().CreateMapProjection( "BingMaps" ) as ITiledProjection;
+        var projection = await GetFactory().CreateMapProjection( "BingMaps" ) as IFixedTileProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( 500 ) );
+        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( 500 ) );
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be( quadKey );
     }
@@ -116,13 +116,13 @@ public class MapTests : TestBase
     [InlineData(3, 3, 3, "0330")]
     public async Task OpenStreetMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
     {
-        var projection = await GetFactory().CreateMapProjection("OpenStreetMaps") as ITiledProjection;
+        var projection = await GetFactory().CreateMapProjection("OpenStreetMaps") as IFixedTileProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }
@@ -155,13 +155,13 @@ public class MapTests : TestBase
     [InlineData(3, 3, 3, "0330")]
     public async Task OpenTopoMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
     {
-        var projection = await GetFactory().CreateMapProjection("OpenTopoMaps") as ITiledProjection;
+        var projection = await GetFactory().CreateMapProjection("OpenTopoMaps") as IFixedTileProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }

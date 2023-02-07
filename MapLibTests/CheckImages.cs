@@ -15,7 +15,7 @@ public class CheckImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
+        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
@@ -33,7 +33,7 @@ public class CheckImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
@@ -51,7 +51,7 @@ public class CheckImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.ImageFileExtension}" );

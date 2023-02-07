@@ -15,7 +15,7 @@ public class CreateImages : TestBase
 
         projection.SetScale( scale );
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("BingMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("BingMaps"));
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -29,7 +29,7 @@ public class CreateImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -43,11 +43,11 @@ public class CreateImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await MapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
         await WriteImageFileAsync(projection, mapTile, true);
     }
 
-    private async Task WriteImageFileAsync( ITiledProjection projection, MapTile tile, bool sleep = false )
+    private async Task WriteImageFileAsync( IFixedTileProjection projection, FixedMapTile tile, bool sleep = false )
     {
         var stream = await tile.GetImageAsync();
         stream.Should().NotBeNull();

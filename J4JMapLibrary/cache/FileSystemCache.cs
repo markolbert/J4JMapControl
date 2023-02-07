@@ -139,7 +139,7 @@ public class FileSystemCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> GetEntryInternalAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,
@@ -153,7 +153,7 @@ public class FileSystemCache : CacheBase
         }
 
         var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
-        var filePath = Path.Combine( _cacheDir, $"{projection.Name}-{key}{projection.ImageFileExtension}" );
+        var filePath = Path.Combine( _cacheDir, $"{projection.Name}-{key}{projection.MapServer.ImageFileExtension}" );
 
         return File.Exists( filePath )
             ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath, cancellationToken ) )
@@ -163,7 +163,7 @@ public class FileSystemCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> AddEntryAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,
@@ -178,7 +178,7 @@ public class FileSystemCache : CacheBase
 
         var retVal = new CacheEntry( projection, xTile, yTile, cancellationToken );
 
-        var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.ImageFileExtension}";
+        var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.MapServer.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         var bytesToWrite = retVal.Tile.ImageBytes <= 0L

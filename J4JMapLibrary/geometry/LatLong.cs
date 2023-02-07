@@ -8,7 +8,7 @@ public class LatLong
     private readonly MinMax<float> _longitudeRange;
 
     public LatLong(
-        ITiledMapScope scope
+        IMapScope scope
     )
     {
         _latitudeRange = scope.LatitudeRange;

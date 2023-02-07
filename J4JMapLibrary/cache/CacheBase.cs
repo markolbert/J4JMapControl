@@ -27,7 +27,7 @@ public abstract class CacheBase : ITileCache
     public abstract void PurgeExpired();
 
     public virtual async Task<CacheEntry?> GetEntryAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,
@@ -65,7 +65,7 @@ public abstract class CacheBase : ITileCache
     }
 
     protected abstract Task<CacheEntry?> GetEntryInternalAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,
@@ -73,7 +73,7 @@ public abstract class CacheBase : ITileCache
     );
 
     protected abstract Task<CacheEntry?> AddEntryAsync(
-        ITiledProjection projection,
+        IFixedTileProjection projection,
         int xTile,
         int yTile,
         CancellationToken cancellationToken,
