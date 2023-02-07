@@ -4,24 +4,24 @@ namespace J4JMapLibrary;
 
 public class MapTileList
 {
-    private readonly List<MapTile> _tiles = new();
+    private readonly List<FixedMapTile> _tiles = new();
 
-    public bool Add(MapTile mapTile)
+    public bool Add(FixedMapTile fixedMapTile)
     {
         if (_tiles.Count == 0)
         {
-            _tiles.Add(mapTile);
+            _tiles.Add(fixedMapTile);
             return true;
         }
 
-        if (_tiles[0].Scope != mapTile.Scope)
+        if (_tiles[0].Scope != fixedMapTile.Scope)
             return false;
 
-        _tiles.Add(mapTile);
+        _tiles.Add(fixedMapTile);
         return true;
     }
 
-    public void Remove( MapTile mapTile ) => _tiles.Remove( mapTile );
+    public void Remove( FixedMapTile fixedMapTile ) => _tiles.Remove( fixedMapTile );
 
     public void RemoveAt( int idx )
     {
@@ -48,8 +48,8 @@ public class MapTileList
         return true;
     }
 
-    public async IAsyncEnumerable<MapTile> GetTilesAsync(
-        ITiledProjection projection,
+    public async IAsyncEnumerable<FixedMapTile> GetTilesAsync(
+        IFixedTileProjection projection,
         [ EnumeratorCancellation ] CancellationToken cancellationToken
     )
     {
@@ -60,7 +60,7 @@ public class MapTileList
         {
             for( var y = bounds.UpperLeft.Y; y <= bounds.LowerRight.Y; y++ )
             {
-                yield return await MapTile.CreateAsync( projection, x, y, cancellationToken );
+                yield return await FixedMapTile.CreateAsync( projection, x, y, cancellationToken );
             }
         }
     }
