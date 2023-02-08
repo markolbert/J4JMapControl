@@ -19,12 +19,14 @@ public class MapTests : TestBase
             if( projection is not BingMapsProjection bingMaps )
                 continue;
 
-            bingMaps.Metadata.Should().NotBeNull();
-            bingMaps.Metadata!.PrimaryResource.Should().NotBeNull();
-            bingMaps.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
-            bingMaps.Metadata.PrimaryResource.ZoomMin.Should().Be( 1 );
-            bingMaps.Metadata.PrimaryResource.ImageHeight.Should().Be( 256 );
-            bingMaps.Metadata.PrimaryResource.ImageWidth.Should().Be( 256 );
+            var bingServer = bingMaps.MapServer as BingMapServer;
+            bingServer.Should().NotBeNull();
+
+            bingServer!.Metadata!.PrimaryResource.Should().NotBeNull();
+            bingServer.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
+            bingServer.Metadata.PrimaryResource.ZoomMin.Should().Be( 1 );
+            bingServer.Metadata.PrimaryResource.ImageHeight.Should().Be( 256 );
+            bingServer.Metadata.PrimaryResource.ImageWidth.Should().Be( 256 );
         }
     }
 
@@ -33,17 +35,14 @@ public class MapTests : TestBase
     [ InlineData( 1, false ) ]
     public async Task BingApiKeyLatency( int maxLatency, bool result )
     {
-        var factory = GetFactory();
-
-        var options = new MapProjectionOptions( Authenticate: false );
-
-        var projection = await factory.CreateMapProjection( "BingMaps", options ) as BingMapsProjection;
+        var projection = await GetFactory().CreateMapProjection<BingMapsProjection, BingMapServer, BingCredentials>();
         projection.Should().NotBeNull();
 
-        projection!.MaxRequestLatency = maxLatency;
+        projection!.MapServer.MaxRequestLatency = maxLatency;
 
-        Configuration.TryGetCredential( "BingMaps", out var credentials ).Should().BeTrue();
-        await projection.Authenticate( credentials! );
+        Configuration.TryGetCredential( "BingMaps", out var apiKey ).Should().BeTrue();
+        var credentials = new BingCredentials( apiKey!, BingMapType.Aerial );
+        await projection.AuthenticateAsync( credentials );
 
         projection.Initialized.Should().Be( result );
     }

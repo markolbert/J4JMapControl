@@ -106,7 +106,7 @@ public class FactoryTests : TestBase
         await projTask!;
 
         var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as IFixedTileProjection;
-        projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
+        projection!.MapServer.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }
 
 }

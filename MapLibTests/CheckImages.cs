@@ -9,16 +9,16 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task BingMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection( typeof( BingMapsProjection ) ) as BingMapsProjection;
+        var projection = await GetFactory().CreateMapProjection<BingMapsProjection, BingMapServer, BingCredentials>();
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken("BingMaps") );
+        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken(500) );
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
+                                     $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
@@ -27,16 +27,16 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task OpenStreetMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection( typeof( OpenStreetMapsProjection ) );
+        var projection = await GetFactory().CreateMapProjection<OpenStreetMapsProjection, OpenStreetMapServer, string>();
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenStreetMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
+                                     $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
@@ -45,16 +45,16 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task OpenTopoMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection( typeof( OpenTopoMapsProjection ) );
+        var projection = await GetFactory().CreateMapProjection<OpenTopoMapsProjection, OpenTopoMapServer, string>();
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken("OpenTopoMaps"));
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.QuadKey}{projection.ImageFileExtension}" );
+                                     $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
         await CompareImageFileAsync( filePath, await mapTile.GetImageAsync(), true );
     }

@@ -35,7 +35,7 @@ public abstract class MapTileBase<TScope>
 
         Scope = temp2!;
 
-        MaxRequestLatency = projection.MaxRequestLatency;
+        MaxRequestLatency = projection.MapServer.MaxRequestLatency;
     }
 
     protected IJ4JLogger? Logger { get; }

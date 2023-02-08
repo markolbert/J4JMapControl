@@ -13,7 +13,7 @@ internal partial class DeusEx
     {
         builder.Register(c =>
                 {
-                    var retVal = c.TryResolve<ILibraryConfiguration>( out var libConfig )
+                    var retVal = c.TryResolve<IProjectionCredentials>( out var libConfig )
                         ? new MapProjectionFactory( libConfig, c.Resolve<IJ4JLogger>() )
                         : new MapProjectionFactory( c.Resolve<IJ4JLogger>() );
 
@@ -23,26 +23,26 @@ internal partial class DeusEx
 
         builder.Register( _ =>
                 {
-                    LibraryConfiguration? config;
+                    ProjectionCredentials? config;
 
                     try
                     {
                         // this will ignore the SourceConfiguration entries because
                         // they're polymorphic, so we go back afterwards and add them
-                        config = hbc.Configuration.Get<LibraryConfiguration>();
+                        config = hbc.Configuration.Get<ProjectionCredentials>();
                     }
                     catch
                     {
-                        config = new LibraryConfiguration();
+                        config = new ProjectionCredentials();
                     }
 
-                    if( config!.Initialize( hbc.Configuration ) )
-                        return config!;
+                    if( config != null )
+                        return config;
 
                     Logger?.Fatal("Failed to initialize ILibraryConfiguration");
                     throw new ApplicationException( "Failed to initialize ILibraryConfiguration" );
                 } )
-               .As<ILibraryConfiguration>()
+               .As<IProjectionCredentials>()
                .SingleInstance();
 
         builder.RegisterType<MemoryCache>()

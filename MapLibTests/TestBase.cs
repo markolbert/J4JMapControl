@@ -17,23 +17,13 @@ public class TestBase
         logger.Should().NotBeNull();
         Logger = logger;
 
-        var config = J4JDeusEx.ServiceProvider.GetRequiredService<ILibraryConfiguration>();
+        var config = J4JDeusEx.ServiceProvider.GetRequiredService<IProjectionCredentials>();
         config.Should().NotBeNull();
-        config.ValidateConfiguration().Should().BeTrue();
         Configuration = config;
     }
 
     protected IJ4JLogger Logger { get; }
-    protected ILibraryConfiguration Configuration { get; }
-
-    protected CancellationToken GetCancellationToken( string mapType )
-    {
-        var latency = Configuration.TryGetConfiguration( mapType, out var mapConfig )
-            ? mapConfig!.MaxRequestLatency
-            : 500;
-
-        return GetCancellationToken( latency );
-    }
+    protected IProjectionCredentials Configuration { get; }
 
     protected CancellationToken GetCancellationToken( int latency )
     {
