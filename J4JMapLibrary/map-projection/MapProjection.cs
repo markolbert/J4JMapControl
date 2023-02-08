@@ -10,23 +10,17 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
     public event EventHandler<int>? ScaleChanged;
 
     protected MapProjection(
-        ISourceConfiguration srcConfig,
         IMapServer mapServer,
         IJ4JLogger logger
     )
     {
-        MaxRequestLatency = srcConfig.MaxRequestLatency;
-
         CancellationTokenSource = new CancellationTokenSource();
-        CancellationTokenSource.CancelAfter( MaxRequestLatency );
-
-        Copyright = srcConfig.Copyright;
-        CopyrightUri = srcConfig.CopyrightUri;
+        CancellationTokenSource.CancelAfter( mapServer.MaxRequestLatency );
 
         Scope = new TScope
         {
-            LatitudeRange = new MinMax<float>( srcConfig.MinLatitude, srcConfig.MaxLatitude ),
-            LongitudeRange = new MinMax<float>( srcConfig.MinLongitude, srcConfig.MaxLongitude )
+            LatitudeRange = new MinMax<float>( mapServer.MinLatitude, mapServer.MaxLatitude ),
+            LongitudeRange = new MinMax<float>( mapServer.MinLongitude, mapServer.MaxLongitude )
         };
 
         Logger = logger;
@@ -41,7 +35,7 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
     }
 
     protected MapProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger
     )
@@ -58,27 +52,15 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
 
         Name = attributes.First().Name;
 
-        LibraryConfiguration = libConfiguration;
-
-        if( !TryGetSourceConfiguration<ISourceConfiguration>(Name, out var srcConfig ))
-        {
-            Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
-            throw new ApplicationException(
-                $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
-        }
-
-        MaxRequestLatency = srcConfig!.MaxRequestLatency;
+        LibraryConfiguration = credentials;
 
         CancellationTokenSource = new CancellationTokenSource();
-        CancellationTokenSource.CancelAfter(MaxRequestLatency);
-
-        Copyright = srcConfig.Copyright;
-        CopyrightUri = srcConfig.CopyrightUri;
+        CancellationTokenSource.CancelAfter(mapServer.MaxRequestLatency);
 
         Scope = new TScope
         {
-            LatitudeRange = new MinMax<float>(srcConfig.MinLatitude, srcConfig.MaxLatitude),
-            LongitudeRange = new MinMax<float>(srcConfig.MinLongitude, srcConfig.MaxLongitude)
+            LatitudeRange = new MinMax<float>(mapServer.MinLatitude, mapServer.MaxLatitude),
+            LongitudeRange = new MinMax<float>(mapServer.MinLongitude, mapServer.MaxLongitude)
         };
 
         var attribute = GetType().GetCustomAttribute<MapProjectionAttribute>();
@@ -91,28 +73,14 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
 
     protected CancellationTokenSource CancellationTokenSource { get; }
     protected IJ4JLogger Logger { get; }
-    protected ILibraryConfiguration? LibraryConfiguration { get; }
-
-    protected bool TryGetSourceConfiguration<T>( string name, out T? result )
-        where T : class, ISourceConfiguration
-    {
-        result = LibraryConfiguration?.SourceConfigurations
-                                       .FirstOrDefault( x => x.Name.Equals( Name,
-                                                                            StringComparison.OrdinalIgnoreCase ) )
-            as T;
-
-        return result != null;
-    }
+    protected IProjectionCredentials? LibraryConfiguration { get; }
 
     public TScope Scope { get; }
     public IMapServer MapServer { get; }
 
-    public int MaxRequestLatency { get; set; }
     public virtual bool Initialized => !string.IsNullOrEmpty(Name) && MapServer.Initialized;
 
     public string Name { get; } = string.Empty;
-    public string Copyright { get; }
-    public Uri? CopyrightUri { get; }
 
     public void SetScale(int scale)
     {

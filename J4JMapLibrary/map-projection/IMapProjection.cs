@@ -7,7 +7,6 @@ public interface IMapProjection
     string Name { get; }
     MapScope GetScope();
 
-    int MaxRequestLatency { get; set; }
     bool Initialized { get; }
 
     void SetScale(int scale);

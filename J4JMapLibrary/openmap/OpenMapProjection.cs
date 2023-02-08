@@ -7,32 +7,24 @@ public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
     private bool _authenticated;
 
     protected OpenMapProjection(
-        IStaticConfiguration staticConfig,
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( staticConfig, mapServer, logger, tileCache )
+        : base( mapServer, logger, tileCache )
     {
-        Scope.ScaleRange = new MinMax<int>( staticConfig.MinScale, staticConfig.MaxScale );
+        Scope.ScaleRange = new MinMax<int>(mapServer.MinScale, mapServer.MaxScale);
     }
 
     protected OpenMapProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( libConfiguration, mapServer, logger, tileCache )
+        : base( credentials, mapServer, logger, tileCache )
     {
-        if( !TryGetSourceConfiguration<IStaticConfiguration>( Name, out var srcConfig ) )
-        {
-            Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
-            throw new ApplicationException(
-                $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
-        }
-
-        Scope.ScaleRange = new MinMax<int>(srcConfig!.MinScale, srcConfig.MaxScale);
+        Scope.ScaleRange = new MinMax<int>(mapServer.MinScale, mapServer.MaxScale);
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -52,7 +44,7 @@ public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
             return false;
         }
 
-        if (MapServer is not OpenMapServer mapServer)
+        if (MapServer is not IOpenMapServer mapServer)
         {
             Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
             return false;
@@ -60,7 +52,7 @@ public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
 
         _authenticated = false;
 
-        if (!mapServer.Initialize(credentials))
+        if (!await mapServer.InitializeAsync(credentials))
             return false;
 
         SetScale(Scope.ScaleRange.Minimum);

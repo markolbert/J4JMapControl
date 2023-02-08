@@ -2,27 +2,26 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("OpenStreetMaps", ServerConfigurationStyle.Static)]
+[MapProjection("OpenStreetMaps", typeof(IOpenMapServer))]
 public sealed class OpenStreetMapsProjection : OpenMapProjection
 {
     public OpenStreetMapsProjection( 
-        IStaticConfiguration staticConfig, 
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( staticConfig, mapServer, logger,tileCache )
+        : base( mapServer, logger,tileCache )
     {
         SetSizes(0);
     }
 
     public OpenStreetMapsProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( libConfiguration, mapServer, logger, tileCache )
+        : base( credentials, mapServer, logger, tileCache )
     {
         SetSizes(0);
     }

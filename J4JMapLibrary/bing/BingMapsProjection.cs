@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("BingMaps", ServerConfigurationStyle.Dynamic)]
+[MapProjection("BingMaps", typeof(IBingMapServer))]
 public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, BingCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
@@ -10,31 +10,23 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
     private bool _authenticated;
 
     public BingMapsProjection(
-        IDynamicConfiguration dynamicConfig,
         IBingMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( dynamicConfig, mapServer , logger, tileCache )
+        : base( mapServer , logger, tileCache )
     {
         SetSizes( 1 );
     }
 
     public BingMapsProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IBingMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( libConfiguration,mapServer, logger, tileCache )
+        : base( credentials,mapServer, logger, tileCache )
     {
-        if( !TryGetSourceConfiguration<IDynamicConfiguration>( Name, out _ ) )
-        {
-            Logger.Fatal( "No configuration information for {0} was found in ILibraryConfiguration", GetType() );
-            throw new ApplicationException(
-                $"No configuration information for {GetType()} was found in ILibraryConfiguration" );
-        }
-
         SetSizes( 1 );
     }
 
@@ -53,7 +45,7 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
             return false;
         }
 
-        if (MapServer is not BingMapServer bingServer)
+        if (MapServer is not IBingMapServer bingServer)
         {
             Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
             return false;

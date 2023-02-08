@@ -2,27 +2,26 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("OpenTopoMaps", ServerConfigurationStyle.Static)]
+[MapProjection("OpenTopoMaps", typeof(IOpenMapServer))]
 public sealed class OpenTopoMapsProjection : OpenMapProjection
 {
     public OpenTopoMapsProjection( 
-        IStaticConfiguration staticConfig,
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? cache = null
     )
-        : base( staticConfig, mapServer, logger, cache )
+        : base( mapServer, logger, cache )
     {
         SetSizes(0);
     }
 
     public OpenTopoMapsProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? cache = null
     )
-        : base(libConfiguration, mapServer, logger, cache )
+        : base(credentials, mapServer, logger, cache )
     {
         SetSizes(0);
     }

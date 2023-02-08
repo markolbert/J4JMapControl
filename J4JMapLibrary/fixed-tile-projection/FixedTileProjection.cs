@@ -14,12 +14,11 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
            .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
 
     protected FixedTileProjection(
-        ISourceConfiguration srcConfig,
         IMapServer mapServer,
         IJ4JLogger logger, 
         ITileCache? tileCache = null
     )
-    :base(srcConfig, mapServer, logger)
+    :base(mapServer, logger)
     {
         TileCache = tileCache;
         TileXRange = new MinMax<int>( 0, 0 );
@@ -27,12 +26,12 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
     }
 
     protected FixedTileProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( libConfiguration, mapServer, logger )
+        : base( credentials, mapServer, logger )
     {
         TileCache = tileCache;
         TileXRange = new MinMax<int>(0, 0);

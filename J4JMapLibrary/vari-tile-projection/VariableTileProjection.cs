@@ -14,20 +14,19 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
            .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
 
     protected VariableTileProjection(
-        ISourceConfiguration srcConfig,
         IMapServer mapServer,
         IJ4JLogger logger
     )
-    :base(srcConfig, mapServer, logger)
+    :base(mapServer, logger)
     {
     }
 
     protected VariableTileProjection(
-        ILibraryConfiguration libConfiguration,
+        IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger
     )
-        : base( libConfiguration, mapServer, logger )
+        : base( credentials, mapServer, logger )
     {
     }
 
