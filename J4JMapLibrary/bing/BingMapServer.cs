@@ -4,8 +4,8 @@ using System.Text.Json;
 
 namespace J4JMapLibrary;
 
-[MessageCreator("BingMaps")]
-public class BingMapServer : MapServer<FixedMapTile>, IBingMapServer
+[MapServer("BingMaps", typeof(BingCredentials))]
+public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapServer
 {
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
@@ -15,19 +15,13 @@ public class BingMapServer : MapServer<FixedMapTile>, IBingMapServer
     private string _apiKey = string.Empty;
     private string? _cultureCode;
 
-    public BingMapServer(
-        IJ4JLogger logger
-    ) : base(logger)
-    {
-    }
-
     public override bool Initialized => !string.IsNullOrEmpty(_apiKey) && Metadata != null;
 
     public BingMapType MapType { get; private set; } = BingMapType.Aerial;
 
     public BingImageryMetadata? Metadata { get; private set; }
 
-    public async Task<bool> InitializeAsync( BingCredentials credentials )
+    public override async Task<bool> InitializeAsync( BingCredentials credentials )
     {
         _apiKey = credentials.ApiKey;
         MapType = credentials.MapType;

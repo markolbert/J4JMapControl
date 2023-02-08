@@ -2,20 +2,20 @@
 
 namespace J4JMapLibrary;
 
-public class OpenMapServer : MapServer<FixedMapTile>, IOpenMapServer
+public class OpenMapServer : MapServer<FixedMapTile, string>
 {
     private string _userAgent = string.Empty;
 
-    protected OpenMapServer(
-        IJ4JLogger logger
-    ) : base(logger)
+    protected OpenMapServer()
     {
     }
 
     public string RetrievalUrl { get; init; } = string.Empty;
     public override bool Initialized => !string.IsNullOrEmpty(_userAgent);
 
-    public bool Initialize(string userAgent)
+#pragma warning disable CS1998
+    public override async Task<bool> InitializeAsync(string userAgent)
+#pragma warning restore CS1998
     {
         _userAgent = userAgent;
 

@@ -1,6 +1,5 @@
 ﻿namespace J4JMapLibrary;
 
-public interface IOpenMapServer : IMapServer<FixedMapTile>
+public interface IOpenMapServer : IMapServer<FixedMapTile, string>
 {
-    bool Initialize( string userAgent );
 }

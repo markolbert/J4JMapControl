@@ -2,13 +2,10 @@
 
 namespace J4JMapLibrary;
 
-[MessageCreator("OpenTopoMaps")]
+[MapServer("OpenTopoMaps", typeof(string))]
 public class OpenTopoMapServer : OpenMapServer
 {
-    public OpenTopoMapServer(
-        IJ4JLogger logger
-    )
-        : base(logger)
+    public OpenTopoMapServer()
     {
         MinScale = 0;
         MaxScale = 15;

@@ -2,13 +2,10 @@
 
 namespace J4JMapLibrary;
 
-[MessageCreator("OpenStreetMaps")]
+[MapServer("OpenStreetMaps", typeof(string))]
 public class OpenStreetMapServer : OpenMapServer
 {
-    public OpenStreetMapServer(
-        IJ4JLogger logger
-    )
-        : base(logger)
+    public OpenStreetMapServer()
     {
         MinScale = 0;
         MaxScale = 20;
