@@ -27,5 +27,5 @@ public interface IMapServer<in TTile, TAuth> : IMapServer
     where TAuth : class
 {
     Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
-    HttpRequestMessage? CreateMessage( TTile requestInfo );
+    HttpRequestMessage? CreateMessage( TTile tile );
 }
