@@ -12,7 +12,8 @@ public class MapTests : TestBase
 
         foreach( var projectionName in factory.ProjectionNames )
         {
-            var projection = await factory.CreateMapProjection( projectionName ) as IFixedTileProjection;
+            var result = await factory.CreateMapProjection( projectionName, null );
+            var projection = result.Projection;
             projection.Should().NotBeNull();
             projection!.Initialized.Should().BeTrue();
 
@@ -33,18 +34,20 @@ public class MapTests : TestBase
     [ Theory ]
     [ InlineData( 0, true ) ]
     [ InlineData( 1, false ) ]
-    public async Task BingApiKeyLatency( int maxLatency, bool result )
+    public async Task BingApiKeyLatency( int maxLatency, bool testResult )
     {
-        var projection = await GetFactory().CreateMapProjection<BingMapsProjection, BingMapServer, BingCredentials>();
-        projection.Should().NotBeNull();
+        Configuration.TryGetCredential("BingMaps", out var apiKey).Should().BeTrue();
+        var credentials = new BingCredentials(apiKey!, BingMapType.Aerial);
 
+        var result = await GetFactory().CreateMapProjection( "BingMaps", null, authenticate: false );
+        result.Authenticated.Should().Be(false);
+
+        var projection = result.Projection as BingMapsProjection;
+        projection.Should().NotBeNull();
         projection!.MapServer.MaxRequestLatency = maxLatency;
 
-        Configuration.TryGetCredential( "BingMaps", out var apiKey ).Should().BeTrue();
-        var credentials = new BingCredentials( apiKey!, BingMapType.Aerial );
-        await projection.AuthenticateAsync( credentials );
-
-        projection.Initialized.Should().Be( result );
+        var initialized = await projection.AuthenticateAsync( credentials );
+        initialized.Should().Be( testResult );
     }
 
     [ Theory ]
@@ -75,17 +78,17 @@ public class MapTests : TestBase
     [InlineData( 3, 3, 3, "033" )]
     public async Task BingMapsQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var projection = await GetFactory().CreateMapProjection( "BingMaps" ) as IFixedTileProjection;
+        var result = await GetFactory().CreateMapProjection( "BingMaps", null );
+        var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken( 500 ) );
+        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken() );
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be( quadKey );
     }
-
 
     [Theory]
     [InlineData(0, 0, 0, "0")]
@@ -115,7 +118,8 @@ public class MapTests : TestBase
     [InlineData(3, 3, 3, "0330")]
     public async Task OpenStreetMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
     {
-        var projection = await GetFactory().CreateMapProjection("OpenStreetMaps") as IFixedTileProjection;
+        var result = await GetFactory().CreateMapProjection( "OpenStreetMaps", null );
+        var projection = result.Projection as OpenStreetMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -154,7 +158,8 @@ public class MapTests : TestBase
     [InlineData(3, 3, 3, "0330")]
     public async Task OpenTopoMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
     {
-        var projection = await GetFactory().CreateMapProjection("OpenTopoMaps") as IFixedTileProjection;
+        var result = await GetFactory().CreateMapProjection( "OpenTopoMaps", null );
+        var projection = result.Projection as OpenTopoMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 

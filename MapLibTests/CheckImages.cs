@@ -9,13 +9,14 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task BingMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection<BingMapsProjection, BingMapServer, BingCredentials>();
+        var result = await GetFactory().CreateMapProjection("BingMaps", null);
+        var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken(500) );
+        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken() );
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
@@ -27,7 +28,8 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task OpenStreetMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection<OpenStreetMapsProjection, OpenStreetMapServer, string>();
+        var result = await GetFactory().CreateMapProjection("OpenStreetMaps", null);
+        var projection = result.Projection as OpenStreetMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -45,7 +47,8 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task OpenTopoMaps( int scale, int xTile, int yTile )
     {
-        var projection = await GetFactory().CreateMapProjection<OpenTopoMapsProjection, OpenTopoMapServer, string>();
+        var result = await GetFactory().CreateMapProjection("OpenTopoMaps", null);
+        var projection = result.Projection as OpenTopoMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 

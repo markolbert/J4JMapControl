@@ -5,80 +5,36 @@ namespace MapLibTests;
 
 public class FactoryTests : TestBase
 {
-    [Theory]
-    [InlineData(typeof(MapProjectionFactory), 3)]
-    [InlineData(typeof(string), 0)]
-    public void FindsProjectionsByType( Type assemblyType, int numResults )
-    {
-        var factory = GetFactory(false);
-        factory.Should().NotBeNull();
-
-        factory.Search( assemblyType );
-
-        factory.ProjectionTypes.Count.Should().Be( numResults );
-    }
-
     [ Theory ]
     [InlineData("BingMaps", true)]
     [InlineData("OpenStreetMaps", true)]
     [InlineData("OpenTopoMaps", true)]
-    public void CreateProjectionFromName( string projectionName, bool result )
+    public async Task CreateProjectionFromName( string projectionName, bool testResult )
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();
 
-        var projection = factory.CreateMapProjection( projectionName );
+        var result= await factory.CreateMapProjection( projectionName, null );
 
-        if( result )
-            projection.Should().NotBeNull();
-        else projection.Should().BeNull();
-    }
-
-    [ Theory ]
-    [InlineData(typeof(BingMapsProjection), true)]
-    [InlineData(typeof(OpenStreetMapsProjection), true)]
-    [InlineData(typeof(OpenTopoMapsProjection), true)]
-    public async Task CreateProjectionFromTypeGeneric( Type projectionType, bool result )
-    {
-        var factory = GetFactory();
-        factory.Should().NotBeNull();
-
-        var methods = typeof( MapProjectionFactory )
-                        .GetMethods()
-                        .Where( x => x.Name.Equals( "CreateMapProjection",
-                                                    StringComparison.OrdinalIgnoreCase ) 
-                                && x.IsGenericMethod )
-                        .ToList();
-
-        methods.Count.Should().Be( 1 );
-
-        var method = methods[ 0 ].MakeGenericMethod( projectionType );
-
-        var projTask = method.Invoke(factory, new object?[] { null }) as Task;
-        projTask.Should().NotBeNull();
-        await projTask!;
-
-        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as IFixedTileProjection;
-
-        if (result)
-            projection.Should().NotBeNull();
-        else projection.Should().BeNull();
+        if( testResult )
+            result.Projection.Should().NotBeNull();
+        else result.Projection.Should().BeNull();
     }
 
     [Theory]
     [InlineData(typeof(BingMapsProjection), true)]
     [InlineData(typeof(OpenStreetMapsProjection), true)]
     [InlineData(typeof(OpenTopoMapsProjection), true)]
-    public async Task CreateProjectionFromType(Type projectionType, bool result)
+    public async Task CreateProjectionFromType(Type projectionType, bool testResult)
     {
         var factory = GetFactory();
         factory.Should().NotBeNull();
 
-        var projection = await factory.CreateMapProjection( projectionType );
+        var result = await factory.CreateMapProjection( projectionType, null );
 
-        if (result)
-            projection.Should().NotBeNull();
-        else projection.Should().BeNull();
+        if (testResult)
+            result.Projection.Should().NotBeNull();
+        else result.Projection.Should().BeNull();
     }
 
     [Theory]
@@ -87,26 +43,10 @@ public class FactoryTests : TestBase
     [InlineData(typeof(OpenTopoMapsProjection), ".png")]
     public async Task CheckImageFileExtension(Type type, string fileExtension)
     {
-        var factory = GetFactory();
-        factory.Should().NotBeNull();
+        var result = await GetFactory().CreateMapProjection(type, null);
+        result.Projection.Should().NotBeNull();
 
-        var methods = typeof(MapProjectionFactory)
-                     .GetMethods()
-                     .Where(x => x.Name.Equals("CreateMapProjection",
-                                               StringComparison.OrdinalIgnoreCase)
-                             && x.IsGenericMethod)
-                     .ToList();
-
-        methods.Count.Should().Be(1);
-
-        var method = methods[0].MakeGenericMethod(type);
-
-        var projTask = method.Invoke( factory, new object?[] { null } ) as Task;
-        projTask.Should().NotBeNull();
-        await projTask!;
-
-        var projection = projTask.GetType().GetProperty("Result")!.GetValue(projTask) as IFixedTileProjection;
-        projection!.MapServer.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
+        result.Projection!.MapServer.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }
 
 }

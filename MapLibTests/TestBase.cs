@@ -25,7 +25,7 @@ public class TestBase
     protected IJ4JLogger Logger { get; }
     protected IProjectionCredentials Configuration { get; }
 
-    protected CancellationToken GetCancellationToken( int latency )
+    protected CancellationToken GetCancellationToken( int latency = 500 )
     {
         var source = new CancellationTokenSource();
         source.CancelAfter( latency < 0 ? 500 : latency );
@@ -33,13 +33,11 @@ public class TestBase
         return source.Token;
     }
 
-    protected MapProjectionFactory GetFactory( bool searchDefaults = true )
+    protected MapProjectionFactory GetFactory()
     {
-        var retVal = J4JDeusEx.ServiceProvider.GetRequiredService<MapProjectionFactory>();
+        var retVal = J4JDeusEx.ServiceProvider.GetService<MapProjectionFactory>();
         retVal.Should().NotBeNull();
-
-        if( searchDefaults )
-            retVal.Search( typeof( MapProjectionFactory ) );
+        retVal!.Initialize();
 
         return retVal;
     }
