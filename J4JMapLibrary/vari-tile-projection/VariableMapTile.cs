@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public class VariableMapTile : MapTileBase<FixedTileScope>
+public class VariableMapTile : MapTileBase<TileScope>
 {
     public VariableMapTile(
         IMapProjection projection,

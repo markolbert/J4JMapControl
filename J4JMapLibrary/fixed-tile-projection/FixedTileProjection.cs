@@ -3,7 +3,7 @@
 namespace J4JMapLibrary;
 
 public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope, TAuth>, IFixedTileProjection<TScope>
-    where TScope : FixedTileScope, new()
+    where TScope : TileScope, new()
     where TAuth : class
 {
     protected FixedTileProjection(

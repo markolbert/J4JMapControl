@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
+public class OpenMapProjection : FixedTileProjection<TileScope, string>
 {
     private bool _authenticated;
 
@@ -35,7 +35,7 @@ public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
     {
         credentials ??= LibraryConfiguration?.Credentials
                                              .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
-                                             .Select( x => x.Key )
+                                             .Select( x => x.ApiKey )
                                              .FirstOrDefault();
 
         if( credentials == null )

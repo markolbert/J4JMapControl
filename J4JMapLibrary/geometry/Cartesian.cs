@@ -5,7 +5,7 @@ public class Cartesian
     public EventHandler? Changed;
 
     public Cartesian(
-        IFixedTileScope scope
+        ITileScope scope
     )
     {
         XRange = scope.XRange;
