@@ -26,7 +26,7 @@ public abstract class MapTileBase<TScope>
 
         var temp2 = temp switch
         {
-            FixedTileScope tiledScope => FixedTileScope.Copy( tiledScope ) as TScope,
+            TileScope tiledScope => TileScope.Copy( tiledScope ) as TScope,
             MapScope mapScope => MapScope.Copy( mapScope ) as TScope,
             _ => throw new InvalidOperationException( $"Unsupported MapScope type '{typeof( TScope )}'" )
         };

@@ -44,7 +44,7 @@ public static class MapExtensions
         var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
-        var scope = (FixedTileScope) projection.GetScope();
+        var scope = (TileScope) projection.GetScope();
 
         if( x != xTile || y != yTile )
         {

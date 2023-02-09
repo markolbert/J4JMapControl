@@ -46,13 +46,13 @@ public class Viewport
             _projection = value;
             _projection.ScaleChanged += Projection_ScaleChanged;
 
-            Scope = FixedTileScope.Copy( (FixedTileScope) _projection.GetScope() );
+            Scope = TileScope.Copy( (TileScope) _projection.GetScope() );
 
             UpdateNeeded = true;
         }
     }
 
-    public FixedTileScope Scope { get; private set; } = new();
+    public TileScope Scope { get; private set; } = new();
 
     public float CenterLatitude
     {
@@ -196,7 +196,7 @@ public class Viewport
                     await mapTile.GetImageAsync( ctx: ctx );
 
                 if( !retVal.Add( mapTile ) )
-                    _logger.Error( "Problem adding FixedMapTile to collection (probably differing IFixedTileScope)" );
+                    _logger.Error( "Problem adding FixedMapTile to collection (probably differing ITileScope)" );
             }
         }
 

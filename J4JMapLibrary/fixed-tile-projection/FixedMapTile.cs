@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public partial class FixedMapTile : MapTileBase<FixedTileScope>
+public partial class FixedMapTile : MapTileBase<TileScope>
 {
     protected override string TileId => $"{X}, {Y}";
 

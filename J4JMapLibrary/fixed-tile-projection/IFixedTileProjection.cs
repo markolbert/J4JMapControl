@@ -15,7 +15,7 @@ public interface IFixedTileProjection : IMapProjection
 }
 
 public interface IFixedTileProjection<out TScope> : IFixedTileProjection
-    where TScope : FixedTileScope
+    where TScope : TileScope
 {
     TScope Scope { get; }
 }

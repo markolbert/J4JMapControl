@@ -3,7 +3,7 @@
 namespace J4JMapLibrary;
 
 [ MapProjection( "BingMaps", typeof( IBingMapServer ) ) ]
-public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, BingCredentials>
+public sealed class BingMapsProjection : FixedTileProjection<TileScope, BingCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
 
@@ -42,7 +42,7 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
 
         credentials ??= LibraryConfiguration?.Credentials
                                              .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
-                                             .Select( x => new BingCredentials( x.Key, bingServer.MapType ) )
+                                             .Select( x => new BingCredentials( x.ApiKey, bingServer.MapType ) )
                                              .FirstOrDefault();
 
         if( credentials == null )
