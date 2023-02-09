@@ -11,6 +11,10 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
 
     public GoogleServer()
     {
+        MinScale = 0;
+        MaxScale = 20;
+        Copyright = "© Google";
+        CopyrightUri = new Uri("http://www.google.com");
         RetrievalUrl =
             "https://maps.googleapis.com/maps/api/staticmap?center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}&signature={signature}";
     }
