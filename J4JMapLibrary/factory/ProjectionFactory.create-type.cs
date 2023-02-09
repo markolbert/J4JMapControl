@@ -8,7 +8,7 @@ public partial class ProjectionFactory
         ITileCache? tileCache,
         IMapServer? mapServer = null,
         bool authenticate = true,
-        CancellationToken ctx = default( CancellationToken )
+        CancellationToken ctx = default
     )
     {
         if( !TryGetConstructorInfo( projectionType, out var ctorInfo ) )
@@ -29,9 +29,9 @@ public partial class ProjectionFactory
 
         var ctorArgs = new ParameterValue[]
         {
-            new ParameterValue( ParameterType.MapServer, mapServer ),
-            new ParameterValue( ParameterType.Logger, _logger ),
-            new ParameterValue( ParameterType.TileCache, tileCache )
+            new( ParameterType.MapServer, mapServer ),
+            new( ParameterType.Logger, _logger ),
+            new( ParameterType.TileCache, tileCache )
         };
 
         if( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
@@ -60,10 +60,10 @@ public partial class ProjectionFactory
 
         var ctorArgs = new ParameterValue[]
         {
-            new ParameterValue( ParameterType.MapServer, mapServer ),
-            new ParameterValue( ParameterType.Logger, _logger ),
-            new ParameterValue( ParameterType.TileCache, tileCache ),
-            new ParameterValue( ParameterType.Credentials, ProjectionCredentials )
+            new( ParameterType.MapServer, mapServer ),
+            new( ParameterType.Logger, _logger ),
+            new( ParameterType.TileCache, tileCache ),
+            new( ParameterType.Credentials, ProjectionCredentials )
         };
 
         if( !TryCreateProjectionConfigurationCredentials( ctorInfo!, ctorArgs, out var mapProjection ) )

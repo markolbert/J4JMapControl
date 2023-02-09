@@ -161,8 +161,10 @@ public class Viewport
         // apply rotation if one is defined
         // heading == 270 is rotation == 90, hence the angle adjustment
         if( _heading != 0 )
+        {
             corners = corners.ApplyTransform(
                 Matrix4x4.CreateRotationZ( ( 360 - _heading ) * MapConstants.RadiansPerDegree, vpCenter ) );
+        }
 
         // find the range of tiles covering the mapped rectangle
         var minTileX = CartesianToTile( corners.Min( x => x.X ) );

@@ -80,7 +80,7 @@ public class FileSystemCache : CacheBase
     {
         var retVal = Directory.GetFiles( _cacheDir!,
                                          "*.*",
-                                         enumerationOptions: new EnumerationOptions()
+                                         new EnumerationOptions()
                                          {
                                              IgnoreInaccessible = true, RecurseSubdirectories = true
                                          } )
@@ -105,7 +105,7 @@ public class FileSystemCache : CacheBase
         var deleted = new List<string>();
 
         foreach( var fileInfo in files.Where( x => RetentionPeriod != TimeSpan.Zero
-                                               && ( x.LastAccessTime < DateTime.Now - RetentionPeriod ) ) )
+                                               && x.LastAccessTime < DateTime.Now - RetentionPeriod ) )
         {
             File.Delete( fileInfo.FullName );
             deleted.Add( fileInfo.FullName );
@@ -204,8 +204,8 @@ public class FileSystemCache : CacheBase
         _tilesCached++;
         _bytesCached += bytesToWrite.Length;
 
-        if( MaxEntries > 0 && _tilesCached > MaxEntries
-        || MaxBytes > 0 && _bytesCached > MaxBytes )
+        if( ( MaxEntries > 0 && _tilesCached > MaxEntries )
+        || ( MaxBytes > 0 && _bytesCached > MaxBytes ) )
             PurgeExpired();
 
         return retVal;

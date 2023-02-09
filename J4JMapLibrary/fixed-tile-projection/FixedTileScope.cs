@@ -2,7 +2,7 @@
 
 public class FixedTileScope : MapScope, IFixedTileScope
 {
-    public static FixedTileScope Copy( FixedTileScope toCopy ) => new FixedTileScope( toCopy );
+    public static FixedTileScope Copy( FixedTileScope toCopy ) => new( toCopy );
 
     public FixedTileScope()
     {
@@ -33,21 +33,12 @@ public class FixedTileScope : MapScope, IFixedTileScope
         if( ReferenceEquals( null, obj ) ) return false;
         if( ReferenceEquals( this, obj ) ) return true;
 
-        return obj.GetType() == this.GetType() && Equals( (FixedTileScope) obj );
+        return obj.GetType() == GetType() && Equals( (FixedTileScope) obj );
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine( base.GetHashCode(), XRange, YRange );
-    }
+    public override int GetHashCode() => HashCode.Combine( base.GetHashCode(), XRange, YRange );
 
-    public static bool operator==( FixedTileScope? left, FixedTileScope? right )
-    {
-        return Equals( left, right );
-    }
+    public static bool operator==( FixedTileScope? left, FixedTileScope? right ) => Equals( left, right );
 
-    public static bool operator!=( FixedTileScope? left, FixedTileScope? right )
-    {
-        return !Equals( left, right );
-    }
+    public static bool operator!=( FixedTileScope? left, FixedTileScope? right ) => !Equals( left, right );
 }

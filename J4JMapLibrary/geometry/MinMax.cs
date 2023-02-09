@@ -37,23 +37,14 @@ public class MinMax<T> : IEquatable<MinMax<T>>
     {
         if( ReferenceEquals( null, obj ) ) return false;
         if( ReferenceEquals( this, obj ) ) return true;
-        if( obj.GetType() != this.GetType() ) return false;
+        if( obj.GetType() != GetType() ) return false;
 
         return Equals( (MinMax<T>) obj );
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine( Minimum, Maximum );
-    }
+    public override int GetHashCode() => HashCode.Combine( Minimum, Maximum );
 
-    public static bool operator==( MinMax<T>? left, MinMax<T>? right )
-    {
-        return Equals( left, right );
-    }
+    public static bool operator==( MinMax<T>? left, MinMax<T>? right ) => Equals( left, right );
 
-    public static bool operator!=( MinMax<T>? left, MinMax<T>? right )
-    {
-        return !Equals( left, right );
-    }
+    public static bool operator!=( MinMax<T>? left, MinMax<T>? right ) => !Equals( left, right );
 }

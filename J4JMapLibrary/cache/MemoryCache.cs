@@ -28,7 +28,7 @@ public class MemoryCache : CacheBase
     {
         var toDelete = _cached
                       .Where( x => RetentionPeriod != TimeSpan.Zero
-                               && ( x.Value.LastAccessedUtc < DateTime.UtcNow - RetentionPeriod ) )
+                               && x.Value.LastAccessedUtc < DateTime.UtcNow - RetentionPeriod )
                       .Select( x => x.Key )
                       .ToList();
 
@@ -122,8 +122,8 @@ public class MemoryCache : CacheBase
         {
             _cached.Add( key, retVal );
 
-            if( MaxEntries > 0 && _cached.Count > MaxEntries
-            || MaxBytes > 0 && _cached.Sum( x => x.Value.Tile.ImageBytes ) > MaxBytes )
+            if( ( MaxEntries > 0 && _cached.Count > MaxEntries )
+            || ( MaxBytes > 0 && _cached.Sum( x => x.Value.Tile.ImageBytes ) > MaxBytes ) )
                 PurgeExpired();
         }
 

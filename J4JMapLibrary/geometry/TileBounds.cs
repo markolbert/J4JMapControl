@@ -7,8 +7,8 @@ public class TileBounds : IEquatable<TileBounds>
         TileCoordinates lowerRight
     )
     {
-        this.UpperLeft = upperLeft;
-        this.LowerRight = lowerRight;
+        UpperLeft = upperLeft;
+        LowerRight = lowerRight;
     }
 
     public TileCoordinates UpperLeft { get; init; }
@@ -27,21 +27,12 @@ public class TileBounds : IEquatable<TileBounds>
         if( ReferenceEquals( null, obj ) ) return false;
         if( ReferenceEquals( this, obj ) ) return true;
 
-        return obj.GetType() == this.GetType() && Equals( (TileBounds) obj );
+        return obj.GetType() == GetType() && Equals( (TileBounds) obj );
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine( UpperLeft, LowerRight );
-    }
+    public override int GetHashCode() => HashCode.Combine( UpperLeft, LowerRight );
 
-    public static bool operator==( TileBounds? left, TileBounds? right )
-    {
-        return Equals( left, right );
-    }
+    public static bool operator==( TileBounds? left, TileBounds? right ) => Equals( left, right );
 
-    public static bool operator!=( TileBounds? left, TileBounds? right )
-    {
-        return !Equals( left, right );
-    }
+    public static bool operator!=( TileBounds? left, TileBounds? right ) => !Equals( left, right );
 }

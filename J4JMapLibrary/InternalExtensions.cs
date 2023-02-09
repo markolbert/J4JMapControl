@@ -59,10 +59,10 @@ internal static class InternalExtensions
     {
         var retVal = new Cartesian( scope );
 
-        var width = ( scope.XRange.Maximum - scope.XRange.Minimum ) + 1;
+        var width = scope.XRange.Maximum - scope.XRange.Minimum + 1;
         var x = width * ( longitude / 360 + 0.5 );
 
-        var height = ( scope.YRange.Maximum - scope.YRange.Minimum ) + 1;
+        var height = scope.YRange.Maximum - scope.YRange.Minimum + 1;
 
         // this weird "subtract the calculation from half the height" is due to the
         // fact y values increase going >>down<< the display, so the top is y = 0

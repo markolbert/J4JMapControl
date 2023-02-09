@@ -7,8 +7,8 @@ public class TileCoordinates : IEquatable<TileCoordinates>
         int y
     )
     {
-        this.X = x;
-        this.Y = y;
+        X = x;
+        Y = y;
     }
 
     public int X { get; init; }
@@ -27,21 +27,12 @@ public class TileCoordinates : IEquatable<TileCoordinates>
         if( ReferenceEquals( null, obj ) ) return false;
         if( ReferenceEquals( this, obj ) ) return true;
 
-        return obj.GetType() == this.GetType() && Equals( (TileCoordinates) obj );
+        return obj.GetType() == GetType() && Equals( (TileCoordinates) obj );
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine( X, Y );
-    }
+    public override int GetHashCode() => HashCode.Combine( X, Y );
 
-    public static bool operator==( TileCoordinates? left, TileCoordinates? right )
-    {
-        return Equals( left, right );
-    }
+    public static bool operator==( TileCoordinates? left, TileCoordinates? right ) => Equals( left, right );
 
-    public static bool operator!=( TileCoordinates? left, TileCoordinates? right )
-    {
-        return !Equals( left, right );
-    }
+    public static bool operator!=( TileCoordinates? left, TileCoordinates? right ) => !Equals( left, right );
 }

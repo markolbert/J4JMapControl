@@ -42,21 +42,12 @@ public class MapScope : IMapScope
         if( ReferenceEquals( null, obj ) ) return false;
         if( ReferenceEquals( this, obj ) ) return true;
 
-        return obj.GetType() == this.GetType() && Equals( (MapScope) obj );
+        return obj.GetType() == GetType() && Equals( (MapScope) obj );
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine( LatitudeRange, LongitudeRange, Scale, ScaleRange );
-    }
+    public override int GetHashCode() => HashCode.Combine( LatitudeRange, LongitudeRange, Scale, ScaleRange );
 
-    public static bool operator==( MapScope? left, MapScope? right )
-    {
-        return Equals( left, right );
-    }
+    public static bool operator==( MapScope? left, MapScope? right ) => Equals( left, right );
 
-    public static bool operator!=( MapScope? left, MapScope? right )
-    {
-        return !Equals( left, right );
-    }
+    public static bool operator!=( MapScope? left, MapScope? right ) => !Equals( left, right );
 }

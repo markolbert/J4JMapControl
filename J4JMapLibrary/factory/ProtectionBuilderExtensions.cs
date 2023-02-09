@@ -67,10 +67,8 @@ public static class ProtectionBuilderExtensions
     public static MapBuilder.ProjectionBuilder Projection<TProj>(
         this MapBuilder.ProjectionBuilder builder
     )
-        where TProj : IMapProjection
-    {
-        return builder.Projection( typeof( TProj ) );
-    }
+        where TProj : IMapProjection =>
+        builder.Projection( typeof( TProj ) );
 
     public static MapBuilder.ProjectionBuilder RequestLatency(
         this MapBuilder.ProjectionBuilder builder,
