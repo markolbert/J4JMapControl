@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Security.Cryptography.Xml;
 using System.Text.Json;
 
 namespace J4JMapLibrary;
@@ -7,7 +8,7 @@ namespace J4JMapLibrary;
 public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapServer
 {
     public const string MetadataUrl =
-        "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
+        "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
 
     private readonly Random _random = new( Environment.TickCount );
 
@@ -42,8 +43,14 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
         _apiKey = credentials.ApiKey;
         MapType = credentials.MapType;
 
-        var uri = new Uri( MetadataUrl.Replace( "Mode", MapType.ToString() )
-                                      .Replace( "ApiKey", _apiKey ) );
+        var replacements = new Dictionary<string, string>
+        {
+            { "{mode}", MapType.ToString() },
+            { "{apikey}", _apiKey }
+        };
+
+        var temp = ReplaceParameters( MetadataUrl, replacements );
+        var uri = new Uri( temp );
 
         var request = new HttpRequestMessage( HttpMethod.Get, uri );
 
@@ -123,7 +130,7 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage( FixedMapTile requestInfo )
+    public override HttpRequestMessage? CreateMessage( FixedMapTile tile )
     {
         if( !Initialized )
         {
@@ -136,10 +143,14 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
                                                                    .PrimaryResource!
                                                                    .ImageUrlSubdomains
                                                                    .Length ) ];
+        var replacements = new Dictionary<string, string>
+        {
+            { "{subdomain}", subDomain },
+            { "{quadkey}", tile.QuadKey },
+            { "{culture}", _cultureCode ?? string.Empty },
+        };
 
-        var uriText = Metadata!.PrimaryResource.ImageUrl.Replace( "{subdomain}", subDomain )
-                               .Replace( "{quadkey}", requestInfo.QuadKey )
-                               .Replace( "{culture}", _cultureCode );
+        var uriText = ReplaceParameters( Metadata!.PrimaryResource.ImageUrl, replacements );
 
         return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
