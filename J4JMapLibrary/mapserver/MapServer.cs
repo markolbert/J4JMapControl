@@ -14,7 +14,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 
     protected MapServer()
     {
-        Logger = J4JDeusEx.IsInitialized ? J4JDeusEx.GetLogger() : null;
+        Logger = J4JDeusEx.GetLogger();
         Logger?.SetLoggedType(GetType());
 
         var attr = GetType().GetCustomAttribute<MapServerAttribute>();
@@ -27,7 +27,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
             typeof(MapServerAttribute));
     }
 
-    protected IJ4JLogger? Logger { get; }
+    protected IJ4JLogger Logger { get; }
 
     public string SupportedProjection { get; }
     public abstract bool Initialized { get; }
