@@ -13,16 +13,17 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     protected MapServer()
     {
         Logger = J4JDeusEx.GetLogger()!;
-        Logger.SetLoggedType(GetType());
+        Logger.SetLoggedType( GetType() );
 
         var attr = GetType().GetCustomAttribute<MapServerAttribute>();
         SupportedProjection = attr?.ProjectionName ?? string.Empty;
 
-        if (!string.IsNullOrEmpty(SupportedProjection))
+        if( !string.IsNullOrEmpty( SupportedProjection ) )
             return;
 
-        Logger?.Error("{0} is not decorated with a {1}, will not be accessible by projections", GetType(),
-            typeof(MapServerAttribute));
+        Logger?.Error( "{0} is not decorated with a {1}, will not be accessible by projections",
+                       GetType(),
+                       typeof( MapServerAttribute ) );
     }
 
     protected IJ4JLogger Logger { get; }
@@ -45,14 +46,14 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 
     public abstract Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
 
-    public abstract HttpRequestMessage? CreateMessage(TTile requestInfo);
+    public abstract HttpRequestMessage? CreateMessage( TTile requestInfo );
 
-    HttpRequestMessage? IMapServer.CreateMessage(object requestInfo)
+    HttpRequestMessage? IMapServer.CreateMessage( object requestInfo )
     {
-        if (requestInfo is TTile castInfo)
-            return CreateMessage(castInfo);
+        if( requestInfo is TTile castInfo )
+            return CreateMessage( castInfo );
 
-        Logger.Error("Expected a {0} but was passed a {1}", typeof(TTile), requestInfo.GetType());
+        Logger.Error( "Expected a {0} but was passed a {1}", typeof( TTile ), requestInfo.GetType() );
         return null;
     }
 }

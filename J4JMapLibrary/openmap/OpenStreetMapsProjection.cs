@@ -2,17 +2,17 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("OpenStreetMaps", typeof(IOpenMapServer))]
+[ MapProjection( "OpenStreetMaps", typeof( IOpenMapServer ) ) ]
 public sealed class OpenStreetMapsProjection : OpenMapProjection
 {
-    public OpenStreetMapsProjection( 
+    public OpenStreetMapsProjection(
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( mapServer, logger,tileCache )
+        : base( mapServer, logger, tileCache )
     {
-        SetSizes(0);
+        SetSizes( 0 );
     }
 
     public OpenStreetMapsProjection(
@@ -23,6 +23,6 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
     )
         : base( credentials, mapServer, logger, tileCache )
     {
-        SetSizes(0);
+        SetSizes( 0 );
     }
 }

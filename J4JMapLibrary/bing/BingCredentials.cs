@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace J4JMapLibrary
 {
-    public record BingCredentials(string ApiKey, BingMapType MapType);
+    public record BingCredentials( string ApiKey, BingMapType MapType );
 }

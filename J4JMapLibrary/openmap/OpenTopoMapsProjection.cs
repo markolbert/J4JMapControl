@@ -2,17 +2,17 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("OpenTopoMaps", typeof(IOpenMapServer))]
+[ MapProjection( "OpenTopoMaps", typeof( IOpenMapServer ) ) ]
 public sealed class OpenTopoMapsProjection : OpenMapProjection
 {
-    public OpenTopoMapsProjection( 
+    public OpenTopoMapsProjection(
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? cache = null
     )
         : base( mapServer, logger, cache )
     {
-        SetSizes(0);
+        SetSizes( 0 );
     }
 
     public OpenTopoMapsProjection(
@@ -21,8 +21,8 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
         IJ4JLogger logger,
         ITileCache? cache = null
     )
-        : base(credentials, mapServer, logger, cache )
+        : base( credentials, mapServer, logger, cache )
     {
-        SetSizes(0);
+        SetSizes( 0 );
     }
 }

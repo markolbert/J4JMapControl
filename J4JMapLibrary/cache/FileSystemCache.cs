@@ -12,7 +12,7 @@ public class FileSystemCache : CacheBase
     private int _tilesCached;
     private long _bytesCached;
 
-    public FileSystemCache( 
+    public FileSystemCache(
         IJ4JLogger logger
     )
         : base( logger )
@@ -23,16 +23,17 @@ public class FileSystemCache : CacheBase
     public override int Count => GetFiles().Count;
 
     public override ReadOnlyCollection<string> QuadKeys =>
-        GetFiles().Select(x =>
+        GetFiles()
+           .Select( x =>
             {
-                var woExt = Path.GetFileNameWithoutExtension(x.Name);
-                var lastDash = woExt.LastIndexOf("-", StringComparison.InvariantCultureIgnoreCase);
-                return lastDash > 0 && lastDash < woExt.Length ? woExt[(lastDash + 1)..] : string.Empty;
-            })
-            .Where(x => !string.IsNullOrEmpty(x))
-            .OrderBy(x => x)
-            .ToList()
-            .AsReadOnly();
+                var woExt = Path.GetFileNameWithoutExtension( x.Name );
+                var lastDash = woExt.LastIndexOf( "-", StringComparison.InvariantCultureIgnoreCase );
+                return lastDash > 0 && lastDash < woExt.Length ? woExt[ ( lastDash + 1 ).. ] : string.Empty;
+            } )
+           .Where( x => !string.IsNullOrEmpty( x ) )
+           .OrderBy( x => x )
+           .ToList()
+           .AsReadOnly();
 
     public bool IsValid => _cacheDir != null;
 
@@ -55,7 +56,7 @@ public class FileSystemCache : CacheBase
             }
             catch
             {
-                Logger.Error<string>("Cache path '{0}' is not accessible", value);
+                Logger.Error<string>( "Cache path '{0}' is not accessible", value );
             }
         }
     }
@@ -64,7 +65,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger.Error("Caching directory is undefined");
+            Logger.Error( "Caching directory is undefined" );
             return;
         }
 
@@ -78,13 +79,13 @@ public class FileSystemCache : CacheBase
     private List<FileInfo> GetFiles()
     {
         var retVal = Directory.GetFiles( _cacheDir!,
-                                   "*.*",
-                                   enumerationOptions: new EnumerationOptions()
-                                   {
-                                       IgnoreInaccessible = true, RecurseSubdirectories = true
-                                   } )
-                        .Select( x => new FileInfo( x ) )
-                        .ToList();
+                                         "*.*",
+                                         enumerationOptions: new EnumerationOptions()
+                                         {
+                                             IgnoreInaccessible = true, RecurseSubdirectories = true
+                                         } )
+                              .Select( x => new FileInfo( x ) )
+                              .ToList();
 
         _tilesCached = retVal.Count;
         _bytesCached = retVal.Sum( x => x.Length );
@@ -116,7 +117,7 @@ public class FileSystemCache : CacheBase
         if( MaxEntries > 0 && files.Count > MaxEntries )
         {
             var filesByOldest = files.OrderBy( x => x.CreationTime )
-                                   .ToList();
+                                     .ToList();
 
             while( filesByOldest.Count > MaxEntries )
             {
@@ -129,7 +130,7 @@ public class FileSystemCache : CacheBase
             return;
 
         var filesByLargest = files.OrderByDescending( x => x.Length )
-                               .ToList();
+                                  .ToList();
 
         while( MaxBytes >= 0 && filesByLargest.Sum( x => x.Length ) > MaxBytes )
         {
@@ -193,8 +194,8 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        if (File.Exists(filePath))
-            Logger.Warning<string>("Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey);
+        if( File.Exists( filePath ) )
+            Logger.Warning<string>( "Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey );
 
         await using var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( bytesToWrite, ctx );

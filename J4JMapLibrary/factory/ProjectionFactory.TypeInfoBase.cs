@@ -13,7 +13,7 @@ public partial class ProjectionFactory
             ProcessType( type );
         }
 
-        protected List<List<ParameterInfo>> Constructors { get; }= new();
+        protected List<List<ParameterInfo>> Constructors { get; } = new();
 
         private void ProcessType( Type type )
         {

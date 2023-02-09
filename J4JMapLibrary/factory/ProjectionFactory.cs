@@ -28,8 +28,9 @@ public partial class ProjectionFactory
 
     private record ParameterValue( ParameterType Type, object? Value );
 
-    private record ParameterInfo(int Position, ParameterType Type, bool Optional);
-    private readonly Dictionary<string, ProjectionInfo> _sources = new(StringComparer.OrdinalIgnoreCase);
+    private record ParameterInfo( int Position, ParameterType Type, bool Optional );
+
+    private readonly Dictionary<string, ProjectionInfo> _sources = new( StringComparer.OrdinalIgnoreCase );
 
     private readonly IJ4JLogger _logger;
     private readonly List<Assembly> _assemblyList = new();
@@ -39,7 +40,7 @@ public partial class ProjectionFactory
         IProjectionCredentials projCredentials,
         IJ4JLogger logger
     )
-        : this(logger)
+        : this( logger )
     {
         ProjectionCredentials = projCredentials;
     }
@@ -48,24 +49,24 @@ public partial class ProjectionFactory
         IJ4JLogger logger
     )
     {
-        _assemblyList.Add(GetType().Assembly);
-        _credentialTypes.Add(typeof(string));
+        _assemblyList.Add( GetType().Assembly );
+        _credentialTypes.Add( typeof( string ) );
 
         _logger = logger;
-        _logger.SetLoggedType(GetType());
+        _logger.SetLoggedType( GetType() );
     }
 
     public IProjectionCredentials? ProjectionCredentials { get; }
 
     public ReadOnlyCollection<Type> ProjectionTypes =>
-        _sources.Select(x => x.Value.MapProjectionType)
-            .ToList()
-            .AsReadOnly();
+        _sources.Select( x => x.Value.MapProjectionType )
+                .ToList()
+                .AsReadOnly();
 
     public ReadOnlyCollection<string> ProjectionNames =>
-        _sources.Select(x => x.Key)
-            .ToList()
-            .AsReadOnly();
+        _sources.Select( x => x.Key )
+                .ToList()
+                .AsReadOnly();
 
     public void AddAssemblies( params Assembly[] assemblies ) => _assemblyList.AddRange( assemblies );
 
@@ -111,13 +112,13 @@ public partial class ProjectionFactory
                 continue;
 
             var serverInfo = servers.FirstOrDefault( x =>
-                                                             x.ServerType.GetInterface( projInfo.ServerType.ToString() )
-                                                          != null );
+                                                         x.ServerType.GetInterface( projInfo.ServerType.ToString() )
+                                                      != null );
             if( serverInfo == null )
                 continue;
 
             // ensure the serverType has a public parameterless constructor
-            if (!serverInfo.HasPublicParameterlessConstructor)
+            if( !serverInfo.HasPublicParameterlessConstructor )
                 continue;
 
             var credentialType = allTypes.FirstOrDefault( x => x == serverInfo.CredentialType );

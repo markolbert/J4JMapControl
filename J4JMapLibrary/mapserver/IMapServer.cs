@@ -15,11 +15,11 @@ public interface IMapServer
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }
     string ImageFileExtension { get; }
-    
+
     string Copyright { get; }
     Uri? CopyrightUri { get; }
 
-    HttpRequestMessage? CreateMessage(object requestInfo);
+    HttpRequestMessage? CreateMessage( object requestInfo );
 }
 
 public interface IMapServer<in TTile, TAuth> : IMapServer
@@ -27,5 +27,5 @@ public interface IMapServer<in TTile, TAuth> : IMapServer
     where TAuth : class
 {
     Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
-    HttpRequestMessage? CreateMessage(TTile requestInfo);
+    HttpRequestMessage? CreateMessage( TTile requestInfo );
 }

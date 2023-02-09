@@ -22,24 +22,24 @@ public class Cartesian
     public MinMax<int> YRange { get; internal set; }
     public int Y { get; private set; }
 
-    public void SetCartesian(int? x, int? y)
+    public void SetCartesian( int? x, int? y )
     {
-        if (x == null && y == null)
+        if( x == null && y == null )
             return;
 
         if( x.HasValue )
-            X = XRange.ConformValueToRange(x.Value, "X");
+            X = XRange.ConformValueToRange( x.Value, "X" );
 
         if( y.HasValue )
-            Y = YRange.ConformValueToRange(y.Value, "Y");
+            Y = YRange.ConformValueToRange( y.Value, "Y" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
     public void SetCartesian( Cartesian cartesian )
     {
-        X = XRange.ConformValueToRange(cartesian.X, "X");
-        Y = YRange.ConformValueToRange(cartesian.Y, "Y");
+        X = XRange.ConformValueToRange( cartesian.X, "X" );
+        Y = YRange.ConformValueToRange( cartesian.Y, "Y" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }

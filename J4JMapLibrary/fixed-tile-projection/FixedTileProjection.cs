@@ -8,21 +8,21 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
 {
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
-    public static int Pow(int numBase, int exp) =>
+    public static int Pow( int numBase, int exp ) =>
         Enumerable
-           .Repeat(numBase, Math.Abs(exp))
-           .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
+           .Repeat( numBase, Math.Abs( exp ) )
+           .Aggregate( 1, ( a, b ) => exp < 0 ? a / b : a * b );
 
     protected FixedTileProjection(
         IMapServer mapServer,
-        IJ4JLogger logger, 
+        IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-    :base(mapServer, logger)
+        : base( mapServer, logger )
     {
         TileCache = tileCache;
         TileXRange = new MinMax<int>( 0, 0 );
-        TileYRange = new MinMax<int>(0, 0);
+        TileYRange = new MinMax<int>( 0, 0 );
     }
 
     protected FixedTileProjection(
@@ -34,23 +34,23 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
         : base( credentials, mapServer, logger )
     {
         TileCache = tileCache;
-        TileXRange = new MinMax<int>(0, 0);
-        TileYRange = new MinMax<int>(0, 0);
+        TileXRange = new MinMax<int>( 0, 0 );
+        TileYRange = new MinMax<int>( 0, 0 );
     }
 
     public int Height => Scope.YRange.Maximum - Scope.YRange.Minimum + 1;
     public int Width => Scope.XRange.Maximum - Scope.XRange.Minimum + 1;
 
     // this assumes IMapServer has been set and scale is valid
-    protected override void SetSizes(int scale)
+    protected override void SetSizes( int scale )
     {
-        var cellsInDimension = Pow(2, scale);
+        var cellsInDimension = Pow( 2, scale );
         var projHeightWidth = MapServer.TileHeightWidth * cellsInDimension;
 
-        Scope.XRange = new MinMax<int>(0, projHeightWidth - 1);
-        Scope.YRange = new MinMax<int>(0, projHeightWidth - 1);
-        TileXRange = new MinMax<int>(0, cellsInDimension - 1);
-        TileYRange = new MinMax<int>(0, cellsInDimension - 1);
+        Scope.XRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        Scope.YRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        TileXRange = new MinMax<int>( 0, cellsInDimension - 1 );
+        TileYRange = new MinMax<int>( 0, cellsInDimension - 1 );
     }
 
     public ITileCache? TileCache { get; }

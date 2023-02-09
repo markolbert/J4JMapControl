@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited=false)]
+[ AttributeUsage( AttributeTargets.Class, AllowMultiple = true, Inherited = false ) ]
 public class MapServerAttribute : Attribute
 {
     public MapServerAttribute(

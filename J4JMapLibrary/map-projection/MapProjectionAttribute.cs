@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-[AttributeUsage(AttributeTargets.Class, Inherited=false)]
+[ AttributeUsage( AttributeTargets.Class, Inherited = false ) ]
 public class MapProjectionAttribute : Attribute
 {
     public MapProjectionAttribute(

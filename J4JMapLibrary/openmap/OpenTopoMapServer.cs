@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[MapServer("OpenTopoMaps", typeof(string))]
+[ MapServer( "OpenTopoMaps", typeof( string ) ) ]
 public class OpenTopoMapServer : OpenMapServer, IOpenMapServer
 {
     public OpenTopoMapServer()
@@ -12,6 +12,6 @@ public class OpenTopoMapServer : OpenMapServer, IOpenMapServer
         MaxRequestLatency = 5000;
         RetrievalUrl = "https://tile.opentopomap.org/ZoomLevel/XTile/YTile.png";
         Copyright = "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA";
-        CopyrightUri = new Uri("http://opentopomap.org/");
+        CopyrightUri = new Uri( "http://opentopomap.org/" );
     }
 }

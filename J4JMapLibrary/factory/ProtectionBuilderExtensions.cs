@@ -67,7 +67,7 @@ public static class ProtectionBuilderExtensions
     public static MapBuilder.ProjectionBuilder Projection<TProj>(
         this MapBuilder.ProjectionBuilder builder
     )
-    where TProj : IMapProjection
+        where TProj : IMapProjection
     {
         return builder.Projection( typeof( TProj ) );
     }

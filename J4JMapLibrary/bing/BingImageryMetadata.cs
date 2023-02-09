@@ -9,9 +9,9 @@ public class BingImageryMetadata
     public string AuthenticationResultCode { get; set; } = string.Empty;
     public string[] ErrorDetails { get; set; } = Array.Empty<string>();
     public string TraceId { get; set; } = string.Empty;
-    public BingResourceSet[] ResourceSets { get; set; }= Array.Empty<BingResourceSet>();
+    public BingResourceSet[] ResourceSets { get; set; } = Array.Empty<BingResourceSet>();
 
     public bool IsValid => ResourceSets is [{ Resources.Length: 1 }];
 
-    public BingResource? PrimaryResource => IsValid ? ResourceSets[0].Resources[0] : null;
+    public BingResource? PrimaryResource => IsValid ? ResourceSets[ 0 ].Resources[ 0 ] : null;
 }

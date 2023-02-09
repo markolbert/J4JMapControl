@@ -39,40 +39,40 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static string? GetQuadKey(this IFixedTileProjection projection, int xTile, int yTile )
+    public static string? GetQuadKey( this IFixedTileProjection projection, int xTile, int yTile )
     {
         var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
-        var scope = (FixedTileScope)projection.GetScope();
+        var scope = (FixedTileScope) projection.GetScope();
 
-        if ( x != xTile || y != yTile )
+        if( x != xTile || y != yTile )
         {
             Logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
-                          xTile,
-                          yTile,
-                          scope.Scale );
+                           xTile,
+                           yTile,
+                           scope.Scale );
 
             return null;
         }
 
         var retVal = new StringBuilder();
 
-        for (var i = scope.Scale; i > 0; i--)
+        for( var i = scope.Scale; i > 0; i-- )
         {
             var digit = '0';
-            var mask = 1 << (i - 1);
+            var mask = 1 << ( i - 1 );
 
-            if ((xTile & mask) != 0)
+            if( ( xTile & mask ) != 0 )
                 digit++;
 
-            if ((yTile & mask) != 0)
+            if( ( yTile & mask ) != 0 )
             {
                 digit++;
                 digit++;
             }
 
-            retVal.Append(digit);
+            retVal.Append( digit );
         }
 
         return retVal.ToString();
@@ -128,7 +128,8 @@ public static class MapExtensions
         return true;
     }
 
-    public static LatLong CenterLatLong( this FixedMapTile tile ) => tile.Scope.CartesianToLatLong( tile.CenterCartesian() );
+    public static LatLong CenterLatLong( this FixedMapTile tile ) =>
+        tile.Scope.CartesianToLatLong( tile.CenterCartesian() );
 
     public static Cartesian CenterCartesian( this FixedMapTile tile )
     {

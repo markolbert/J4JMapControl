@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[MapProjection("BingMaps", typeof(IBingMapServer))]
+[ MapProjection( "BingMaps", typeof( IBingMapServer ) ) ]
 public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, BingCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
@@ -14,7 +14,7 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( mapServer , logger, tileCache )
+        : base( mapServer, logger, tileCache )
     {
         SetSizes( 1 );
     }
@@ -25,29 +25,29 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( credentials,mapServer, logger, tileCache )
+        : base( credentials, mapServer, logger, tileCache )
     {
         SetSizes( 1 );
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
 
-    public override async Task<bool> AuthenticateAsync(  BingCredentials? credentials, CancellationToken ctx = default )
+    public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
     {
         credentials ??= LibraryConfiguration?.Credentials
-            .Where(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase))
-            .Select(x => new BingCredentials(x.Key, BingMapType.Aerial))
-            .FirstOrDefault();
+                                             .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
+                                             .Select( x => new BingCredentials( x.Key, BingMapType.Aerial ) )
+                                             .FirstOrDefault();
 
-        if (credentials == null)
+        if( credentials == null )
         {
-            Logger.Error("No credentials provided or available");
+            Logger.Error( "No credentials provided or available" );
             return false;
         }
 
-        if (MapServer is not IBingMapServer bingServer)
+        if( MapServer is not IBingMapServer bingServer )
         {
-            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
+            Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
             return false;
         }
 
@@ -58,24 +58,24 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
             : await bingServer.InitializeAsync( credentials, ctx )
                               .WaitAsync( TimeSpan.FromMilliseconds( MapServer.MaxRequestLatency ), ctx );
 
-        if (!initialized)
+        if( !initialized )
             return false;
 
         // accessing the Metadata property retrieves it
-        if (bingServer.Metadata?.PrimaryResource == null )
+        if( bingServer.Metadata?.PrimaryResource == null )
             return false;
 
-        Scope.ScaleRange = new MinMax<int>(bingServer.Metadata.PrimaryResource.ZoomMin,
-            bingServer.Metadata.PrimaryResource.ZoomMax);
+        Scope.ScaleRange = new MinMax<int>( bingServer.Metadata.PrimaryResource.ZoomMin,
+                                            bingServer.Metadata.PrimaryResource.ZoomMax );
 
         // check to ensure we're dealing with square tiles
-        if (MapServer.TileHeightWidth != bingServer.Metadata.PrimaryResource.ImageHeight)
+        if( MapServer.TileHeightWidth != bingServer.Metadata.PrimaryResource.ImageHeight )
         {
-            Logger.Error("Tile service is not using square tiles");
+            Logger.Error( "Tile service is not using square tiles" );
             return false;
         }
 
-        _authenticated= true;
+        _authenticated = true;
 
         SetScale( Scope.ScaleRange.Minimum );
 

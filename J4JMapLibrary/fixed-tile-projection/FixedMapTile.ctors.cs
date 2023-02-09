@@ -9,7 +9,7 @@ public partial class FixedMapTile
         int yTile,
         byte[] imageData
     )
-        : this(projection, xTile, yTile)
+        : this( projection, xTile, yTile )
     {
         ImageData = imageData;
     }
@@ -18,7 +18,8 @@ public partial class FixedMapTile
         IFixedTileProjection projection,
         int xTile,
         int yTile
-    ) : base(projection)
+    )
+        : base( projection )
     {
         HeightWidth = projection.MapServer.TileHeightWidth;
 

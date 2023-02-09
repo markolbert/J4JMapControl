@@ -42,7 +42,7 @@ public class Viewport
                 return _projection;
 
             var mesg = $"{nameof( Projection )} is not defined";
-            _logger.Fatal(mesg);
+            _logger.Fatal( mesg );
             throw new NullReferenceException( mesg );
         }
 
@@ -52,7 +52,7 @@ public class Viewport
             _projection.ScaleChanged += Projection_ScaleChanged;
 
             Scope = FixedTileScope.Copy( (FixedTileScope) _projection.GetScope() );
-            
+
             UpdateNeeded = true;
         }
     }
@@ -76,7 +76,7 @@ public class Viewport
 
         internal set
         {
-            _centerLong = Scope.LongitudeRange.ConformValueToRange(value, "Longitude");
+            _centerLong = Scope.LongitudeRange.ConformValueToRange( value, "Longitude" );
             UpdateNeeded = true;
         }
     }
@@ -87,7 +87,7 @@ public class Viewport
 
         internal set
         {
-            _height = NonNegativeRange.ConformValueToRange(value, "Height");
+            _height = NonNegativeRange.ConformValueToRange( value, "Height" );
             UpdateNeeded = true;
         }
     }
@@ -98,7 +98,7 @@ public class Viewport
 
         internal set
         {
-            _width = NonNegativeRange.ConformValueToRange(value, "Width");
+            _width = NonNegativeRange.ConformValueToRange( value, "Width" );
             UpdateNeeded = true;
         }
     }
@@ -146,21 +146,15 @@ public class Viewport
             return null;
         }
 
-        var cartesianCenter = new Cartesian(Scope);
-        cartesianCenter.SetCartesian(Scope.LatLongToCartesian(CenterLatitude, CenterLongitude));
+        var cartesianCenter = new Cartesian( Scope );
+        cartesianCenter.SetCartesian( Scope.LatLongToCartesian( CenterLatitude, CenterLongitude ) );
 
-        var corner1 = new Vector3(cartesianCenter.X - Width / 2, cartesianCenter.Y + Height / 2, 0);
-        var corner2 = new Vector3(corner1.X + Width, corner1.Y, 0);
-        var corner3 = new Vector3(corner2.X, corner2.Y - Height, 0);
-        var corner4 = new Vector3(corner1.X, corner3.Y, 0);
+        var corner1 = new Vector3( cartesianCenter.X - Width / 2, cartesianCenter.Y + Height / 2, 0 );
+        var corner2 = new Vector3( corner1.X + Width, corner1.Y, 0 );
+        var corner3 = new Vector3( corner2.X, corner2.Y - Height, 0 );
+        var corner4 = new Vector3( corner1.X, corner3.Y, 0 );
 
-        var corners = new[]
-        {
-            corner1,
-            corner2,
-            corner3,
-            corner4
-        };
+        var corners = new[] { corner1, corner2, corner3, corner4 };
 
         var vpCenter = new Vector3( cartesianCenter.X, cartesianCenter.Y, 0 );
 
@@ -207,5 +201,6 @@ public class Viewport
         return retVal;
     }
 
-    private int CartesianToTile(float value) => Convert.ToInt32(Math.Floor(value / Projection.MapServer.TileHeightWidth));
+    private int CartesianToTile( float value ) =>
+        Convert.ToInt32( Math.Floor( value / Projection.MapServer.TileHeightWidth ) );
 }

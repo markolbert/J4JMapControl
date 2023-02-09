@@ -34,7 +34,7 @@ public partial class ProjectionFactory
             new ParameterValue( ParameterType.TileCache, tileCache )
         };
 
-        if ( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
+        if( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
         if( await mapProjection!.AuthenticateAsync( credentials, ctx ) )
@@ -66,7 +66,7 @@ public partial class ProjectionFactory
             new ParameterValue( ParameterType.Credentials, ProjectionCredentials )
         };
 
-        if ( !TryCreateProjectionConfigurationCredentials( ctorInfo!, ctorArgs, out var mapProjection ) )
+        if( !TryCreateProjectionConfigurationCredentials( ctorInfo!, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
         if( !authenticate || await mapProjection!.AuthenticateAsync( null, ctx ) )

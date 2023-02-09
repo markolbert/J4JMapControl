@@ -13,24 +13,24 @@ public abstract class MapTileBase<TScope>
 
     protected MapTileBase(
         IMapProjection projection
-        )
+    )
     {
         Logger = J4JDeusEx.GetLogger();
-        Logger?.SetLoggedType(GetType());
+        Logger?.SetLoggedType( GetType() );
 
         var temp = projection.GetScope() as TScope;
-        if (temp == null)
+        if( temp == null )
         {
             var mesg = $"Could not retrieve {0} from projection";
-            Logger?.Fatal(mesg);
-            throw new NullReferenceException(mesg);
+            Logger?.Fatal( mesg );
+            throw new NullReferenceException( mesg );
         }
 
         var temp2 = temp switch
         {
-            FixedTileScope tiledScope => FixedTileScope.Copy(tiledScope) as TScope,
-            MapScope mapScope => MapScope.Copy(mapScope) as TScope,
-            _ => throw new InvalidOperationException($"Unsupported MapScope type '{typeof(TScope)}'")
+            FixedTileScope tiledScope => FixedTileScope.Copy( tiledScope ) as TScope,
+            MapScope mapScope => MapScope.Copy( mapScope ) as TScope,
+            _ => throw new InvalidOperationException( $"Unsupported MapScope type '{typeof( TScope )}'" )
         };
 
         Scope = temp2!;
@@ -49,7 +49,7 @@ public abstract class MapTileBase<TScope>
 
     public long ImageBytes { get; private set; } = -1L;
 
-    public async Task<byte[]?> GetImageAsync(bool forceRetrieval = false, CancellationToken ctx = default)
+    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default )
     {
         if( ImageData != null && !forceRetrieval )
             return ImageData;
@@ -74,7 +74,7 @@ public abstract class MapTileBase<TScope>
         var uriText = request.RequestUri!.AbsoluteUri;
         var httpClient = new HttpClient();
 
-        Logger?.Verbose<string>("Querying {0}", uriText);
+        Logger?.Verbose<string>( "Querying {0}", uriText );
 
         HttpResponseMessage? response;
 
@@ -85,11 +85,13 @@ public abstract class MapTileBase<TScope>
                 : await httpClient.SendAsync( request, ctx )
                                   .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
-            Logger?.Verbose<string>("Got response from {0}", uriText);
+            Logger?.Verbose<string>( "Got response from {0}", uriText );
         }
         catch( Exception ex )
         {
-            Logger?.Error<Uri, string>("Image request from {0} failed, message was '{1}'", request.RequestUri, ex.Message);
+            Logger?.Error<Uri, string>( "Image request from {0} failed, message was '{1}'",
+                                        request.RequestUri,
+                                        ex.Message );
             if( wasNull )
                 ImageChanged?.Invoke( this, EventArgs.Empty );
 
@@ -98,21 +100,24 @@ public abstract class MapTileBase<TScope>
 
         if( response.StatusCode != HttpStatusCode.OK )
         {
-            Logger?.Error<string, HttpStatusCode, string>("Image request from {0} failed with response code {1}, message was '{2}'", uriText, response.StatusCode, await response.Content.ReadAsStringAsync(ctx));
+            Logger?.Error<string, HttpStatusCode, string>(
+                "Image request from {0} failed with response code {1}, message was '{2}'",
+                uriText,
+                response.StatusCode,
+                await response.Content.ReadAsStringAsync( ctx ) );
 
             if( wasNull )
                 ImageChanged?.Invoke( this, EventArgs.Empty );
 
-
             return null;
         }
 
-        Logger?.Verbose<string>("Reading response from {0}", uriText);
+        Logger?.Verbose<string>( "Reading response from {0}", uriText );
 
         ImageData = await ExtractImageStreamAsync( response, ctx );
-        ImageChanged?.Invoke(this, EventArgs.Empty);
+        ImageChanged?.Invoke( this, EventArgs.Empty );
 
-        if ( ImageData == null )
+        if( ImageData == null )
             return null;
 
         ImageBytes = ImageData.Length;
@@ -120,7 +125,10 @@ public abstract class MapTileBase<TScope>
         return ImageData;
     }
 
-    protected virtual async Task<byte[]?> ExtractImageStreamAsync(HttpResponseMessage response, CancellationToken ctx = default)
+    protected virtual async Task<byte[]?> ExtractImageStreamAsync(
+        HttpResponseMessage response,
+        CancellationToken ctx = default
+    )
     {
         try
         {
@@ -134,11 +142,11 @@ public abstract class MapTileBase<TScope>
 
             return memStream.ToArray();
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
-            Logger?.Error<Uri, string>("Could not retrieve bitmap image stream from {0}, message was '{1}'",
-                response.RequestMessage!.RequestUri!,
-                ex.Message);
+            Logger?.Error<Uri, string>( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
+                                        response.RequestMessage!.RequestUri!,
+                                        ex.Message );
 
             return null;
         }

@@ -16,17 +16,17 @@ public partial class ProjectionFactory
         if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        if (!EnsureMapServer(ctorInfo!, ref mapServer))
+        if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
             return ProjectionCreationResult.NoProjection;
 
-        if ( !credentials.GetType().IsAssignableTo( ctorInfo!.CredentialsType ) )
+        if( !credentials.GetType().IsAssignableTo( ctorInfo!.CredentialsType ) )
         {
-            _logger.Warning("{0} requires {1} as a credential type but a {2} was supplied",
-                            ctorInfo.MapProjectionType,
-                            ctorInfo.CredentialsType,
-                            credentials.GetType());
+            _logger.Warning( "{0} requires {1} as a credential type but a {2} was supplied",
+                             ctorInfo.MapProjectionType,
+                             ctorInfo.CredentialsType,
+                             credentials.GetType() );
 
-            return await CreateMapProjection(projectionName, tileCache, mapServer, authenticate, ctx);
+            return await CreateMapProjection( projectionName, tileCache, mapServer, authenticate, ctx );
         }
 
         var ctorArgs = new ParameterValue[]
@@ -36,13 +36,13 @@ public partial class ProjectionFactory
             new ParameterValue( ParameterType.TileCache, tileCache )
         };
 
-        if (!TryCreateProjection(ctorInfo, ctorArgs, out var mapProjection))
+        if( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
-        if (await mapProjection!.AuthenticateAsync(credentials, ctx))
-            return new ProjectionCreationResult(mapProjection, true);
+        if( await mapProjection!.AuthenticateAsync( credentials, ctx ) )
+            return new ProjectionCreationResult( mapProjection, true );
 
-        _logger.Warning("Supplied credentials failed, attempting to use configured credentials");
+        _logger.Warning( "Supplied credentials failed, attempting to use configured credentials" );
         return await CreateMapProjection( projectionName, tileCache, mapServer, authenticate, ctx );
     }
 
@@ -54,10 +54,10 @@ public partial class ProjectionFactory
         CancellationToken ctx = default( CancellationToken )
     )
     {
-        if( !TryGetConstructorInfo(projectionName, out var ctorInfo))
+        if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        if (!EnsureMapServer(ctorInfo!, ref mapServer))
+        if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
             return ProjectionCreationResult.NoProjection;
 
         var ctorArgs = new ParameterValue[]
@@ -68,14 +68,13 @@ public partial class ProjectionFactory
             new ParameterValue( ParameterType.Credentials, ProjectionCredentials )
         };
 
-        if ( !TryCreateProjectionConfigurationCredentials(ctorInfo!, ctorArgs, out var mapProjection))
+        if( !TryCreateProjectionConfigurationCredentials( ctorInfo!, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
         if( !authenticate || await mapProjection!.AuthenticateAsync( null, ctx ) )
             return new ProjectionCreationResult( mapProjection, authenticate );
 
-        _logger.Error("Authentication of {0} instance failed", ctorInfo!.MapProjectionType);
+        _logger.Error( "Authentication of {0} instance failed", ctorInfo!.MapProjectionType );
         return new ProjectionCreationResult( mapProjection, false );
     }
-
 }

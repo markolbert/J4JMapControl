@@ -2,40 +2,40 @@
 
 public partial class ProjectionFactory
 {
-    private bool TryGetConstructorInfo(string name, out ProjectionInfo? result)
+    private bool TryGetConstructorInfo( string name, out ProjectionInfo? result )
     {
         result = _sources.Values
-                         .FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                         .FirstOrDefault( x => x.Name.Equals( name, StringComparison.OrdinalIgnoreCase ) );
 
-        if (result != null)
+        if( result != null )
             return true;
 
-        _logger.Error<string>("{0} is not a known map projection name", name);
+        _logger.Error<string>( "{0} is not a known map projection name", name );
         return false;
     }
 
-    private bool TryGetConstructorInfo(Type projType, out ProjectionInfo? result)
+    private bool TryGetConstructorInfo( Type projType, out ProjectionInfo? result )
     {
         result = _sources.Values
-                         .FirstOrDefault(x => x.MapProjectionType == projType);
+                         .FirstOrDefault( x => x.MapProjectionType == projType );
 
-        if (result != null)
+        if( result != null )
             return true;
 
-        _logger.Error("{0} is not a known map projection type", projType);
+        _logger.Error( "{0} is not a known map projection type", projType );
         return false;
     }
 
-    private bool EnsureMapServer(ProjectionInfo ctorInfo, ref IMapServer? mapServer )
+    private bool EnsureMapServer( ProjectionInfo ctorInfo, ref IMapServer? mapServer )
     {
         if( mapServer != null )
             return true;
 
-        mapServer = Activator.CreateInstance(ctorInfo.ServerType) as IMapServer;
+        mapServer = Activator.CreateInstance( ctorInfo.ServerType ) as IMapServer;
         if( mapServer != null )
             return true;
 
-        _logger.Error("Could not create an instance of {0}", ctorInfo.ServerType);
+        _logger.Error( "Could not create an instance of {0}", ctorInfo.ServerType );
         return false;
     }
 
@@ -67,9 +67,9 @@ public partial class ProjectionFactory
     {
         result = null;
 
-        if (ctorInfo.BaseConstructor == null)
+        if( ctorInfo.BaseConstructor == null )
         {
-            _logger.Error("{0} does not have a basic constructor", ctorInfo.MapProjectionType);
+            _logger.Error( "{0} does not have a basic constructor", ctorInfo.MapProjectionType );
             return false;
         }
 
@@ -89,7 +89,7 @@ public partial class ProjectionFactory
         if( result != null )
             return true;
 
-        _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
+        _logger.Error( "Failed to create instance of {0}", ctorInfo.MapProjectionType );
         return false;
     }
 
@@ -115,18 +115,18 @@ public partial class ProjectionFactory
 
             result = (IMapProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
-            _logger.Error<Type, string>("Failed to create instance of {0}, message was '{1}'",
-                                        ctorInfo.MapProjectionType,
-                                        ex.Message);
+            _logger.Error<Type, string>( "Failed to create instance of {0}, message was '{1}'",
+                                         ctorInfo.MapProjectionType,
+                                         ex.Message );
             return false;
         }
 
-        if (result != null)
+        if( result != null )
             return true;
 
-        _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
+        _logger.Error( "Failed to create instance of {0}", ctorInfo.MapProjectionType );
         return false;
     }
 }

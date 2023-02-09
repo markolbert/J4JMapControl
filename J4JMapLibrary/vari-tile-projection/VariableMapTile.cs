@@ -9,16 +9,16 @@ public class VariableMapTile : MapTileBase<FixedTileScope>
         int height,
         int width,
         int scale
-        ) 
-        : base(projection)
+    )
+        : base( projection )
     {
-        Center = new LatLong(Scope);
-        Center.SetLatLong(latitude,longitude);
+        Center = new LatLong( Scope );
+        Center.SetLatLong( latitude, longitude );
 
         Height = height;
         Width = width;
 
-        Scale = Scope.ScaleRange.ConformValueToRange(scale, "Scale");
+        Scale = Scope.ScaleRange.ConformValueToRange( scale, "Scale" );
     }
 
     protected override string TileId => $"(Lat: {Center.Latitude}, Long: {Center.Longitude}, Scale: {Scale})";

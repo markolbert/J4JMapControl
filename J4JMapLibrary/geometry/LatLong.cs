@@ -31,15 +31,15 @@ public class LatLong
             Latitude = _latitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
 
         if( longitude.HasValue )
-            Longitude = _longitudeRange.ConformValueToRange(longitude.Value, "Longitude");
+            Longitude = _longitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
     public void SetLatLong( LatLong latLong )
     {
-        Latitude = _latitudeRange.ConformValueToRange(latLong.Latitude, "Latitude");
-        Longitude = _longitudeRange.ConformValueToRange(latLong.Longitude, "Longitude");
+        Latitude = _latitudeRange.ConformValueToRange( latLong.Latitude, "Latitude" );
+        Longitude = _longitudeRange.ConformValueToRange( latLong.Longitude, "Longitude" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }

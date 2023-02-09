@@ -41,8 +41,8 @@ public class ProjectionBuilder
         Factory.Initialize();
 
         return string.IsNullOrEmpty( ProjectionName )
-            ? await BuildFromType(ctx)
-            : await BuildFromName(ctx);
+            ? await BuildFromType( ctx )
+            : await BuildFromName( ctx );
     }
 
     private async Task<ProjectionCreationResult> BuildFromType( CancellationToken ctx )
@@ -59,13 +59,13 @@ public class ProjectionBuilder
         return retVal;
     }
 
-    private async Task<ProjectionCreationResult> BuildFromName(CancellationToken ctx )
+    private async Task<ProjectionCreationResult> BuildFromName( CancellationToken ctx )
     {
         var retVal = Credentials == null
-            ? await Factory.CreateMapProjection(ProjectionName!, Cache, Server, Authenticate, ctx)
-            : await Factory.CreateMapProjection(ProjectionName!, Credentials, Cache, Server, Authenticate, ctx);
+            ? await Factory.CreateMapProjection( ProjectionName!, Cache, Server, Authenticate, ctx )
+            : await Factory.CreateMapProjection( ProjectionName!, Credentials, Cache, Server, Authenticate, ctx );
 
-        if (retVal.Projection == null)
+        if( retVal.Projection == null )
             return retVal;
 
         retVal.Projection.MapServer.MaxRequestLatency = MaxRequestLatency;

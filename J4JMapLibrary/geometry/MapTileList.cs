@@ -6,18 +6,18 @@ public class MapTileList
 {
     private readonly List<FixedMapTile> _tiles = new();
 
-    public bool Add(FixedMapTile fixedMapTile)
+    public bool Add( FixedMapTile fixedMapTile )
     {
-        if (_tiles.Count == 0)
+        if( _tiles.Count == 0 )
         {
-            _tiles.Add(fixedMapTile);
+            _tiles.Add( fixedMapTile );
             return true;
         }
 
-        if (_tiles[0].Scope != fixedMapTile.Scope)
+        if( _tiles[ 0 ].Scope != fixedMapTile.Scope )
             return false;
 
-        _tiles.Add(fixedMapTile);
+        _tiles.Add( fixedMapTile );
         return true;
     }
 

@@ -24,8 +24,8 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
         Logger.SetLoggedType( GetType() );
 
         var attribute = GetType().GetCustomAttribute<MapProjectionAttribute>();
-        if (attribute == null)
-            Logger.Error("Map projection class is not decorated with MapProjectionAttribute(s), cannot be used");
+        if( attribute == null )
+            Logger.Error( "Map projection class is not decorated with MapProjectionAttribute(s), cannot be used" );
         else Name = attribute.Name;
 
         MapServer = mapServer;
@@ -38,13 +38,13 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
     )
     {
         Logger = logger;
-        Logger.SetLoggedType(GetType());
+        Logger.SetLoggedType( GetType() );
 
         var attributes = GetType().GetCustomAttributes<MapProjectionAttribute>().ToList();
-        if (!attributes.Any())
+        if( !attributes.Any() )
         {
-            Logger.Fatal("Map projection class is not decorated with MapProjectionAttribute(s)");
-            throw new ApplicationException("Map projection class is not decorated with MapProjectionAttribute(s)");
+            Logger.Fatal( "Map projection class is not decorated with MapProjectionAttribute(s)" );
+            throw new ApplicationException( "Map projection class is not decorated with MapProjectionAttribute(s)" );
         }
 
         Name = attributes.First().Name;
@@ -53,13 +53,13 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
 
         Scope = new TScope
         {
-            LatitudeRange = new MinMax<float>(mapServer.MinLatitude, mapServer.MaxLatitude),
-            LongitudeRange = new MinMax<float>(mapServer.MinLongitude, mapServer.MaxLongitude)
+            LatitudeRange = new MinMax<float>( mapServer.MinLatitude, mapServer.MaxLatitude ),
+            LongitudeRange = new MinMax<float>( mapServer.MinLongitude, mapServer.MaxLongitude )
         };
 
         var attribute = GetType().GetCustomAttribute<MapProjectionAttribute>();
-        if (attribute == null)
-            Logger.Error("Map projection class is not decorated with MapProjectionAttribute(s), cannot be used");
+        if( attribute == null )
+            Logger.Error( "Map projection class is not decorated with MapProjectionAttribute(s), cannot be used" );
         else Name = attribute.Name;
 
         MapServer = mapServer;
@@ -71,46 +71,46 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
     public TScope Scope { get; }
     public IMapServer MapServer { get; }
 
-    public virtual bool Initialized => !string.IsNullOrEmpty(Name) && MapServer.Initialized;
+    public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;
 
     public string Name { get; } = string.Empty;
 
-    public void SetScale(int scale)
+    public void SetScale( int scale )
     {
-        if (!Initialized)
+        if( !Initialized )
         {
-            Logger.Error("Trying to set scale before projection is initialized, ignoring");
+            Logger.Error( "Trying to set scale before projection is initialized, ignoring" );
             return;
         }
 
-        Scope.Scale = Scope.ScaleRange.ConformValueToRange(scale, "Scale");
+        Scope.Scale = Scope.ScaleRange.ConformValueToRange( scale, "Scale" );
 
-        SetSizes(scale);
+        SetSizes( scale );
 
-        ScaleChanged?.Invoke(this, scale);
+        ScaleChanged?.Invoke( this, scale );
     }
 
     // this assumes MapServer has been set and scale is valid
-    protected virtual void SetSizes(int scale)
+    protected virtual void SetSizes( int scale )
     {
     }
 
-    public abstract Task<bool> AuthenticateAsync(TAuth? credentials, CancellationToken ctx = default );
+    public abstract Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default );
 
     MapScope IMapProjection.GetScope() => Scope;
 
-    async Task<bool> IMapProjection.AuthenticateAsync(object? credentials, CancellationToken ctx )
+    async Task<bool> IMapProjection.AuthenticateAsync( object? credentials, CancellationToken ctx )
     {
-        switch (credentials)
+        switch( credentials )
         {
             case TAuth castCredentials:
-                return await AuthenticateAsync(castCredentials, ctx);
+                return await AuthenticateAsync( castCredentials, ctx );
 
             case null:
-                return await AuthenticateAsync(null, ctx);
+                return await AuthenticateAsync( null, ctx );
 
             default:
-                Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
+                Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
                 return false;
         }
     }

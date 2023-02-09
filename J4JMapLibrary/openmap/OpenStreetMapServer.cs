@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[MapServer("OpenStreetMaps", typeof(string))]
+[ MapServer( "OpenStreetMaps", typeof( string ) ) ]
 public class OpenStreetMapServer : OpenMapServer, IOpenMapServer
 {
     public OpenStreetMapServer()
@@ -11,6 +11,6 @@ public class OpenStreetMapServer : OpenMapServer, IOpenMapServer
         MaxScale = 20;
         RetrievalUrl = "https://tile.openstreetmap.org/ZoomLevel/XTile/YTile.png";
         Copyright = "© OpenStreetMap Contributors";
-        CopyrightUri = new Uri("http://www.openstreetmap.org/copyright");
+        CopyrightUri = new Uri( "http://www.openstreetmap.org/copyright" );
     }
 }

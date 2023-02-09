@@ -5,21 +5,22 @@ namespace J4JMapLibrary;
 
 public class MemoryCache : CacheBase
 {
-    private readonly Dictionary<string, CacheEntry> _cached = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, CacheEntry> _cached = new( StringComparer.OrdinalIgnoreCase );
 
     public MemoryCache(
         IJ4JLogger logger
     )
-        : base(logger)
+        : base( logger )
     {
     }
 
     public override int Count => _cached.Count;
 
-    public override ReadOnlyCollection<string> QuadKeys => _cached
-        .Select(x => x.Value.Tile.QuadKey)
-        .ToList()
-        .AsReadOnly();
+    public override ReadOnlyCollection<string> QuadKeys =>
+        _cached
+           .Select( x => x.Value.Tile.QuadKey )
+           .ToList()
+           .AsReadOnly();
 
     public override void Clear() => _cached.Clear();
 

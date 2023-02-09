@@ -4,12 +4,12 @@ namespace J4JMapLibrary;
 
 public enum BingMapType
 {
-    [Description("Bing (Aerial)")]
+    [ Description( "Bing (Aerial)" ) ]
     Aerial,
 
-    [Description("Bing (Aerial w/Labels)")]
+    [ Description( "Bing (Aerial w/Labels)" ) ]
     AerialWithLabels,
 
-    [Description("Bing (Roads)")]
+    [ Description( "Bing (Roads)" ) ]
     RoadOnDemand
 }
