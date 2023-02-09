@@ -27,14 +27,4 @@ public class VariableMapTile : MapTileBase<FixedTileScope>
     public int Height { get; }
     public int Width { get; }
     public int Scale { get; }
-
-    protected override HttpRequestMessage? CreateImageRequest()
-    {
-        throw new NotImplementedException();
-    }
-
-    protected override Task<byte[]?> ExtractImageStreamAsync(HttpResponseMessage response)
-    {
-        throw new NotImplementedException();
-    }
 }
