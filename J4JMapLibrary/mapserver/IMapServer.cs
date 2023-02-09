@@ -22,7 +22,7 @@ public interface IMapServer
     HttpRequestMessage? CreateMessage( object requestInfo );
 }
 
-public interface IMapServer<in TTile, TAuth> : IMapServer
+public interface IMapServer<in TTile, in TAuth> : IMapServer
     where TTile : class
     where TAuth : class
 {
