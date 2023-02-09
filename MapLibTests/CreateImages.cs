@@ -16,7 +16,7 @@ public class CreateImages : TestBase
 
         projection.SetScale( scale );
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken());
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -31,7 +31,7 @@ public class CreateImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken());
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -46,7 +46,7 @@ public class CreateImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken());
+        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile, true);
     }
 

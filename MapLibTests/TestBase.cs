@@ -25,14 +25,6 @@ public class TestBase
     protected IJ4JLogger Logger { get; }
     protected IProjectionCredentials Configuration { get; }
 
-    protected CancellationToken GetCancellationToken( int latency = 500 )
-    {
-        var source = new CancellationTokenSource();
-        source.CancelAfter( latency < 0 ? 500 : latency );
-
-        return source.Token;
-    }
-
     protected MapProjectionFactory GetFactory()
     {
         var retVal = J4JDeusEx.ServiceProvider.GetService<MapProjectionFactory>();
