@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using J4JMapLibrary;
+using J4JMapLibrary.MapBuilder;
 using J4JMapLibrary.Viewport;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.Configuration;
@@ -14,8 +15,8 @@ internal partial class DeusEx
         builder.Register(c =>
                 {
                     var retVal = c.TryResolve<IProjectionCredentials>( out var libConfig )
-                        ? new MapProjectionFactory( libConfig, c.Resolve<IJ4JLogger>() )
-                        : new MapProjectionFactory( c.Resolve<IJ4JLogger>() );
+                        ? new ProjectionFactory( libConfig, c.Resolve<IJ4JLogger>() )
+                        : new ProjectionFactory( c.Resolve<IJ4JLogger>() );
 
                     return retVal;
                 })
@@ -52,6 +53,12 @@ internal partial class DeusEx
                .AsSelf();
 
         builder.RegisterType<Viewport>()
+               .AsSelf();
+
+        builder.RegisterType<ProjectionFactory>()
+               .AsSelf();
+
+        builder.RegisterType<ProjectionBuilder>()
                .AsSelf();
     }
 }

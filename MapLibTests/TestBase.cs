@@ -25,9 +25,9 @@ public class TestBase
     protected IJ4JLogger Logger { get; }
     protected IProjectionCredentials Configuration { get; }
 
-    protected MapProjectionFactory GetFactory()
+    protected ProjectionFactory GetFactory()
     {
-        var retVal = J4JDeusEx.ServiceProvider.GetService<MapProjectionFactory>();
+        var retVal = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
         retVal.Should().NotBeNull();
         retVal!.Initialize();
 
