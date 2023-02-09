@@ -32,22 +32,30 @@ public class MapTests : TestBase
     }
 
     [ Theory ]
-    [ InlineData( 0, true ) ]
+    [ InlineData( 500, true ) ]
+    [ InlineData( 0, false ) ]
     [ InlineData( 1, false ) ]
     public async Task BingApiKeyLatency( int maxLatency, bool testResult )
     {
-        Configuration.TryGetCredential("BingMaps", out var apiKey).Should().BeTrue();
-        var credentials = new BingCredentials(apiKey!, BingMapType.Aerial);
+        Configuration.TryGetCredential( "BingMaps", out var apiKey ).Should().BeTrue();
+        var credentials = new BingCredentials( apiKey!, BingMapType.Aerial );
 
         var result = await GetFactory().CreateMapProjection( "BingMaps", null, authenticate: false );
-        result.Authenticated.Should().Be(false);
+        result.Authenticated.Should().Be( false );
 
         var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.MapServer.MaxRequestLatency = maxLatency;
 
-        var initialized = await projection.AuthenticateAsync( credentials );
-        initialized.Should().Be( testResult );
+        if( maxLatency is > 0 and < 10 )
+        {
+            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.AuthenticateAsync( credentials ) );
+        }
+        else
+        {
+            var initialized = await projection.AuthenticateAsync( credentials );
+            initialized.Should().Be( testResult );
+        }
     }
 
     [ Theory ]
