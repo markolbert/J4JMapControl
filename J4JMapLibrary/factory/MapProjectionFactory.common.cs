@@ -20,7 +20,7 @@ public partial class MapProjectionFactory
                          .FirstOrDefault(x => x.MapProjectionType == projType);
 
         if (result != null)
-            return false;
+            return true;
 
         _logger.Error("{0} is not a known map projection type", projType);
         return false;
