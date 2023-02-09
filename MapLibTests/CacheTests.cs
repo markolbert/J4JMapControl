@@ -17,7 +17,7 @@ public class CacheTests : TestBase
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
 
-        var result = await GetFactory().CreateMapProjection( "BingMaps", null );
+        var result = await GetFactory().CreateMapProjection( "BingMaps", cache );
         var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.SetScale(scale);
@@ -28,7 +28,7 @@ public class CacheTests : TestBase
         {
             for( var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++ )
             {
-                await FixedMapTile.CreateAsync( projection, xTile, yTile, GetCancellationToken(500) );
+                await FixedMapTile.CreateAsync( projection, xTile, yTile );
                 numCreated++;
 
                 cache.Count.Should().Be( maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached );
@@ -57,7 +57,7 @@ public class CacheTests : TestBase
             File.Delete( fileName );
         }
 
-        var result = await GetFactory().CreateMapProjection("BingMaps", null);
+        var result = await GetFactory().CreateMapProjection("BingMaps", cache);
         var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.SetScale(scale);
@@ -68,7 +68,7 @@ public class CacheTests : TestBase
         {
             for (var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++)
             {
-                await FixedMapTile.CreateAsync(projection, xTile, yTile, GetCancellationToken(500));
+                await FixedMapTile.CreateAsync( projection, xTile, yTile );
                 numCreated++;
 
                 cache.Count.Should().Be(maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached);
