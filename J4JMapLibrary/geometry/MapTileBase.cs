@@ -109,7 +109,7 @@ public abstract class MapTileBase<TScope>
 
         Logger?.Verbose<string>("Reading response from {0}", uriText);
 
-        ImageData = await ExtractImageStreamAsync( response );
+        ImageData = await ExtractImageStreamAsync( response, ctx );
         ImageChanged?.Invoke(this, EventArgs.Empty);
 
         if ( ImageData == null )
