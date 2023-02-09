@@ -3,7 +3,7 @@
 namespace J4JMapLibrary;
 
 [MapServer("OpenTopoMaps", typeof(string))]
-public class OpenTopoMapServer : OpenMapServer
+public class OpenTopoMapServer : OpenMapServer, IOpenMapServer
 {
     public OpenTopoMapServer()
     {

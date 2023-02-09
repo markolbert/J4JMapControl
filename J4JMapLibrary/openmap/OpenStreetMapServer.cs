@@ -3,7 +3,7 @@
 namespace J4JMapLibrary;
 
 [MapServer("OpenStreetMaps", typeof(string))]
-public class OpenStreetMapServer : OpenMapServer
+public class OpenStreetMapServer : OpenMapServer, IOpenMapServer
 {
     public OpenStreetMapServer()
     {
