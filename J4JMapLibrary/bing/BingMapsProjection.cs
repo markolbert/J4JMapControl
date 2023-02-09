@@ -32,7 +32,7 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
 
     public override bool Initialized => base.Initialized && _authenticated;
 
-    public override async Task<bool> AuthenticateAsync(  BingCredentials? credentials, CancellationToken cancellationToken)
+    public override async Task<bool> AuthenticateAsync(  BingCredentials? credentials, CancellationToken ctx = default )
     {
         credentials ??= LibraryConfiguration?.Credentials
             .Where(x => x.Name.Equals(Name, StringComparison.OrdinalIgnoreCase))

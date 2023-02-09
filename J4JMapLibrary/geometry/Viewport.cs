@@ -116,21 +116,21 @@ public class Viewport
     }
 
     public async Task<List<FixedMapTile>?> GetViewportRegionAsync(
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     )
     {
-        var tileList = await GetViewportTilesAsync( cancellationToken );
+        var tileList = await GetViewportTilesAsync( ctx );
 
         if( tileList == null )
             return null;
 
-        return await tileList.GetTilesAsync( Projection, cancellationToken )
-                             .ToListAsync( cancellationToken );
+        return await tileList.GetTilesAsync( Projection, ctx )
+                             .ToListAsync( ctx );
     }
 
     public async Task<MapTileList?> GetViewportTilesAsync(
-        CancellationToken cancellationToken,
+        CancellationToken ctx,
         bool deferImageLoad = false
     )
     {
@@ -194,10 +194,10 @@ public class Viewport
         {
             for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
             {
-                var mapTile = await FixedMapTile.CreateAsync( Projection, xTile, yTile, cancellationToken );
+                var mapTile = await FixedMapTile.CreateAsync( Projection, xTile, yTile, ctx: ctx );
 
                 if( !deferImageLoad )
-                    await mapTile.GetImageAsync( cancellationToken );
+                    await mapTile.GetImageAsync( ctx: ctx );
 
                 if( !retVal.Add( mapTile ) )
                     _logger.Error( "Problem adding FixedMapTile to collection (probably differing IFixedTileScope)" );

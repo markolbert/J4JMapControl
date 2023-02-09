@@ -65,8 +65,8 @@ public class MemoryCache : CacheBase
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     )
     {
         var quadKey = projection.GetQuadKey( xTile, yTile );
@@ -80,7 +80,7 @@ public class MemoryCache : CacheBase
             return retVal;
 
         if( !retVal.ImageIsLoaded && !deferImageLoad )
-            await retVal.Tile.GetImageAsync( cancellationToken );
+            await retVal.Tile.GetImageAsync( ctx: ctx );
 
         return retVal;
     }
@@ -89,19 +89,19 @@ public class MemoryCache : CacheBase
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     )
     {
         var quadKey = projection.GetQuadKey( xTile, yTile );
         if( string.IsNullOrEmpty( quadKey ) )
             return null;
 
-        var retVal = new CacheEntry( projection, xTile, yTile, cancellationToken );
+        var retVal = new CacheEntry( projection, xTile, yTile, ctx );
 
         if( !deferImageLoad )
         {
-            var imageData = await retVal.Tile.GetImageAsync( cancellationToken ) ?? Array.Empty<byte>();
+            var imageData = await retVal.Tile.GetImageAsync( ctx: ctx ) ?? Array.Empty<byte>();
 
             if( imageData.Length == 0 )
             {

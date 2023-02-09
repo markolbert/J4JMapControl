@@ -7,14 +7,14 @@ public partial class FixedMapTile
         IFixedTileProjection projection,
         int x,
         int y,
-        CancellationToken ctx,
-        bool ignoreCache = false
+        bool ignoreCache = false,
+        CancellationToken ctx = default
     )
     {
         if( projection.TileCache == null || ignoreCache )
             return new FixedMapTile( projection, x, y );
 
-        var entry = await projection.TileCache.GetEntryAsync( projection, x, y, ctx );
+        var entry = await projection.TileCache.GetEntryAsync( projection, x, y, ctx: ctx );
         return entry != null ? entry.Tile : new FixedMapTile( projection, x, y );
     }
 

@@ -142,8 +142,8 @@ public class FileSystemCache : CacheBase
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
@@ -156,9 +156,9 @@ public class FileSystemCache : CacheBase
         var filePath = Path.Combine( _cacheDir, $"{projection.Name}-{key}{projection.MapServer.ImageFileExtension}" );
 
         return File.Exists( filePath )
-            ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath, cancellationToken ) )
+            ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath, ctx ) )
             : deferImageLoad
-                ? new CacheEntry( projection, xTile, yTile, cancellationToken )
+                ? new CacheEntry( projection, xTile, yTile, ctx )
                 : null;
     }
 
@@ -166,8 +166,8 @@ public class FileSystemCache : CacheBase
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
@@ -176,14 +176,14 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var retVal = new CacheEntry( projection, xTile, yTile, cancellationToken );
+        var retVal = new CacheEntry( projection, xTile, yTile, ctx );
 
         var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.MapServer.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         var bytesToWrite = retVal.Tile.ImageBytes <= 0L
-            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( cancellationToken ) ?? null
-            : await retVal.Tile.GetImageAsync( cancellationToken ) ?? null;
+            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null
+            : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null;
 
         if( bytesToWrite == null )
         {
@@ -197,7 +197,7 @@ public class FileSystemCache : CacheBase
             Logger.Warning<string>("Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey);
 
         await using var imgFile = File.Create( filePath );
-        await imgFile.WriteAsync( bytesToWrite, cancellationToken );
+        await imgFile.WriteAsync( bytesToWrite, ctx );
         imgFile.Close();
 
         _tilesCached++;

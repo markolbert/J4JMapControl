@@ -102,38 +102,19 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
     {
     }
 
-    public Task<bool> AuthenticateAsync( TAuth? credentials ) =>
-        AuthenticateAsync( credentials, CancellationToken.None );
-
-    public abstract Task<bool> AuthenticateAsync(TAuth? credentials, CancellationToken cancellationToken);
+    public abstract Task<bool> AuthenticateAsync(TAuth? credentials, CancellationToken ctx = default );
 
     MapScope IMapProjection.GetScope() => Scope;
 
-    async Task<bool> IMapProjection.AuthenticateAsync(object? credentials)
+    async Task<bool> IMapProjection.AuthenticateAsync(object? credentials, CancellationToken ctx )
     {
         switch (credentials)
         {
             case TAuth castCredentials:
-                return await AuthenticateAsync(castCredentials);
+                return await AuthenticateAsync(castCredentials, ctx);
 
             case null:
-                return await AuthenticateAsync(null);
-
-            default:
-                Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
-                return false;
-        }
-    }
-
-    async Task<bool> IMapProjection.AuthenticateAsync(object? credentials, CancellationToken cancellationToken)
-    {
-        switch (credentials)
-        {
-            case TAuth castCredentials:
-                return await AuthenticateAsync(castCredentials, cancellationToken);
-
-            case null:
-                return await AuthenticateAsync(null, cancellationToken);
+                return await AuthenticateAsync(null, ctx);
 
             default:
                 Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());

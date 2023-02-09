@@ -12,8 +12,8 @@ public interface ITileCache
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     );
 
     ITileCache? ParentCache { get; }

@@ -30,7 +30,7 @@ public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
     public override bool Initialized => base.Initialized && _authenticated;
 
 #pragma warning disable CS1998
-    public override async Task<bool> AuthenticateAsync( string? credentials, CancellationToken cancellationToken )
+    public override async Task<bool> AuthenticateAsync( string? credentials, CancellationToken ctx )
 #pragma warning restore CS1998
     {
         credentials ??= LibraryConfiguration?.Credentials

@@ -9,7 +9,7 @@ public abstract class MapTileBase<TScope>
 {
     public event EventHandler? ImageChanged;
 
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly CancellationTokenSource _ctxSource = new();
 
     protected MapTileBase(
         IMapProjection projection
@@ -34,6 +34,7 @@ public abstract class MapTileBase<TScope>
         };
 
         Scope = temp2!;
+        MapServer = projection.MapServer;
 
         MaxRequestLatency = projection.MapServer.MaxRequestLatency;
     }
@@ -43,16 +44,12 @@ public abstract class MapTileBase<TScope>
     protected byte[]? ImageData { get; set; }
 
     public TScope Scope { get; }
+    public IMapServer MapServer { get; }
     public int MaxRequestLatency { get; }
 
     public long ImageBytes { get; private set; } = -1L;
 
-    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false )
-    {
-        return await GetImageAsync( _cancellationTokenSource.Token, forceRetrieval );
-    }
-
-    public async Task<byte[]?> GetImageAsync(CancellationToken cancellationToken, bool forceRetrieval = false )
+    public async Task<byte[]?> GetImageAsync(bool forceRetrieval = false, CancellationToken ctx = default)
     {
         if( ImageData != null && !forceRetrieval )
             return ImageData;
@@ -64,7 +61,7 @@ public abstract class MapTileBase<TScope>
 
         Logger?.Verbose( "Beginning image retrieval from web" );
 
-        var request = CreateImageRequest();
+        var request = MapServer.CreateMessage( this );
         if( request == null )
         {
             Logger?.Error<string>( "Could not create HttpRequestMessage for tile ({0})", TileId );
@@ -84,9 +81,9 @@ public abstract class MapTileBase<TScope>
         try
         {
             response = MaxRequestLatency <= 0
-                ? await httpClient.SendAsync( request, cancellationToken )
-                : await httpClient.SendAsync( request, cancellationToken )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), cancellationToken );
+                ? await httpClient.SendAsync( request, ctx )
+                : await httpClient.SendAsync( request, ctx )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
             Logger?.Verbose<string>("Got response from {0}", uriText);
         }
@@ -101,7 +98,7 @@ public abstract class MapTileBase<TScope>
 
         if( response.StatusCode != HttpStatusCode.OK )
         {
-            Logger?.Error<string, HttpStatusCode, string>("Image request from {0} failed with response code {1}, message was '{2}'", uriText, response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken));
+            Logger?.Error<string, HttpStatusCode, string>("Image request from {0} failed with response code {1}, message was '{2}'", uriText, response.StatusCode, await response.Content.ReadAsStringAsync(ctx));
 
             if( wasNull )
                 ImageChanged?.Invoke( this, EventArgs.Empty );
@@ -122,8 +119,6 @@ public abstract class MapTileBase<TScope>
 
         return ImageData;
     }
-
-    protected abstract HttpRequestMessage? CreateImageRequest();
 
     protected virtual async Task<byte[]?> ExtractImageStreamAsync(HttpResponseMessage response)
     {

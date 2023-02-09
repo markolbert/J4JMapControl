@@ -8,6 +8,7 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
 
     protected OpenMapServer()
     {
+        ImageFileExtension = ".png";
     }
 
     public string RetrievalUrl { get; init; } = string.Empty;
@@ -33,7 +34,7 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
             return null;
         }
 
-        var uriText = RetrievalUrl.Replace("ZoomLevel", requestInfo.Scope.ScaleRange.ToString())
+        var uriText = RetrievalUrl.Replace("ZoomLevel", requestInfo.Scope.Scale.ToString())
             .Replace("XTile", requestInfo.X.ToString())
             .Replace("YTile", requestInfo.Y.ToString());
 

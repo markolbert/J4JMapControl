@@ -50,7 +50,7 @@ public class MapTileList
 
     public async IAsyncEnumerable<FixedMapTile> GetTilesAsync(
         IFixedTileProjection projection,
-        [ EnumeratorCancellation ] CancellationToken cancellationToken
+        [ EnumeratorCancellation ] CancellationToken ctx
     )
     {
         if( !TryGetBounds( out var bounds ) )
@@ -60,7 +60,7 @@ public class MapTileList
         {
             for( var y = bounds.UpperLeft.Y; y <= bounds.LowerRight.Y; y++ )
             {
-                yield return await FixedMapTile.CreateAsync( projection, x, y, cancellationToken );
+                yield return await FixedMapTile.CreateAsync( projection, x, y, ctx: ctx );
             }
         }
     }

@@ -20,10 +20,10 @@ public class CacheEntry
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken
+        CancellationToken ctx
     )
     {
-        Tile = FixedMapTile.CreateAsync( projection, xTile, yTile, cancellationToken, true ).Result;
+        Tile = FixedMapTile.CreateAsync( projection, xTile, yTile, true, ctx ).Result;
         CreatedUtc = DateTime.UtcNow;
     }
 

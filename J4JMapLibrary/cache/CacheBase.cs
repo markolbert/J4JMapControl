@@ -30,14 +30,14 @@ public abstract class CacheBase : ITileCache
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     )
     {
         xTile = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         yTile = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
-        var retVal = await GetEntryInternalAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
+        var retVal = await GetEntryInternalAsync( projection, xTile, yTile, deferImageLoad, ctx );
         if( retVal != null )
         {
             retVal.LastAccessedUtc = DateTime.UtcNow;
@@ -46,9 +46,9 @@ public abstract class CacheBase : ITileCache
 
         retVal = ParentCache == null
             ? null
-            : await ParentCache.GetEntryAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
+            : await ParentCache.GetEntryAsync( projection, xTile, yTile, deferImageLoad, ctx );
 
-        retVal ??= await AddEntryAsync( projection, xTile, yTile, cancellationToken, deferImageLoad );
+        retVal ??= await AddEntryAsync( projection, xTile, yTile, deferImageLoad, ctx );
 
         if( retVal == null )
         {
@@ -68,15 +68,15 @@ public abstract class CacheBase : ITileCache
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     );
 
     protected abstract Task<CacheEntry?> AddEntryAsync(
         IFixedTileProjection projection,
         int xTile,
         int yTile,
-        CancellationToken cancellationToken,
-        bool deferImageLoad = false
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
     );
 }
