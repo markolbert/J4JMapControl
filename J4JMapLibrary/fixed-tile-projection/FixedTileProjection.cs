@@ -6,13 +6,6 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
     where TScope : FixedTileScope, new()
     where TAuth : class
 {
-    // thanx to 3dGrabber for this
-    // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
-    public static int Pow( int numBase, int exp ) =>
-        Enumerable
-           .Repeat( numBase, Math.Abs( exp ) )
-           .Aggregate( 1, ( a, b ) => exp < 0 ? a / b : a * b );
-
     protected FixedTileProjection(
         IMapServer mapServer,
         IJ4JLogger logger,
@@ -41,18 +34,6 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
     public int Height => Scope.YRange.Maximum - Scope.YRange.Minimum + 1;
     public int Width => Scope.XRange.Maximum - Scope.XRange.Minimum + 1;
 
-    // this assumes IMapServer has been set and scale is valid
-    protected override void SetSizes( int scale )
-    {
-        var cellsInDimension = Pow( 2, scale );
-        var projHeightWidth = MapServer.TileHeightWidth * cellsInDimension;
-
-        Scope.XRange = new MinMax<int>( 0, projHeightWidth - 1 );
-        Scope.YRange = new MinMax<int>( 0, projHeightWidth - 1 );
-        TileXRange = new MinMax<int>( 0, cellsInDimension - 1 );
-        TileYRange = new MinMax<int>( 0, cellsInDimension - 1 );
-    }
-
     public ITileCache? TileCache { get; }
 
     public MinMax<int> TileXRange { get; private set; }
@@ -75,4 +56,23 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
 
     public string MapScale( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
+
+    // thanx to 3dGrabber for this
+    // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
+    public static int Pow( int numBase, int exp ) =>
+        Enumerable
+           .Repeat( numBase, Math.Abs( exp ) )
+           .Aggregate( 1, ( a, b ) => exp < 0 ? a / b : a * b );
+
+    // this assumes IMapServer has been set and scale is valid
+    protected override void SetSizes( int scale )
+    {
+        var cellsInDimension = Pow( 2, scale );
+        var projHeightWidth = MapServer.TileHeightWidth * cellsInDimension;
+
+        Scope.XRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        Scope.YRange = new MinMax<int>( 0, projHeightWidth - 1 );
+        TileXRange = new MinMax<int>( 0, cellsInDimension - 1 );
+        TileYRange = new MinMax<int>( 0, cellsInDimension - 1 );
+    }
 }

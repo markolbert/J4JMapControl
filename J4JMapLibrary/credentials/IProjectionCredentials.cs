@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 public interface IProjectionCredentials
 {

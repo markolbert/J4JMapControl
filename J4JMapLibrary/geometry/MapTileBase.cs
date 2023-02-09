@@ -7,8 +7,6 @@ namespace J4JMapLibrary;
 public abstract class MapTileBase<TScope>
     where TScope : MapScope
 {
-    public event EventHandler? ImageChanged;
-
     private readonly CancellationTokenSource _ctxSource = new();
 
     protected MapTileBase(
@@ -48,6 +46,7 @@ public abstract class MapTileBase<TScope>
     public int MaxRequestLatency { get; }
 
     public long ImageBytes { get; private set; } = -1L;
+    public event EventHandler? ImageChanged;
 
     public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default )
     {

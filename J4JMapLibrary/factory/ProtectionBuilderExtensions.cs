@@ -1,9 +1,11 @@
-﻿namespace J4JMapLibrary;
+﻿using J4JMapLibrary.MapBuilder;
+
+namespace J4JMapLibrary;
 
 public static class ProtectionBuilderExtensions
 {
-    public static MapBuilder.ProjectionBuilder EnableCaching(
-        this MapBuilder.ProjectionBuilder builder,
+    public static ProjectionBuilder EnableCaching(
+        this ProjectionBuilder builder,
         ITileCache cache
     )
     {
@@ -11,16 +13,16 @@ public static class ProtectionBuilderExtensions
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder DisableCaching(
-        this MapBuilder.ProjectionBuilder builder
+    public static ProjectionBuilder DisableCaching(
+        this ProjectionBuilder builder
     )
     {
         builder.Cache = null;
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder Credentials(
-        this MapBuilder.ProjectionBuilder builder,
+    public static ProjectionBuilder Credentials(
+        this ProjectionBuilder builder,
         object? credentials
     )
     {
@@ -28,24 +30,24 @@ public static class ProtectionBuilderExtensions
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder Authenticate(
-        this MapBuilder.ProjectionBuilder builder
+    public static ProjectionBuilder Authenticate(
+        this ProjectionBuilder builder
     )
     {
         builder.Authenticate = true;
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder SkipAuthentication(
-        this MapBuilder.ProjectionBuilder builder
+    public static ProjectionBuilder SkipAuthentication(
+        this ProjectionBuilder builder
     )
     {
         builder.Authenticate = false;
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder Projection(
-        this MapBuilder.ProjectionBuilder builder,
+    public static ProjectionBuilder Projection(
+        this ProjectionBuilder builder,
         string projectionName
     )
     {
@@ -54,8 +56,8 @@ public static class ProtectionBuilderExtensions
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder Projection(
-        this MapBuilder.ProjectionBuilder builder,
+    public static ProjectionBuilder Projection(
+        this ProjectionBuilder builder,
         Type projectionType
     )
     {
@@ -64,14 +66,14 @@ public static class ProtectionBuilderExtensions
         return builder;
     }
 
-    public static MapBuilder.ProjectionBuilder Projection<TProj>(
-        this MapBuilder.ProjectionBuilder builder
+    public static ProjectionBuilder Projection<TProj>(
+        this ProjectionBuilder builder
     )
         where TProj : IMapProjection =>
         builder.Projection( typeof( TProj ) );
 
-    public static MapBuilder.ProjectionBuilder RequestLatency(
-        this MapBuilder.ProjectionBuilder builder,
+    public static ProjectionBuilder RequestLatency(
+        this ProjectionBuilder builder,
         int maxRequestLatency
     )
     {

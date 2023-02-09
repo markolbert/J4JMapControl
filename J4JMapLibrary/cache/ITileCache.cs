@@ -1,10 +1,12 @@
 ﻿using System.Collections.ObjectModel;
-using System.Formats.Tar;
 
 namespace J4JMapLibrary;
 
 public interface ITileCache
 {
+    ITileCache? ParentCache { get; }
+    ReadOnlyCollection<string> QuadKeys { get; }
+    int Count { get; }
     void Clear();
     void PurgeExpired();
 
@@ -15,8 +17,4 @@ public interface ITileCache
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
-
-    ITileCache? ParentCache { get; }
-    ReadOnlyCollection<string> QuadKeys { get; }
-    int Count { get; }
 }

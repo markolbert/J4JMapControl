@@ -7,10 +7,14 @@ public partial class ProjectionFactory
     private record ProjectionTypeInfo : TypeInfoBase
     {
         public static readonly ParameterType[] BaseParameterTypes =
-            new[] { ParameterType.MapServer, ParameterType.Logger, ParameterType.TileCache };
+        {
+            ParameterType.MapServer, ParameterType.Logger, ParameterType.TileCache
+        };
 
         public static readonly ParameterType[] CredentialedParameterTypes =
-            new[] { ParameterType.MapServer, ParameterType.Logger, ParameterType.TileCache, ParameterType.Credentials };
+        {
+            ParameterType.MapServer, ParameterType.Logger, ParameterType.TileCache, ParameterType.Credentials
+        };
 
         public ProjectionTypeInfo(
             Type projType

@@ -2,8 +2,6 @@
 
 public class MapScope : IMapScope
 {
-    public static MapScope Copy( MapScope toCopy ) => new( toCopy );
-
     public MapScope()
     {
         ScaleRange = new MinMax<int>( 0, 0 );
@@ -36,6 +34,8 @@ public class MapScope : IMapScope
          && Scale == other.Scale
          && ScaleRange.Equals( other.ScaleRange );
     }
+
+    public static MapScope Copy( MapScope toCopy ) => new( toCopy );
 
     public override bool Equals( object? obj )
     {

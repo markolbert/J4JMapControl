@@ -7,7 +7,7 @@ namespace J4JMapLibrary;
 public static class MapExtensions
 {
     private static readonly IJ4JLogger? Logger;
-    private static readonly char[] ValidQuadKeyCharacters = new[] { '0', '1', '2', '3' };
+    private static readonly char[] ValidQuadKeyCharacters = { '0', '1', '2', '3' };
 
     static MapExtensions()
     {

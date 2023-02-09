@@ -7,10 +7,10 @@ namespace J4JMapLibrary;
 public class FileSystemCache : CacheBase
 {
     private readonly FileLocator _fileLocator;
+    private long _bytesCached;
 
     private string? _cacheDir;
     private int _tilesCached;
-    private long _bytesCached;
 
     public FileSystemCache(
         IJ4JLogger logger
@@ -80,7 +80,7 @@ public class FileSystemCache : CacheBase
     {
         var retVal = Directory.GetFiles( _cacheDir!,
                                          "*.*",
-                                         new EnumerationOptions()
+                                         new EnumerationOptions
                                          {
                                              IgnoreInaccessible = true, RecurseSubdirectories = true
                                          } )

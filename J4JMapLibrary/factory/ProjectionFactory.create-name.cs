@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 public partial class ProjectionFactory
 {

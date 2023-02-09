@@ -2,8 +2,6 @@
 
 public class FixedTileScope : MapScope, IFixedTileScope
 {
-    public static FixedTileScope Copy( FixedTileScope toCopy ) => new( toCopy );
-
     public FixedTileScope()
     {
         XRange = new MinMax<int>( int.MinValue, int.MaxValue );
@@ -27,6 +25,8 @@ public class FixedTileScope : MapScope, IFixedTileScope
 
         return base.Equals( other ) && XRange.Equals( other.XRange ) && YRange.Equals( other.YRange );
     }
+
+    public static FixedTileScope Copy( FixedTileScope toCopy ) => new( toCopy );
 
     public override bool Equals( object? obj )
     {

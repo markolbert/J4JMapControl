@@ -7,8 +7,6 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
     where TScope : MapScope, new()
     where TAuth : class
 {
-    public event EventHandler<int>? ScaleChanged;
-
     protected MapProjection(
         IMapServer mapServer,
         IJ4JLogger logger
@@ -67,6 +65,7 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
 
     protected IJ4JLogger Logger { get; }
     protected IProjectionCredentials? LibraryConfiguration { get; }
+    public event EventHandler<int>? ScaleChanged;
 
     public TScope Scope { get; }
     public IMapServer MapServer { get; }
@@ -90,11 +89,6 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
         ScaleChanged?.Invoke( this, scale );
     }
 
-    // this assumes MapServer has been set and scale is valid
-    protected virtual void SetSizes( int scale )
-    {
-    }
-
     public abstract Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default );
 
     MapScope IMapProjection.GetScope() => Scope;
@@ -113,5 +107,10 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
                 Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
                 return false;
         }
+    }
+
+    // this assumes MapServer has been set and scale is valid
+    protected virtual void SetSizes( int scale )
+    {
     }
 }

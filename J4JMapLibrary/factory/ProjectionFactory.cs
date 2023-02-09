@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reflection;
-using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
@@ -8,33 +7,12 @@ namespace J4JMapLibrary;
 ///TODO: google maps doesn't support ITileCache, but the factory logic assumes ALL projections do!
 public partial class ProjectionFactory
 {
-    private record ProjectionInfo(
-        string Name,
-        Type MapProjectionType,
-        Type ServerType,
-        Type CredentialsType,
-        List<ParameterInfo>? BaseConstructor,
-        List<ParameterInfo>? ConfigurationCredentialedConstructor
-    );
-
-    private enum ParameterType
-    {
-        TileCache,
-        Credentials,
-        MapServer,
-        Logger,
-        Other
-    }
-
-    private record ParameterValue( ParameterType Type, object? Value );
-
-    private record ParameterInfo( int Position, ParameterType Type, bool Optional );
-
-    private readonly Dictionary<string, ProjectionInfo> _sources = new( StringComparer.OrdinalIgnoreCase );
-
-    private readonly IJ4JLogger _logger;
     private readonly List<Assembly> _assemblyList = new();
     private readonly List<Type> _credentialTypes = new();
+
+    private readonly IJ4JLogger _logger;
+
+    private readonly Dictionary<string, ProjectionInfo> _sources = new( StringComparer.OrdinalIgnoreCase );
 
     public ProjectionFactory(
         IProjectionCredentials projCredentials,
@@ -137,4 +115,26 @@ public partial class ProjectionFactory
                                               projInfo.ConfigurationCredentialConstructor ) );
         }
     }
+
+    private record ProjectionInfo(
+        string Name,
+        Type MapProjectionType,
+        Type ServerType,
+        Type CredentialsType,
+        List<ParameterInfo>? BaseConstructor,
+        List<ParameterInfo>? ConfigurationCredentialedConstructor
+    );
+
+    private enum ParameterType
+    {
+        TileCache,
+        Credentials,
+        MapServer,
+        Logger,
+        Other
+    }
+
+    private record ParameterValue( ParameterType Type, object? Value );
+
+    private record ParameterInfo( int Position, ParameterType Type, bool Optional );
 }

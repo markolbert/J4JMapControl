@@ -1,5 +1,4 @@
-﻿using J4JSoftware.Logging;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 
 namespace J4JMapLibrary;
@@ -14,6 +13,23 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
 
     private string _apiKey = string.Empty;
     private string? _cultureCode;
+
+    public string? CultureCode
+    {
+        get => _cultureCode;
+
+        set
+        {
+            if( string.IsNullOrEmpty( value ) )
+                _cultureCode = null;
+            else
+            {
+                if( !BingMapsCultureCodes.Default.ContainsKey( value ) )
+                    Logger.Error<string>( "Invalid or unsupported culture code '{0}'", value );
+                else _cultureCode = value;
+            }
+        }
+    }
 
     public override bool Initialized => !string.IsNullOrEmpty( _apiKey ) && Metadata != null;
 
@@ -76,7 +92,7 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
         {
             var respText = await response.Content.ReadAsStringAsync( CancellationToken.None );
 
-            var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             retVal = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
             Logger.Verbose( "Bing Maps metadata retrieved" );
         }
@@ -105,23 +121,6 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
         Metadata = retVal;
 
         return true;
-    }
-
-    public string? CultureCode
-    {
-        get => _cultureCode;
-
-        set
-        {
-            if( string.IsNullOrEmpty( value ) )
-                _cultureCode = null;
-            else
-            {
-                if( !BingMapsCultureCodes.Default.ContainsKey( value ) )
-                    Logger.Error<string>( "Invalid or unsupported culture code '{0}'", value );
-                else _cultureCode = value;
-            }
-        }
     }
 
     public override HttpRequestMessage? CreateMessage( FixedMapTile requestInfo )

@@ -1,7 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using J4JSoftware.DeusEx;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 public class CacheEntry
 {

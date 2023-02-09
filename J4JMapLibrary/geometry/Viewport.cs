@@ -11,13 +11,13 @@ public class Viewport
     private static readonly MinMax<float> NonNegativeRange = new( 0F, float.MaxValue );
 
     private readonly IJ4JLogger _logger;
-
-    private IFixedTileProjection? _projection;
-    private float _height;
-    private float _width;
     private float _centerLat;
     private float _centerLong;
     private float _heading;
+    private float _height;
+
+    private IFixedTileProjection? _projection;
+    private float _width;
 
     public Viewport(
         IJ4JLogger logger
@@ -25,11 +25,6 @@ public class Viewport
     {
         _logger = logger;
         _logger.SetLoggedType( GetType() );
-    }
-
-    private void Projection_ScaleChanged( object? sender, int e )
-    {
-        UpdateNeeded = true;
     }
 
     public bool UpdateNeeded { get; private set; } = true;
@@ -113,6 +108,11 @@ public class Viewport
             _heading = value % 360;
             UpdateNeeded = true;
         }
+    }
+
+    private void Projection_ScaleChanged( object? sender, int e )
+    {
+        UpdateNeeded = true;
     }
 
     public async Task<List<FixedMapTile>?> GetViewportRegionAsync(

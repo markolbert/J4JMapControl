@@ -2,10 +2,9 @@
 
 public class LatLong
 {
-    public EventHandler? Changed;
-
     private readonly MinMax<float> _latitudeRange;
     private readonly MinMax<float> _longitudeRange;
+    public EventHandler? Changed;
 
     public LatLong(
         IMapScope scope

@@ -15,13 +15,13 @@ public abstract class CacheBase : ITileCache
 
     protected IJ4JLogger Logger { get; }
 
-    public ITileCache? ParentCache { get; set; }
-    public abstract int Count { get; }
-    public abstract ReadOnlyCollection<string> QuadKeys { get; }
-
     public int MaxEntries { get; set; }
     public long MaxBytes { get; set; }
     public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
+
+    public ITileCache? ParentCache { get; set; }
+    public abstract int Count { get; }
+    public abstract ReadOnlyCollection<string> QuadKeys { get; }
 
     public abstract void Clear();
     public abstract void PurgeExpired();

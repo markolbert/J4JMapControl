@@ -2,8 +2,6 @@
 
 public class BingMapsCultureCodes : Dictionary<string, string>
 {
-    public static BingMapsCultureCodes Default { get; } = new();
-
     private BingMapsCultureCodes()
         : base( StringComparer.OrdinalIgnoreCase )
     {
@@ -122,4 +120,6 @@ public class BingMapsCultureCodes : Dictionary<string, string>
         Add( "zh-Hant", "Chinese (Traditional)" );
         Add( "zu", "isiZulu" );
     }
+
+    public static BingMapsCultureCodes Default { get; } = new();
 }
