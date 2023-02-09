@@ -1,6 +1,4 @@
-﻿using J4JMapLibrary.Viewport;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 public static class ViewportExtensions
 {
