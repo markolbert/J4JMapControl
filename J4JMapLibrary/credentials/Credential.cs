@@ -3,7 +3,7 @@
 public class Credential
 {
     public string Name { get; set; } = string.Empty;
-    public string Key { get; set; } = string.Empty;
+    public string ApiKey { get; set; } = string.Empty;
 
-    public bool IsValid => !string.IsNullOrEmpty( Name ) && !string.IsNullOrEmpty( Key );
+    public virtual bool IsValid => !string.IsNullOrEmpty( Name ) && !string.IsNullOrEmpty( ApiKey );
 }
