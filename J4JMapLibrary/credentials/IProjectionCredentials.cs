@@ -6,5 +6,5 @@ public interface IProjectionCredentials
 {
     List<Credential> Credentials { get; set; }
 
-    bool TryGetCredential( string name, out string? result );
+    bool TryGetCredential( string projectionName, out string? result );
 }
