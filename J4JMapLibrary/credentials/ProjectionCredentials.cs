@@ -13,7 +13,9 @@ public class ProjectionCredentials : IProjectionCredentials
         // or a SignedCredential)
         var idx = 0;
 
-        while( true )
+        // thanx to Métoule for this!
+        // https://stackoverflow.com/questions/55954858/how-to-load-polymorphic-objects-in-appsettings-json
+        while ( true )
         {
             var name = config.GetValue<string>( $"Credentials:{idx}:Name" );
             var apiKey = config.GetValue<string>( $"Credentials:{idx}:ApiKey" );
