@@ -1,20 +1,60 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Net;
 using System.Reflection;
-using System.Threading;
-using Autofac.Core;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
+///TODO: google maps doesn't support ITileCache, but the factory logic assumes ALL projections do!
 public partial class MapProjectionFactory
 {
-    private readonly Dictionary<string, SourceConfigurationInfo> _sources = new(StringComparer.OrdinalIgnoreCase);
+    private record ProjectionInfo(
+        string Name,
+        Type MapProjectionType,
+        Type ServerType,
+        Type CredentialsType,
+        List<ParameterInfo>? BaseConstructor,
+        List<ParameterInfo>? ConfigurationCredentialedConstructor
+    );
+
+    private enum ParameterType
+    {
+        TileCache,
+        Credentials,
+        MapServer,
+        Logger,
+        Other
+    }
+
+    private record ParameterValue( ParameterType Type, object? Value );
+
+    private record ParameterInfo(int Position, ParameterType Type, bool Optional);
+    private readonly Dictionary<string, ProjectionInfo> _sources = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly IJ4JLogger _logger;
     private readonly IProjectionCredentials? _projCredentials;
+    private readonly List<Assembly> _assemblyList = new();
+    private readonly List<Type> _credentialTypes = new();
+
+    public MapProjectionFactory(
+        IProjectionCredentials projCredentials,
+        IJ4JLogger logger
+    )
+        : this(logger)
+    {
+        _projCredentials = projCredentials;
+    }
+
+    public MapProjectionFactory(
+        IJ4JLogger logger
+    )
+    {
+        _assemblyList.Add(GetType().Assembly);
+        _credentialTypes.Add(typeof(string));
+
+        _logger = logger;
+        _logger.SetLoggedType(GetType());
+    }
 
     public ReadOnlyCollection<Type> ProjectionTypes =>
         _sources.Select(x => x.Value.MapProjectionType)
@@ -26,158 +66,73 @@ public partial class MapProjectionFactory
             .ToList()
             .AsReadOnly();
 
-    public void Search(params Type[] types) => Search(types.Select(x => x.Assembly).ToArray());
+    public void AddAssemblies( params Assembly[] assemblies ) => _assemblyList.AddRange( assemblies );
 
-    public void Search( params Assembly[] assemblies )
+    public bool AddCredentialTypes( params Type[] types )
     {
-        var expanded = assemblies.ToList();
+        var retVal = true;
 
-        var stringAssembly = Assembly.GetAssembly( typeof( string ) );
-        if( stringAssembly != null )
-            expanded.Add( stringAssembly );
+        foreach( var type in types )
+        {
+            if( type is { IsClass: true, IsAbstract: false } )
+                _credentialTypes.Add( type );
+            else retVal = false;
+        }
 
-        var toScan = expanded.SelectMany( x => x.DefinedTypes ).ToList();
+        return retVal;
+    }
 
-        // find all the MapProjection types decorated with MapProjectionAttribute with public constructors
-        var publicProj = new HasPublicConstructors<IMapProjection>();
-        var decoratedProj = new DecoratedTypeTester<IMapProjection>( false, typeof( MapProjectionAttribute ) );
+    public void Initialize()
+    {
+        var allTypes = _assemblyList.SelectMany( x => x.DefinedTypes ).ToList();
+        allTypes.AddRange( _credentialTypes.Select( x => x.GetTypeInfo() ) );
 
-        var projTypes = toScan.Where( x => x.GetInterface( nameof( IMapProjection ) ) != null
-                                       && publicProj.MeetsRequirements( x )
-                                       && decoratedProj.MeetsRequirements( x ) )
-                              .Select( x => new ProjectionTypeInfo( x ) )
+        var projections = allTypes
+                         .Where( x => x.GetInterface( nameof( IMapProjection ) ) != null )
+                         .Select( x => new ProjectionTypeInfo( x ) )
+                         .Where( x => x.BasicConstructor != null
+                                  && !string.IsNullOrEmpty( x.Name )
+                                  && x.ServerType != null )
+                         .ToList();
+
+        // find all the MapServer types decorated with MapServerAttribute with public parameterless constructors
+        var servers = allTypes.Where( x => x.GetInterface( nameof( IMapServer ) ) != null )
+                              .Select( x => new ServerTypeInfo( x ) )
+                              .Where( x => x is { HasPublicParameterlessConstructor: true, CredentialType: {} } )
                               .ToList();
 
-        // find all the MapServer types decorated with MapServerAttribute with public constructors
-        var publicServer = new HasPublicConstructors<IMapServer>();
-        var decoratedServer = new DecoratedTypeTester<IMapServer>( false, typeof( MapServerAttribute ) );
-
-        var serverTypes = toScan.Where( x => x.GetInterface( nameof( IMapServer ) ) != null
-                                         && publicServer.MeetsRequirements( x )
-                                         && decoratedServer.MeetsRequirements( x )
-                                         && x.GetConstructors().Any( y => y.GetParameters().Length == 0 ) )
-                                .Select( x => new ServerTypeInfo( x ) )
-                                .ToList();
-
-        foreach( var projType in projTypes )
+        foreach( var projInfo in projections )
         {
             // to be usable, a projType has to refer to a known serverType,
             // and the serverType must use a known credential type.
             // it must also have a name
-            if( projType.ServerType == null || string.IsNullOrEmpty( projType.Name ) )
+            if( projInfo.ServerType == null || string.IsNullOrEmpty( projInfo.Name ) )
                 continue;
 
-            var serverType = serverTypes.FirstOrDefault( x => x.ServerType == projType.ServerType );
-            if( serverType == null )
+            var serverInfo = servers.FirstOrDefault( x =>
+                                                             x.ServerType.GetInterface( projInfo.ServerType.ToString() )
+                                                          != null );
+            if( serverInfo == null )
                 continue;
 
-            var credentialType = toScan.FirstOrDefault( x => x == serverType.CredentialType );
+            // ensure the serverType has a public parameterless constructor
+            if (!serverInfo.HasPublicParameterlessConstructor)
+                continue;
+
+            var credentialType = allTypes.FirstOrDefault( x => x == serverInfo.CredentialType );
             if( credentialType == null )
                 continue;
 
-            // ensure the credentialType as a public parameterless constructor
-            if( credentialType.GetConstructors().All( x => x.GetParameters().Length != 0 ) )
+            if( projInfo.BasicConstructor == null && projInfo.ConfigurationCredentialConstructor == null )
                 continue;
 
-            var serverCtor = new ConstructorParameterTester<IMapProjection>( serverType.ServerType,
-                                                                             typeof( IJ4JLogger ),
-                                                                             typeof( ITileCache ) );
-
-            var credentialCtor = new ConstructorParameterTester<IMapProjection>( typeof( IProjectionCredentials ),
-                serverType.ServerType,
-                typeof( IJ4JLogger ),
-                typeof( ITileCache ) );
-
-            var hasServerCtor = serverCtor.MeetsRequirements( projType.ProjectionType );
-            var hasCredentialsCtor = credentialCtor.MeetsRequirements( projType.ProjectionType );
-
-            if( !hasServerCtor && !hasCredentialsCtor )
-                continue;
-
-            _sources.Add( projType.Name,
-                          new SourceConfigurationInfo( projType.Name,
-                                                       hasCredentialsCtor,
-                                                       projType.ProjectionType,
-                                                       serverType.ServerType,
-                                                       credentialType ) );
+            _sources.Add( projInfo.Name,
+                          new ProjectionInfo( projInfo.Name,
+                                              projInfo.ProjectionType,
+                                              serverInfo.ServerType,
+                                              credentialType,
+                                              projInfo.BasicConstructor,
+                                              projInfo.ConfigurationCredentialConstructor ) );
         }
-    }
-
-    public async Task<TProj?> CreateMapProjection<TProj, TServer, TAuth>(
-        CancellationToken cancellationToken = default,
-        TAuth? credentials = null,
-        TServer? mapServer = null,
-        ITileCache? tileCache = null
-    )
-        where TProj : class, IMapProjection
-        where TAuth : class
-        where TServer : class, IMapServer, new()
-    {
-        var ctorInfo = _sources.Values
-                               .FirstOrDefault( x => x.MapProjectionType == typeof( TProj ) );
-
-        if( ctorInfo == null )
-        {
-            _logger.Error( "{0} is not a known map projection type", typeof( TProj ) );
-            return null;
-        }
-
-        mapServer ??= new TServer();
-
-        var retVal = credentials == null
-            ? await CreateLookupCredentials( ctorInfo, mapServer, tileCache, cancellationToken )
-            : await CreateWithSuppliedCredentials( ctorInfo,
-                                                                 mapServer,
-                                                                 tileCache,
-                                                                 credentials,
-                                                                 cancellationToken );
-        switch( retVal )
-        {
-            case null:
-                return null;
-
-            case TProj castRetVal:
-                return castRetVal;
-
-            default:
-                _logger.Error( "Could not cast {0} to {1}", retVal.GetType(), typeof( TProj ) );
-                return null;
-        }
-    }
-
-    public async Task<IMapProjection?> CreateMapProjection(
-        Type projectionType,
-        IMapServer? mapServer = null,
-        object? credentials = null,
-        ITileCache? tileCache = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var ctorInfo = _sources.Values
-                               .FirstOrDefault(x => x.MapProjectionType == projectionType);
-
-        if (ctorInfo == null)
-        {
-            _logger.Error("{0} is not a known map projection type", projectionType);
-            return null;
-        }
-
-        mapServer ??= Activator.CreateInstance(ctorInfo.ServerType) as IMapServer;
-
-        if( mapServer == null )
-        {
-            _logger.Error("Could not create an instance of {0}", ctorInfo.ServerType);
-            return null;
-        }
-
-        var retVal = credentials == null
-            ? await CreateLookupCredentials(ctorInfo, mapServer, tileCache, cancellationToken)
-            : await CreateWithSuppliedCredentials(ctorInfo,
-                                                  mapServer,
-                                                  tileCache,
-                                                  credentials,
-                                                  cancellationToken);
-
-        return retVal;
     }
 }

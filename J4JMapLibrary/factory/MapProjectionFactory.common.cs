@@ -2,87 +2,131 @@
 
 public partial class MapProjectionFactory
 {
-    private async Task<IMapProjection?> CreateWithSuppliedCredentials(
-        SourceConfigurationInfo ctorInfo,
-        IMapServer mapServer,
-        ITileCache? tileCache,
-        object credentials,
-        CancellationToken cancellationToken
-    )
+    private bool TryGetConstructorInfo(string name, out ProjectionInfo? result)
     {
-        if( !credentials.GetType().IsAssignableTo( ctorInfo.CredentialsType ) )
-        {
-            _logger.Error( "{0} requires {1} as a credential type but a {2} was supplied",
-                           ctorInfo.MapProjectionType,
-                           ctorInfo.CredentialsType,
-                           credentials.GetType() );
+        result = _sources.Values
+                         .FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
-            return null;
+        if (result != null)
+            return true;
+
+        _logger.Error<string>("{0} is not a known map projection name", name);
+        return false;
+    }
+
+    private bool TryGetConstructorInfo(Type projType, out ProjectionInfo? result)
+    {
+        result = _sources.Values
+                         .FirstOrDefault(x => x.MapProjectionType == projType);
+
+        if (result != null)
+            return false;
+
+        _logger.Error("{0} is not a known map projection type", projType);
+        return false;
+    }
+
+    private bool EnsureMapServer(ProjectionInfo ctorInfo, ref IMapServer? mapServer )
+    {
+        if( mapServer != null )
+            return true;
+
+        mapServer = Activator.CreateInstance(ctorInfo.ServerType) as IMapServer;
+        if( mapServer != null )
+            return true;
+
+        _logger.Error("Could not create an instance of {0}", ctorInfo.ServerType);
+        return false;
+    }
+
+    private object?[] CreateConstructorArguments( List<ParameterInfo> parameterSlots, params ParameterValue[] values )
+    {
+        if( parameterSlots.Count != values.Length )
+        {
+            _logger.Fatal( "Inconsistent number of parameter slots ({0}) and values ({1})",
+                           parameterSlots.Count,
+                           values.Length );
+            return Array.Empty<object?>();
         }
 
-        IMapProjection? retVal;
+        var retVal = new object?[ values.Length ];
+
+        foreach( var slot in parameterSlots.OrderBy( x => x.Position ) )
+        {
+            retVal[ slot.Position ] = values.FirstOrDefault( x => x.Type == slot.Type )?.Value;
+        }
+
+        return retVal;
+    }
+
+    private bool TryCreateProjection(
+        ProjectionInfo ctorInfo,
+        ParameterValue[] parameterValues,
+        out IMapProjection? result
+    )
+    {
+        result = null;
+
+        if (ctorInfo.BaseConstructor == null)
+        {
+            _logger.Error("{0} does not have a basic constructor", ctorInfo.MapProjectionType);
+            return false;
+        }
 
         try
         {
-            retVal = (IMapProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType,
-                                                                 new object?[] { mapServer, _logger, tileCache } );
+            var arguments = CreateConstructorArguments( ctorInfo.BaseConstructor, parameterValues );
+            result = (IMapProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
         }
         catch( Exception ex )
         {
             _logger.Error<Type, string>( "Failed to create instance of {0}, message was '{1}'",
                                          ctorInfo.MapProjectionType,
                                          ex.Message );
-            return null;
+            return false;
         }
 
-        if( retVal == null )
-        {
-            _logger.Error( "Failed to create instance of {0}", ctorInfo.MapProjectionType );
-            return null;
-        }
+        if( result != null )
+            return true;
 
-        if( await retVal.AuthenticateAsync( credentials, cancellationToken ) )
-            return retVal;
-
-        _logger.Error( "Authentication of {0} instance failed", ctorInfo.MapProjectionType );
-        return null;
+        _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
+        return false;
     }
 
-    private async Task<IMapProjection?> CreateLookupCredentials(
-        SourceConfigurationInfo ctorInfo,
-        IMapServer mapServer,
-        ITileCache? tileCache,
-        CancellationToken cancellationToken
+    private bool TryCreateProjectionConfigurationCredentials(
+        ProjectionInfo ctorInfo,
+        ParameterValue[] parameterValues,
+        out IMapProjection? result
     )
     {
-        IMapProjection? retVal;
+        result = null;
+
+        if( ctorInfo.ConfigurationCredentialedConstructor == null )
+        {
+            _logger.Error( "{0} does not have a constructor supporting using configured credentials",
+                           ctorInfo.MapProjectionType );
+            return false;
+        }
 
         try
         {
-            retVal = (IMapProjection?)Activator.CreateInstance(ctorInfo.MapProjectionType,
-                                                               new object?[]
-                                                               {
-                                                                   _projCredentials, mapServer, _logger, tileCache
-                                                               });
+            var arguments =
+                CreateConstructorArguments( ctorInfo.ConfigurationCredentialedConstructor, parameterValues );
+
+            result = (IMapProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
         }
         catch (Exception ex)
         {
             _logger.Error<Type, string>("Failed to create instance of {0}, message was '{1}'",
                                         ctorInfo.MapProjectionType,
                                         ex.Message);
-            return null;
+            return false;
         }
 
-        if (retVal == null)
-        {
-            _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
-            return null;
-        }
+        if (result != null)
+            return true;
 
-        if (await retVal.AuthenticateAsync(null, cancellationToken))
-            return retVal;
-
-        _logger.Error("Authentication of {0} instance failed", ctorInfo.MapProjectionType);
-        return null;
+        _logger.Error("Failed to create instance of {0}", ctorInfo.MapProjectionType);
+        return false;
     }
 }
