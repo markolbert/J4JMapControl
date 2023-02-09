@@ -21,7 +21,7 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
         return !string.IsNullOrEmpty( _userAgent );
     }
 
-    public override HttpRequestMessage? CreateMessage( FixedMapTile requestInfo )
+    public override HttpRequestMessage? CreateMessage( FixedMapTile tile )
     {
         if( !Initialized )
             return null;
@@ -32,9 +32,14 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
             return null;
         }
 
-        var uriText = RetrievalUrl.Replace( "ZoomLevel", requestInfo.Scope.Scale.ToString() )
-                                  .Replace( "XTile", requestInfo.X.ToString() )
-                                  .Replace( "YTile", requestInfo.Y.ToString() );
+        var replacements = new Dictionary<string, string>
+        {
+            { "{zoom}", tile.Scope.Scale.ToString()},
+            { "{x}", tile.X.ToString() },
+            { "{y}", tile.Y.ToString() },
+        };
+
+        var uriText = ReplaceParameters( RetrievalUrl, replacements ); 
 
         var retVal = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
         retVal.Headers.Add( "User-Agent", _userAgent );

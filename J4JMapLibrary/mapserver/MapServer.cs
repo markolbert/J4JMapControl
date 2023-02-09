@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
@@ -46,7 +47,23 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 
     public abstract Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
 
-    public abstract HttpRequestMessage? CreateMessage( TTile requestInfo );
+    public abstract HttpRequestMessage? CreateMessage( TTile tile );
+
+    // key value matching is case sensitive
+    protected string ReplaceParameters(
+        string template,
+        Dictionary<string, string> values
+    )
+    {
+        var sb = new StringBuilder(template);
+
+        foreach( var kvp in values )
+        {
+            sb.Replace( kvp.Key, kvp.Value );
+        }
+
+        return sb.ToString();
+    }
 
     HttpRequestMessage? IMapServer.CreateMessage( object requestInfo )
     {
