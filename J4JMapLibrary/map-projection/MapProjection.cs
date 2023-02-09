@@ -14,9 +14,6 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
         IJ4JLogger logger
     )
     {
-        CancellationTokenSource = new CancellationTokenSource();
-        CancellationTokenSource.CancelAfter( mapServer.MaxRequestLatency );
-
         Scope = new TScope
         {
             LatitudeRange = new MinMax<float>( mapServer.MinLatitude, mapServer.MaxLatitude ),
@@ -54,9 +51,6 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
 
         LibraryConfiguration = credentials;
 
-        CancellationTokenSource = new CancellationTokenSource();
-        CancellationTokenSource.CancelAfter(mapServer.MaxRequestLatency);
-
         Scope = new TScope
         {
             LatitudeRange = new MinMax<float>(mapServer.MinLatitude, mapServer.MaxLatitude),
@@ -71,7 +65,6 @@ public abstract class MapProjection<TScope, TAuth> : IMapProjection<TScope, TAut
         MapServer = mapServer;
     }
 
-    protected CancellationTokenSource CancellationTokenSource { get; }
     protected IJ4JLogger Logger { get; }
     protected IProjectionCredentials? LibraryConfiguration { get; }
 
