@@ -34,20 +34,20 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
 
     public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
     {
+        if (MapServer is not IBingMapServer bingServer)
+        {
+            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
+            return false;
+        }
+
         credentials ??= LibraryConfiguration?.Credentials
                                              .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
-                                             .Select( x => new BingCredentials( x.Key, BingMapType.Aerial ) )
+                                             .Select( x => new BingCredentials( x.Key, bingServer.MapType ) )
                                              .FirstOrDefault();
 
         if( credentials == null )
         {
             Logger.Error( "No credentials provided or available" );
-            return false;
-        }
-
-        if( MapServer is not IBingMapServer bingServer )
-        {
-            Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
             return false;
         }
 
