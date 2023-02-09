@@ -37,8 +37,10 @@ public class MapTests : TestBase
     [ InlineData( 1, false ) ]
     public async Task BingApiKeyLatency( int maxLatency, bool testResult )
     {
-        Configuration.TryGetCredential( "BingMaps", out var apiKey ).Should().BeTrue();
-        var credentials = new BingCredentials( apiKey!, BingMapType.Aerial );
+        Configuration.TryGetCredential( "BingMaps", out var rawCredentials ).Should().BeTrue();
+        rawCredentials.Should().NotBeNull();        
+        
+        var credentials = new BingCredentials( rawCredentials!.ApiKey, BingMapType.Aerial );
 
         var result = await GetFactory().CreateMapProjection( "BingMaps", null, authenticate: false );
         result.Authenticated.Should().Be( false );
