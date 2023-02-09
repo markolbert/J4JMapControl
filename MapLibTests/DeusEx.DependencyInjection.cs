@@ -22,27 +22,7 @@ internal partial class DeusEx
                 })
                .AsSelf();
 
-        builder.Register( _ =>
-                {
-                    ProjectionCredentials? config;
-
-                    try
-                    {
-                        // this will ignore the SourceConfiguration entries because
-                        // they're polymorphic, so we go back afterwards and add them
-                        config = hbc.Configuration.Get<ProjectionCredentials>();
-                    }
-                    catch
-                    {
-                        config = new ProjectionCredentials();
-                    }
-
-                    if( config != null )
-                        return config;
-
-                    Logger?.Fatal("Failed to initialize ILibraryConfiguration");
-                    throw new ApplicationException( "Failed to initialize ILibraryConfiguration" );
-                } )
+        builder.Register( _ => new ProjectionCredentials( hbc.Configuration ) )
                .As<IProjectionCredentials>()
                .SingleInstance();
 

@@ -186,7 +186,14 @@ public class BuilderTests : TestBase
 
         var credentialsFound = builder.Factory
                                       .ProjectionCredentials!
-                                      .TryGetCredential( projectionName, out var key );
+                                      .TryGetCredential( projectionName, out var rawCredentials );
+
+        rawCredentials.Should().NotBeNull();
+
+        if( projectionName.Equals( "GoogleMaps" ) )
+            rawCredentials!.Should().BeAssignableTo<GoogleCredentials>();
+
+        var signedCredentials = rawCredentials as SignedCredential;
 
         switch( projectionName )
         {
@@ -203,8 +210,9 @@ public class BuilderTests : TestBase
 
         var credentials = projectionName switch
         {
-            "BingMaps" => (object) new BingCredentials( key!, BingMapType.Aerial ),
-            _ => key!
+            "BingMaps" => (object) new BingCredentials( rawCredentials!.ApiKey, BingMapType.Aerial ),
+            "GoogleMaps" => (object) new GoogleCredentials( signedCredentials!.ApiKey, signedCredentials.Signature ),
+            _ => rawCredentials!.ApiKey
         };
 
         builder!.Projection( projectionName )
