@@ -10,12 +10,10 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 {
     public const int DefaultMaxRequestLatency = 500;
 
-    private int _maxLatency = DefaultMaxRequestLatency;
-
     protected MapServer()
     {
-        Logger = J4JDeusEx.GetLogger();
-        Logger?.SetLoggedType(GetType());
+        Logger = J4JDeusEx.GetLogger()!;
+        Logger.SetLoggedType(GetType());
 
         var attr = GetType().GetCustomAttribute<MapServerAttribute>();
         SupportedProjection = attr?.ProjectionName ?? string.Empty;
@@ -38,23 +36,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public float MinLatitude { get; protected set; } = -MapConstants.Wgs84MaxLatitude;
     public float MaxLongitude { get; protected set; } = 180;
     public float MinLongitude { get; protected set; } = -180;
-
-    public int MaxRequestLatency
-    {
-        get => _maxLatency;
-
-        set
-        {
-            if (value < 0)
-            {
-                Logger.Error("Trying to set MaxRequestLatency < 0, defaulting to {0}", DefaultMaxRequestLatency);
-                value = DefaultMaxRequestLatency;
-            }
-
-            _maxLatency = value;
-        }
-    }
-
+    public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
     public int TileHeightWidth { get; protected set; }
     public string ImageFileExtension { get; protected set; } = string.Empty;
 
