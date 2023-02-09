@@ -53,7 +53,12 @@ public sealed class BingMapsProjection : FixedTileProjection<FixedTileScope, Bin
 
         _authenticated = false;
 
-        if (!await bingServer.InitializeAsync(credentials))
+        var initialized = MapServer.MaxRequestLatency < 0
+            ? await bingServer.InitializeAsync( credentials, ctx )
+            : await bingServer.InitializeAsync( credentials, ctx )
+                              .WaitAsync( TimeSpan.FromMilliseconds( MapServer.MaxRequestLatency ), ctx );
+
+        if (!initialized)
             return false;
 
         // accessing the Metadata property retrieves it

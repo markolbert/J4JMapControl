@@ -15,7 +15,7 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
     public override bool Initialized => !string.IsNullOrEmpty(_userAgent);
 
 #pragma warning disable CS1998
-    public override async Task<bool> InitializeAsync(string userAgent)
+    public override async Task<bool> InitializeAsync(string userAgent, CancellationToken ctx = default)
 #pragma warning restore CS1998
     {
         _userAgent = userAgent;

@@ -43,7 +43,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public string Copyright { get; protected set; } = string.Empty;
     public Uri? CopyrightUri { get; protected set; }
 
-    public abstract Task<bool> InitializeAsync( TAuth credentials );
+    public abstract Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
 
     public abstract HttpRequestMessage? CreateMessage(TTile requestInfo);
 

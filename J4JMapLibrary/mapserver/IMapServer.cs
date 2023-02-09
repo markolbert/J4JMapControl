@@ -26,6 +26,6 @@ public interface IMapServer<in TTile, TAuth> : IMapServer
     where TTile : class
     where TAuth : class
 {
-    Task<bool> InitializeAsync( TAuth credentials );
+    Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
     HttpRequestMessage? CreateMessage(TTile requestInfo);
 }

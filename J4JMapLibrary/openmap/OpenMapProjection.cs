@@ -52,7 +52,7 @@ public class OpenMapProjection : FixedTileProjection<FixedTileScope, string>
 
         _authenticated = false;
 
-        if (!await mapServer.InitializeAsync(credentials))
+        if (!await mapServer.InitializeAsync(credentials, ctx))
             return false;
 
         SetScale(Scope.ScaleRange.Minimum);

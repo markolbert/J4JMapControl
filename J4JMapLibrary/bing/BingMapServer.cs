@@ -21,7 +21,7 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
 
     public BingImageryMetadata? Metadata { get; private set; }
 
-    public override async Task<bool> InitializeAsync( BingCredentials credentials )
+    public override async Task<bool> InitializeAsync( BingCredentials credentials, CancellationToken ctx = default )
     {
         _apiKey = credentials.ApiKey;
         MapType = credentials.MapType;
@@ -40,22 +40,25 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
 
         try
         {
-            response = MaxRequestLatency <= 0
-                 ? await httpClient.SendAsync(request, CancellationToken.None)
-            : await httpClient.SendAsync(request, CancellationToken.None)
-                                   .WaitAsync(TimeSpan.FromMilliseconds(MaxRequestLatency), CancellationToken.None);
+            response = MaxRequestLatency < 0
+                ? await httpClient.SendAsync( request, ctx )
+                : await httpClient.SendAsync( request, ctx )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
-            Logger.Error<string, string>("Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
+            Logger.Error<string, string>( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
                                           uriText,
-                                          ex.Message);
+                                          ex.Message );
             return false;
         }
 
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            var error = await response.Content.ReadAsStringAsync(CancellationToken.None);
+            var error = MaxRequestLatency < 0
+                ? await response.Content.ReadAsStringAsync( ctx )
+                : await response.Content.ReadAsStringAsync( ctx )
+                                .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
             Logger.Error<string, string>(
                 "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",

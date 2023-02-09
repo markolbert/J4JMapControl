@@ -120,14 +120,17 @@ public abstract class MapTileBase<TScope>
         return ImageData;
     }
 
-    protected virtual async Task<byte[]?> ExtractImageStreamAsync(HttpResponseMessage response)
+    protected virtual async Task<byte[]?> ExtractImageStreamAsync(HttpResponseMessage response, CancellationToken ctx = default)
     {
         try
         {
-            await using var responseStream = await response.Content.ReadAsStreamAsync();
+            await using var responseStream = MaxRequestLatency < 0
+                ? await response.Content.ReadAsStreamAsync( ctx )
+                : await response.Content.ReadAsStreamAsync( ctx )
+                                .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
             var memStream = new MemoryStream();
-            await responseStream.CopyToAsync(memStream);
+            await responseStream.CopyToAsync( memStream, ctx );
 
             return memStream.ToArray();
         }
