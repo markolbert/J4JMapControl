@@ -95,7 +95,9 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
             .Replace("{quadkey}", "0")
             .Replace("{culture}", null);
 
-        ImageFileExtension = Path.GetExtension(urlText);
+        var extUri = new Uri(urlText);
+
+        ImageFileExtension = Path.GetExtension(extUri.LocalPath);
         TileHeightWidth = retVal.PrimaryResource!.ImageWidth;
         Metadata = retVal;
 
