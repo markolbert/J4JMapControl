@@ -1,7 +1,4 @@
-﻿using System.Net;
-using System.Text.Json;
-
-namespace J4JMapLibrary;
+﻿namespace J4JMapLibrary;
 
 [ MapServer( "Google", typeof( GoogleCredentials ) ) ]
 public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoogleMapServer
@@ -21,7 +18,7 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
 
     public override bool Initialized => !string.IsNullOrEmpty( _apiKey ) && !string.IsNullOrEmpty( _signature );
 
-    public GoogleMapType MapType { get; private set; } = GoogleMapType.RoadMap;
+    public GoogleMapType MapType { get; set; } = GoogleMapType.RoadMap;
     public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
     public string RetrievalUrl { get; }
 

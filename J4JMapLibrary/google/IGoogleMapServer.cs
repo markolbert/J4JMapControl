@@ -2,6 +2,6 @@
 
 public interface IGoogleMapServer : IMapServer<VariableMapTile, GoogleCredentials>
 {
-    GoogleMapType MapType { get; }
+    GoogleMapType MapType { get; set; }
     GoogleImageFormat ImageFormat { get; set; }
 }
