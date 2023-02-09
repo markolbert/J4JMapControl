@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public partial class MapProjectionFactory
+public partial class ProjectionFactory
 {
     private bool TryGetConstructorInfo(string name, out ProjectionInfo? result)
     {

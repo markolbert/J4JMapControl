@@ -1,8 +1,8 @@
 ﻿namespace J4JMapLibrary;
 
-public partial class MapProjectionFactory
+public partial class ProjectionFactory
 {
-    public async Task<MapCreationResult> CreateMapProjection(
+    public async Task<ProjectionCreationResult> CreateMapProjection(
         Type projectionType,
         object credentials,
         ITileCache? tileCache,
@@ -12,10 +12,10 @@ public partial class MapProjectionFactory
     )
     {
         if( !TryGetConstructorInfo( projectionType, out var ctorInfo ) )
-            return MapCreationResult.NoProjection;
+            return ProjectionCreationResult.NoProjection;
 
         if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
-            return MapCreationResult.NoProjection;
+            return ProjectionCreationResult.NoProjection;
 
         if( !credentials.GetType().IsAssignableTo( ctorInfo!.CredentialsType ) )
         {
@@ -35,16 +35,16 @@ public partial class MapProjectionFactory
         };
 
         if ( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
-            return MapCreationResult.NoProjection;
+            return ProjectionCreationResult.NoProjection;
 
         if( await mapProjection!.AuthenticateAsync( credentials, ctx ) )
-            return new MapCreationResult( mapProjection, true );
+            return new ProjectionCreationResult( mapProjection, true );
 
         _logger.Warning( "Supplied credentials failed, attempting to use configured credentials" );
         return await CreateMapProjection( projectionType, tileCache, mapServer, authenticate, ctx );
     }
 
-    public async Task<MapCreationResult> CreateMapProjection(
+    public async Task<ProjectionCreationResult> CreateMapProjection(
         Type projectionType,
         ITileCache? tileCache,
         IMapServer? mapServer = null,
@@ -53,26 +53,26 @@ public partial class MapProjectionFactory
     )
     {
         if( !TryGetConstructorInfo( projectionType, out var ctorInfo ) )
-            return MapCreationResult.NoProjection;
+            return ProjectionCreationResult.NoProjection;
 
         if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
-            return MapCreationResult.NoProjection;
+            return ProjectionCreationResult.NoProjection;
 
         var ctorArgs = new ParameterValue[]
         {
             new ParameterValue( ParameterType.MapServer, mapServer ),
             new ParameterValue( ParameterType.Logger, _logger ),
             new ParameterValue( ParameterType.TileCache, tileCache ),
-            new ParameterValue( ParameterType.Credentials, _projCredentials )
+            new ParameterValue( ParameterType.Credentials, ProjectionCredentials )
         };
 
         if ( !TryCreateProjectionConfigurationCredentials( ctorInfo!, ctorArgs, out var mapProjection ) )
-            return MapCreationResult.NoProjection;
+            return ProjectionCreationResult.NoProjection;
 
         if( !authenticate || await mapProjection!.AuthenticateAsync( null, ctx ) )
-            return new MapCreationResult( mapProjection, authenticate );
+            return new ProjectionCreationResult( mapProjection, authenticate );
 
         _logger.Error( "Authentication of {0} instance failed", ctorInfo!.MapProjectionType );
-        return MapCreationResult.NoProjection;
+        return ProjectionCreationResult.NoProjection;
     }
 }

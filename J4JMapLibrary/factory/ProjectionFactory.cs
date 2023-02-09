@@ -6,7 +6,7 @@ using J4JSoftware.Logging;
 namespace J4JMapLibrary;
 
 ///TODO: google maps doesn't support ITileCache, but the factory logic assumes ALL projections do!
-public partial class MapProjectionFactory
+public partial class ProjectionFactory
 {
     private record ProjectionInfo(
         string Name,
@@ -32,20 +32,19 @@ public partial class MapProjectionFactory
     private readonly Dictionary<string, ProjectionInfo> _sources = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly IJ4JLogger _logger;
-    private readonly IProjectionCredentials? _projCredentials;
     private readonly List<Assembly> _assemblyList = new();
     private readonly List<Type> _credentialTypes = new();
 
-    public MapProjectionFactory(
+    public ProjectionFactory(
         IProjectionCredentials projCredentials,
         IJ4JLogger logger
     )
         : this(logger)
     {
-        _projCredentials = projCredentials;
+        ProjectionCredentials = projCredentials;
     }
 
-    public MapProjectionFactory(
+    public ProjectionFactory(
         IJ4JLogger logger
     )
     {
@@ -55,6 +54,8 @@ public partial class MapProjectionFactory
         _logger = logger;
         _logger.SetLoggedType(GetType());
     }
+
+    public IProjectionCredentials? ProjectionCredentials { get; }
 
     public ReadOnlyCollection<Type> ProjectionTypes =>
         _sources.Select(x => x.Value.MapProjectionType)

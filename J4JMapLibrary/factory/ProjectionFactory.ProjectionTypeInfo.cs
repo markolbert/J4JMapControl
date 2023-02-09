@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-public partial class MapProjectionFactory
+public partial class ProjectionFactory
 {
     private record ProjectionTypeInfo : TypeInfoBase
     {
