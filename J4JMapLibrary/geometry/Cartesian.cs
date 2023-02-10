@@ -14,6 +14,15 @@ public class Cartesian
         Scale = scope.Scale;
     }
 
+    public Cartesian(
+        IMapScope scope
+    )
+    {
+        Scale = scope.Scale;
+        XRange = new MinMax<int>( int.MinValue, int.MaxValue );
+        YRange = new MinMax<int>(int.MinValue, int.MaxValue);
+    }
+
     public int Scale { get; }
 
     public MinMax<int> XRange { get; internal set; }
