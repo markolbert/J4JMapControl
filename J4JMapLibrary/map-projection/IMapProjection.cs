@@ -1,4 +1,6 @@
-﻿namespace J4JMapLibrary;
+﻿using static System.Formats.Asn1.AsnWriter;
+
+namespace J4JMapLibrary;
 
 public interface IMapProjection
 {
@@ -16,7 +18,8 @@ public interface IMapProjection
 }
 
 public interface IMapProjection<out TScope, in TAuth> : IMapProjection
-    where TScope : MapScope
+    where TScope : MapScope, new()
+    where TAuth : class
 {
     TScope Scope { get; }
     Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default );
