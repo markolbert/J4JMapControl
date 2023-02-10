@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public interface IVariableMapTile : IMapTile
+public interface IStaticFragment : IMapFragment
 {
     LatLong Center { get; }
     float Height { get; }

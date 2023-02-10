@@ -63,7 +63,7 @@ public class MemoryCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> GetEntryInternalAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,
@@ -87,7 +87,7 @@ public class MemoryCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> AddEntryAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,
@@ -115,7 +115,7 @@ public class MemoryCache : CacheBase
 
         if( _cached.ContainsKey( key ) )
         {
-            Logger.Warning<string>( "Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey );
+            Logger.Warning<string>( "Replacing map mapFragment with quadkey '{0}'", retVal.Tile.QuadKey );
             _cached[ key ] = retVal;
         }
         else

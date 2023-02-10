@@ -17,25 +17,25 @@ public abstract class ProjectionExtract : IProjectionExtract
 
     protected IJ4JLogger Logger { get; }
     protected IMapProjection Projection { get; }
-    protected List<IMapTile> Tiles { get; } = new();
+    protected List<IMapFragment> Tiles { get; } = new();
 
-    public bool Add( IMapTile tile )
+    public bool Add( IMapFragment mapFragment )
     {
         if( Tiles.Count == 0 )
         {
-            Tiles.Add( tile );
+            Tiles.Add( mapFragment );
             return true;
         }
 
 
-        if( Tiles[ 0 ].GetScope() != tile.GetScope() )
+        if( Tiles[ 0 ].GetScope() != mapFragment.GetScope() )
             return false;
 
-        Tiles.Add( tile );
+        Tiles.Add( mapFragment );
         return true;
     }
 
-    public void Remove( IMapTile tile ) => Tiles.Remove( tile );
+    public void Remove( IMapFragment mapFragment ) => Tiles.Remove( mapFragment );
 
     public void RemoveAt( int idx )
     {
@@ -45,7 +45,7 @@ public abstract class ProjectionExtract : IProjectionExtract
 
     public void Clear() => Tiles.Clear();
 
-    public abstract IAsyncEnumerable<IMapTile> GetTilesAsync( CancellationToken ctx = default );
+    public abstract IAsyncEnumerable<IMapFragment> GetTilesAsync( CancellationToken ctx = default );
 
-    IAsyncEnumerable<IMapTile> IProjectionExtract.GetTilesAsync(CancellationToken ctx) => GetTilesAsync(ctx);
+    IAsyncEnumerable<IMapFragment> IProjectionExtract.GetTilesAsync(CancellationToken ctx) => GetTilesAsync(ctx);
 }

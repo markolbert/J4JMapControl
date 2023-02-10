@@ -27,7 +27,7 @@ public abstract class CacheBase : ITileCache
     public abstract void PurgeExpired();
 
     public virtual async Task<CacheEntry?> GetEntryAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,
@@ -52,7 +52,7 @@ public abstract class CacheBase : ITileCache
 
         if( retVal == null )
         {
-            Logger.Error( "Failed to create {0} cache entry for tile ({1}, {2})",
+            Logger.Error( "Failed to create {0} cache entry for mapFragment ({1}, {2})",
                           projection.Name,
                           xTile,
                           yTile );
@@ -65,7 +65,7 @@ public abstract class CacheBase : ITileCache
     }
 
     protected abstract Task<CacheEntry?> GetEntryInternalAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,
@@ -73,7 +73,7 @@ public abstract class CacheBase : ITileCache
     );
 
     protected abstract Task<CacheEntry?> AddEntryAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,

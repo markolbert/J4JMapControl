@@ -1,8 +1,8 @@
 ﻿namespace J4JMapLibrary;
 
-public class VariableMapTile : MapTileBase<TileScope>, IVariableMapTile
+public class StaticFragment : MapFragment<TiledScope>, IStaticFragment
 {
-    public VariableMapTile(
+    public StaticFragment(
         IMapProjection projection,
         float latitude,
         float longitude,

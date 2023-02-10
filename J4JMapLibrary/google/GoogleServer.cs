@@ -4,7 +4,7 @@ using System.Text;
 namespace J4JMapLibrary;
 
 [ MapServer( "Google", typeof( GoogleCredentials ) ) ]
-public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoogleMapServer
+public class GoogleServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
 {
     private string _apiKey = string.Empty;
     private string _signature = string.Empty;
@@ -39,7 +39,7 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( VariableMapTile tile )
+    public override HttpRequestMessage? CreateMessage( StaticFragment mapFragment )
     {
         if( !Initialized )
         {
@@ -49,10 +49,10 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
 
         var replacements = new Dictionary<string, string>
         {
-            { "{center}", $"{tile.Center.Latitude}, {tile.Center.Longitude}" },
+            { "{center}", $"{mapFragment.Center.Latitude}, {mapFragment.Center.Longitude}" },
             { "{format}", ImageFormat.ToString() },
-            { "{zoom}", tile.Scale.ToString() },
-            { "{size}", $"{tile.Width}x{tile.Height}" },
+            { "{zoom}", mapFragment.Scale.ToString() },
+            { "{size}", $"{mapFragment.Width}x{mapFragment.Height}" },
             { "{apikey}", _apiKey }
         };
 

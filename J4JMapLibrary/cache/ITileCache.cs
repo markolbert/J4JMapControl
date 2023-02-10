@@ -11,7 +11,7 @@ public interface ITileCache
     void PurgeExpired();
 
     Task<CacheEntry?> GetEntryAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,

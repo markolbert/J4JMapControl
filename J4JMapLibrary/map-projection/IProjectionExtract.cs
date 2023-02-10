@@ -2,9 +2,9 @@
 
 public interface IProjectionExtract
 {
-    bool Add(IMapTile tile);
-    void Remove(IMapTile tile);
+    bool Add(IMapFragment mapFragment);
+    void Remove(IMapFragment mapFragment);
     void RemoveAt(int idx);
     void Clear();
-    IAsyncEnumerable<IMapTile> GetTilesAsync(CancellationToken ctx = default);
+    IAsyncEnumerable<IMapFragment> GetTilesAsync(CancellationToken ctx = default);
 }

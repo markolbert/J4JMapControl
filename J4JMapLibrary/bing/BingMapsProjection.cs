@@ -3,7 +3,7 @@
 namespace J4JMapLibrary;
 
 [ MapProjection( "BingMaps", typeof( IBingMapServer ) ) ]
-public sealed class BingMapsProjection : FixedTileProjection<TileScope, BingCredentials>
+public sealed class BingMapsProjection : TiledProjection<TiledScope, BingCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
 

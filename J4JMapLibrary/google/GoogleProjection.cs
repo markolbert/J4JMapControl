@@ -4,7 +4,7 @@ using System.Numerics;
 namespace J4JMapLibrary;
 
 [ MapProjection( "Google", typeof( IGoogleMapServer ) ) ]
-public sealed class GoogleProjection : VariableTileProjection<TileScope, GoogleCredentials>
+public sealed class GoogleProjection : StaticProjection<TiledScope, GoogleCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
 

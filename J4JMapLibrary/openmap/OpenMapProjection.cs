@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-public class OpenMapProjection : FixedTileProjection<TileScope, string>
+public class OpenMapProjection : TiledProjection<TiledScope, string>
 {
     private bool _authenticated;
 

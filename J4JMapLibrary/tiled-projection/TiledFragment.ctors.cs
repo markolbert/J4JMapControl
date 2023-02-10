@@ -1,10 +1,10 @@
 ﻿namespace J4JMapLibrary;
 
-public partial class FixedMapTile
+public partial class TiledFragment
 {
     // internal to hopefully avoid stack overflow
-    internal FixedMapTile(
-        IFixedTileProjection projection,
+    internal TiledFragment(
+        ITiledProjection projection,
         int xTile,
         int yTile,
         byte[] imageData
@@ -14,8 +14,8 @@ public partial class FixedMapTile
         ImageData = imageData;
     }
 
-    private FixedMapTile(
-        IFixedTileProjection projection,
+    private TiledFragment(
+        ITiledProjection projection,
         int xTile,
         int yTile
     )

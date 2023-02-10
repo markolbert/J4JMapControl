@@ -15,19 +15,19 @@ public static class MapExtensions
         Logger?.SetLoggedType( typeof( MapExtensions ) );
     }
 
-    public static string GetQuadKey( this FixedMapTile tile )
+    public static string GetQuadKey( this TiledFragment mapFragment )
     {
         var retVal = new StringBuilder();
 
-        for( var i = tile.Scope.Scale; i > tile.Scope.ScaleRange.Minimum - 1; i-- )
+        for( var i = mapFragment.Scope.Scale; i > mapFragment.Scope.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
 
-            if( ( tile.X & mask ) != 0 )
+            if( ( mapFragment.X & mask ) != 0 )
                 digit++;
 
-            if( ( tile.Y & mask ) != 0 )
+            if( ( mapFragment.Y & mask ) != 0 )
             {
                 digit++;
                 digit++;
@@ -39,12 +39,12 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static string? GetQuadKey( this IFixedTileProjection projection, int xTile, int yTile )
+    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile )
     {
         var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
 
-        var scope = (TileScope) projection.GetScope();
+        var scope = (TiledScope) projection.GetScope();
 
         if( x != xTile || y != yTile )
         {
@@ -128,15 +128,15 @@ public static class MapExtensions
         return true;
     }
 
-    public static LatLong CenterLatLong( this FixedMapTile tile ) =>
-        tile.Scope.CartesianToLatLong( tile.CenterCartesian() );
+    public static LatLong CenterLatLong( this TiledFragment mapFragment ) =>
+        mapFragment.Scope.CartesianToLatLong( mapFragment.CenterCartesian() );
 
-    public static Cartesian CenterCartesian( this FixedMapTile tile )
+    public static Cartesian CenterCartesian( this TiledFragment mapFragment )
     {
-        var retVal = new Cartesian( tile.Scope );
+        var retVal = new Cartesian( mapFragment.Scope );
 
-        retVal.SetCartesian( tile.X * tile.HeightWidth + tile.HeightWidth / 2,
-                             tile.Y * tile.HeightWidth + tile.HeightWidth / 2 );
+        retVal.SetCartesian( mapFragment.X * mapFragment.HeightWidth + mapFragment.HeightWidth / 2,
+                             mapFragment.Y * mapFragment.HeightWidth + mapFragment.HeightWidth / 2 );
 
         return retVal;
     }

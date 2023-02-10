@@ -3,11 +3,11 @@ using System.Numerics;
 
 namespace J4JMapLibrary;
 
-public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TScope, TAuth>, IVariableTileProjection
+public abstract class StaticProjection<TScope, TAuth> : MapProjection<TScope, TAuth>, IStaticProjection
     where TScope : MapScope, new()
     where TAuth : class
 {
-    protected VariableTileProjection(
+    protected StaticProjection(
         IMapServer mapServer,
         IJ4JLogger logger
     )
@@ -15,7 +15,7 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
     {
     }
 
-    protected VariableTileProjection(
+    protected StaticProjection(
         IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger
@@ -77,7 +77,7 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
     public string MapScale( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public async Task<List<IVariableMapTile>?> GetViewportRegionAsync(
+    public async Task<List<IStaticFragment>?> GetViewportRegionAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
@@ -92,7 +92,7 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
                             .ToListAsync(ctx);
     }
 
-    public async Task<VariableTileExtract?> GetViewportTilesAsync(
+    public async Task<StaticExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
@@ -106,7 +106,7 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
 
         viewportData = viewportData.Constrain(Scope);
 
-        var mapTile = new VariableMapTile(this,
+        var mapTile = new StaticFragment(this,
                                                viewportData.CenterLatitude,
                                                viewportData.CenterLongitude,
                                                viewportData.Height,
@@ -118,10 +118,10 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
         if (!deferImageLoad)
             await mapTile.GetImageAsync(ctx: ctx);
 
-        var retVal = new VariableTileExtract(this, Logger);
+        var retVal = new StaticExtract(this, Logger);
 
         if (!retVal.Add(mapTile))
-            Logger.Error("Problem adding VariableMapTile to collection (probably differing ITileScope)");
+            Logger.Error("Problem adding StaticFragment to collection (probably differing ITiledScope)");
 
         return retVal;
     }

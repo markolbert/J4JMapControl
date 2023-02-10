@@ -1,10 +1,10 @@
 ﻿namespace J4JMapLibrary;
 
-public class ExtractBounds : IEquatable<ExtractBounds>
+public class StaticBounds : IEquatable<StaticBounds>
 {
     #region IEquatable...
 
-    public bool Equals( ExtractBounds? other )
+    public bool Equals( StaticBounds? other )
     {
         if( ReferenceEquals( null, other ) )
             return false;
@@ -23,19 +23,19 @@ public class ExtractBounds : IEquatable<ExtractBounds>
             return false;
         if( ReferenceEquals( this, obj ) )
             return true;
-        return obj.GetType() == this.GetType() && Equals( (ExtractBounds) obj );
+        return obj.GetType() == this.GetType() && Equals( (StaticBounds) obj );
     }
 
     public override int GetHashCode() => HashCode.Combine( CenterLatitude, CenterLongitude, Height, Width );
 
-    public static bool operator==( ExtractBounds? left, ExtractBounds? right ) => Equals( left, right );
+    public static bool operator==( StaticBounds? left, StaticBounds? right ) => Equals( left, right );
 
-    public static bool operator!=( ExtractBounds? left, ExtractBounds? right ) => !Equals( left, right );
+    public static bool operator!=( StaticBounds? left, StaticBounds? right ) => !Equals( left, right );
 
     #endregion
 
-    public ExtractBounds(
-        IVariableMapTile mapTile
+    public StaticBounds(
+        IStaticFragment mapTile
     )
     {
         CenterLatitude = mapTile.Center.Latitude;
