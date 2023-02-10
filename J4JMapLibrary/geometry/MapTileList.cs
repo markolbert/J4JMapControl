@@ -50,7 +50,7 @@ public class MapTileList
 
     public async IAsyncEnumerable<FixedMapTile> GetTilesAsync(
         IFixedTileProjection projection,
-        [ EnumeratorCancellation ] CancellationToken ctx
+        [ EnumeratorCancellation ] CancellationToken ctx = default
     )
     {
         if( !TryGetBounds( out var bounds ) )
