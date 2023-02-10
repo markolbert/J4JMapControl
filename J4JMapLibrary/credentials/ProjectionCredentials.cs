@@ -19,7 +19,7 @@ public class ProjectionCredentials : IProjectionCredentials
         {
             var name = config.GetValue<string>( $"Credentials:{idx}:Name" );
             var apiKey = config.GetValue<string>( $"Credentials:{idx}:ApiKey" );
-            var signature = config.GetValue<string>( $"Credentials:{idx}:Signature" );
+            var signature = config.GetValue<string>( $"Credentials:{idx}:SignatureSecret" );
 
             if( string.IsNullOrEmpty( name ) || string.IsNullOrEmpty( apiKey ) )
                 break;
