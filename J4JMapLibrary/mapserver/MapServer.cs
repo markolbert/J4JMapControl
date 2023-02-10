@@ -22,7 +22,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         if( !string.IsNullOrEmpty( SupportedProjection ) )
             return;
 
-        Logger?.Error( "{0} is not decorated with a {1}, will not be accessible by projections",
+        Logger.Error( "{0} is not decorated with a {1}, will not be accessible by projections",
                        GetType(),
                        typeof( MapServerAttribute ) );
     }
