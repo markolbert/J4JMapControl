@@ -1,4 +1,6 @@
-﻿namespace J4JMapLibrary;
+﻿using static System.Formats.Asn1.AsnWriter;
+
+namespace J4JMapLibrary;
 
 public interface IFixedTileProjection : IMapProjection
 {
@@ -13,14 +15,14 @@ public interface IFixedTileProjection : IMapProjection
     float GroundResolution( float latitude );
     string MapScale( float latitude, float dotsPerInch );
 
-    Task<List<FixedMapTile>?> GetViewportRegionAsync(
-        FixedTileViewport viewportData,
+    Task<List<IFixedMapTile>?> GetViewportRegionAsync(
+        Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
 
-    Task<MapTileList?> GetViewportTilesAsync(
-        FixedTileViewport viewportData,
+    Task<FixedTileExtract?> GetViewportTilesAsync(
+        Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
