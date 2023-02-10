@@ -1,9 +1,7 @@
 ﻿using Autofac;
 using J4JMapLibrary;
 using J4JMapLibrary.MapBuilder;
-using J4JMapLibrary.Viewport;
 using J4JSoftware.Logging;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace MapLibTests;
@@ -32,7 +30,7 @@ internal partial class DeusEx
         builder.RegisterType<FileSystemCache>()
                .AsSelf();
 
-        builder.RegisterType<Viewport>()
+        builder.RegisterType<FixedTileViewport>()
                .AsSelf();
 
         builder.RegisterType<ProjectionFactory>()
