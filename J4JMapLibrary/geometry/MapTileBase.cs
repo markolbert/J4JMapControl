@@ -4,7 +4,7 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public abstract class MapTileBase<TScope>
+public abstract class MapTileBase<TScope> : IMapTile<TScope>
     where TScope : MapScope
 {
     private readonly CancellationTokenSource _ctxSource = new();
@@ -150,4 +150,6 @@ public abstract class MapTileBase<TScope>
             return null;
         }
     }
+
+    MapScope IMapTile.GetScope() => Scope;
 }
