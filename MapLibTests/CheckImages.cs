@@ -16,7 +16,7 @@ public class CheckImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile );
+        var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile );
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
@@ -35,7 +35,7 @@ public class CheckImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
@@ -54,7 +54,7 @@ public class CheckImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );

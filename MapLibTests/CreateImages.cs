@@ -16,7 +16,7 @@ public class CreateImages : TestBase
 
         projection.SetScale( scale );
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -31,7 +31,7 @@ public class CreateImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile);
     }
 
@@ -46,17 +46,17 @@ public class CreateImages : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         await WriteImageFileAsync(projection, mapTile, true);
     }
 
-    private async Task WriteImageFileAsync( IFixedTileProjection projection, FixedMapTile tile, bool sleep = false )
+    private async Task WriteImageFileAsync( ITiledProjection projection, TiledFragment mapFragment, bool sleep = false )
     {
-        var stream = await tile.GetImageAsync();
+        var stream = await mapFragment.GetImageAsync();
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{tile.QuadKey}{projection.MapServer.ImageFileExtension}" );
+                                     $"{mapFragment.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
         await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
 
