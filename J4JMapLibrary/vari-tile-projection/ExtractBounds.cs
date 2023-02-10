@@ -1,0 +1,52 @@
+﻿namespace J4JMapLibrary;
+
+public class ExtractBounds : IEquatable<ExtractBounds>
+{
+    #region IEquatable...
+
+    public bool Equals( ExtractBounds? other )
+    {
+        if( ReferenceEquals( null, other ) )
+            return false;
+        if( ReferenceEquals( this, other ) )
+            return true;
+
+        return CenterLatitude.Equals( other.CenterLatitude )
+         && CenterLongitude.Equals( other.CenterLongitude )
+         && Height.Equals( other.Height )
+         && Width.Equals( other.Width );
+    }
+
+    public override bool Equals( object? obj )
+    {
+        if( ReferenceEquals( null, obj ) )
+            return false;
+        if( ReferenceEquals( this, obj ) )
+            return true;
+        return obj.GetType() == this.GetType() && Equals( (ExtractBounds) obj );
+    }
+
+    public override int GetHashCode() => HashCode.Combine( CenterLatitude, CenterLongitude, Height, Width );
+
+    public static bool operator==( ExtractBounds? left, ExtractBounds? right ) => Equals( left, right );
+
+    public static bool operator!=( ExtractBounds? left, ExtractBounds? right ) => !Equals( left, right );
+
+    #endregion
+
+    public ExtractBounds(
+        IVariableMapTile mapTile
+    )
+    {
+        CenterLatitude = mapTile.Center.Latitude;
+        CenterLongitude = mapTile.Center.Longitude;
+        Height = mapTile.Height;
+        Width = mapTile.Width;
+    }
+
+    public float CenterLatitude { get; }
+    public float CenterLongitude { get; }
+    public float Height { get; }
+    public float Width { get; }
+
+}

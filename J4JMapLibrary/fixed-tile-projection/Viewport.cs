@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public class FixedTileViewport
+public class Viewport
 {
     private float _heading;
 
@@ -16,11 +16,11 @@ public class FixedTileViewport
         set => _heading = value % 360;
     }
 
-    public FixedTileViewport Constrain( TileScope scope ) =>
-        new FixedTileViewport
+    public Viewport Constrain(MapScope scope) =>
+        new Viewport
         {
-            CenterLatitude = scope.LatitudeRange.ConformValueToRange( CenterLatitude, "Latitude" ),
-            CenterLongitude = scope.LongitudeRange.ConformValueToRange( CenterLongitude, "Longitude" ),
+            CenterLatitude = scope.LatitudeRange.ConformValueToRange(CenterLatitude, "Latitude"),
+            CenterLongitude = scope.LongitudeRange.ConformValueToRange(CenterLongitude, "Longitude"),
             Height = Height,
             Width = Width,
             Heading = Heading
