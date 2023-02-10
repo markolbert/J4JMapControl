@@ -6,8 +6,8 @@ public class VariableMapTile : MapTileBase<TileScope>, IVariableMapTile
         IMapProjection projection,
         float latitude,
         float longitude,
-        int height,
-        int width,
+        float height,
+        float width,
         int scale
     )
         : base( projection )
@@ -24,7 +24,7 @@ public class VariableMapTile : MapTileBase<TileScope>, IVariableMapTile
     protected override string TileId => $"(Lat: {Center.Latitude}, Long: {Center.Longitude}, Scale: {Scale})";
 
     public LatLong Center { get; }
-    public int Height { get; }
-    public int Width { get; }
+    public float Height { get; }
+    public float Width { get; }
     public int Scale { get; }
 }

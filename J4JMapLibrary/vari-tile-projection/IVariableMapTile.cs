@@ -3,7 +3,7 @@
 public interface IVariableMapTile : IMapTile
 {
     LatLong Center { get; }
-    int Height { get; }
-    int Width { get; }
+    float Height { get; }
+    float Width { get; }
     int Scale { get; }
 }
