@@ -95,7 +95,7 @@ public class MapTests : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync( projection, xTile, yTile );
+        var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile );
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be( quadKey );
     }
@@ -135,7 +135,7 @@ public class MapTests : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }
@@ -175,7 +175,7 @@ public class MapTests : TestBase
 
         projection.SetScale(scale);
 
-        var mapTile = await FixedMapTile.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }

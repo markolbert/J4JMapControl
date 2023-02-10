@@ -32,7 +32,7 @@ public class TileTests : TestBase
     )
     {
         var result = await GetFactory().CreateMapProjection( projectionName, null );
-        var projection = result.Projection as IFixedTileProjection;
+        var projection = result.Projection as ITiledProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
