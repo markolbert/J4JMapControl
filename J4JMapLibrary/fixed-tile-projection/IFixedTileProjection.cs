@@ -12,6 +12,18 @@ public interface IFixedTileProjection : IMapProjection
 
     float GroundResolution( float latitude );
     string MapScale( float latitude, float dotsPerInch );
+
+    Task<List<FixedMapTile>?> GetViewportRegionAsync(
+        FixedTileViewport viewportData,
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
+    );
+
+    Task<MapTileList?> GetViewportTilesAsync(
+        FixedTileViewport viewportData,
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
+    );
 }
 
 public interface IFixedTileProjection<out TScope> : IFixedTileProjection
