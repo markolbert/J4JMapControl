@@ -7,6 +7,7 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
     protected OpenMapServer()
     {
         ImageFileExtension = ".png";
+        TileHeightWidth = 256;
     }
 
     public string RetrievalUrl { get; init; } = string.Empty;
