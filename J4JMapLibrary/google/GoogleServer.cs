@@ -1,4 +1,7 @@
-﻿namespace J4JMapLibrary;
+﻿using System.Security.Cryptography;
+using System.Text;
+
+namespace J4JMapLibrary;
 
 [ MapServer( "Google", typeof( GoogleCredentials ) ) ]
 public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoogleMapServer
@@ -12,8 +15,12 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
         MaxScale = 20;
         Copyright = "© Google";
         CopyrightUri = new Uri("http://www.google.com");
+
+        // this doesn't have the required signature field, but that gets appended
+        // when the request is created because it involves a cryptographic call
+        // against the raw URL
         RetrievalUrl =
-            "https://maps.googleapis.com/maps/api/staticmap?center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}&signature={signature}";
+            "https://maps.googleapis.com/maps/api/staticmap?center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
     }
 
     public override bool Initialized => !string.IsNullOrEmpty( _apiKey ) && !string.IsNullOrEmpty( _signature );
@@ -27,7 +34,7 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
 #pragma warning restore CS1998
     {
         _apiKey = credentials.ApiKey;
-        _signature = credentials.Signature;
+        _signature = credentials.SignatureSecret;
 
         return Initialized;
     }
@@ -46,12 +53,38 @@ public class GoogleServer : MapServer<VariableMapTile, GoogleCredentials>, IGoog
             { "{format}", ImageFormat.ToString() },
             { "{zoom}", tile.Scale.ToString() },
             { "{size}", $"{tile.Width}x{tile.Height}" },
-            { "{apikey}", _apiKey },
-            { "{signature}", _signature }
+            { "{apikey}", _apiKey }
         };
 
-        var uriText = ReplaceParameters( RetrievalUrl, replacements );
+        var unsignedUrl = ReplaceParameters( RetrievalUrl, replacements );
+        var signedUrl = SignUrl( unsignedUrl );
 
-        return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
+        return new HttpRequestMessage( HttpMethod.Get, new Uri( signedUrl ) );
+    }
+
+    public string SignUrl( string url )
+    {
+        var encoding = new ASCIIEncoding();
+
+        // converting key to bytes will throw an exception, need to replace '-' and '_' characters first.
+        var usablePrivateKey = _signature.Replace( "-", "+" )
+                                         .Replace( "_", "/" );
+
+        var privateKeyBytes = Convert.FromBase64String( usablePrivateKey );
+
+        var uri = new Uri( url );
+        var encodedPathAndQueryBytes = encoding.GetBytes( uri.LocalPath + uri.Query );
+
+        // compute the hash
+        var algorithm = new HMACSHA1( privateKeyBytes );
+        var hash = algorithm.ComputeHash( encodedPathAndQueryBytes );
+
+        // convert the bytes to string and make url-safe by replacing '+' and '/' characters
+        var signature = Convert.ToBase64String( hash )
+                               .Replace( "+", "-" )
+                               .Replace( "/", "_" );
+
+        // Add the signature to the existing URI.
+        return $"{uri.Scheme}://{uri.Host}{uri.LocalPath}{uri.Query}&signature={signature}";
     }
 }
