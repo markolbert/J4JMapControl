@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public interface IMapTile
+public interface IMapFragment
 {
     IMapServer MapServer { get; }
     int MaxRequestLatency { get; }
@@ -11,7 +11,7 @@ public interface IMapTile
     MapScope GetScope();
 }
 
-public interface IMapTile<out TScope> : IMapTile
+public interface IMapTile<out TScope> : IMapFragment
     where TScope : MapScope
 {
     TScope Scope { get; }

@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-public interface IFixedTileProjection : IMapProjection
+public interface ITiledProjection : IMapProjection
 {
     int Width { get; }
     int Height { get; }
@@ -15,21 +15,21 @@ public interface IFixedTileProjection : IMapProjection
     float GroundResolution( float latitude );
     string MapScale( float latitude, float dotsPerInch );
 
-    Task<List<IFixedMapTile>?> GetViewportRegionAsync(
+    Task<List<ITiledFragment>?> GetViewportRegionAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
 
-    Task<FixedTileExtract?> GetViewportTilesAsync(
+    Task<TiledExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
 }
 
-public interface IFixedTileProjection<out TScope> : IFixedTileProjection
-    where TScope : TileScope
+public interface ITiledProjection<out TScope> : ITiledProjection
+    where TScope : TiledScope
 {
     TScope Scope { get; }
 }

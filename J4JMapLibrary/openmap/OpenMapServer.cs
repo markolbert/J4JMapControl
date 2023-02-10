@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public class OpenMapServer : MapServer<FixedMapTile, string>
+public class OpenMapServer : MapServer<TiledFragment, string>
 {
     private string _userAgent = string.Empty;
 
@@ -22,7 +22,7 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
         return !string.IsNullOrEmpty( _userAgent );
     }
 
-    public override HttpRequestMessage? CreateMessage( FixedMapTile tile )
+    public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment )
     {
         if( !Initialized )
             return null;
@@ -35,9 +35,9 @@ public class OpenMapServer : MapServer<FixedMapTile, string>
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", tile.Scope.Scale.ToString()},
-            { "{x}", tile.X.ToString() },
-            { "{y}", tile.Y.ToString() },
+            { "{zoom}", mapFragment.Scope.Scale.ToString()},
+            { "{x}", mapFragment.X.ToString() },
+            { "{y}", mapFragment.Y.ToString() },
         };
 
         var uriText = ReplaceParameters( RetrievalUrl, replacements ); 

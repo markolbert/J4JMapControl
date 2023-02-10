@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public interface ITileScope : IMapScope, IEquatable<TileScope>
+public interface ITiledScope : IMapScope, IEquatable<TiledScope>
 {
     MinMax<int> XRange { get; }
     MinMax<int> YRange { get; }

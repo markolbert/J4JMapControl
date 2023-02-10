@@ -140,7 +140,7 @@ public class FileSystemCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> GetEntryInternalAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,
@@ -164,7 +164,7 @@ public class FileSystemCache : CacheBase
     }
 
     protected override async Task<CacheEntry?> AddEntryAsync(
-        IFixedTileProjection projection,
+        ITiledProjection projection,
         int xTile,
         int yTile,
         bool deferImageLoad = false,
@@ -195,7 +195,7 @@ public class FileSystemCache : CacheBase
         }
 
         if( File.Exists( filePath ) )
-            Logger.Warning<string>( "Replacing map tile with quadkey '{0}'", retVal.Tile.QuadKey );
+            Logger.Warning<string>( "Replacing map mapFragment with quadkey '{0}'", retVal.Tile.QuadKey );
 
         await using var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( bytesToWrite, ctx );

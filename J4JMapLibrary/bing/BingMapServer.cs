@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace J4JMapLibrary;
 
 [ MapServer( "BingMaps", typeof( BingCredentials ) ) ]
-public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapServer
+public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMapServer
 {
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
@@ -130,7 +130,7 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage( FixedMapTile tile )
+    public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment )
     {
         if( !Initialized )
         {
@@ -146,7 +146,7 @@ public class BingMapServer : MapServer<FixedMapTile, BingCredentials>, IBingMapS
         var replacements = new Dictionary<string, string>
         {
             { "{subdomain}", subDomain },
-            { "{quadkey}", tile.QuadKey },
+            { "{quadkey}", mapFragment.QuadKey },
             { "{culture}", _cultureCode ?? string.Empty },
         };
 

@@ -3,11 +3,11 @@ using System.Numerics;
 
 namespace J4JMapLibrary;
 
-public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope, TAuth>, IFixedTileProjection<TScope>
-    where TScope : TileScope, new()
+public abstract class TiledProjection<TScope, TAuth> : MapProjection<TScope, TAuth>, ITiledProjection<TScope>
+    where TScope : TiledScope, new()
     where TAuth : class
 {
-    protected FixedTileProjection(
+    protected TiledProjection(
         IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
@@ -19,7 +19,7 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
         TileYRange = new MinMax<int>( 0, 0 );
     }
 
-    protected FixedTileProjection(
+    protected TiledProjection(
         IProjectionCredentials credentials,
         IMapServer mapServer,
         IJ4JLogger logger,
@@ -58,7 +58,7 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
     public string MapScale( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public async Task<List<IFixedMapTile>?> GetViewportRegionAsync(
+    public async Task<List<ITiledFragment>?> GetViewportRegionAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
@@ -73,7 +73,7 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
                             .ToListAsync(ctx);
     }
 
-    public async Task<FixedTileExtract?> GetViewportTilesAsync(
+    public async Task<TiledExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
@@ -128,19 +128,19 @@ public abstract class FixedTileProjection<TScope, TAuth> : MapProjection<TScope,
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
-        var retVal = new FixedTileExtract( this, Logger );
+        var retVal = new TiledExtract( this, Logger );
 
         for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
         {
             for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
             {
-                var mapTile = await FixedMapTile.CreateAsync( this, xTile, yTile, ctx: ctx );
+                var mapTile = await TiledFragment.CreateAsync( this, xTile, yTile, ctx: ctx );
 
                 if( !deferImageLoad )
                     await mapTile.GetImageAsync( ctx: ctx );
 
                 if( !retVal.Add( (IMapTile<TScope>) mapTile ) )
-                    Logger.Error( "Problem adding FixedMapTile to collection (probably differing ITileScope)" );
+                    Logger.Error( "Problem adding TiledFragment to collection (probably differing ITiledScope)" );
             }
         }
 

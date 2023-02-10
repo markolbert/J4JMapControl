@@ -4,12 +4,12 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public abstract class MapTileBase<TScope> : IMapTile<TScope>
+public abstract class MapFragment<TScope> : IMapTile<TScope>
     where TScope : MapScope
 {
     private readonly CancellationTokenSource _ctxSource = new();
 
-    protected MapTileBase(
+    protected MapFragment(
         IMapProjection projection
     )
     {
@@ -26,7 +26,7 @@ public abstract class MapTileBase<TScope> : IMapTile<TScope>
 
         var temp2 = temp switch
         {
-            TileScope tiledScope => TileScope.Copy( tiledScope ) as TScope,
+            TiledScope tiledScope => TiledScope.Copy( tiledScope ) as TScope,
             MapScope mapScope => MapScope.Copy( mapScope ) as TScope,
             _ => throw new InvalidOperationException( $"Unsupported MapScope type '{typeof( TScope )}'" )
         };
@@ -63,7 +63,7 @@ public abstract class MapTileBase<TScope> : IMapTile<TScope>
         var request = MapServer.CreateMessage( this );
         if( request == null )
         {
-            Logger?.Error<string>( "Could not create HttpRequestMessage for tile ({0})", TileId );
+            Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", TileId );
             if( wasNull )
                 ImageChanged?.Invoke( this, EventArgs.Empty );
 
@@ -151,5 +151,5 @@ public abstract class MapTileBase<TScope> : IMapTile<TScope>
         }
     }
 
-    MapScope IMapTile.GetScope() => Scope;
+    MapScope IMapFragment.GetScope() => Scope;
 }

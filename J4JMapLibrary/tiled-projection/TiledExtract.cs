@@ -3,10 +3,10 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public class FixedTileExtract : ProjectionExtract
+public class TiledExtract : ProjectionExtract
 {
-    public FixedTileExtract(
-        IFixedTileProjection projection,
+    public TiledExtract(
+        ITiledProjection projection,
         IJ4JLogger logger
     )
         : base( projection, logger )
@@ -17,12 +17,12 @@ public class FixedTileExtract : ProjectionExtract
     {
         bounds = null;
 
-        var castTiles = Tiles.Cast<IFixedMapTile>().ToList();
+        var castTiles = Tiles.Cast<ITiledFragment>().ToList();
 
         if( castTiles.Count == 0 )
         {
             Logger.Error( Tiles.Any()
-                              ? "ProjectionExtract contains tiles that aren't IFixedMapTile"
+                              ? "ProjectionExtract contains tiles that aren't ITiledFragment"
                               : "No tiles in the extract" );
 
             return false;
@@ -38,7 +38,7 @@ public class FixedTileExtract : ProjectionExtract
         return true;
     }
 
-    public override async IAsyncEnumerable<IFixedMapTile> GetTilesAsync( [EnumeratorCancellation] CancellationToken ctx = default )
+    public override async IAsyncEnumerable<ITiledFragment> GetTilesAsync( [EnumeratorCancellation] CancellationToken ctx = default )
     {
         if (!TryGetBounds(out var bounds))
             yield break;
@@ -47,7 +47,7 @@ public class FixedTileExtract : ProjectionExtract
         {
             for( var y = bounds.UpperLeft.Y; y <= bounds.LowerRight.Y; y++ )
             {
-                yield return await FixedMapTile.CreateAsync( (IFixedTileProjection) Projection,
+                yield return await TiledFragment.CreateAsync( (ITiledProjection) Projection,
                                                            x,
                                                            y,
                                                            ctx: ctx );

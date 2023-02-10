@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public interface IFixedMapTile : IMapTile
+public interface ITiledFragment : IMapFragment
 {
     int HeightWidth { get; }
     string QuadKey { get; }

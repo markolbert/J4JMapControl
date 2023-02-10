@@ -2,17 +2,17 @@
 
 namespace J4JMapLibrary;
 
-public class VariableTileExtract : ProjectionExtract
+public class StaticExtract : ProjectionExtract
 {
-    public VariableTileExtract(
-        IVariableTileProjection projection,
+    public StaticExtract(
+        IStaticProjection projection,
         IJ4JLogger logger
     )
         : base( projection, logger )
     {
     }
 
-    public bool TryGetBounds( out ExtractBounds? bounds )
+    public bool TryGetBounds( out StaticBounds? bounds )
     {
         bounds = null;
 
@@ -24,21 +24,21 @@ public class VariableTileExtract : ProjectionExtract
 
         if( Tiles.Count > 1 )
         {
-            Logger.Error("More than one tile in the extract");
+            Logger.Error("More than one mapFragment in the extract");
             return false;
         }
 
-        var castTile = Tiles[ 0 ] as IVariableMapTile;
+        var castTile = Tiles[ 0 ] as IStaticFragment;
         if( castTile == null )
         {
-            Logger.Error("Tile is not a IVariableMapTile");
+            Logger.Error("Tile is not a IStaticFragment");
             return false;
         }
 
-        bounds = new ExtractBounds( castTile );
+        bounds = new StaticBounds( castTile );
         return true;
     }
 
-    public override IAsyncEnumerable<IVariableMapTile> GetTilesAsync( CancellationToken ctx = default ) =>
+    public override IAsyncEnumerable<IStaticFragment> GetTilesAsync( CancellationToken ctx = default ) =>
         throw new NotImplementedException();
 }
