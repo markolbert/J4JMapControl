@@ -1,8 +1,9 @@
 ﻿using J4JSoftware.Logging;
+using System.Numerics;
 
 namespace J4JMapLibrary;
 
-public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TScope, TAuth>
+public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TScope, TAuth>, IVariableTileProjection
     where TScope : MapScope, new()
     where TAuth : class
 {
@@ -75,4 +76,54 @@ public abstract class VariableTileProjection<TScope, TAuth> : MapProjection<TSco
 
     public string MapScale( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
+
+    public async Task<List<IVariableMapTile>?> GetViewportRegionAsync(
+        Viewport viewportData,
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
+    )
+    {
+        var extract = await GetViewportTilesAsync(viewportData, deferImageLoad, ctx);
+
+        if (extract == null)
+            return null;
+
+        return await extract.GetTilesAsync(ctx)
+                            .ToListAsync(ctx);
+    }
+
+    public async Task<VariableTileExtract?> GetViewportTilesAsync(
+        Viewport viewportData,
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
+    )
+    {
+        if (!Initialized)
+        {
+            Logger.Error("Projection not initialized");
+            return null;
+        }
+
+        viewportData = viewportData.Constrain(Scope);
+
+        var mapTile = new VariableMapTile(this,
+                                               viewportData.CenterLatitude,
+                                               viewportData.CenterLongitude,
+                                               viewportData.Height,
+                                               viewportData.Width,
+                                               Scope.Scale);
+
+        // need to put in logic to rotate/heading
+
+        if (!deferImageLoad)
+            await mapTile.GetImageAsync(ctx: ctx);
+
+        var retVal = new VariableTileExtract(this, Logger);
+
+        if (!retVal.Add(mapTile))
+            Logger.Error("Problem adding VariableMapTile to collection (probably differing ITileScope)");
+
+        return retVal;
+    }
+
 }
