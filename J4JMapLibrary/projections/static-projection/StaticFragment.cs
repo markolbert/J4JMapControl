@@ -20,7 +20,7 @@ public class StaticFragment : MapFragment, IStaticFragment
         Scale = scale;
     }
 
-    protected override string TileId => $"(Lat: {Center.Latitude}, Long: {Center.Longitude})";
+    protected override string FragmentId => $"(Lat: {Center.Latitude}, Long: {Center.Longitude}, Scale: {Scale})";
 
     public LatLong Center { get; }
     public float Height { get; }
