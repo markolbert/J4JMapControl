@@ -3,7 +3,7 @@ using System.Text;
 
 namespace J4JMapLibrary;
 
-[ MapServer( "Google", typeof( GoogleCredentials ) ) ]
+[ MapServer( "GoogleMaps", typeof( GoogleCredentials ) ) ]
 public class GoogleServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
 {
     private string _apiKey = string.Empty;
