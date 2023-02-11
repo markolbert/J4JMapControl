@@ -61,7 +61,7 @@ public class MapTests : TestBase
     }
 
     [ Theory ]
-    [InlineData(0, 0, 0, "0")]
+    [InlineData(0, 0, 0, "")]
     [InlineData(1, 0, 0, "0")]
     [InlineData(1, 1, 0, "1")]
     [InlineData(1, 0, 1, "2")]
@@ -93,9 +93,9 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale(scale);
+        projection.MapScale.Scale = scale;
 
-        var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile );
+        var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile, scale );
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be( quadKey );
     }
@@ -133,9 +133,9 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale(scale);
+        projection.MapScale.Scale = scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile, scale);
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }
@@ -173,9 +173,9 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale(scale);
+        projection.MapScale.Scale = scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile, scale);
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }

@@ -36,9 +36,9 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale( scale );
+        projection.MapScale.Scale = scale;
 
-        var viewportData = new Viewport
+        var viewportData = new Viewport( projection )
         {
             CenterLatitude = latitude,
             CenterLongitude = longitude,
@@ -57,7 +57,7 @@ public class TileTests : TestBase
 
         bounds!.Should().Be( testBounds );
 
-        await foreach( var tile in extract.GetTilesAsync() )
+        await foreach( var tile in extract.GetTilesAsync(scale) )
         {
             tile.ImageBytes.Should().BeNegative();
         }

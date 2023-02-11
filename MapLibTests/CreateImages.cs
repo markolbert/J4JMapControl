@@ -14,10 +14,10 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale( scale );
+        projection.MapScale.Scale = scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
-        await WriteImageFileAsync(projection, mapTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile,scale);
+        await WriteImageFileAsync(projection, mapTile,scale);
     }
 
     [Theory]
@@ -29,10 +29,10 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale(scale);
+        projection.MapScale.Scale = scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
-        await WriteImageFileAsync(projection, mapTile);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile, scale);
+        await WriteImageFileAsync(projection, mapTile, scale);
     }
 
     [Theory]
@@ -44,15 +44,15 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.SetScale(scale);
+        projection.MapScale.Scale = scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
-        await WriteImageFileAsync(projection, mapTile, true);
+        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile, scale);
+        await WriteImageFileAsync(projection, mapTile, scale, true);
     }
 
-    private async Task WriteImageFileAsync( ITiledProjection projection, TiledFragment mapFragment, bool sleep = false )
+    private async Task WriteImageFileAsync( ITiledProjection projection, TiledFragment mapFragment, int scale, bool sleep = false )
     {
-        var stream = await mapFragment.GetImageAsync();
+        var stream = await mapFragment.GetImageAsync(scale);
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
