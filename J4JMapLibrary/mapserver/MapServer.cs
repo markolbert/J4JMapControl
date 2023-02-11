@@ -11,10 +11,21 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 {
     public const int DefaultMaxRequestLatency = 500;
 
+    private int _minScale;
+    private int _maxScale;
+    private float _minLat = -MapConstants.Wgs84MaxLatitude;
+    private float _maxLat = MapConstants.Wgs84MaxLatitude;
+    private float _minLong = -180;
+    private float _maxLong = 180;
+
     protected MapServer()
     {
         Logger = J4JDeusEx.GetLogger()!;
         Logger.SetLoggedType( GetType() );
+
+        ScaleRange = new MinMax<int>( 0, 0 );
+        LatitudeRange = new MinMax<float>(-90, 90);
+        LongitudeRange = new MinMax<float>(-180, 180);
 
         var attr = GetType().GetCustomAttribute<MapServerAttribute>();
         SupportedProjection = attr?.ProjectionName ?? string.Empty;
@@ -32,12 +43,77 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public string SupportedProjection { get; }
     public abstract bool Initialized { get; }
 
-    public int MinScale { get; protected set; }
-    public int MaxScale { get; protected set; }
-    public float MaxLatitude { get; protected set; } = MapConstants.Wgs84MaxLatitude;
-    public float MinLatitude { get; protected set; } = -MapConstants.Wgs84MaxLatitude;
-    public float MaxLongitude { get; protected set; } = 180;
-    public float MinLongitude { get; protected set; } = -180;
+    public int MinScale { 
+        get => _minScale;
+
+        protected set
+        {
+            _minScale = value;
+            ScaleRange = new MinMax<int>( MinScale, MinScale );
+        }
+    }
+
+    public int MaxScale
+    {
+        get => _maxScale;
+
+        protected set
+        {
+            _maxScale = value;
+            ScaleRange = new MinMax<int>(MinScale, MinScale);
+        }
+    }
+
+    public MinMax<int> ScaleRange { get; set; }
+
+    public float MaxLatitude
+    {
+        get => _maxLat;
+
+        protected set
+        {
+            _maxLat = value;
+            LatitudeRange = new MinMax<float>( MinLatitude, MaxLatitude );
+        }
+    }
+
+    public float MinLatitude
+    {
+        get => _minLat;
+
+        protected set
+        {
+            _minLat = value;
+            LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
+        }
+    }
+
+    public MinMax<float> LatitudeRange { get; private set; }
+
+    public float MaxLongitude
+    {
+        get => _maxLong;
+
+        protected set
+        {
+            _maxLong = value;
+            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+        }
+    }
+
+    public float MinLongitude
+    {
+        get => _minLong;
+
+        protected set
+        {
+            _minLong = value;
+            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+        }
+    }
+
+    public MinMax<float> LongitudeRange { get; private set; }
+
     public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
     public int TileHeightWidth { get; protected set; }
     public string ImageFileExtension { get; protected set; } = string.Empty;
@@ -47,7 +123,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 
     public abstract Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
 
-    public abstract HttpRequestMessage? CreateMessage( TTile tile );
+    public abstract HttpRequestMessage? CreateMessage( TTile tile, int scale );
 
     // key value matching is case sensitive
     protected string ReplaceParameters(
@@ -65,10 +141,10 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         return sb.ToString();
     }
 
-    HttpRequestMessage? IMapServer.CreateMessage( object requestInfo )
+    HttpRequestMessage? IMapServer.CreateMessage( object requestInfo, int scale )
     {
         if( requestInfo is TTile castInfo )
-            return CreateMessage( castInfo );
+            return CreateMessage( castInfo, scale );
 
         Logger.Error( "Expected a {0} but was passed a {1}", typeof( TTile ), requestInfo.GetType() );
         return null;
