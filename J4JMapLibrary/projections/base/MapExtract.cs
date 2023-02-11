@@ -2,9 +2,9 @@
 
 namespace J4JMapLibrary;
 
-public abstract class Extract : IExtract
+public abstract class MapExtract : IMapExtract
 {
-    protected Extract(
+    protected MapExtract(
         IProjection projection,
         IJ4JLogger logger
         )
@@ -47,6 +47,6 @@ public abstract class Extract : IExtract
 
     public abstract IAsyncEnumerable<IMapFragment> GetTilesAsync( int scale, CancellationToken ctx = default );
 
-    IAsyncEnumerable<IMapFragment> IExtract.GetTilesAsync( int scale, CancellationToken ctx ) =>
+    IAsyncEnumerable<IMapFragment> IMapExtract.GetTilesAsync( int scale, CancellationToken ctx ) =>
         GetTilesAsync( scale, ctx );
 }
