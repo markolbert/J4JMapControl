@@ -14,6 +14,13 @@ internal static class InternalExtensions
         Logger?.SetLoggedType( typeof( InternalExtensions ) );
     }
 
+    // thanx to 3dGrabber for this
+    // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
+    public static int Pow(int numBase, int exp) =>
+        Enumerable
+           .Repeat(numBase, Math.Abs(exp))
+           .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
+
     internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name )
         where T : struct, IComparable
     {
@@ -30,39 +37,39 @@ internal static class InternalExtensions
         return range.Maximum;
     }
 
-    internal static LatLong CartesianToLatLong( this ITiledScope scope, Cartesian cartesian )
+    internal static Cartesian LatLongToCartesian( this ITiledScale scale, float latitude, float longitude ) =>
+        scale.LatLongToCartesianInternal(
+            scale.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
+            scale.MapServer.LongitudeRange
+                 .ConformValueToRange( longitude, "Longitude" ) );
+
+    internal static LatLong CartesianToLatLong( this ITiledScale scale, Cartesian cartesian )
     {
         // ReSharper disable once UseObjectOrCollectionInitializer
-        var retVal = new LatLong( scope );
+        var retVal = new LatLong( scale.MapServer );
 
         retVal.SetLatLong( (float) ( 2
                              * Math.Atan( Math.Exp( MapConstants.TwoPi
                                                   * cartesian.Y
-                                                  / ( scope.YRange.Maximum - scope.YRange.Minimum ) ) )
+                                                  / ( scale.YRange.Maximum - scale.YRange.Minimum ) ) )
                              - MapConstants.HalfPi )
                          / MapConstants.RadiansPerDegree,
-                           360 * cartesian.X / ( scope.XRange.Maximum - scope.XRange.Minimum ) - 180 );
+                           360 * cartesian.X / ( scale.XRange.Maximum - scale.XRange.Minimum ) - 180 );
 
         return retVal;
     }
 
-    internal static Cartesian LatLongToCartesian( this ITiledScope scope, float latitude, float longitude ) =>
-        scope
-           .LatLongToCartesianInternal( scope.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
-                                        scope.LongitudeRange
-                                             .ConformValueToRange( longitude, "Longitude" ) );
+    internal static Cartesian LatLongToCartesian( this ITiledScale scale, LatLong latLong ) =>
+        scale.LatLongToCartesianInternal( latLong.Latitude, latLong.Longitude );
 
-    internal static Cartesian LatLongToCartesian( this ITiledScope scope, LatLong latLong ) =>
-        scope.LatLongToCartesianInternal( latLong.Latitude, latLong.Longitude );
-
-    private static Cartesian LatLongToCartesianInternal( this ITiledScope scope, float latitude, float longitude )
+    private static Cartesian LatLongToCartesianInternal( this ITiledScale scale, float latitude, float longitude )
     {
-        var retVal = new Cartesian( scope );
+        var retVal = new Cartesian( scale );
 
-        var width = scope.XRange.Maximum - scope.XRange.Minimum + 1;
+        var width = scale.XRange.Maximum - scale.XRange.Minimum + 1;
         var x = width * ( longitude / 360 + 0.5 );
 
-        var height = scope.YRange.Maximum - scope.YRange.Minimum + 1;
+        var height = scale.YRange.Maximum - scale.YRange.Minimum + 1;
 
         // this weird "subtract the calculation from half the height" is due to the
         // fact y values increase going >>down<< the display, so the top is y = 0
