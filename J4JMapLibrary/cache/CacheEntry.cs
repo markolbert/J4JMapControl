@@ -6,10 +6,11 @@ public class CacheEntry
         ITiledProjection projection,
         int xTile,
         int yTile,
+        int scale,
         byte[] imageData
     )
     {
-        Tile = new TiledFragment( projection, xTile, yTile, imageData );
+        Tile = new TiledFragment( projection, xTile, yTile, scale, imageData );
         CreatedUtc = DateTime.UtcNow;
     }
 
@@ -17,10 +18,11 @@ public class CacheEntry
         ITiledProjection projection,
         int xTile,
         int yTile,
+        int scale,
         CancellationToken ctx
     )
     {
-        Tile = TiledFragment.CreateAsync( projection, xTile, yTile, true, ctx ).Result;
+        Tile = TiledFragment.CreateAsync( projection, xTile, yTile, scale, true, ctx ).Result;
         CreatedUtc = DateTime.UtcNow;
     }
 

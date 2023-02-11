@@ -7,10 +7,15 @@ public interface IMapServer
 
     int MinScale { get; }
     int MaxScale { get; }
+    MinMax<int> ScaleRange { get; internal set; }
+
     float MaxLatitude { get; }
     float MinLatitude { get; }
+    MinMax<float> LatitudeRange { get; }
+
     float MaxLongitude { get; }
     float MinLongitude { get; }
+    MinMax<float> LongitudeRange { get; }
 
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }
@@ -19,7 +24,7 @@ public interface IMapServer
     string Copyright { get; }
     Uri? CopyrightUri { get; }
 
-    HttpRequestMessage? CreateMessage( object requestInfo );
+    HttpRequestMessage? CreateMessage( object requestInfo, int scale );
 }
 
 public interface IMapServer<in TTile, in TAuth> : IMapServer
@@ -27,5 +32,5 @@ public interface IMapServer<in TTile, in TAuth> : IMapServer
     where TAuth : class
 {
     Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
-    HttpRequestMessage? CreateMessage( TTile tile );
+    HttpRequestMessage? CreateMessage( TTile tile, int scale );
 }
