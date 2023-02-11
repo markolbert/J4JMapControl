@@ -59,12 +59,12 @@ public abstract class Projection<TAuth> : IProjection<TAuth>
     protected IJ4JLogger Logger { get; }
     protected IProjectionCredentials? LibraryConfiguration { get; }
 
+    public string Name { get; } = string.Empty;
+
     public ProjectionScale MapScale { get; }
     public IMapServer MapServer { get; }
 
     public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;
-
-    public string Name { get; } = string.Empty;
 
     public abstract Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default );
 
