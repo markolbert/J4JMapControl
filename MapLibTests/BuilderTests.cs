@@ -30,6 +30,9 @@ public class BuilderTests : TestBase
     [InlineData(typeof(OpenTopoMapsProjection), 0, true)]
     [InlineData(typeof(OpenTopoMapsProjection), 100, true)]
     [InlineData(typeof(OpenTopoMapsProjection), -100, true)]
+    [InlineData(typeof(GoogleMapsProjection), 0, true)]
+    [InlineData(typeof(GoogleMapsProjection), 100, true)]
+    [InlineData(typeof(GoogleMapsProjection), -100, true)]
     public async Task BuilderTypeAuthenticate( Type projectionType, int latencyRequested, bool projValid )
     {
         var builder = J4JDeusEx.ServiceProvider.GetService<ProjectionBuilder>();
@@ -67,6 +70,9 @@ public class BuilderTests : TestBase
     [InlineData("OpenTopoMaps", 0, true)]
     [InlineData("OpenTopoMaps", 100, true)]
     [InlineData("OpenTopoMaps", -100, true)]
+    [InlineData("GoogleMaps", 0, true)]
+    [InlineData("GoogleMaps", 100, true)]
+    [InlineData("GoogleMaps", -100, true)]
     public async Task BuilderNameAuthenticate(string projectionName, int latencyRequested, bool projValid)
     {
         var builder = J4JDeusEx.ServiceProvider.GetService<ProjectionBuilder>();
@@ -104,6 +110,9 @@ public class BuilderTests : TestBase
     [InlineData(typeof(OpenTopoMapsProjection), 0, true)]
     [InlineData(typeof(OpenTopoMapsProjection), 100, true)]
     [InlineData(typeof(OpenTopoMapsProjection), -100, true)]
+    [InlineData(typeof(GoogleMapsProjection), 0, true)]
+    [InlineData(typeof(GoogleMapsProjection), 100, true)]
+    [InlineData(typeof(GoogleMapsProjection), -100, true)]
     public async Task BuilderTypeSkipAuthenticate(Type projectionType, int latencyRequested, bool projValid)
     {
         var builder = J4JDeusEx.ServiceProvider.GetService<ProjectionBuilder>();
@@ -141,6 +150,9 @@ public class BuilderTests : TestBase
     [InlineData("OpenTopoMaps", 0, true)]
     [InlineData("OpenTopoMaps", 100, true)]
     [InlineData("OpenTopoMaps", -100, true)]
+    [InlineData("GoogleMaps", 0, true)]
+    [InlineData("GoogleMaps", 100, true)]
+    [InlineData("GoogleMaps", -100, true)]
     public async Task BuilderNameSkipAuthenticate(string projectionName, int latencyRequested, bool projValid)
     {
         var builder = J4JDeusEx.ServiceProvider.GetService<ProjectionBuilder>();
@@ -178,6 +190,9 @@ public class BuilderTests : TestBase
     [InlineData("OpenTopoMaps", 0, true)]
     [InlineData("OpenTopoMaps", 100, true)]
     [InlineData("OpenTopoMaps", -100, true)]
+    [InlineData("GoogleMaps", 0, true)]
+    [InlineData("GoogleMaps", 100, true)]
+    [InlineData("GoogleMaps", -100, true)]
     public async Task BuilderNameCredentials(string projectionName, int latencyRequested, bool projValid)
     {
         var builder = J4JDeusEx.ServiceProvider.GetService<ProjectionBuilder>();
@@ -193,7 +208,7 @@ public class BuilderTests : TestBase
         else rawCredentials.Should().BeNull();
 
         if( projectionName.Equals( "GoogleMaps" ) )
-            rawCredentials!.Should().BeAssignableTo<GoogleCredentials>();
+            rawCredentials!.Should().BeAssignableTo<SignedCredential>();
 
         var signedCredentials = rawCredentials as SignedCredential;
 
@@ -202,6 +217,7 @@ public class BuilderTests : TestBase
             case "BingMaps":
             case "OpenStreetMaps":
             case "OpenTopoMaps":
+            case "GoogleMaps":
                 credentialsFound.Should().BeTrue();
                 break;
 
