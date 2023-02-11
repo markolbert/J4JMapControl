@@ -30,7 +30,7 @@ internal partial class DeusEx
         builder.RegisterType<FileSystemCache>()
                .AsSelf();
 
-        builder.RegisterType<Viewport>()
+        builder.RegisterType<NormalizedViewport>()
                .AsSelf();
 
         builder.RegisterType<ProjectionFactory>()

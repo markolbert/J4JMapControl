@@ -1,7 +1,5 @@
 ﻿using FluentAssertions;
 using J4JMapLibrary;
-using J4JSoftware.DeusEx;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MapLibTests;
 
@@ -32,27 +30,53 @@ public class TileTests : TestBase
     )
     {
         var result = await GetFactory().CreateMapProjection( projectionName, null );
-        var projection = result.Projection as ITiledProjection;
+        var projection = result.Projection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         projection.MapScale.Scale = scale;
 
-        var viewportData = new Viewport( projection )
+        var viewportData = projectionName switch
         {
-            CenterLatitude = latitude,
-            CenterLongitude = longitude,
-            Height = height,
-            Width = width,
-            Heading = heading
+            "GoogleMaps" => new NormalizedViewport( projection )
+            {
+                CenterLatitude = latitude, CenterLongitude = longitude, Height = height, Width = width
+            },
+
+            _ => new Viewport( projection )
+            {
+                CenterLatitude = latitude,
+                CenterLongitude = longitude,
+                Height = height,
+                Width = width,
+                Heading = heading
+            }
         };
 
-        var extract = await projection.GetExtractAsync( viewportData );
+        var extract = projectionName switch
+        {
+            "GoogleMaps" => await ( (IStaticProjection) projection ).GetExtractAsync( (IViewport) viewportData ) as IMapExtract,
+            _ => await ( (ITiledProjection) projection ).GetExtractAsync( (IViewport) viewportData )
+        };
 
         extract.Should().NotBeNull();
-        extract!.TryGetBounds( out var bounds ).Should().BeTrue();
 
-        var testBounds = new TiledExtractBounds( new TileCoordinates( minTileX, minTileY ),
+        object? bounds;
+
+        if( projectionName == "GoogleMaps" )
+        {
+            ( (StaticExtract) extract! ).TryGetBounds( out var staticBounds ).Should().BeTrue();
+            bounds = staticBounds;
+        }
+        else
+        {
+            ((TiledExtract)extract!).TryGetBounds(out var tiledBounds).Should().BeTrue();
+            bounds = tiledBounds;
+        }
+
+        bounds.Should().NotBeNull();
+
+        var testBounds = new TiledBounds( new TileCoordinates( minTileX, minTileY ),
                                          new TileCoordinates( maxTileX, maxTileY ) );
 
         bounds!.Should().Be( testBounds );
