@@ -20,7 +20,7 @@ public class CacheTests : TestBase
         var result = await GetFactory().CreateMapProjection( "BingMaps", cache );
         var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
-        projection!.SetScale(scale);
+        projection!.MapScale.Scale = scale;
 
         var numCreated = 0;
 
@@ -28,7 +28,7 @@ public class CacheTests : TestBase
         {
             for( var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++ )
             {
-                await TiledFragment.CreateAsync( projection, xTile, yTile );
+                await TiledFragment.CreateAsync( projection, xTile, yTile, scale );
                 numCreated++;
 
                 cache.Count.Should().Be( maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached );
@@ -60,7 +60,7 @@ public class CacheTests : TestBase
         var result = await GetFactory().CreateMapProjection("BingMaps", cache);
         var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
-        projection!.SetScale(scale);
+        projection!.MapScale.Scale = scale;
 
         var numCreated = 0;
 
@@ -68,7 +68,7 @@ public class CacheTests : TestBase
         {
             for (var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++)
             {
-                await TiledFragment.CreateAsync( projection, xTile, yTile );
+                await TiledFragment.CreateAsync( projection, xTile, yTile,scale );
                 numCreated++;
 
                 cache.Count.Should().Be(maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached);
