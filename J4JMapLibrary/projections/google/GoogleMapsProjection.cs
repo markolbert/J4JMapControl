@@ -3,13 +3,13 @@
 namespace J4JMapLibrary;
 
 [ Projection( "GoogleMaps", typeof( IGoogleMapServer ) ) ]
-public sealed class GoogleProjection : StaticProjection<GoogleCredentials>
+public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
 
     private bool _authenticated;
 
-    public GoogleProjection(
+    public GoogleMapsProjection(
         IGoogleMapServer mapServer,
         IJ4JLogger logger
     )
@@ -17,7 +17,7 @@ public sealed class GoogleProjection : StaticProjection<GoogleCredentials>
     {
     }
 
-    public GoogleProjection(
+    public GoogleMapsProjection(
         IProjectionCredentials credentials,
         IGoogleMapServer mapServer,
         IJ4JLogger logger
