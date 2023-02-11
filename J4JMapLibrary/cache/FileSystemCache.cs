@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Reflection.Metadata.Ecma335;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 
@@ -143,6 +144,7 @@ public class FileSystemCache : CacheBase
         ITiledProjection projection,
         int xTile,
         int yTile,
+        int scale,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     )
@@ -153,13 +155,13 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile )}";
+        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile, scale )}";
         var filePath = Path.Combine( _cacheDir, $"{projection.Name}-{key}{projection.MapServer.ImageFileExtension}" );
 
         return File.Exists( filePath )
-            ? new CacheEntry( projection, xTile, yTile, await File.ReadAllBytesAsync( filePath, ctx ) )
+            ? new CacheEntry( projection, xTile, yTile, scale, await File.ReadAllBytesAsync( filePath, ctx ) )
             : deferImageLoad
-                ? new CacheEntry( projection, xTile, yTile, ctx )
+                ? new CacheEntry( projection, xTile, yTile, scale, ctx )
                 : null;
     }
 
@@ -167,6 +169,7 @@ public class FileSystemCache : CacheBase
         ITiledProjection projection,
         int xTile,
         int yTile,
+        int scale,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     )
@@ -177,14 +180,14 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var retVal = new CacheEntry( projection, xTile, yTile, ctx );
+        var retVal = new CacheEntry( projection, xTile, yTile, scale, ctx );
 
         var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.MapServer.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         var bytesToWrite = retVal.Tile.ImageBytes <= 0L
-            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null
-            : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null;
+            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( scale, ctx: ctx ) ?? null
+            : await retVal.Tile.GetImageAsync( scale, ctx: ctx ) ?? null;
 
         if( bytesToWrite == null )
         {

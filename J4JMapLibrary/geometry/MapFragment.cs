@@ -4,34 +4,15 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public abstract class MapFragment<TScope> : IMapTile<TScope>
-    where TScope : MapScope
+public abstract class MapFragment : IMapFragment
 {
-    private readonly CancellationTokenSource _ctxSource = new();
-
     protected MapFragment(
-        IMapProjection projection
+        IProjection projection
     )
     {
         Logger = J4JDeusEx.GetLogger();
         Logger?.SetLoggedType( GetType() );
 
-        var temp = projection.GetScope() as TScope;
-        if( temp == null )
-        {
-            var mesg = $"Could not retrieve {0} from projection";
-            Logger?.Fatal( mesg );
-            throw new NullReferenceException( mesg );
-        }
-
-        var temp2 = temp switch
-        {
-            TiledScope tiledScope => TiledScope.Copy( tiledScope ) as TScope,
-            MapScope mapScope => MapScope.Copy( mapScope ) as TScope,
-            _ => throw new InvalidOperationException( $"Unsupported MapScope type '{typeof( TScope )}'" )
-        };
-
-        Scope = temp2!;
         MapServer = projection.MapServer;
 
         MaxRequestLatency = projection.MapServer.MaxRequestLatency;
@@ -41,14 +22,13 @@ public abstract class MapFragment<TScope> : IMapTile<TScope>
     protected abstract string TileId { get; }
     protected byte[]? ImageData { get; set; }
 
-    public TScope Scope { get; }
     public IMapServer MapServer { get; }
     public int MaxRequestLatency { get; }
 
     public long ImageBytes { get; private set; } = -1L;
     public event EventHandler? ImageChanged;
 
-    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default )
+    public async Task<byte[]?> GetImageAsync( int scale, bool forceRetrieval = false, CancellationToken ctx = default )
     {
         if( ImageData != null && !forceRetrieval )
             return ImageData;
@@ -60,7 +40,7 @@ public abstract class MapFragment<TScope> : IMapTile<TScope>
 
         Logger?.Verbose( "Beginning image retrieval from web" );
 
-        var request = MapServer.CreateMessage( this );
+        var request = MapServer.CreateMessage( this, scale );
         if( request == null )
         {
             Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", TileId );
@@ -150,6 +130,4 @@ public abstract class MapFragment<TScope> : IMapTile<TScope>
             return null;
         }
     }
-
-    MapScope IMapFragment.GetScope() => Scope;
 }

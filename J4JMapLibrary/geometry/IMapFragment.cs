@@ -6,13 +6,5 @@ public interface IMapFragment
     int MaxRequestLatency { get; }
     long ImageBytes { get; }
     event EventHandler? ImageChanged;
-    Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default );
-
-    MapScope GetScope();
-}
-
-public interface IMapTile<out TScope> : IMapFragment
-    where TScope : MapScope
-{
-    TScope Scope { get; }
+    Task<byte[]?> GetImageAsync( int scale, bool forceRetrieval = false, CancellationToken ctx = default );
 }

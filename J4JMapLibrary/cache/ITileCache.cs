@@ -14,6 +14,7 @@ public interface ITileCache
         ITiledProjection projection,
         int xTile,
         int yTile,
+        int scale,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
