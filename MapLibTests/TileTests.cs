@@ -47,7 +47,7 @@ public class TileTests : TestBase
             Heading = heading
         };
 
-        var extract = await projection.GetViewportTilesAsync( viewportData );
+        var extract = await projection.GetExtractAsync( viewportData );
 
         extract.Should().NotBeNull();
         extract!.TryGetBounds( out var bounds ).Should().BeTrue();
