@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[ Projection( "Google", typeof( IGoogleMapServer ) ) ]
+[ Projection( "GoogleMaps", typeof( IGoogleMapServer ) ) ]
 public sealed class GoogleProjection : StaticProjection<GoogleCredentials>
 {
     // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
