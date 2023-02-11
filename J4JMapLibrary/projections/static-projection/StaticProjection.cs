@@ -43,7 +43,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
                             .ToListAsync(ctx);
     }
 
-    public async Task<StaticExtract?> GetViewportTilesAsync(
+    public async Task<StaticMapExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
@@ -67,7 +67,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
         if (!deferImageLoad)
             await mapTile.GetImageAsync(viewportData.Scale, ctx: ctx);
 
-        var retVal = new StaticExtract(this, Logger);
+        var retVal = new StaticMapExtract(this, Logger);
 
         if (!retVal.Add(mapTile))
             Logger.Error("Problem adding StaticFragment to collection (probably differing ITiledScale)");

@@ -22,7 +22,7 @@ public interface ITiledProjection : IProjection
         CancellationToken ctx = default
     );
 
-    Task<TiledExtract?> GetViewportTilesAsync(
+    Task<TiledMapExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
