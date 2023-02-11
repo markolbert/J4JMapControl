@@ -109,6 +109,7 @@ public partial class ProjectionFactory
             _sources.Add( projInfo.Name,
                           new ProjectionInfo( projInfo.Name,
                                               projInfo.ProjectionType,
+                                              projInfo.IsTiled,
                                               serverInfo.ServerType,
                                               credentialType,
                                               projInfo.BasicConstructor,
@@ -119,6 +120,7 @@ public partial class ProjectionFactory
     private record ProjectionInfo(
         string Name,
         Type MapProjectionType,
+        bool IsTiled,
         Type ServerType,
         Type CredentialsType,
         List<ParameterInfo>? BaseConstructor,
