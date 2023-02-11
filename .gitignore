@@ -12,6 +12,7 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+check-images/
 
 # Build results
 [Dd]ebug/
