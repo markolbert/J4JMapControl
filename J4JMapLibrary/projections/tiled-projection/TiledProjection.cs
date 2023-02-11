@@ -62,7 +62,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
     //public async Task<List<ITiledFragment>?> GetExtractRegionAsync(
-    //    Viewport viewportData,
+    //    NormalizedViewport viewportData,
     //    bool deferImageLoad = false,
     //    CancellationToken ctx = default
     //)
@@ -76,8 +76,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     //                        .ToListAsync(ctx);
     //}
 
-    public async Task<TiledMapExtract?> GetExtractAsync(
-        Viewport viewportData,
+    public async Task<TiledExtract?> GetExtractAsync(
+        IViewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     )
@@ -129,7 +129,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
-        var retVal = new TiledMapExtract( this, Logger );
+        var retVal = new TiledExtract( this, Logger );
 
         for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
         {

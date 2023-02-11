@@ -3,13 +3,13 @@
 public interface IStaticProjection : IProjection
 {
     Task<List<IStaticFragment>?> GetViewportRegionAsync(
-        Viewport viewportData,
+        NormalizedViewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
 
-    Task<StaticMapExtract?> GetExtractAsync(
-        Viewport viewportData,
+    Task<StaticExtract?> GetExtractAsync(
+        INormalizedViewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
