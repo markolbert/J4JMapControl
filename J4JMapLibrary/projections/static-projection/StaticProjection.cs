@@ -24,17 +24,13 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
     {
     }
 
-    public int TileHeightWidth { get; protected set; }
-
-    public string ImageFileExtension { get; private set; } = string.Empty;
-
     public async Task<List<IStaticFragment>?> GetViewportRegionAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     )
     {
-        var extract = await GetViewportTilesAsync(viewportData, deferImageLoad, ctx);
+        var extract = await GetExtractAsync(viewportData, deferImageLoad, ctx);
 
         if (extract == null)
             return null;
@@ -43,7 +39,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
                             .ToListAsync(ctx);
     }
 
-    public async Task<StaticMapExtract?> GetViewportTilesAsync(
+    public async Task<StaticMapExtract?> GetExtractAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default

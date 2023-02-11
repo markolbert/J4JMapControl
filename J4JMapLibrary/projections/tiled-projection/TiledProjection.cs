@@ -61,22 +61,22 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     public string ScaleDescription( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public async Task<List<ITiledFragment>?> GetViewportRegionAsync(
-        Viewport viewportData,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    )
-    {
-        var extract = await GetViewportTilesAsync(viewportData, deferImageLoad, ctx);
+    //public async Task<List<ITiledFragment>?> GetExtractRegionAsync(
+    //    Viewport viewportData,
+    //    bool deferImageLoad = false,
+    //    CancellationToken ctx = default
+    //)
+    //{
+    //    var extract = await GetExtractAsync(viewportData, deferImageLoad, ctx);
 
-        if (extract == null)
-            return null;
+    //    if (extract == null)
+    //        return null;
 
-        return await extract.GetTilesAsync(viewportData.Scale, ctx)
-                            .ToListAsync(ctx);
-    }
+    //    return await extract.GetTilesAsync(viewportData.Scale, ctx)
+    //                        .ToListAsync(ctx);
+    //}
 
-    public async Task<TiledMapExtract?> GetViewportTilesAsync(
+    public async Task<TiledMapExtract?> GetExtractAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
