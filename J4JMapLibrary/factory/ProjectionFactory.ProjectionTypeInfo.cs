@@ -23,7 +23,7 @@ public partial class ProjectionFactory
         {
             ProjectionType = projType;
 
-            var attr = projType.GetCustomAttribute<MapProjectionAttribute>();
+            var attr = projType.GetCustomAttribute<ProjectionAttribute>();
             Name = attr?.Name ?? string.Empty;
             ServerType = attr?.MapServerType;
 
