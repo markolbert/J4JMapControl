@@ -76,7 +76,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
                             .ToListAsync(ctx);
     }
 
-    public async Task<TiledExtract?> GetViewportTilesAsync(
+    public async Task<TiledMapExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
@@ -129,7 +129,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
-        var retVal = new TiledExtract( this, Logger );
+        var retVal = new TiledMapExtract( this, Logger );
 
         for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
         {

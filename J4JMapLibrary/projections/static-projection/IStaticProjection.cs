@@ -8,7 +8,7 @@ public interface IStaticProjection : IProjection
         CancellationToken ctx = default
     );
 
-    Task<StaticExtract?> GetViewportTilesAsync(
+    Task<StaticMapExtract?> GetViewportTilesAsync(
         Viewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
