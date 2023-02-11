@@ -19,7 +19,7 @@ public abstract class MapFragment : IMapFragment
     }
 
     protected IJ4JLogger? Logger { get; }
-    protected abstract string TileId { get; }
+    protected abstract string FragmentId { get; }
     protected byte[]? ImageData { get; set; }
 
     public IMapServer MapServer { get; }
@@ -43,7 +43,7 @@ public abstract class MapFragment : IMapFragment
         var request = MapServer.CreateMessage( this, scale );
         if( request == null )
         {
-            Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", TileId );
+            Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", FragmentId );
             if( wasNull )
                 ImageChanged?.Invoke( this, EventArgs.Empty );
 
