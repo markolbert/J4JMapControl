@@ -4,17 +4,18 @@ using System.Text;
 namespace J4JMapLibrary;
 
 [ MapServer( "GoogleMaps", typeof( GoogleCredentials ) ) ]
-public class GoogleServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
+public class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
 {
     private string _apiKey = string.Empty;
     private string _signature = string.Empty;
 
-    public GoogleServer()
+    public GoogleMapsServer()
     {
         MinScale = 0;
         MaxScale = 20;
         Copyright = "© Google";
         CopyrightUri = new Uri("http://www.google.com");
+        ImageFileExtension = ".png";
 
         // this doesn't have the required signature field, but that gets appended
         // when the request is created because it involves a cryptographic call
