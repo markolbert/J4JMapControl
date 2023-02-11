@@ -25,7 +25,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
     }
 
     public async Task<List<IStaticFragment>?> GetViewportRegionAsync(
-        Viewport viewportData,
+        NormalizedViewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     )
@@ -39,8 +39,8 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
                             .ToListAsync(ctx);
     }
 
-    public async Task<StaticMapExtract?> GetExtractAsync(
-        Viewport viewportData,
+    public async Task<StaticExtract?> GetExtractAsync(
+        INormalizedViewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default
     )
@@ -58,12 +58,10 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
                                           viewportData.Width,
                                           viewportData.Scale );
 
-        // need to put in logic to rotate/heading
-
         if (!deferImageLoad)
             await mapTile.GetImageAsync(viewportData.Scale, ctx: ctx);
 
-        var retVal = new StaticMapExtract(this, Logger);
+        var retVal = new StaticExtract(this, Logger);
 
         if (!retVal.Add(mapTile))
             Logger.Error("Problem adding StaticFragment to collection (probably differing ITiledScale)");
