@@ -15,6 +15,11 @@ public static class MapExtensions
         Logger?.SetLoggedType( typeof( MapExtensions ) );
     }
 
+    public static ProjectionType GetProjectionType( this IProjection projection ) =>
+        projection.GetType().GetInterface( nameof( ITiledProjection ) ) == null
+            ? ProjectionType.Static
+            : ProjectionType.Tiled;
+
     public static string GetQuadKey( this TiledFragment mapFragment, int scale )
     {
         var retVal = new StringBuilder();
