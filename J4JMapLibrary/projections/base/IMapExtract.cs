@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public interface IExtract
+public interface IMapExtract
 {
     bool Add(IMapFragment mapFragment);
     void Remove(IMapFragment mapFragment);

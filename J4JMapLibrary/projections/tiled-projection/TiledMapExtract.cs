@@ -3,9 +3,9 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public class TiledExtract : Extract
+public class TiledMapExtract : MapExtract
 {
-    public TiledExtract(
+    public TiledMapExtract(
         ITiledProjection projection,
         IJ4JLogger logger
     )
@@ -22,7 +22,7 @@ public class TiledExtract : Extract
         if( castTiles.Count == 0 )
         {
             Logger.Error( Tiles.Any()
-                              ? "Extract contains tiles that aren't ITiledFragment"
+                              ? "MapExtract contains tiles that aren't ITiledFragment"
                               : "No tiles in the extract" );
 
             return false;
