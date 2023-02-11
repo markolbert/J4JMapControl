@@ -6,14 +6,24 @@ public partial class ProjectionFactory
 {
     private record ProjectionTypeInfo : TypeInfoBase
     {
-        public static readonly ParameterType[] BaseParameterTypes =
+        private static readonly ParameterType[] TiledParameters =
         {
             ParameterType.MapServer, ParameterType.Logger, ParameterType.TileCache
         };
 
-        public static readonly ParameterType[] CredentialedParameterTypes =
+        private static readonly ParameterType[] StaticParameters =
+        {
+            ParameterType.MapServer, ParameterType.Logger
+        };
+
+        private static readonly ParameterType[] TiledCredentialedParameters =
         {
             ParameterType.MapServer, ParameterType.Logger, ParameterType.TileCache, ParameterType.Credentials
+        };
+
+        private static readonly ParameterType[] StaticCredentialedParameters =
+        {
+            ParameterType.MapServer, ParameterType.Logger, ParameterType.Credentials
         };
 
         public ProjectionTypeInfo(
@@ -27,13 +37,23 @@ public partial class ProjectionFactory
             Name = attr?.Name ?? string.Empty;
             ServerType = attr?.MapServerType;
 
-            BasicConstructor = GetConstructor( BaseParameterTypes );
-            ConfigurationCredentialConstructor = GetConstructor( CredentialedParameterTypes );
+            if( projType.IsAssignableTo( typeof( IStaticProjection ) ) )
+            {
+                BasicConstructor = GetConstructor(StaticParameters);
+                ConfigurationCredentialConstructor = GetConstructor(StaticCredentialedParameters);
+            }
+            else
+            {
+                IsTiled = true;
+                BasicConstructor = GetConstructor(TiledParameters);
+                ConfigurationCredentialConstructor = GetConstructor(TiledCredentialedParameters);
+            }
         }
 
         public string Name { get; }
         public Type ProjectionType { get; }
         public Type? ServerType { get; }
+        public bool IsTiled { get; }
 
         public List<ParameterInfo>? BasicConstructor { get; }
         public List<ParameterInfo>? ConfigurationCredentialConstructor { get; }
