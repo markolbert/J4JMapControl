@@ -15,11 +15,11 @@ public static class MapExtensions
         Logger?.SetLoggedType( typeof( MapExtensions ) );
     }
 
-    public static string GetQuadKey( this TiledFragment mapFragment )
+    public static string GetQuadKey( this TiledFragment mapFragment, int scale )
     {
         var retVal = new StringBuilder();
 
-        for( var i = mapFragment.Scope.Scale; i > mapFragment.Scope.ScaleRange.Minimum - 1; i-- )
+        for( var i = scale; i > mapFragment.MapServer.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
@@ -39,26 +39,24 @@ public static class MapExtensions
         return retVal.ToString();
     }
 
-    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile )
+    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale )
     {
         var x = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
         var y = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
-
-        var scope = (TiledScope) projection.GetScope();
 
         if( x != xTile || y != yTile )
         {
             Logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
                            xTile,
                            yTile,
-                           scope.Scale );
+                           scale );
 
             return null;
         }
 
         var retVal = new StringBuilder();
 
-        for( var i = scope.Scale; i > 0; i-- )
+        for( var i = scale; i > 0; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );
@@ -129,11 +127,11 @@ public static class MapExtensions
     }
 
     public static LatLong CenterLatLong( this TiledFragment mapFragment ) =>
-        mapFragment.Scope.CartesianToLatLong( mapFragment.CenterCartesian() );
+        mapFragment.TiledScale.CartesianToLatLong( mapFragment.CenterCartesian() );
 
     public static Cartesian CenterCartesian( this TiledFragment mapFragment )
     {
-        var retVal = new Cartesian( mapFragment.Scope );
+        var retVal = new Cartesian( mapFragment.TiledScale );
 
         retVal.SetCartesian( mapFragment.X * mapFragment.HeightWidth + mapFragment.HeightWidth / 2,
                              mapFragment.Y * mapFragment.HeightWidth + mapFragment.HeightWidth / 2 );
