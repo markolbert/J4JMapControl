@@ -7,59 +7,83 @@ public class CheckImages : TestBase
 {
     [ Theory ]
     [ ClassData( typeof( TileImageData ) ) ]
-    public async Task BingMaps( int scale, int xTile, int yTile )
+    public async Task BingMaps( TileImageData.Tile data )
     {
         var result = await GetFactory().CreateMapProjection("BingMaps", null);
         var projection = result.Projection as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = scale;
+        projection.MapScale.Scale = data.Scale;
 
-        var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile, scale );
+        var mapTile = await TiledFragment.CreateAsync( projection, data.TileX, data.TileY, data.Scale );
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
-        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync(scale));
+        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync(data.Scale));
     }
 
     [ Theory ]
     [ ClassData( typeof( TileImageData ) ) ]
-    public async Task OpenStreetMaps( int scale, int xTile, int yTile )
+    public async Task OpenStreetMaps(TileImageData.Tile data)
     {
         var result = await GetFactory().CreateMapProjection("OpenStreetMaps", null);
         var projection = result.Projection as OpenStreetMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = scale;
+        projection.MapScale.Scale = data.Scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile, scale);
+        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY, data.Scale);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
-        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync(scale));
+        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync(data.Scale));
     }
 
     [ Theory ]
     [ ClassData( typeof( TileImageData ) ) ]
-    public async Task OpenTopoMaps( int scale, int xTile, int yTile )
+    public async Task OpenTopoMaps(TileImageData.Tile data)
     {
         var result = await GetFactory().CreateMapProjection("OpenTopoMaps", null);
         var projection = result.Projection as OpenTopoMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = scale;
+        projection.MapScale.Scale = data.Scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile, scale);
+        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY, data.Scale);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.QuadKey}{projection.MapServer.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync(scale), true );
+        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync(data.Scale), true );
+    }
+
+    [Theory]
+    [ClassData(typeof(StaticImageData))]
+    public async Task GoogleMaps(StaticImageData.Region data)
+    {
+        var result = await GetFactory().CreateMapProjection("GoogleMaps", null);
+        var projection = result.Projection as GoogleMapsProjection;
+        projection.Should().NotBeNull();
+        projection!.Initialized.Should().BeTrue();
+
+        projection.MapScale.Scale = data.Scale;
+
+        var mapTile = new StaticFragment( projection,
+                                          data.Latitude,
+                                          data.Longitude,
+                                          data.Height,
+                                          data.Width,
+                                          data.Scale );
+
+        var filePath = Path.Combine(GetCheckImagesFolder(projection.Name),
+                                    $"{data.FileId}{projection.MapServer.ImageFileExtension}");
+
+        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync(data.Scale), true);
     }
 
     private async Task CompareImageFileAsync( string filePath, byte[]? imageData, bool sleep = true )
