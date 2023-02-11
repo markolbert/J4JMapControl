@@ -68,7 +68,7 @@ public partial class ProjectionFactory
         allTypes.AddRange( _credentialTypes.Select( x => x.GetTypeInfo() ) );
 
         var projections = allTypes
-                         .Where( x => x.GetInterface( nameof( IMapProjection ) ) != null )
+                         .Where( x => x.GetInterface( nameof( IProjection ) ) != null )
                          .Select( x => new ProjectionTypeInfo( x ) )
                          .Where( x => x.BasicConstructor != null
                                   && !string.IsNullOrEmpty( x.Name )

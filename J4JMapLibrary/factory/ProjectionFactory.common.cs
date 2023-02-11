@@ -62,7 +62,7 @@ public partial class ProjectionFactory
     private bool TryCreateProjection(
         ProjectionInfo ctorInfo,
         ParameterValue[] parameterValues,
-        out IMapProjection? result
+        out IProjection? result
     )
     {
         result = null;
@@ -76,7 +76,7 @@ public partial class ProjectionFactory
         try
         {
             var arguments = CreateConstructorArguments( ctorInfo.BaseConstructor, parameterValues );
-            result = (IMapProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
+            result = (IProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
         }
         catch( Exception ex )
         {
@@ -96,7 +96,7 @@ public partial class ProjectionFactory
     private bool TryCreateProjectionConfigurationCredentials(
         ProjectionInfo ctorInfo,
         ParameterValue[] parameterValues,
-        out IMapProjection? result
+        out IProjection? result
     )
     {
         result = null;
@@ -113,7 +113,7 @@ public partial class ProjectionFactory
             var arguments =
                 CreateConstructorArguments( ctorInfo.ConfigurationCredentialedConstructor, parameterValues );
 
-            result = (IMapProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
+            result = (IProjection?) Activator.CreateInstance( ctorInfo.MapProjectionType, arguments );
         }
         catch( Exception ex )
         {
