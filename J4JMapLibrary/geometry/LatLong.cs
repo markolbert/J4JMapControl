@@ -7,16 +7,12 @@ public class LatLong
     public EventHandler? Changed;
 
     public LatLong(
-        IMapScope scope
+        IMapServer server
     )
     {
-        _latitudeRange = scope.LatitudeRange;
-        _longitudeRange = scope.LongitudeRange;
-
-        Scale = scope.Scale;
+        _latitudeRange = server.LatitudeRange;
+        _longitudeRange = server.LongitudeRange;
     }
-
-    public int Scale { get; internal set; }
 
     public float Latitude { get; private set; }
     public float Longitude { get; private set; }

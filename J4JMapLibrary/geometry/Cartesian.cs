@@ -5,25 +5,18 @@ public class Cartesian
     public EventHandler? Changed;
 
     public Cartesian(
-        ITiledScope scope
+        ITiledScale scale
     )
     {
-        XRange = scope.XRange;
-        YRange = scope.YRange;
-
-        Scale = scope.Scale;
+        XRange = scale.XRange;
+        YRange = scale.YRange;
     }
 
-    public Cartesian(
-        IMapScope scope
-    )
+    public Cartesian()
     {
-        Scale = scope.Scale;
         XRange = new MinMax<int>( int.MinValue, int.MaxValue );
         YRange = new MinMax<int>(int.MinValue, int.MaxValue);
     }
-
-    public int Scale { get; }
 
     public MinMax<int> XRange { get; internal set; }
     public int X { get; private set; }
