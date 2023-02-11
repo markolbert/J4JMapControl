@@ -1,8 +1,8 @@
 ﻿namespace J4JMapLibrary;
 
-public class TiledExtractBounds : IEquatable<TiledExtractBounds>
+public class TiledBounds : IEquatable<TiledBounds>
 {
-    public TiledExtractBounds(
+    public TiledBounds(
         TileCoordinates upperLeft,
         TileCoordinates lowerRight
     )
@@ -14,7 +14,7 @@ public class TiledExtractBounds : IEquatable<TiledExtractBounds>
     public TileCoordinates UpperLeft { get; init; }
     public TileCoordinates LowerRight { get; init; }
 
-    public bool Equals( TiledExtractBounds? other )
+    public bool Equals( TiledBounds? other )
     {
         if( ReferenceEquals( null, other ) ) return false;
         if( ReferenceEquals( this, other ) ) return true;
@@ -27,12 +27,12 @@ public class TiledExtractBounds : IEquatable<TiledExtractBounds>
         if( ReferenceEquals( null, obj ) ) return false;
         if( ReferenceEquals( this, obj ) ) return true;
 
-        return obj.GetType() == GetType() && Equals( (TiledExtractBounds) obj );
+        return obj.GetType() == GetType() && Equals( (TiledBounds) obj );
     }
 
     public override int GetHashCode() => HashCode.Combine( UpperLeft, LowerRight );
 
-    public static bool operator==( TiledExtractBounds? left, TiledExtractBounds? right ) => Equals( left, right );
+    public static bool operator==( TiledBounds? left, TiledBounds? right ) => Equals( left, right );
 
-    public static bool operator!=( TiledExtractBounds? left, TiledExtractBounds? right ) => !Equals( left, right );
+    public static bool operator!=( TiledBounds? left, TiledBounds? right ) => !Equals( left, right );
 }

@@ -3,9 +3,9 @@ using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public class TiledMapExtract : MapExtract
+public class TiledExtract : MapExtract
 {
-    public TiledMapExtract(
+    public TiledExtract(
         ITiledProjection projection,
         IJ4JLogger logger
     )
@@ -13,7 +13,7 @@ public class TiledMapExtract : MapExtract
     {
     }
 
-    public bool TryGetBounds( out TiledExtractBounds? bounds )
+    public bool TryGetBounds( out TiledBounds? bounds )
     {
         bounds = null;
 
@@ -33,7 +33,7 @@ public class TiledMapExtract : MapExtract
         var minY = castTiles.Min(x => x.Y);
         var maxY = castTiles.Max(x => x.Y);
 
-        bounds = new TiledExtractBounds(new TileCoordinates(minX, minY), new TileCoordinates(maxX, maxY));
+        bounds = new TiledBounds(new TileCoordinates(minX, minY), new TileCoordinates(maxX, maxY));
 
         return true;
     }

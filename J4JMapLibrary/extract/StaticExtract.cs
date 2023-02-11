@@ -2,9 +2,9 @@
 
 namespace J4JMapLibrary;
 
-public class StaticMapExtract : MapExtract
+public class StaticExtract : MapExtract
 {
-    public StaticMapExtract(
+    public StaticExtract(
         IStaticProjection projection,
         IJ4JLogger logger
     )
