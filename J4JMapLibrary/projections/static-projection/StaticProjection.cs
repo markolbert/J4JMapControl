@@ -24,21 +24,6 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjec
     {
     }
 
-    public async Task<List<IStaticFragment>?> GetViewportRegionAsync(
-        NormalizedViewport viewportData,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    )
-    {
-        var extract = await GetExtractAsync(viewportData, deferImageLoad, ctx);
-
-        if (extract == null)
-            return null;
-
-        return await extract.GetTilesAsync(viewportData.Scale, ctx)
-                            .ToListAsync(ctx);
-    }
-
     public async Task<StaticExtract?> GetExtractAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad = false,

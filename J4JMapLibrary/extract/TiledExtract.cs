@@ -37,23 +37,4 @@ public class TiledExtract : MapExtract
 
         return true;
     }
-
-    public override async IAsyncEnumerable<ITiledFragment> GetTilesAsync(int scale, [EnumeratorCancellation] CancellationToken ctx = default )
-    {
-        if (!TryGetBounds(out var bounds))
-            yield break;
-
-        for( var x = bounds!.UpperLeft.X; x <= bounds.LowerRight.X; x++ )
-        {
-            for( var y = bounds.UpperLeft.Y; y <= bounds.LowerRight.Y; y++ )
-            {
-                yield return await TiledFragment.CreateAsync( (ITiledProjection) Projection,
-                                                           x,
-                                                           y,
-                                                           scale,
-                                                           ctx: ctx );
-
-            }
-        }
-    }
 }
