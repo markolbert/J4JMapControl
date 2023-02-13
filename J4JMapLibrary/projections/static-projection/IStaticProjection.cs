@@ -2,12 +2,6 @@
 
 public interface IStaticProjection : IProjection
 {
-    Task<List<IStaticFragment>?> GetViewportRegionAsync(
-        NormalizedViewport viewportData,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    );
-
     Task<StaticExtract?> GetExtractAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad = false,

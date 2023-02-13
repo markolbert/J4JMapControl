@@ -1,4 +1,6 @@
-﻿using J4JSoftware.Logging;
+﻿using System.Collections;
+using J4JSoftware.Logging;
+using System.Runtime.CompilerServices;
 
 namespace J4JMapLibrary;
 
@@ -45,8 +47,7 @@ public abstract class MapExtract : IMapExtract
 
     public void Clear() => Tiles.Clear();
 
-    public abstract IAsyncEnumerable<IMapFragment> GetTilesAsync( int scale, CancellationToken ctx = default );
+    public IEnumerator<IMapFragment> GetEnumerator() => ( (IEnumerable<IMapFragment>) Tiles ).GetEnumerator();
 
-    IAsyncEnumerable<IMapFragment> IMapExtract.GetTilesAsync( int scale, CancellationToken ctx ) =>
-        GetTilesAsync( scale, ctx );
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

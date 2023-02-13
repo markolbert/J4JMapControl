@@ -38,7 +38,4 @@ public class StaticExtract : MapExtract
         bounds = new StaticBounds( castTile );
         return true;
     }
-
-    public override IAsyncEnumerable<IStaticFragment> GetTilesAsync(int scale, CancellationToken ctx = default ) =>
-        throw new NotImplementedException();
 }
