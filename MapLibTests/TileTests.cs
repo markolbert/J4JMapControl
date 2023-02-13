@@ -81,7 +81,7 @@ public class TileTests : TestBase
 
         bounds!.Should().Be( testBounds );
 
-        await foreach( var tile in extract.GetTilesAsync(scale) )
+        foreach( var tile in extract )
         {
             tile.ImageBytes.Should().BeNegative();
         }
