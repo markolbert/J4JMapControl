@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Numerics;
 using J4JSoftware.Logging;
+using J4JSoftware.VisualUtilities;
 
 namespace J4JMapLibrary;
 
@@ -27,6 +29,8 @@ public class MapExtractNg
 
         public bool IsValid( IProjection projection ) =>
             Height > 0 && Width > 0 && Scale >= projection.MapServer.MinScale && Scale <= projection.MapServer.MaxScale;
+
+        public float Rotation => 360 - Heading;
     }
 
     private readonly IProjection _projection;
@@ -122,7 +126,9 @@ public class MapExtractNg
         }
     }
 
-    private void UpdateImages( Configuration revisedConfig )
+    public float Rotation => 360 - Heading;
+
+    private async Task UpdateImages( Configuration revisedConfig )
     {
         if( !revisedConfig.IsValid( _projection ) )
         {
@@ -133,76 +139,88 @@ public class MapExtractNg
         var curRectangle = CreateRectangle( _curConfig );
         var revisedRectangle = CreateRectangle( revisedConfig );
 
-        if( RectangleContains( curRectangle, revisedRectangle ) )
+        if( curRectangle.Contains( revisedRectangle ) != RelativePosition2D.Outside )
         {
             _curConfig = revisedConfig;
             return;
         }
 
         // update the image(s)
-        if( !RetrieveImages( revisedConfig ) )
+        if( ! await RetrieveImages( revisedConfig ) )
             return;
 
         _curConfig = revisedConfig;
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
-    private Vector3[] CreateRectangle( Configuration config )
+    private Rectangle2D CreateRectangle( Configuration config )
     {
-        var corners = new Vector3[]
-        {
-            new( 0, 0, 0 ),
-            new( config.Width, 0, 0 ),
-            new( config.Width, config.Height, 0 ),
-            new(0, config.Height, 0)
-        };
-
-        var center = new Vector3(config.Width / 2F, config.Height / 2F, 0);
-
-        corners = corners.ApplyTransform(
-            Matrix4x4.CreateRotationZ((360 - config.Heading) * MapConstants.RadiansPerDegree, center));
+        var retVal = new Rectangle2D( config.Height, config.Width, config.Rotation );
 
         // apply buffer
         var bufferTransform = Matrix4x4.CreateScale( 1 + config.Buffer.Width / config.Width,
                                                      1 + config.Buffer.Height / config.Height,
                                                      0 );
 
-        corners = corners.ApplyTransform( bufferTransform );
+        retVal = retVal.ApplyTransform( bufferTransform );
 
         return ProjectionType == ProjectionType.Tiled
-            ? corners
-            : NormalizeStaticRectangle(corners);
+            ? retVal
+            : retVal.BoundingBox;
     }
 
-    private Vector3[] NormalizeStaticRectangle(Vector3[] corners )
+    private async Task<bool> RetrieveImages( Configuration config )
     {
-        // find the range of tiles covering the mapped rectangle
-        var minX = corners.Min( x => x.X );
-        var maxX = corners.Max( x => x.X );
-
-        if( maxX < minX )
-            ( minX, maxX ) = ( maxX, minX );
-
-        // figuring out the min/max of y coordinates is a royal pain in the ass...
-        // because in display space, increasing y values take you >>down<< the screen,
-        // not up the screen. So the first adjustment is to subject the raw Y values from
-        // the height of the projection to reverse the direction. 
-        var minY = corners.Min( y => Height - y.Y );
-        var maxY = corners.Max( y => Height - y.Y );
-
-        if( maxY < minY )
-            ( minY, maxY ) = ( maxY, minY );
-
-        return new Vector3[] { new( minX, minY, 0 ), new( maxX, minY, 0 ), new( maxX, maxY, 0 ), new( minX, maxY, 0 ) };
+        return ProjectionType switch
+        {
+            ProjectionType.Static => await RetrieveStaticImages( config ),
+            ProjectionType.Tiled => await RetrieveTiledImages( config ),
+            _ => throw new InvalidEnumArgumentException($"Unsupported {nameof(ProjectionType)} value '{ProjectionType}'")
+        };
     }
 
-    private bool RectangleContains( Vector3[] outer, Vector3[] inner )
+    private async Task<bool> RetrieveStaticImages( Configuration config )
     {
+        var viewportData = new NormalizedViewport( _projection )
+        {
+            Scale = Scale,
+            CenterLatitude = CenterLatitude,
+            CenterLongitude = CenterLongitude,
+            Height = Height,
+            Width = Width
+        };
+
+        var extract = await ( (IStaticProjection) _projection ).GetExtractAsync( viewportData );
+
+        if( extract == null )
+            return false;
+
+        _mapFragments.Clear();
+        _mapFragments.AddRange( extract );
+
         return true;
     }
 
-    private bool RetrieveImages( Configuration config )
+    private async Task<bool> RetrieveTiledImages( Configuration config )
     {
+        var viewportData = new Viewport(_projection)
+        {
+            Scale = Scale,
+            CenterLatitude = CenterLatitude,
+            CenterLongitude = CenterLongitude,
+            Height = Height,
+            Width = Width,
+            Heading = Heading
+        };
+
+        var extract = await ((ITiledProjection)_projection).GetExtractAsync(viewportData);
+
+        if (extract == null)
+            return false;
+
+        _mapFragments.Clear();
+        _mapFragments.AddRange(extract);
+
         return true;
     }
 }
