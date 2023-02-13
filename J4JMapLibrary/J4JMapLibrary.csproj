@@ -16,6 +16,7 @@
 		<ProjectReference Include="..\..\ProgrammingUtilities\DependencyInjection\DependencyInjection.csproj" />
 		<ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
 		<ProjectReference Include="..\..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj" />
+		<ProjectReference Include="..\..\ProgrammingUtilities\VisualUtilities\VisualUtilities.csproj" />
 	</ItemGroup>
 
 </Project>
