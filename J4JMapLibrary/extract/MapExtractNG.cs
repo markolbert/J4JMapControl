@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
 using J4JSoftware.Logging;
@@ -6,38 +7,17 @@ using J4JSoftware.VisualUtilities;
 
 namespace J4JMapLibrary;
 
-public class MapExtractNg
+public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
 {
     public event EventHandler? Changed;
-
-    private record Buffer( float Height, float Width )
-    {
-        public static readonly Buffer Default = new( 0, 0 );
-    }
-
-    private record Configuration(
-        float Latitude,
-        float Longitude,
-        float Heading,
-        int Scale,
-        float Height,
-        float Width,
-        Buffer Buffer
-    )
-    {
-        public static readonly Configuration Default = new( 0, 0, 0, 0, 0, 0, Buffer.Default );
-
-        public bool IsValid( IProjection projection ) =>
-            Height > 0 && Width > 0 && Scale >= projection.MapServer.MinScale && Scale <= projection.MapServer.MaxScale;
-
-        public float Rotation => 360 - Heading;
-    }
 
     private readonly IProjection _projection;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
     private readonly List<IMapFragment> _mapFragments = new();
 
     private Configuration _curConfig = Configuration.Default;
+    private Configuration _revisedConfig = Configuration.Default;
+    private bool _configChanged;
 
     public MapExtractNg(
         IProjection projection,
@@ -52,105 +32,122 @@ public class MapExtractNg
     }
 
     protected IJ4JLogger Logger { get; }
+    private Configuration LatestConfiguration => _revisedConfig.Equals( _curConfig ) ? _curConfig : _revisedConfig;
 
     public ProjectionType ProjectionType { get; }
     public ReadOnlyCollection<IMapFragment> MapFragments => _mapFragments.AsReadOnly();
 
-    public float CenterLatitude => _curConfig.Latitude;
-    public float CenterLongitude => _curConfig.Longitude;
+    public float CenterLatitude => LatestConfiguration.Latitude;
+    public float CenterLongitude => LatestConfiguration.Longitude;
 
     public void SetCenter( float latitude, float longitude )
     {
-        var revisedConfig = _curConfig with
+        _revisedConfig = _revisedConfig with
         {
             Latitude = _projection.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
             Longitude = _projection.MapServer.LongitudeRange.ConformValueToRange( longitude, "Longitude" )
         };
 
-        UpdateImages( revisedConfig );
+        OnConfigurationChanged();
     }
 
-    public float Height => _curConfig.Height;
-    public float Width => _curConfig.Width;
+    public float Height => LatestConfiguration.Height;
+    public float Width => LatestConfiguration.Width;
 
     public void SetHeightWidth( float height, float width )
     {
-        var revisedConfig = _curConfig with
+        _revisedConfig = _revisedConfig with
         {
             Height = _heightWidthRange.ConformValueToRange( height, "Height" ),
             Width = _heightWidthRange.ConformValueToRange( width, "Width" )
         };
 
-        UpdateImages( revisedConfig );
+        OnConfigurationChanged();
     }
 
-    public float HeightBuffer => _curConfig.Buffer.Height;
-    public float WidthBuffer => _curConfig.Buffer.Width;
+    public float HeightBufferPercent => LatestConfiguration.Buffer.HeightPercent;
+    public float WidthBufferPercent => LatestConfiguration.Buffer.WidthPercent;
 
-    public void SetHeightWidthBuffer( float heightBuffer, float widthBuffer )
+    public void SetBuffer( float heightPercent, float widthPercent )
     {
-        var revisedConfig = _curConfig with
+        _revisedConfig = _revisedConfig with
         {
-            Buffer = new Buffer( Height: _heightWidthRange.ConformValueToRange( heightBuffer, "Height Buffer" ),
-                                 Width: _heightWidthRange.ConformValueToRange( widthBuffer, "Width Buffer" ) )
+            Buffer = new Buffer(
+                HeightPercent: _heightWidthRange.ConformValueToRange( heightPercent, "Height Buffer (percent)" ),
+                WidthPercent: _heightWidthRange.ConformValueToRange( widthPercent, "Width Buffer (percent)" ) )
         };
 
-        UpdateImages( revisedConfig );
+        OnConfigurationChanged();
     }
 
     public int Scale
     {
-        get => _curConfig.Scale;
+        get => LatestConfiguration.Scale;
 
         set
         {
-            var revisedConfig = _curConfig with
+            _revisedConfig = _revisedConfig with
             {
                 Scale = _projection.MapServer.ScaleRange.ConformValueToRange( value, "Scale" )
             };
 
-            UpdateImages( revisedConfig );
+            OnConfigurationChanged();
         }
     }
 
     // in degrees; north is 0/360; stored as mod 360
     public float Heading
     {
-        get => _curConfig.Heading;
+        get => LatestConfiguration.Heading;
 
         set
         {
-            var revisedConfig = _curConfig with { Heading = value % 360 };
-
-            UpdateImages( revisedConfig );
+            _revisedConfig = _revisedConfig with { Heading = value % 360 };
+            OnConfigurationChanged();
         }
     }
 
     public float Rotation => 360 - Heading;
 
-    private async Task UpdateImages( Configuration revisedConfig )
+    public async IAsyncEnumerator<IMapFragment> GetAsyncEnumerator( CancellationToken ctx = default )
     {
-        if( !revisedConfig.IsValid( _projection ) )
+        if( _configChanged )
+            await UpdateImages( ctx );
+
+        foreach( var fragment in _mapFragments )
         {
-            _curConfig = revisedConfig;
+            yield return fragment;
+        }
+    }
+
+    protected virtual void OnConfigurationChanged()
+    {
+        _configChanged = true;
+        Changed?.Invoke( this, EventArgs.Empty );
+    }
+
+    private async Task UpdateImages( CancellationToken ctx )
+    {
+        if( !_revisedConfig.IsValid( _projection ) )
+        {
+            _curConfig = _revisedConfig;
             return;
         }
 
         var curRectangle = CreateRectangle( _curConfig );
-        var revisedRectangle = CreateRectangle( revisedConfig );
+        var revisedRectangle = CreateRectangle( _revisedConfig );
 
         if( curRectangle.Contains( revisedRectangle ) != RelativePosition2D.Outside )
         {
-            _curConfig = revisedConfig;
+            _curConfig = _revisedConfig;
             return;
         }
 
         // update the image(s)
-        if( ! await RetrieveImages( revisedConfig ) )
+        if( !await RetrieveImages( _revisedConfig ) )
             return;
 
-        _curConfig = revisedConfig;
-        Changed?.Invoke( this, EventArgs.Empty );
+        _curConfig = _revisedConfig;
     }
 
     private Rectangle2D CreateRectangle( Configuration config )
@@ -158,9 +155,9 @@ public class MapExtractNg
         var retVal = new Rectangle2D( config.Height, config.Width, config.Rotation );
 
         // apply buffer
-        var bufferTransform = Matrix4x4.CreateScale( 1 + config.Buffer.Width / config.Width,
-                                                     1 + config.Buffer.Height / config.Height,
-                                                     0 );
+        var bufferTransform = Matrix4x4.CreateScale( 1 + config.Buffer.WidthPercent,
+                                                     1 + config.Buffer.HeightPercent,
+                                                     1 );
 
         retVal = retVal.ApplyTransform( bufferTransform );
 
@@ -175,7 +172,8 @@ public class MapExtractNg
         {
             ProjectionType.Static => await RetrieveStaticImages( config ),
             ProjectionType.Tiled => await RetrieveTiledImages( config ),
-            _ => throw new InvalidEnumArgumentException($"Unsupported {nameof(ProjectionType)} value '{ProjectionType}'")
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {nameof( ProjectionType )} value '{ProjectionType}'" )
         };
     }
 
@@ -203,7 +201,7 @@ public class MapExtractNg
 
     private async Task<bool> RetrieveTiledImages( Configuration config )
     {
-        var viewportData = new Viewport(_projection)
+        var viewportData = new Viewport( _projection )
         {
             Scale = Scale,
             CenterLatitude = CenterLatitude,
@@ -213,13 +211,13 @@ public class MapExtractNg
             Heading = Heading
         };
 
-        var extract = await ((ITiledProjection)_projection).GetExtractAsync(viewportData);
+        var extract = await ( (ITiledProjection) _projection ).GetExtractAsync( viewportData );
 
-        if (extract == null)
+        if( extract == null )
             return false;
 
         _mapFragments.Clear();
-        _mapFragments.AddRange(extract);
+        _mapFragments.AddRange( extract );
 
         return true;
     }
