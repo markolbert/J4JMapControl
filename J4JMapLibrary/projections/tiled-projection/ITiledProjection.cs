@@ -16,12 +16,6 @@ public interface ITiledProjection : IProjection
     float GroundResolution( float latitude );
     string ScaleDescription( float latitude, float dotsPerInch );
 
-    //Task<List<ITiledFragment>?> GetExtractRegionAsync(
-    //    NormalizedViewport viewportData,
-    //    bool deferImageLoad = false,
-    //    CancellationToken ctx = default
-    //);
-
     Task<TiledExtract?> GetExtractAsync(
         IViewport viewportData,
         bool deferImageLoad = false,
