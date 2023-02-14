@@ -11,7 +11,7 @@ namespace MapLibTests;
 public class ExtractTests : TestBase
 {
     [ Theory ]
-    [InlineData("BingMaps", 0,0,0,256,256,0,1,1)]
+    [InlineData("BingMaps", 0,0,0,256,256,0,1,4)]
     public async Task BasicExtract(
         string projectionName,
         float latitude,
@@ -28,6 +28,8 @@ public class ExtractTests : TestBase
         projBuilder.Should().NotBeNull();
         projBuilder.Authenticated.Should().BeTrue();
         projBuilder.Projection.Should().NotBeNull();
+
+        projBuilder.Projection!.MapServer.MaxRequestLatency = 0;
 
         var extractor = new MapExtractNg( projBuilder.Projection!, Logger );
         extractor.SetCenter( latitude, longitude );
