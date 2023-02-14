@@ -14,6 +14,8 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
 
     private string _apiKey = string.Empty;
     private string? _cultureCode;
+    private MinMax<int>? _scaleRange;
+    private string? _imageFileExt;
 
     public string? CultureCode
     {
@@ -37,6 +39,72 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
     public BingMapType MapType { get; private set; } = BingMapType.Aerial;
 
     public BingImageryMetadata? Metadata { get; private set; }
+
+    public override MinMax<int> ScaleRange
+    {
+        get
+        {
+            if( _scaleRange != null )
+                return _scaleRange;
+
+            if(Metadata?.PrimaryResource == null)
+                return new MinMax<int>( 0, 0 );
+
+            _scaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax );
+            return _scaleRange;
+        }
+
+        // ReSharper disable once ValueParameterNotUsed
+        set => Logger.Error( "BingMaps ScaleRange is set automatically and cannot be changed" );
+    }
+
+    public override int TileHeightWidth
+    {
+        get => Metadata?.PrimaryResource?.ImageWidth ?? 0;
+
+        // ReSharper disable once ValueParameterNotUsed
+        protected set => Logger.Error("BingMaps TileWidthHeight is set automatically and cannot be changed");
+    }
+
+    public override int MaxScale
+    {
+        get => Metadata?.PrimaryResource?.ZoomMax ?? 0;
+
+        // ReSharper disable once ValueParameterNotUsed
+        protected set => Logger.Error("BingMaps MaxScale is set automatically and cannot be changed");
+    }
+
+    public override int MinScale
+    {
+        get => Metadata?.PrimaryResource?.ZoomMin ?? 0;
+
+        // ReSharper disable once ValueParameterNotUsed
+        protected set => Logger.Error("BingMaps MinScale is set automatically and cannot be changed");
+    }
+
+    public override string ImageFileExtension
+    {
+        get
+        {
+            if( _imageFileExt != null ) 
+                return _imageFileExt;
+
+            if( Metadata?.PrimaryResource == null )
+                return string.Empty;
+
+            var urlText = Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
+                                  .Replace("{quadkey}", "0")
+                                  .Replace("{culture}", null);
+
+            var extUri = new Uri(urlText);
+            _imageFileExt = Path.GetExtension( extUri.LocalPath );
+
+            return _imageFileExt;
+        }
+
+        // ReSharper disable once ValueParameterNotUsed
+        protected set => Logger.Error("BingMaps ImageFileExtension is set automatically and cannot be changed");
+    }
 
     public override async Task<bool> InitializeAsync( BingCredentials credentials, CancellationToken ctx = default )
     {
