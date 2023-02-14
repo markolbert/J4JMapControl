@@ -43,7 +43,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public string SupportedProjection { get; }
     public abstract bool Initialized { get; }
 
-    public int MinScale { 
+    public virtual int MinScale { 
         get => _minScale;
 
         protected set
@@ -53,7 +53,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         }
     }
 
-    public int MaxScale
+    public virtual int MaxScale
     {
         get => _maxScale;
 
@@ -64,7 +64,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         }
     }
 
-    public MinMax<int> ScaleRange { get; set; }
+    public virtual MinMax<int> ScaleRange { get; set; }
 
     public float MaxLatitude
     {
@@ -115,8 +115,8 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public MinMax<float> LongitudeRange { get; private set; }
 
     public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
-    public int TileHeightWidth { get; protected set; }
-    public string ImageFileExtension { get; protected set; } = string.Empty;
+    public virtual int TileHeightWidth { get; protected set; }
+    public virtual string ImageFileExtension { get; protected set; } = string.Empty;
 
     public string Copyright { get; protected set; } = string.Empty;
     public Uri? CopyrightUri { get; protected set; }
