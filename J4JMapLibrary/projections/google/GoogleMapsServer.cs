@@ -4,7 +4,7 @@ using System.Text;
 namespace J4JMapLibrary;
 
 [ MapServer( "GoogleMaps", typeof( GoogleCredentials ) ) ]
-public class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
+public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
 {
     private string _apiKey = string.Empty;
     private string _signature = string.Empty;
