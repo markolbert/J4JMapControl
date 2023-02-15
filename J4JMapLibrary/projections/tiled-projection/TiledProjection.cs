@@ -61,21 +61,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     public string ScaleDescription( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    //public async Task<List<ITiledFragment>?> GetExtractRegionAsync(
-    //    NormalizedViewport viewportData,
-    //    bool deferImageLoad = false,
-    //    CancellationToken ctx = default
-    //)
-    //{
-    //    var extract = await GetExtractAsync(viewportData, deferImageLoad, ctx);
-
-    //    if (extract == null)
-    //        return null;
-
-    //    return await extract.GetTilesAsync(viewportData.Scale, ctx)
-    //                        .ToListAsync(ctx);
-    //}
-
     public async Task<TiledExtract?> GetExtractAsync(
         IViewport viewportData,
         bool deferImageLoad = false,
@@ -87,6 +72,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
             Logger.Error( "Projection not initialized" );
             return null;
         }
+
+        TiledScale.Scale = viewportData.Scale;
 
         var cartesianCenter = new Cartesian( TiledScale );
         cartesianCenter.SetCartesian(
