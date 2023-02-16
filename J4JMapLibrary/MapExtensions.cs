@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
@@ -142,5 +143,53 @@ public static class MapExtensions
                              mapFragment.Y * mapFragment.HeightWidth + mapFragment.HeightWidth / 2 );
 
         return retVal;
+    }
+
+    public static string ToText( this LatLong latLong ) =>
+        $"{LatitudeToText( latLong.Latitude )}-{LongitudeToText( latLong.Longitude )}";
+
+    public static string LatitudeToText( float value, int decimals = 5 )
+    {
+        if( decimals < 0 )
+        {
+            Logger?.Error("Trying to set number of decimal digits < 0, defaulting to 5");
+            decimals = 5;
+        }
+
+        var ns = value < 0 ? "S" : "N";
+
+        var decValue = Math.Round( (decimal) value, decimals );
+
+        var (whole, fraction) = GetWholeFraction(decValue);
+
+        return $"{whole}x{fraction}{ns}";
+    }
+
+    public static string LongitudeToText( float value, int decimals = 5)
+    {
+        if (decimals < 0)
+        {
+            Logger?.Error("Trying to set number of decimal digits < 0, defaulting to 5");
+            decimals = 5;
+        }
+
+        var ew = value < 0 ? "W" : "E";
+
+        var decValue = Math.Round((decimal)value, decimals);
+
+        var (whole, fraction) = GetWholeFraction(decValue);
+
+        return $"{whole}x{fraction}{ew}";
+    }
+
+    private static (int Whole, string Fraction) GetWholeFraction( decimal value )
+    {
+        value = Math.Abs(value);
+        var whole = (int)Math.Floor(value);
+
+        var fraction = $"{value - whole}";
+        var decLog = fraction.IndexOf('.');
+
+        return ( whole, fraction[ ( decLog + 1 ).. ] );
     }
 }
