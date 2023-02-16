@@ -40,7 +40,11 @@ public class TileTests : TestBase
         {
             "GoogleMaps" => new NormalizedViewport( projection )
             {
-                CenterLatitude = latitude, CenterLongitude = longitude, Height = height, Width = width
+                CenterLatitude = latitude,
+                CenterLongitude = longitude,
+                Height = height,
+                Width = width,
+                Scale = scale
             },
 
             _ => new Viewport( projection )
@@ -49,39 +53,21 @@ public class TileTests : TestBase
                 CenterLongitude = longitude,
                 Height = height,
                 Width = width,
-                Heading = heading
+                Heading = heading,
+                Scale = scale
             }
         };
 
-        var extract = projectionName switch
-        {
-            "GoogleMaps" => await ( (IStaticProjection) projection ).GetExtractAsync( (IViewport) viewportData ) as IMapExtract,
-            _ => await ( (ITiledProjection) projection ).GetExtractAsync( (IViewport) viewportData )
-        };
+        var rawTiles = await projection.GetExtractAsync( viewportData, true ).ToListAsync();
+        var tiles = rawTiles.Cast<ITiledFragment>().ToList();
+        tiles.Count.Should().BeGreaterThan( 0 );
 
-        extract.Should().NotBeNull();
+        tiles.Min( t => t.X ).Should().Be( minTileX );
+        tiles.Min(t => t.Y).Should().Be(minTileY);
+        tiles.Max(t => t.X).Should().Be(maxTileX);
+        tiles.Max(t => t.Y).Should().Be(maxTileY);
 
-        object? bounds;
-
-        if( projectionName == "GoogleMaps" )
-        {
-            ( (StaticExtract) extract! ).TryGetBounds( out var staticBounds ).Should().BeTrue();
-            bounds = staticBounds;
-        }
-        else
-        {
-            ((TiledExtract)extract!).TryGetBounds(out var tiledBounds).Should().BeTrue();
-            bounds = tiledBounds;
-        }
-
-        bounds.Should().NotBeNull();
-
-        var testBounds = new TiledBounds( new TileCoordinates( minTileX, minTileY ),
-                                         new TileCoordinates( maxTileX, maxTileY ) );
-
-        bounds!.Should().Be( testBounds );
-
-        foreach( var tile in extract )
+        foreach ( var tile in tiles)
         {
             tile.ImageBytes.Should().BeNegative();
         }

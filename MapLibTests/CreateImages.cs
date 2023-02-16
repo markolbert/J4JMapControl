@@ -69,13 +69,18 @@ public class CreateImages : TestBase
         await WriteImageFileAsync( projection, mapTile, data, true );
     }
 
-    private async Task WriteImageFileAsync( ITiledProjection projection, TiledFragment mapFragment, int scale, bool sleep = false )
+    private async Task WriteImageFileAsync(
+        ITiledProjection projection,
+        TiledFragment mapFragment,
+        int scale,
+        bool sleep = false
+    )
     {
-        var stream = await mapFragment.GetImageAsync(scale);
+        var stream = await mapFragment.GetImageAsync( scale );
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapFragment.QuadKey}{projection.MapServer.ImageFileExtension}" );
+                                     $"{mapFragment.FragmentId}{projection.MapServer.ImageFileExtension}" );
 
         await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
 
@@ -83,17 +88,22 @@ public class CreateImages : TestBase
             Thread.Sleep( 5000 );
     }
 
-    private async Task WriteImageFileAsync(IStaticProjection projection, StaticFragment mapFragment, StaticImageData.Region data, bool sleep = false)
+    private async Task WriteImageFileAsync(
+        IProjection projection,
+        StaticFragment mapFragment,
+        StaticImageData.Region data,
+        bool sleep = false
+    )
     {
-        var stream = await mapFragment.GetImageAsync(data.Scale);
+        var stream = await mapFragment.GetImageAsync( data.Scale );
         stream.Should().NotBeNull();
 
-        var filePath = Path.Combine(GetCheckImagesFolder(projection.Name),
-                                    $"{data.FileId}{projection.MapServer.ImageFileExtension}");
+        var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
+                                     $"{data.FragmentId}{projection.MapServer.ImageFileExtension}" );
 
-        await File.WriteAllBytesAsync(filePath, stream!.ToArray());
+        await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
 
-        if (sleep)
-            Thread.Sleep(5000);
+        if( sleep )
+            Thread.Sleep( 5000 );
     }
 }
