@@ -21,7 +21,7 @@ public abstract class CacheBase : ITileCache
 
     public ITileCache? ParentCache { get; set; }
     public abstract int Count { get; }
-    public abstract ReadOnlyCollection<string> QuadKeys { get; }
+    public abstract ReadOnlyCollection<string> FragmentIds { get; }
 
     public abstract void Clear();
     public abstract void PurgeExpired();

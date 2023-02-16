@@ -23,7 +23,7 @@ public class FileSystemCache : CacheBase
 
     public override int Count => GetFiles().Count;
 
-    public override ReadOnlyCollection<string> QuadKeys =>
+    public override ReadOnlyCollection<string> FragmentIds =>
         GetFiles()
            .Select( x =>
             {
@@ -182,7 +182,7 @@ public class FileSystemCache : CacheBase
 
         var retVal = new CacheEntry( projection, xTile, yTile, scale, ctx );
 
-        var fileName = $"{projection.Name}-{retVal.Tile.QuadKey}{projection.MapServer.ImageFileExtension}";
+        var fileName = $"{projection.Name}-{retVal.Tile.FragmentId}{projection.MapServer.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         var bytesToWrite = retVal.Tile.ImageBytes <= 0L
@@ -198,7 +198,7 @@ public class FileSystemCache : CacheBase
         }
 
         if( File.Exists( filePath ) )
-            Logger.Warning<string>( "Replacing map mapFragment with quadkey '{0}'", retVal.Tile.QuadKey );
+            Logger.Warning<string>( "Replacing map mapFragment with fragment ID '{0}'", retVal.Tile.FragmentId );
 
         await using var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( bytesToWrite, ctx );
