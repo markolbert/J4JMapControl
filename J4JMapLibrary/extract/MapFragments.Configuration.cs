@@ -1,6 +1,6 @@
 ﻿namespace J4JMapLibrary;
 
-public partial class MapExtractNg
+public partial class MapFragments<TFrag>
 {
     private record Configuration(
         float Latitude,

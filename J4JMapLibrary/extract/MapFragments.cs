@@ -6,24 +6,29 @@ using J4JSoftware.VisualUtilities;
 
 namespace J4JMapLibrary;
 
-public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
+public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
+    where TFrag : class
 {
     public event EventHandler? Changed;
 
     private readonly IProjection _projection;
+    private readonly Func<IMapFragment, TFrag?> _fragmentFactory;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
-    private readonly List<IMapFragment> _mapFragments = new();
+    private readonly List<TFrag> _fragments = new();
 
     private Configuration? _curConfig;
     private Configuration? _lastConfig;
 
-    public MapExtractNg(
+    protected MapFragments(
         IProjection projection,
+        Func<IMapFragment, TFrag?> fragmentFactory,
         IJ4JLogger logger
     )
     {
         _projection = projection;
         ProjectionType = _projection.GetProjectionType();
+
+        _fragmentFactory = fragmentFactory;
 
         Logger = logger;
         Logger.SetLoggedType( GetType() );
@@ -114,7 +119,7 @@ public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
 
     public float Rotation => 360 - Heading;
 
-    public async IAsyncEnumerator<IMapFragment> GetAsyncEnumerator( CancellationToken ctx = default )
+    public async IAsyncEnumerator<TFrag> GetAsyncEnumerator( CancellationToken ctx = default )
     {
         if( _curConfig == null )
         {
@@ -142,12 +147,16 @@ public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
 
         if( needToRetrieve )
         {
-            _mapFragments.Clear();
+            _fragments.Clear();
 
-            await foreach( var fragment in RetrieveImagesAsync( ctx ) )
+            await foreach( var imgData in RetrieveImagesAsync( ctx ) )
             {
-                _mapFragments.Add( fragment );
+                var fragment = _fragmentFactory( imgData );
 
+                if( fragment == null )
+                    continue;
+
+                _fragments.Add( fragment );
                 yield return fragment;
             }
 
@@ -155,7 +164,7 @@ public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
         }
         else
         {
-            foreach( var fragment in _mapFragments )
+            foreach( var fragment in _fragments )
             {
                 yield return fragment;
             }
@@ -205,12 +214,7 @@ public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
             Width = Width
         };
 
-        var extract = await ( (IStaticProjection) _projection ).GetExtractAsync( viewportData, ctx: ctx );
-
-        if( extract == null )
-            yield break;
-
-        foreach( var fragment in extract )
+        await foreach( var fragment in _projection.GetExtractAsync( viewportData, ctx: ctx ))
         {
             yield return fragment;
         }
@@ -231,12 +235,7 @@ public partial class MapExtractNg : IAsyncEnumerable<IMapFragment>
             Heading = Heading
         };
 
-        var extract = await ( (ITiledProjection) _projection ).GetExtractAsync( viewportData, ctx: ctx );
-
-        if( extract == null )
-            yield break;
-
-        foreach( var fragment in extract )
+        await foreach( var fragment in ((ITiledProjection)_projection).GetExtractAsync(viewportData, ctx: ctx))
         {
             yield return fragment;
         }
