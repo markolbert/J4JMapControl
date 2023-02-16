@@ -54,7 +54,7 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>
         {
             { "{subdomain}", subDomain },
             { "{quadkey}", mapFragment.QuadKey },
-            { "{culture}", _cultureCode ?? string.Empty },
+            { "{culture}", _cultureCode ?? string.Empty }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( Metadata!.PrimaryResource.ImageUrl, replacements );

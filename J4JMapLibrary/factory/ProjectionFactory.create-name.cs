@@ -14,7 +14,7 @@ public partial class ProjectionFactory
         if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        var ctorArgs = new List<ParameterValue> { new( ParameterType.Logger, _logger ), };
+        var ctorArgs = new List<ParameterValue> { new( ParameterType.Logger, _logger ) };
 
         if( ctorInfo!.IsTiled )
             ctorArgs.Add( new ParameterValue( ParameterType.TileCache, tileCache ) );
