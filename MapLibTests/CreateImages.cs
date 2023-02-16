@@ -76,7 +76,7 @@ public class CreateImages : TestBase
         bool sleep = false
     )
     {
-        var stream = await mapFragment.GetImageAsync( scale );
+        var stream = await mapFragment.GetImageAsync();
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
@@ -95,7 +95,7 @@ public class CreateImages : TestBase
         bool sleep = false
     )
     {
-        var stream = await mapFragment.GetImageAsync( data.Scale );
+        var stream = await mapFragment.GetImageAsync();
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
