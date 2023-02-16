@@ -50,7 +50,7 @@ public class ExtractTests : TestBase
 
         projBuilder.Projection!.MapServer.MaxRequestLatency = 0;
 
-        var extractor = new MapExtractNg( projBuilder.Projection!, Logger );
+        var extractor = new SimpleMapFragments( projBuilder.Projection!, Logger );
         extractor.SetCenter( latitude, longitude );
         extractor.Heading = heading;
         extractor.SetHeightWidth( height, width );
