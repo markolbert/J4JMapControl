@@ -14,26 +14,12 @@ public partial class ProjectionFactory
         if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
-            return ProjectionCreationResult.NoProjection;
-
-        if( !credentials.GetType().IsAssignableTo( ctorInfo!.CredentialsType ) )
-        {
-            _logger.Warning( "{0} requires {1} as a credential type but a {2} was supplied",
-                             ctorInfo.MapProjectionType,
-                             ctorInfo.CredentialsType,
-                             credentials.GetType() );
-
-            return await CreateMapProjection( projectionName, tileCache, mapServer, authenticate, ctx );
-        }
-
         var ctorArgs = new List<ParameterValue>
         {
-            new( ParameterType.MapServer, mapServer ),
             new( ParameterType.Logger, _logger ),
         };
 
-        if (ctorInfo.IsTiled)
+        if (ctorInfo!.IsTiled)
             ctorArgs.Add(new ParameterValue(ParameterType.TileCache, tileCache));
 
         if ( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
@@ -57,12 +43,12 @@ public partial class ProjectionFactory
         if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
-            return ProjectionCreationResult.NoProjection;
+        //if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
+        //    return ProjectionCreationResult.NoProjection;
 
         var ctorArgs = new List<ParameterValue>
         {
-            new( ParameterType.MapServer, mapServer ),
+            //new( ParameterType.MapServer, mapServer ),
             new( ParameterType.Logger, _logger ),
             new( ParameterType.Credentials, ProjectionCredentials )
         };

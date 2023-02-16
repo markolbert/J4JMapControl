@@ -42,12 +42,6 @@ public partial class ProjectionFactory
                         continue;
                     }
 
-                    if( argAliases.Any( x => x.FullName!.Equals( typeof( IMapServer ).FullName ) ) )
-                    {
-                        argList.Add( new ParameterInfo( argIdx, ParameterType.MapServer, optional ) );
-                        continue;
-                    }
-
                     if( argAliases.Any( x => x.FullName!.Equals( typeof( IProjectionCredentials ).FullName ) ) )
                     {
                         argList.Add( new ParameterInfo( argIdx, ParameterType.Credentials, optional ) );
