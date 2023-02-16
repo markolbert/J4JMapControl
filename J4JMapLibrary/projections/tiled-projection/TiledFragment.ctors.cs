@@ -40,7 +40,7 @@ public partial class TiledFragment : MapFragment
     )
         : base( projection )
     {
-        TiledScale = projection.TiledScale;
+        TiledScale = projection.TiledScale!;
         HeightWidth = projection.MapServer.TileHeightWidth;
 
         X = xTile < 0 ? 0 : xTile;
