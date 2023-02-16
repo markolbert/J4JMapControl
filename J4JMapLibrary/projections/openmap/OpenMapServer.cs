@@ -2,8 +2,6 @@
 
 public class OpenMapServer : MapServer<TiledFragment, string>
 {
-    private string _userAgent = string.Empty;
-
     protected OpenMapServer()
     {
         ImageFileExtension = ".png";
@@ -11,23 +9,15 @@ public class OpenMapServer : MapServer<TiledFragment, string>
     }
 
     public string RetrievalUrl { get; init; } = string.Empty;
-    public override bool Initialized => !string.IsNullOrEmpty( _userAgent );
-
-#pragma warning disable CS1998
-    public override async Task<bool> InitializeAsync( string userAgent, CancellationToken ctx = default )
-#pragma warning restore CS1998
-    {
-        _userAgent = userAgent;
-
-        return !string.IsNullOrEmpty( _userAgent );
-    }
+    public override bool Initialized => !string.IsNullOrEmpty( UserAgent );
+    public string UserAgent { get; internal set; } = string.Empty;
 
     public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment, int scale )
     {
         if( !Initialized )
             return null;
 
-        if( string.IsNullOrEmpty( _userAgent ) )
+        if( string.IsNullOrEmpty( UserAgent ) )
         {
             Logger.Error( "Undefined or empty User-Agent" );
             return null;
@@ -40,10 +30,10 @@ public class OpenMapServer : MapServer<TiledFragment, string>
             { "{y}", mapFragment.Y.ToString() },
         };
 
-        var uriText = ReplaceParameters( RetrievalUrl, replacements ); 
+        var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements ); 
 
         var retVal = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
-        retVal.Headers.Add( "User-Agent", _userAgent );
+        retVal.Headers.Add( "User-Agent", UserAgent );
 
         return retVal;
     }

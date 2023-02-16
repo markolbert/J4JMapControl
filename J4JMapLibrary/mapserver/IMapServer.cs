@@ -7,7 +7,7 @@ public interface IMapServer
 
     int MinScale { get; }
     int MaxScale { get; }
-    MinMax<int> ScaleRange { get; internal set; }
+    MinMax<int> ScaleRange { get; }
 
     float MaxLatitude { get; }
     float MinLatitude { get; }
@@ -31,6 +31,5 @@ public interface IMapServer<in TTile, in TAuth> : IMapServer
     where TTile : class
     where TAuth : class
 {
-    Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
     HttpRequestMessage? CreateMessage( TTile tile, int scale );
 }

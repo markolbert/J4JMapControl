@@ -3,12 +3,9 @@ using System.Text;
 
 namespace J4JMapLibrary;
 
-[ MapServer( "GoogleMaps", typeof( GoogleCredentials ) ) ]
+[ MapServer("GoogleMaps") ]
 public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapServer
 {
-    private string _apiKey = string.Empty;
-    private string _signature = string.Empty;
-
     public GoogleMapsServer()
     {
         MinScale = 0;
@@ -24,21 +21,14 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
             "https://maps.googleapis.com/maps/api/staticmap?center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
     }
 
-    public override bool Initialized => !string.IsNullOrEmpty( _apiKey ) && !string.IsNullOrEmpty( _signature );
+    public override bool Initialized => !string.IsNullOrEmpty( ApiKey ) && !string.IsNullOrEmpty( Signature );
+
+    public string ApiKey { get; internal set; } = string.Empty;
+    public string Signature { get; internal set; } = string.Empty;
 
     public GoogleMapType MapType { get; set; } = GoogleMapType.RoadMap;
     public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
     public string RetrievalUrl { get; }
-
-#pragma warning disable CS1998
-    public override async Task<bool> InitializeAsync( GoogleCredentials credentials, CancellationToken ctx = default )
-#pragma warning restore CS1998
-    {
-        _apiKey = credentials.ApiKey;
-        _signature = credentials.SignatureSecret;
-
-        return Initialized;
-    }
 
     public override HttpRequestMessage? CreateMessage( StaticFragment mapFragment, int scale )
     {
@@ -54,10 +44,10 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
             { "{format}", ImageFormat.ToString() },
             { "{zoom}", scale.ToString() },
             { "{size}", $"{mapFragment.Width}x{mapFragment.Height}" },
-            { "{apikey}", _apiKey }
+            { "{apikey}", ApiKey }
         };
 
-        var unsignedUrl = ReplaceParameters( RetrievalUrl, replacements );
+        var unsignedUrl = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );
         var signedUrl = SignUrl( unsignedUrl );
 
         return new HttpRequestMessage( HttpMethod.Get, new Uri( signedUrl ) );
@@ -68,7 +58,7 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
         var encoding = new ASCIIEncoding();
 
         // converting key to bytes will throw an exception, need to replace '-' and '_' characters first.
-        var usablePrivateKey = _signature.Replace( "-", "+" )
+        var usablePrivateKey = Signature.Replace( "-", "+" )
                                          .Replace( "_", "/" );
 
         var privateKeyBytes = Convert.FromBase64String( usablePrivateKey );

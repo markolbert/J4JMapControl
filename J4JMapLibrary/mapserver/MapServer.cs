@@ -13,6 +13,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 
     private int _minScale;
     private int _maxScale;
+    private MinMax<int>? _scaleRange;
     private float _minLat = -MapConstants.Wgs84MaxLatitude;
     private float _maxLat = MapConstants.Wgs84MaxLatitude;
     private float _minLong = -180;
@@ -23,7 +24,6 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         Logger = J4JDeusEx.GetLogger()!;
         Logger.SetLoggedType( GetType() );
 
-        ScaleRange = new MinMax<int>( 0, 0 );
         LatitudeRange = new MinMax<float>(-90, 90);
         LongitudeRange = new MinMax<float>(-180, 180);
 
@@ -43,34 +43,43 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public string SupportedProjection { get; }
     public abstract bool Initialized { get; }
 
-    public virtual int MinScale { 
+    public int MinScale { 
         get => _minScale;
 
-        protected set
+        internal set
         {
             _minScale = value;
-            ScaleRange = new MinMax<int>( MinScale, MinScale );
+            _scaleRange = null;
         }
     }
 
-    public virtual int MaxScale
+    public int MaxScale
     {
         get => _maxScale;
 
-        protected set
+        internal set
         {
             _maxScale = value;
-            ScaleRange = new MinMax<int>(MinScale, MinScale);
+            _scaleRange = null;
         }
     }
 
-    public virtual MinMax<int> ScaleRange { get; set; }
+    public MinMax<int> ScaleRange
+    {
+        get
+        {
+            if( _scaleRange == null )
+                _scaleRange = new MinMax<int>( MinScale, MaxScale );
+
+            return _scaleRange;
+        }
+    }
 
     public float MaxLatitude
     {
         get => _maxLat;
 
-        protected set
+        internal set
         {
             _maxLat = value;
             LatitudeRange = new MinMax<float>( MinLatitude, MaxLatitude );
@@ -81,7 +90,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     {
         get => _minLat;
 
-        protected set
+        internal set
         {
             _minLat = value;
             LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
@@ -94,7 +103,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     {
         get => _maxLong;
 
-        protected set
+        internal set
         {
             _maxLong = value;
             LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
@@ -105,7 +114,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     {
         get => _minLong;
 
-        protected set
+        internal set
         {
             _minLong = value;
             LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
@@ -115,31 +124,13 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public MinMax<float> LongitudeRange { get; private set; }
 
     public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
-    public virtual int TileHeightWidth { get; protected set; }
-    public virtual string ImageFileExtension { get; protected set; } = string.Empty;
+    public int TileHeightWidth { get; internal set; }
+    public string ImageFileExtension { get; internal set; } = string.Empty;
 
-    public string Copyright { get; protected set; } = string.Empty;
-    public Uri? CopyrightUri { get; protected set; }
-
-    public abstract Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default );
+    public string Copyright { get; internal set; } = string.Empty;
+    public Uri? CopyrightUri { get; internal set; }
 
     public abstract HttpRequestMessage? CreateMessage( TTile tile, int scale );
-
-    // key value matching is case sensitive
-    protected string ReplaceParameters(
-        string template,
-        Dictionary<string, string> values
-    )
-    {
-        var sb = new StringBuilder(template);
-
-        foreach( var kvp in values )
-        {
-            sb.Replace( kvp.Key, kvp.Value );
-        }
-
-        return sb.ToString();
-    }
 
     HttpRequestMessage? IMapServer.CreateMessage( object requestInfo, int scale )
     {
