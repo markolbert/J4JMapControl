@@ -5,7 +5,7 @@ namespace J4JMapLibrary;
 public interface ITileCache
 {
     ITileCache? ParentCache { get; }
-    ReadOnlyCollection<string> QuadKeys { get; }
+    ReadOnlyCollection<string> FragmentIds { get; }
     int Count { get; }
     void Clear();
     void PurgeExpired();

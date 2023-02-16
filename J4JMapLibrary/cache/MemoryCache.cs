@@ -16,9 +16,9 @@ public class MemoryCache : CacheBase
 
     public override int Count => _cached.Count;
 
-    public override ReadOnlyCollection<string> QuadKeys =>
+    public override ReadOnlyCollection<string> FragmentIds =>
         _cached
-           .Select( x => x.Value.Tile.QuadKey )
+           .Select( x => x.Value.Tile.FragmentId )
            .ToList()
            .AsReadOnly();
 
@@ -117,7 +117,7 @@ public class MemoryCache : CacheBase
 
         if( _cached.ContainsKey( key ) )
         {
-            Logger.Warning<string>( "Replacing map mapFragment with quadkey '{0}'", retVal.Tile.QuadKey );
+            Logger.Warning<string>( "Replacing map mapFragment with fragment '{0}'", retVal.Tile.FragmentId );
             _cached[ key ] = retVal;
         }
         else
