@@ -25,9 +25,7 @@ public class OpenMapServer : MapServer<TiledFragment, string>
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", scale.ToString() },
-            { "{x}", mapFragment.X.ToString() },
-            { "{y}", mapFragment.Y.ToString() },
+            { "{zoom}", scale.ToString() }, { "{x}", mapFragment.X.ToString() }, { "{y}", mapFragment.Y.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

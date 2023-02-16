@@ -16,8 +16,7 @@ public partial class ProjectionFactory
 
         var ctorArgs = new List<ParameterValue>
         {
-            //new( ParameterType.MapServer, mapServer ),
-            new( ParameterType.Logger, _logger ),
+            new( ParameterType.Logger, _logger )
         };
 
         if( ctorInfo!.IsTiled )

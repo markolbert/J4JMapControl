@@ -24,7 +24,7 @@ public class StaticBounds : IEquatable<StaticBounds>
         if( ReferenceEquals( this, obj ) )
             return true;
 
-        return obj.GetType() == this.GetType() && Equals( (StaticBounds) obj );
+        return obj.GetType() == GetType() && Equals( (StaticBounds) obj );
     }
 
     public override int GetHashCode() => HashCode.Combine( CenterLatitude, CenterLongitude, Height, Width );
