@@ -16,16 +16,39 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
+using Windows.Storage.Streams;
+using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.Logging;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-public class Class1
+public class ImageFragments : MapFragments<Image>
 {
+    private static async Task<Image?> DefaultFactory(IMapFragment fragment)
+    {
+        var imageBytes = await fragment.GetImageAsync();
+        if( imageBytes == null )
+            return null;
+
+        var memStream = new MemoryStream(imageBytes);
+        var bitmapImage = new BitmapImage();
+        await bitmapImage.SetSourceAsync( memStream.AsRandomAccessStream() );
+
+        var retVal = new Image { Source = bitmapImage };
+        return retVal;
+    }
+
+    public ImageFragments( 
+        IProjection projection, 
+        IJ4JLogger logger )
+        : base( projection, DefaultFactory, logger )
+    {
+    }
 }

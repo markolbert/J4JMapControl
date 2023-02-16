@@ -1,9 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+		<TargetFramework>net7.0-windows10.0.19041.0</TargetFramework>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 		<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
 		<UseWinUI>true</UseWinUI>
+		<Nullable>enable</Nullable>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<AssemblyName>J4JSoftware.J4JMapWinLibrary</AssemblyName>
 		<RootNamespace>J4JSoftware.J4JMapWinLibrary</RootNamespace>
 		<Authors>Mark A. Olbert</Authors>
@@ -38,6 +40,15 @@
 		<None Include="docs/readme.md" Pack="true" PackagePath="/" />
 		<None Include="../LICENSE.md" />
 
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\J4JLogging\J4JLogging\J4JLogging.csproj" />
+	  <ProjectReference Include="..\..\ProgrammingUtilities\DependencyInjection\DependencyInjection.csproj" />
+	  <ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
+	  <ProjectReference Include="..\..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj" />
+	  <ProjectReference Include="..\..\ProgrammingUtilities\VisualUtilities\VisualUtilities.csproj" />
+	  <ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
 	</ItemGroup>
 
 </Project>
