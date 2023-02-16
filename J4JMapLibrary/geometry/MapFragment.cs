@@ -6,6 +6,8 @@ namespace J4JMapLibrary;
 
 public abstract class MapFragment : IMapFragment
 {
+    public event EventHandler? ImageChanged;
+
     protected MapFragment(
         IProjection projection
     )
@@ -19,14 +21,14 @@ public abstract class MapFragment : IMapFragment
     }
 
     protected IJ4JLogger? Logger { get; }
-    protected abstract string FragmentId { get; }
-    protected byte[]? ImageData { get; set; }
 
     public IMapServer MapServer { get; }
     public int MaxRequestLatency { get; }
 
+    public abstract string FragmentId { get; }
+
+    public byte[]? ImageData { get; protected set; }
     public long ImageBytes { get; private set; } = -1L;
-    public event EventHandler? ImageChanged;
 
     public async Task<byte[]?> GetImageAsync( int scale, bool forceRetrieval = false, CancellationToken ctx = default )
     {
