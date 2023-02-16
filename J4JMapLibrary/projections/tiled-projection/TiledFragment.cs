@@ -19,6 +19,33 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public partial class TiledFragment : MapFragment, ITiledFragment
 {
+    // internal to hopefully avoid stack overflow
+    internal TiledFragment(
+        ITiledProjection projection,
+        int xTile,
+        int yTile,
+        byte[] imageData
+    )
+        : this(projection, xTile, yTile)
+    {
+        ImageData = imageData;
+    }
+
+    private TiledFragment(
+        ITiledProjection projection,
+        int xTile,
+        int yTile
+    )
+        : base(projection)
+    {
+        TiledScale = projection.TiledScale!;
+        HeightWidth = projection.MapServer.TileHeightWidth;
+
+        X = xTile < 0 ? 0 : xTile;
+        Y = yTile < 0 ? 0 : yTile;
+        QuadKey = this.GetQuadKey( TiledScale.Scale );
+    }
+
     public override string FragmentId => QuadKey;
 
     public ITiledScale TiledScale { get; }

@@ -27,7 +27,7 @@ public class CacheEntry
         byte[] imageData
     )
     {
-        Tile = new TiledFragment( projection, xTile, yTile, scale, imageData );
+        Tile = new TiledFragment( projection, xTile, yTile, imageData );
         CreatedUtc = DateTime.UtcNow;
     }
 
@@ -39,7 +39,7 @@ public class CacheEntry
         CancellationToken ctx
     )
     {
-        Tile = TiledFragment.CreateAsync( projection, xTile, yTile, scale, true, ctx ).Result;
+        Tile = TiledFragment.CreateAsync( projection, xTile, yTile, true, ctx ).Result;
         CreatedUtc = DateTime.UtcNow;
     }
 

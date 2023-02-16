@@ -24,15 +24,19 @@ public partial class TiledFragment
         ITiledProjection projection,
         int x,
         int y,
-        int scale,
         bool ignoreCache = false,
         CancellationToken ctx = default
     )
     {
         if( projection.TileCache == null || ignoreCache )
-            return new TiledFragment( projection, x, y, scale );
+            return new TiledFragment( projection, x, y );
 
-        var entry = await projection.TileCache.GetEntryAsync( projection, x, y, scale, ctx: ctx );
-        return entry != null ? entry.Tile : new TiledFragment( projection, x, y, scale );
+        var entry = await projection.TileCache.GetEntryAsync( projection,
+                                                              x,
+                                                              y,
+                                                              projection.TiledScale!.Scale,
+                                                              ctx: ctx );
+
+        return entry != null ? entry.Tile : new TiledFragment( projection, x, y );
     }
 }
