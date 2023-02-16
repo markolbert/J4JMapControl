@@ -21,7 +21,7 @@ using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TAuth, TViewport, TFrag>
+public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
     where TAuth : class
     where TFrag : IMapFragment
     where TViewport : INormalizedViewport
