@@ -1,18 +1,17 @@
 ﻿using J4JSoftware.Logging;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace J4JMapLibrary;
 
-public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjection
+public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, TiledFragment>, ITiledProjection
     where TAuth : class
 {
     protected TiledProjection(
-        IMapServer mapServer,
-        TiledScale tiledScale,
         IJ4JLogger logger,
-        ITileCache? tileCache = null
+        ITileCache? tileCache
     )
-        : base( mapServer, tiledScale, logger )
+        : base( logger )
     {
         TileCache = tileCache;
         TileXRange = new MinMax<int>( 0, 0 );
@@ -21,27 +20,28 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
 
     protected TiledProjection(
         IProjectionCredentials credentials,
-        IMapServer mapServer,
-        TiledScale tiledScale,
         IJ4JLogger logger,
-        ITileCache? tileCache = null
+        ITileCache? tileCache
     )
-        : base( credentials, mapServer, tiledScale, logger )
+        : base( credentials, logger )
     {
         TileCache = tileCache;
         TileXRange = new MinMax<int>( 0, 0 );
         TileYRange = new MinMax<int>( 0, 0 );
     }
 
-    public ITiledScale TiledScale => (ITiledScale) base.MapScale;
+    public ITiledScale? TiledScale { get; protected set; }
 
-    public int Height => TiledScale.YRange.Maximum - TiledScale.YRange.Minimum + 1;
-    public int Width => TiledScale.XRange.Maximum - TiledScale.XRange.Minimum + 1;
+    public override IProjectionScale MapScale =>
+        TiledScale ?? throw new NullReferenceException( $"{nameof( TiledScale )} was not initialized" );
+
+    public int Height => TiledScale == null ? 0 : TiledScale.YRange.Maximum - TiledScale.YRange.Minimum + 1;
+    public int Width => TiledScale == null ? 0 : TiledScale.XRange.Maximum - TiledScale.XRange.Minimum + 1;
 
     public ITileCache? TileCache { get; }
 
-    public MinMax<int> TileXRange { get; private set; }
-    public MinMax<int> TileYRange { get; private set; }
+    public MinMax<int> TileXRange { get; }
+    public MinMax<int> TileYRange { get; }
 
     public float GroundResolution( float latitude )
     {
@@ -61,19 +61,19 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     public string ScaleDescription( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public async Task<TiledExtract?> GetExtractAsync(
+    public override async IAsyncEnumerable<TiledFragment> GetExtractAsync(
         IViewport viewportData,
         bool deferImageLoad = false,
-        CancellationToken ctx = default
+        [ EnumeratorCancellation ] CancellationToken ctx = default
     )
     {
         if( !Initialized )
         {
             Logger.Error( "Projection not initialized" );
-            return null;
+            yield break;
         }
 
-        TiledScale.Scale = viewportData.Scale;
+        TiledScale!.Scale = viewportData.Scale;
 
         var cartesianCenter = new Cartesian( TiledScale );
         cartesianCenter.SetCartesian(
@@ -116,8 +116,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
-        var retVal = new TiledExtract( this, Logger );
-
         for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
         {
             for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
@@ -127,12 +125,9 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
                 if( !deferImageLoad )
                     await mapTile.GetImageAsync( viewportData.Scale, ctx: ctx );
 
-                if( !retVal.Add( mapTile ) )
-                    Logger.Error( "Problem adding TiledFragment to collection (probably differing ITiledScale)" );
+                yield return mapTile;
             }
         }
-
-        return retVal;
     }
 
     private int CartesianToTile(float value) =>

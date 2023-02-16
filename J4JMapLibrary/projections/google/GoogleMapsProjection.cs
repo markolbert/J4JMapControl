@@ -2,37 +2,40 @@
 
 namespace J4JMapLibrary;
 
-[ Projection( "GoogleMaps", typeof( IGoogleMapServer ) ) ]
+[ Projection( "GoogleMaps" ) ]
 public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 {
-    // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
-
     private bool _authenticated;
 
     public GoogleMapsProjection(
-        IGoogleMapServer mapServer,
         IJ4JLogger logger
     )
-        : base( mapServer, new ProjectionScale(mapServer), logger )
+        : base( logger )
     {
+        MapServer = new GoogleMapsServer();
+        MapScale = new ProjectionScale( MapServer );
     }
 
     public GoogleMapsProjection(
         IProjectionCredentials credentials,
-        IGoogleMapServer mapServer,
         IJ4JLogger logger
     )
-        : base( credentials, mapServer, new ProjectionScale(mapServer), logger )
+        : base( credentials, logger )
     {
+        MapServer = new GoogleMapsServer();
+        MapScale = new ProjectionScale(MapServer);
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
 
-    public override async Task<bool> AuthenticateAsync( GoogleCredentials? credentials, CancellationToken ctx = default )
-    {
-        MapScale.Scale = MapServer.MinScale;
+    public override IMapServer MapServer { get; }
+    public override IProjectionScale MapScale { get; }
 
-        if (MapServer is not IGoogleMapServer googleServer)
+#pragma warning disable CS1998
+    public override async Task<bool> AuthenticateAsync( GoogleCredentials? credentials, CancellationToken ctx = default )
+#pragma warning restore CS1998
+    {
+        if (MapServer is not GoogleMapsServer googleServer)
         {
             Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
             return false;
@@ -54,13 +57,8 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 
         _authenticated = false;
 
-        var initialized = MapServer.MaxRequestLatency < 0
-            ? await googleServer.InitializeAsync( credentials, ctx )
-            : await googleServer.InitializeAsync( credentials, ctx )
-                              .WaitAsync( TimeSpan.FromMilliseconds( MapServer.MaxRequestLatency ), ctx );
-
-        if( !initialized )
-            return false;
+        googleServer.ApiKey = credentials.ApiKey;
+        googleServer.Signature = credentials.SignatureSecret;
 
         _authenticated = true;
 

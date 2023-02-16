@@ -1,48 +1,53 @@
 ﻿using J4JSoftware.Logging;
+using System.Net;
+using System.Text.Json;
 
 namespace J4JMapLibrary;
 
-[ Projection( "BingMaps", typeof( IBingMapServer ) ) ]
+[ Projection( "BingMaps" ) ]
 public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 {
-    // "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/Mode?output=json&key=ApiKey";
+    public const string MetadataUrl =
+        "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
 
     private bool _authenticated;
 
     public BingMapsProjection(
-        IBingMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( mapServer, new TiledScale(mapServer), logger, tileCache )
+        : base( logger, tileCache )
     {
+        MapServer = new BingMapServer();
+        TiledScale = new TiledScale(MapServer);
     }
 
     public BingMapsProjection(
         IProjectionCredentials credentials,
-        IBingMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( credentials, mapServer, new TiledScale(mapServer), logger, tileCache )
+        : base( credentials, logger, tileCache )
     {
+        MapServer = new BingMapServer();
+        TiledScale = new TiledScale(MapServer);
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
 
+    public override IMapServer MapServer { get; }
+
     public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
     {
-        MapScale.Scale = MapServer.MinScale;
-
-        if (MapServer is not IBingMapServer bingServer)
+        if (MapServer is not BingMapServer bingMapServer)
         {
-            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
+            Logger.Error("MapServer was not initialized with an instance of BingMapServer");
             return false;
         }
 
         credentials ??= LibraryConfiguration?.Credentials
                                              .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
-                                             .Select( x => new BingCredentials( x.ApiKey, bingServer.MapType ) )
+                                             .Select( x => new BingCredentials( x.ApiKey, bingMapServer.MapType ) )
                                              .FirstOrDefault();
 
         if( credentials == null )
@@ -53,27 +58,95 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
         _authenticated = false;
 
-        var initialized = MapServer.MaxRequestLatency < 0
-            ? await bingServer.InitializeAsync( credentials, ctx )
-            : await bingServer.InitializeAsync( credentials, ctx )
-                              .WaitAsync( TimeSpan.FromMilliseconds( MapServer.MaxRequestLatency ), ctx );
+        bingMapServer.ApiKey = credentials.ApiKey;
+        bingMapServer.MapType = credentials.MapType;
 
-        if( !initialized )
-            return false;
-
-        // accessing the Metadata property retrieves it
-        if( bingServer.Metadata?.PrimaryResource == null )
-            return false;
-
-        MapServer.ScaleRange = new MinMax<int>( bingServer.Metadata.PrimaryResource.ZoomMin,
-                                                bingServer.Metadata.PrimaryResource.ZoomMax );
-
-        // check to ensure we're dealing with square tiles
-        if( MapServer.TileHeightWidth != bingServer.Metadata.PrimaryResource.ImageHeight )
+        var replacements = new Dictionary<string, string>
         {
-            Logger.Error( "Tile service is not using square tiles" );
+            { "{mode}", bingMapServer.MapType.ToString() },
+            { "{apikey}", bingMapServer.ApiKey }
+        };
+
+        var temp = InternalExtensions.ReplaceParameters(MetadataUrl, replacements);
+        var uri = new Uri(temp);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+        var uriText = uri.AbsoluteUri;
+        var httpClient = new HttpClient();
+
+        HttpResponseMessage? response;
+
+        Logger.Verbose("Attempting to retrieve Bing Maps metadata");
+
+        try
+        {
+            response = bingMapServer.MaxRequestLatency < 0
+                ? await httpClient.SendAsync( request, ctx )
+                : await httpClient.SendAsync( request, ctx )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( bingMapServer.MaxRequestLatency ), ctx );
+        }
+        catch (Exception ex)
+        {
+            // need to re-throw the exception to satisfy tests that look for
+            // thrown exceptions
+            //if( bingMapServer.MaxRequestLatency == 1 )
+            //    throw ex;
+
+            Logger.Error<string, string>("Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
+                                          uriText,
+                                          ex.Message);
             return false;
         }
+
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            var error = bingMapServer.MaxRequestLatency < 0
+                ? await response.Content.ReadAsStringAsync(ctx)
+                : await response.Content.ReadAsStringAsync(ctx)
+                                .WaitAsync(TimeSpan.FromMilliseconds(bingMapServer.MaxRequestLatency), ctx);
+
+            Logger.Error<string, string>(
+                "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
+                uriText,
+                error);
+
+            return false;
+        }
+
+        Logger.Verbose("Attempting to parse Bing Maps metadata");
+
+        try
+        {
+            var respText = await response.Content.ReadAsStringAsync(CancellationToken.None);
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            bingMapServer.Metadata = JsonSerializer.Deserialize<BingImageryMetadata>(respText, options);
+            Logger.Verbose("Bing Maps metadata retrieved");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error<string>("Could not parse Bing Maps metadata, message was '{0}'", ex.Message);
+
+            return false;
+        }
+
+        if (bingMapServer.Metadata!.PrimaryResource == null)
+        {
+            Logger.Error("Primary resource is not defined");
+            return false;
+        }
+
+        bingMapServer.MinScale = bingMapServer.Metadata.PrimaryResource.ZoomMin;
+        bingMapServer.MaxScale = bingMapServer.Metadata.PrimaryResource.ZoomMax;
+        bingMapServer.TileHeightWidth = bingMapServer.Metadata.PrimaryResource.ImageHeight;
+
+        var urlText = bingMapServer.Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
+                                                               .Replace("{quadkey}", "0")
+                                                               .Replace("{culture}", null);
+
+        var extUri = new Uri(urlText);
+        bingMapServer.ImageFileExtension = Path.GetExtension(extUri.LocalPath);
 
         _authenticated = true;
 
