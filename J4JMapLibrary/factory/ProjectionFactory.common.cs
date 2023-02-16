@@ -26,19 +26,6 @@ public partial class ProjectionFactory
         return false;
     }
 
-    private bool EnsureMapServer( ProjectionInfo ctorInfo, ref IMapServer? mapServer )
-    {
-        if( mapServer != null )
-            return true;
-
-        mapServer = Activator.CreateInstance( ctorInfo.ServerType ) as IMapServer;
-        if( mapServer != null )
-            return true;
-
-        _logger.Error( "Could not create an instance of {0}", ctorInfo.ServerType );
-        return false;
-    }
-
     private object?[] CreateConstructorArguments( List<ParameterInfo> parameterSlots, params ParameterValue[] values )
     {
         if( parameterSlots.Count != values.Length )

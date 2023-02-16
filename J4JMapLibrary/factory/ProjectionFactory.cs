@@ -71,38 +71,11 @@ public partial class ProjectionFactory
                          .Where( x => x.GetInterface( nameof( IProjection ) ) != null )
                          .Select( x => new ProjectionTypeInfo( x ) )
                          .Where( x => x.BasicConstructor != null
-                                  && !string.IsNullOrEmpty( x.Name )
-                                  && x.ServerType != null )
+                                  && !string.IsNullOrEmpty( x.Name ) )
                          .ToList();
-
-        // find all the MapServer types decorated with MapServerAttribute with public parameterless constructors
-        var servers = allTypes.Where( x => x.GetInterface( nameof( IMapServer ) ) != null )
-                              .Select( x => new ServerTypeInfo( x ) )
-                              .Where( x => x is { HasPublicParameterlessConstructor: true, CredentialType: {} } )
-                              .ToList();
 
         foreach( var projInfo in projections )
         {
-            // to be usable, a projType has to refer to a known serverType,
-            // and the serverType must use a known credential type.
-            // it must also have a name
-            if( projInfo.ServerType == null || string.IsNullOrEmpty( projInfo.Name ) )
-                continue;
-
-            var serverInfo = servers.FirstOrDefault( x =>
-                                                         x.ServerType.GetInterface( projInfo.ServerType.ToString() )
-                                                      != null );
-            if( serverInfo == null )
-                continue;
-
-            // ensure the serverType has a public parameterless constructor
-            if( !serverInfo.HasPublicParameterlessConstructor )
-                continue;
-
-            var credentialType = allTypes.FirstOrDefault( x => x == serverInfo.CredentialType );
-            if( credentialType == null )
-                continue;
-
             if( projInfo.BasicConstructor == null && projInfo.ConfigurationCredentialConstructor == null )
                 continue;
 
@@ -110,8 +83,6 @@ public partial class ProjectionFactory
                           new ProjectionInfo( projInfo.Name,
                                               projInfo.ProjectionType,
                                               projInfo.IsTiled,
-                                              serverInfo.ServerType,
-                                              credentialType,
                                               projInfo.BasicConstructor,
                                               projInfo.ConfigurationCredentialConstructor ) );
         }
@@ -121,8 +92,6 @@ public partial class ProjectionFactory
         string Name,
         Type MapProjectionType,
         bool IsTiled,
-        Type ServerType,
-        Type CredentialsType,
         List<ParameterInfo>? BaseConstructor,
         List<ParameterInfo>? ConfigurationCredentialedConstructor
     );
@@ -131,7 +100,6 @@ public partial class ProjectionFactory
     {
         TileCache,
         Credentials,
-        MapServer,
         Logger,
         Other
     }
