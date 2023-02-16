@@ -28,7 +28,7 @@ public class CacheTests : TestBase
         {
             for( var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++ )
             {
-                await TiledFragment.CreateAsync( projection, xTile, yTile, scale );
+                await TiledFragment.CreateAsync( projection, xTile, yTile );
                 numCreated++;
 
                 cache.Count.Should().Be( maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached );
@@ -68,7 +68,7 @@ public class CacheTests : TestBase
         {
             for (var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++)
             {
-                await TiledFragment.CreateAsync( projection, xTile, yTile,scale );
+                await TiledFragment.CreateAsync( projection, xTile, yTile );
                 numCreated++;
 
                 cache.Count.Should().Be(maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached);

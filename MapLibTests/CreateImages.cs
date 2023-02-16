@@ -16,7 +16,7 @@ public class CreateImages : TestBase
 
         projection.MapScale.Scale = data.Scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY, data.Scale);
+        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
         await WriteImageFileAsync(projection, mapTile,data.Scale);
     }
 
@@ -31,7 +31,7 @@ public class CreateImages : TestBase
 
         projection.MapScale.Scale = data.Scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY, data.Scale);
+        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
         await WriteImageFileAsync(projection, mapTile, data.Scale);
     }
 
@@ -46,7 +46,7 @@ public class CreateImages : TestBase
 
         projection.MapScale.Scale = data.Scale;
 
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY, data.Scale);
+        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
         await WriteImageFileAsync(projection, mapTile, data.Scale);
     }
 
