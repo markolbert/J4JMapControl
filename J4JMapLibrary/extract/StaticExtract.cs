@@ -18,20 +18,20 @@ public class StaticExtract : MapExtract
 
         if( Tiles.Count == 0 )
         {
-            Logger.Error("No tiles in the extract");
+            Logger.Error( "No tiles in the extract" );
             return false;
         }
 
         if( Tiles.Count > 1 )
         {
-            Logger.Error("More than one mapFragment in the extract");
+            Logger.Error( "More than one mapFragment in the extract" );
             return false;
         }
 
         var castTile = Tiles[ 0 ] as IStaticFragment;
         if( castTile == null )
         {
-            Logger.Error("Tile is not a IStaticFragment");
+            Logger.Error( "Tile is not a IStaticFragment" );
             return false;
         }
 

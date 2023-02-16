@@ -29,9 +29,9 @@ public abstract class OpenMapProjection : TiledProjection<string>
     public override async Task<bool> AuthenticateAsync( string? credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        if (MapServer is not OpenMapServer mapServer)
+        if( MapServer is not OpenMapServer mapServer )
         {
-            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
+            Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
             return false;
         }
 

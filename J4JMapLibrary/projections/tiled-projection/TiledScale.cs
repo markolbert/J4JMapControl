@@ -24,8 +24,8 @@ public class TiledScale : ProjectionScale, ITiledScale
             if( _xRange != null )
                 return _xRange;
 
-            var pow2 = InternalExtensions.Pow(2, Scale);
-            _xRange = new MinMax<int>(0, MapServer.TileHeightWidth * pow2 - 1);
+            var pow2 = InternalExtensions.Pow( 2, Scale );
+            _xRange = new MinMax<int>( 0, MapServer.TileHeightWidth * pow2 - 1 );
 
             return _xRange;
         }
@@ -38,8 +38,8 @@ public class TiledScale : ProjectionScale, ITiledScale
             if( _yRange != null )
                 return _yRange;
 
-            var pow2 = InternalExtensions.Pow(2, Scale);
-            _yRange = new MinMax<int>(0, MapServer.TileHeightWidth * pow2 - 1);
+            var pow2 = InternalExtensions.Pow( 2, Scale );
+            _yRange = new MinMax<int>( 0, MapServer.TileHeightWidth * pow2 - 1 );
 
             return _yRange;
         }

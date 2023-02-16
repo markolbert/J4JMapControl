@@ -15,7 +15,7 @@ public class ProjectionCredentials : IProjectionCredentials
 
         // thanx to Métoule for this!
         // https://stackoverflow.com/questions/55954858/how-to-load-polymorphic-objects-in-appsettings-json
-        while ( true )
+        while( true )
         {
             var name = config.GetValue<string>( $"Credentials:{idx}:Name" );
             var apiKey = config.GetValue<string>( $"Credentials:{idx}:ApiKey" );
@@ -39,7 +39,7 @@ public class ProjectionCredentials : IProjectionCredentials
     public bool TryGetCredential( string projectionName, out Credential? result )
     {
         result = Credentials
-                .FirstOrDefault( x => x.Name.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
+           .FirstOrDefault( x => x.Name.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
 
         return result != null;
     }

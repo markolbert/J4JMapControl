@@ -9,12 +9,12 @@ public abstract class MapExtract : IMapExtract
     protected MapExtract(
         IProjection projection,
         IJ4JLogger logger
-        )
+    )
     {
         Projection = projection;
 
         Logger = logger;
-        Logger.SetLoggedType(GetType());
+        Logger.SetLoggedType( GetType() );
     }
 
     protected IJ4JLogger Logger { get; }
@@ -28,7 +28,6 @@ public abstract class MapExtract : IMapExtract
             Tiles.Add( mapFragment );
             return true;
         }
-
 
         if( Tiles[ 0 ].MapServer != mapFragment.MapServer )
             return false;
