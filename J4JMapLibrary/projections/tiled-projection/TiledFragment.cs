@@ -22,7 +22,10 @@ public partial class TiledFragment : MapFragment, ITiledFragment
     public override string FragmentId => QuadKey;
 
     public ITiledScale TiledScale { get; }
+    
+    public override int Scale => TiledScale.Scale;
     public int HeightWidth { get; }
+    
     public string QuadKey { get; }
     public int X { get; }
     public int Y { get; }

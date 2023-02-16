@@ -58,7 +58,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
                                           viewportData.Scale );
 
         if( !deferImageLoad )
-            await mapTile.GetImageAsync( viewportData.Scale, ctx: ctx );
+            await mapTile.GetImageAsync( ctx: ctx );
 
         yield return mapTile;
     }

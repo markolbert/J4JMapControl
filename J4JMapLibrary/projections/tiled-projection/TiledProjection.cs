@@ -140,7 +140,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
                 var mapTile = await TiledFragment.CreateAsync( this, xTile, yTile, viewportData.Scale, ctx: ctx );
 
                 if( !deferImageLoad )
-                    await mapTile.GetImageAsync( viewportData.Scale, ctx: ctx );
+                    await mapTile.GetImageAsync( ctx: ctx );
 
                 yield return mapTile;
             }

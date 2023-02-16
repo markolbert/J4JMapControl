@@ -40,6 +40,7 @@ public abstract class MapFragment : IMapFragment
     protected IJ4JLogger? Logger { get; }
 
     public IMapServer MapServer { get; }
+    public abstract int Scale { get; }
     public int MaxRequestLatency { get; }
 
     public abstract string FragmentId { get; }
@@ -47,7 +48,7 @@ public abstract class MapFragment : IMapFragment
     public byte[]? ImageData { get; protected set; }
     public long ImageBytes { get; private set; } = -1L;
 
-    public async Task<byte[]?> GetImageAsync( int scale, bool forceRetrieval = false, CancellationToken ctx = default )
+    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default )
     {
         if( ImageData != null && !forceRetrieval )
             return ImageData;
@@ -59,7 +60,7 @@ public abstract class MapFragment : IMapFragment
 
         Logger?.Verbose( "Beginning image retrieval from web" );
 
-        var request = MapServer.CreateMessage( this, scale );
+        var request = MapServer.CreateMessage( this, Scale );
         if( request == null )
         {
             Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", FragmentId );

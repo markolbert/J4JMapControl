@@ -42,5 +42,5 @@ public class StaticFragment : MapFragment, IStaticFragment
     public LatLong Center { get; }
     public float Height { get; }
     public float Width { get; }
-    public int Scale { get; }
+    public override int Scale { get; }
 }

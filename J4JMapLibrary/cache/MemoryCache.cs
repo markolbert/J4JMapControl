@@ -99,7 +99,7 @@ public class MemoryCache : CacheBase
             return retVal;
 
         if( !retVal.ImageIsLoaded && !deferImageLoad )
-            await retVal.Tile.GetImageAsync( scale, ctx: ctx );
+            await retVal.Tile.GetImageAsync( ctx: ctx );
 
         return retVal;
     }
@@ -121,7 +121,7 @@ public class MemoryCache : CacheBase
 
         if( !deferImageLoad )
         {
-            var imageData = await retVal.Tile.GetImageAsync( scale, ctx: ctx ) ?? Array.Empty<byte>();
+            var imageData = await retVal.Tile.GetImageAsync( ctx: ctx ) ?? Array.Empty<byte>();
 
             if( imageData.Length == 0 )
             {

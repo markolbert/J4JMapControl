@@ -16,15 +16,12 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.ObjectModel;
-using System.Reflection.Metadata.Ecma335;
-using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public class FileSystemCache : CacheBase
 {
-    private readonly FileLocator _fileLocator;
     private long _bytesCached;
 
     private string? _cacheDir;
@@ -35,7 +32,6 @@ public class FileSystemCache : CacheBase
     )
         : base( logger )
     {
-        _fileLocator = new FileLocator().StopOnFirstMatch().Readable().Writeable();
     }
 
     public override int Count => GetFiles().Count;
@@ -203,8 +199,8 @@ public class FileSystemCache : CacheBase
         var filePath = Path.Combine( _cacheDir, fileName );
 
         var bytesToWrite = retVal.Tile.ImageBytes <= 0L
-            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( scale, ctx: ctx ) ?? null
-            : await retVal.Tile.GetImageAsync( scale, ctx: ctx ) ?? null;
+            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null
+            : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null;
 
         if( bytesToWrite == null )
         {
