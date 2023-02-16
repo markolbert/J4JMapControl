@@ -7,7 +7,7 @@ public class Viewport : NormalizedViewport, IViewport
     public Viewport(
         IProjection projection
     )
-    :base(projection)
+        : base( projection )
     {
     }
 

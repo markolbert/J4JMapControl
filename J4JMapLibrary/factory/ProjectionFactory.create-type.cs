@@ -20,10 +20,10 @@ public partial class ProjectionFactory
             new( ParameterType.Logger, _logger ),
         };
 
-        if (ctorInfo!.IsTiled)
-            ctorArgs.Add(new ParameterValue(ParameterType.TileCache, tileCache));
+        if( ctorInfo!.IsTiled )
+            ctorArgs.Add( new ParameterValue( ParameterType.TileCache, tileCache ) );
 
-        if ( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
+        if( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
         if( await mapProjection!.AuthenticateAsync( credentials, ctx ) )
@@ -50,14 +50,13 @@ public partial class ProjectionFactory
         var ctorArgs = new List<ParameterValue>
         {
             //new( ParameterType.MapServer, mapServer ),
-            new( ParameterType.Logger, _logger ),
-            new( ParameterType.Credentials, ProjectionCredentials )
+            new( ParameterType.Logger, _logger ), new( ParameterType.Credentials, ProjectionCredentials )
         };
 
-        if (ctorInfo!.IsTiled)
-            ctorArgs.Add(new ParameterValue(ParameterType.TileCache, tileCache));
+        if( ctorInfo!.IsTiled )
+            ctorArgs.Add( new ParameterValue( ParameterType.TileCache, tileCache ) );
 
-        if ( !TryCreateProjectionConfigurationCredentials( ctorInfo, ctorArgs, out var mapProjection ) )
+        if( !TryCreateProjectionConfigurationCredentials( ctorInfo, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
         if( !authenticate || await mapProjection!.AuthenticateAsync( null, ctx ) )

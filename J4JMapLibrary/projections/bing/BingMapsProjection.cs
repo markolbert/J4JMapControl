@@ -19,7 +19,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         : base( logger, tileCache )
     {
         MapServer = new BingMapServer();
-        TiledScale = new TiledScale(MapServer);
+        TiledScale = new TiledScale( MapServer );
     }
 
     public BingMapsProjection(
@@ -30,7 +30,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         : base( credentials, logger, tileCache )
     {
         MapServer = new BingMapServer();
-        TiledScale = new TiledScale(MapServer);
+        TiledScale = new TiledScale( MapServer );
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -39,9 +39,9 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
     public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
     {
-        if (MapServer is not BingMapServer bingMapServer)
+        if( MapServer is not BingMapServer bingMapServer )
         {
-            Logger.Error("MapServer was not initialized with an instance of BingMapServer");
+            Logger.Error( "MapServer was not initialized with an instance of BingMapServer" );
             return false;
         }
 
@@ -63,21 +63,20 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
         var replacements = new Dictionary<string, string>
         {
-            { "{mode}", bingMapServer.MapType.ToString() },
-            { "{apikey}", bingMapServer.ApiKey }
+            { "{mode}", bingMapServer.MapType.ToString() }, { "{apikey}", bingMapServer.ApiKey }
         };
 
-        var temp = InternalExtensions.ReplaceParameters(MetadataUrl, replacements);
-        var uri = new Uri(temp);
+        var temp = InternalExtensions.ReplaceParameters( MetadataUrl, replacements );
+        var uri = new Uri( temp );
 
-        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        var request = new HttpRequestMessage( HttpMethod.Get, uri );
 
         var uriText = uri.AbsoluteUri;
         var httpClient = new HttpClient();
 
         HttpResponseMessage? response;
 
-        Logger.Verbose("Attempting to retrieve Bing Maps metadata");
+        Logger.Verbose( "Attempting to retrieve Bing Maps metadata" );
 
         try
         {
@@ -86,54 +85,54 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
                 : await httpClient.SendAsync( request, ctx )
                                   .WaitAsync( TimeSpan.FromMilliseconds( bingMapServer.MaxRequestLatency ), ctx );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
             // need to re-throw the exception to satisfy tests that look for
             // thrown exceptions
             //if( bingMapServer.MaxRequestLatency == 1 )
             //    throw ex;
 
-            Logger.Error<string, string>("Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
+            Logger.Error<string, string>( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
                                           uriText,
-                                          ex.Message);
+                                          ex.Message );
             return false;
         }
 
-        if (response.StatusCode != HttpStatusCode.OK)
+        if( response.StatusCode != HttpStatusCode.OK )
         {
             var error = bingMapServer.MaxRequestLatency < 0
-                ? await response.Content.ReadAsStringAsync(ctx)
-                : await response.Content.ReadAsStringAsync(ctx)
-                                .WaitAsync(TimeSpan.FromMilliseconds(bingMapServer.MaxRequestLatency), ctx);
+                ? await response.Content.ReadAsStringAsync( ctx )
+                : await response.Content.ReadAsStringAsync( ctx )
+                                .WaitAsync( TimeSpan.FromMilliseconds( bingMapServer.MaxRequestLatency ), ctx );
 
             Logger.Error<string, string>(
                 "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
                 uriText,
-                error);
+                error );
 
             return false;
         }
 
-        Logger.Verbose("Attempting to parse Bing Maps metadata");
+        Logger.Verbose( "Attempting to parse Bing Maps metadata" );
 
         try
         {
-            var respText = await response.Content.ReadAsStringAsync(CancellationToken.None);
+            var respText = await response.Content.ReadAsStringAsync( CancellationToken.None );
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            bingMapServer.Metadata = JsonSerializer.Deserialize<BingImageryMetadata>(respText, options);
-            Logger.Verbose("Bing Maps metadata retrieved");
+            bingMapServer.Metadata = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
+            Logger.Verbose( "Bing Maps metadata retrieved" );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
-            Logger.Error<string>("Could not parse Bing Maps metadata, message was '{0}'", ex.Message);
+            Logger.Error<string>( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
 
             return false;
         }
 
-        if (bingMapServer.Metadata!.PrimaryResource == null)
+        if( bingMapServer.Metadata!.PrimaryResource == null )
         {
-            Logger.Error("Primary resource is not defined");
+            Logger.Error( "Primary resource is not defined" );
             return false;
         }
 
@@ -141,12 +140,12 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         bingMapServer.MaxScale = bingMapServer.Metadata.PrimaryResource.ZoomMax;
         bingMapServer.TileHeightWidth = bingMapServer.Metadata.PrimaryResource.ImageHeight;
 
-        var urlText = bingMapServer.Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
-                                                               .Replace("{quadkey}", "0")
-                                                               .Replace("{culture}", null);
+        var urlText = bingMapServer.Metadata.PrimaryResource.ImageUrl.Replace( "{subdomain}", "subdomain" )
+                                   .Replace( "{quadkey}", "0" )
+                                   .Replace( "{culture}", null );
 
-        var extUri = new Uri(urlText);
-        bingMapServer.ImageFileExtension = Path.GetExtension(extUri.LocalPath);
+        var extUri = new Uri( urlText );
+        bingMapServer.ImageFileExtension = Path.GetExtension( extUri.LocalPath );
 
         _authenticated = true;
 

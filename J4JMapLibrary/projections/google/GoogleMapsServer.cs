@@ -3,7 +3,7 @@ using System.Text;
 
 namespace J4JMapLibrary;
 
-[ MapServer("GoogleMaps") ]
+[ MapServer( "GoogleMaps" ) ]
 public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>
 {
     public GoogleMapsServer()
@@ -11,7 +11,7 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
         MinScale = 0;
         MaxScale = 20;
         Copyright = "© Google";
-        CopyrightUri = new Uri("http://www.google.com");
+        CopyrightUri = new Uri( "http://www.google.com" );
         ImageFileExtension = ".png";
 
         // this doesn't have the required signature field, but that gets appended
@@ -59,7 +59,7 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
 
         // converting key to bytes will throw an exception, need to replace '-' and '_' characters first.
         var usablePrivateKey = Signature.Replace( "-", "+" )
-                                         .Replace( "_", "/" );
+                                        .Replace( "_", "/" );
 
         var privateKeyBytes = Convert.FromBase64String( usablePrivateKey );
 

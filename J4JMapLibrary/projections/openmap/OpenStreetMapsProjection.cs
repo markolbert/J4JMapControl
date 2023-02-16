@@ -2,7 +2,7 @@
 
 namespace J4JMapLibrary;
 
-[ Projection( "OpenStreetMaps") ]
+[ Projection( "OpenStreetMaps" ) ]
 public sealed class OpenStreetMapsProjection : OpenMapProjection
 {
     public OpenStreetMapsProjection(
@@ -12,7 +12,7 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         : base( logger, tileCache )
     {
         MapServer = new OpenStreetMapServer();
-        TiledScale = new TiledScale(MapServer);
+        TiledScale = new TiledScale( MapServer );
     }
 
     public OpenStreetMapsProjection(
@@ -23,7 +23,7 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         : base( credentials, logger, tileCache )
     {
         MapServer = new OpenStreetMapServer();
-        TiledScale = new TiledScale(MapServer);
+        TiledScale = new TiledScale( MapServer );
     }
 
     public override IMapServer MapServer { get; }

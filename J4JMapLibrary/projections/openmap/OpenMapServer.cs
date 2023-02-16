@@ -25,12 +25,12 @@ public class OpenMapServer : MapServer<TiledFragment, string>
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", scale.ToString()},
+            { "{zoom}", scale.ToString() },
             { "{x}", mapFragment.X.ToString() },
             { "{y}", mapFragment.Y.ToString() },
         };
 
-        var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements ); 
+        var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );
 
         var retVal = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
         retVal.Headers.Add( "User-Agent", UserAgent );

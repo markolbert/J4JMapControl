@@ -152,7 +152,7 @@ public static class MapExtensions
     {
         if( decimals < 0 )
         {
-            Logger?.Error("Trying to set number of decimal digits < 0, defaulting to 5");
+            Logger?.Error( "Trying to set number of decimal digits < 0, defaulting to 5" );
             decimals = 5;
         }
 
@@ -160,35 +160,35 @@ public static class MapExtensions
 
         var decValue = Math.Round( (decimal) value, decimals );
 
-        var (whole, fraction) = GetWholeFraction(decValue);
+        var (whole, fraction) = GetWholeFraction( decValue );
 
         return $"{whole}x{fraction}{ns}";
     }
 
-    public static string LongitudeToText( float value, int decimals = 5)
+    public static string LongitudeToText( float value, int decimals = 5 )
     {
-        if (decimals < 0)
+        if( decimals < 0 )
         {
-            Logger?.Error("Trying to set number of decimal digits < 0, defaulting to 5");
+            Logger?.Error( "Trying to set number of decimal digits < 0, defaulting to 5" );
             decimals = 5;
         }
 
         var ew = value < 0 ? "W" : "E";
 
-        var decValue = Math.Round((decimal)value, decimals);
+        var decValue = Math.Round( (decimal) value, decimals );
 
-        var (whole, fraction) = GetWholeFraction(decValue);
+        var (whole, fraction) = GetWholeFraction( decValue );
 
         return $"{whole}x{fraction}{ew}";
     }
 
     private static (int Whole, string Fraction) GetWholeFraction( decimal value )
     {
-        value = Math.Abs(value);
-        var whole = (int)Math.Floor(value);
+        value = Math.Abs( value );
+        var whole = (int) Math.Floor( value );
 
         var fraction = $"{value - whole}";
-        var decLog = fraction.IndexOf('.');
+        var decLog = fraction.IndexOf( '.' );
 
         return ( whole, fraction[ ( decLog + 1 ).. ] );
     }

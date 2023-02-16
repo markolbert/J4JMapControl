@@ -6,20 +6,14 @@ public partial class ProjectionFactory
 {
     private record ProjectionTypeInfo : TypeInfoBase
     {
-        private static readonly ParameterType[] TiledParameters =
-        {
-            ParameterType.Logger, ParameterType.TileCache
-        };
+        private static readonly ParameterType[] TiledParameters = { ParameterType.Logger, ParameterType.TileCache };
 
         private static readonly ParameterType[] TiledCredentialedParameters =
         {
             ParameterType.Logger, ParameterType.TileCache, ParameterType.Credentials
         };
 
-        private static readonly ParameterType[] StaticParameters =
-        {
-            ParameterType.Logger
-        };
+        private static readonly ParameterType[] StaticParameters = { ParameterType.Logger };
 
         private static readonly ParameterType[] StaticCredentialedParameters =
         {
@@ -39,13 +33,13 @@ public partial class ProjectionFactory
             if( projType.IsAssignableTo( typeof( ITiledProjection ) ) )
             {
                 IsTiled = true;
-                BasicConstructor = GetConstructor(TiledParameters);
-                ConfigurationCredentialConstructor = GetConstructor(TiledCredentialedParameters);
+                BasicConstructor = GetConstructor( TiledParameters );
+                ConfigurationCredentialConstructor = GetConstructor( TiledCredentialedParameters );
             }
             else
             {
-                BasicConstructor = GetConstructor(StaticParameters);
-                ConfigurationCredentialConstructor = GetConstructor(StaticCredentialedParameters);
+                BasicConstructor = GetConstructor( StaticParameters );
+                ConfigurationCredentialConstructor = GetConstructor( StaticCredentialedParameters );
             }
         }
 

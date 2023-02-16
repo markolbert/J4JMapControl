@@ -17,10 +17,10 @@ internal static class InternalExtensions
 
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
-    internal static int Pow(int numBase, int exp) =>
+    internal static int Pow( int numBase, int exp ) =>
         Enumerable
-           .Repeat(numBase, Math.Abs(exp))
-           .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
+           .Repeat( numBase, Math.Abs( exp ) )
+           .Aggregate( 1, ( a, b ) => exp < 0 ? a / b : a * b );
 
     // key value matching is case sensitive
     internal static string ReplaceParameters(
@@ -55,10 +55,9 @@ internal static class InternalExtensions
     }
 
     internal static Cartesian LatLongToCartesian( this ITiledScale scale, float latitude, float longitude ) =>
-        scale.LatLongToCartesianInternal(
-            scale.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
-            scale.MapServer.LongitudeRange
-                 .ConformValueToRange( longitude, "Longitude" ) );
+        scale.LatLongToCartesianInternal( scale.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
+                                          scale.MapServer.LongitudeRange
+                                               .ConformValueToRange( longitude, "Longitude" ) );
 
     internal static LatLong CartesianToLatLong( this ITiledScale scale, Cartesian cartesian )
     {

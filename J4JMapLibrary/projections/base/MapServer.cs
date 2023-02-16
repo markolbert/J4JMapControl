@@ -24,8 +24,8 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         Logger = J4JDeusEx.GetLogger()!;
         Logger.SetLoggedType( GetType() );
 
-        LatitudeRange = new MinMax<float>(-90, 90);
-        LongitudeRange = new MinMax<float>(-180, 180);
+        LatitudeRange = new MinMax<float>( -90, 90 );
+        LongitudeRange = new MinMax<float>( -180, 180 );
 
         var attr = GetType().GetCustomAttribute<MapServerAttribute>();
         SupportedProjection = attr?.ProjectionName ?? string.Empty;
@@ -34,8 +34,8 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
             return;
 
         Logger.Error( "{0} is not decorated with a {1}, will not be accessible by projections",
-                       GetType(),
-                       typeof( MapServerAttribute ) );
+                      GetType(),
+                      typeof( MapServerAttribute ) );
     }
 
     protected IJ4JLogger Logger { get; }
@@ -43,7 +43,8 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public string SupportedProjection { get; }
     public abstract bool Initialized { get; }
 
-    public int MinScale { 
+    public int MinScale
+    {
         get => _minScale;
 
         internal set
@@ -93,7 +94,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         internal set
         {
             _minLat = value;
-            LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
+            LatitudeRange = new MinMax<float>( MinLatitude, MaxLatitude );
         }
     }
 
@@ -106,7 +107,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         internal set
         {
             _maxLong = value;
-            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+            LongitudeRange = new MinMax<float>( MinLongitude, MaxLongitude );
         }
     }
 
@@ -117,7 +118,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         internal set
         {
             _minLong = value;
-            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+            LongitudeRange = new MinMax<float>( MinLongitude, MaxLongitude );
         }
     }
 

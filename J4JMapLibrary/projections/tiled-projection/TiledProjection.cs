@@ -130,6 +130,5 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         }
     }
 
-    private int CartesianToTile(float value) =>
-        Convert.ToInt32(Math.Floor(value / MapServer.TileHeightWidth));
+    private int CartesianToTile( float value ) => Convert.ToInt32( Math.Floor( value / MapServer.TileHeightWidth ) );
 }

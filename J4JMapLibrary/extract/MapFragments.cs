@@ -214,7 +214,7 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
             Width = Width
         };
 
-        await foreach( var fragment in _projection.GetExtractAsync( viewportData, ctx: ctx ))
+        await foreach( var fragment in _projection.GetExtractAsync( viewportData, ctx: ctx ) )
         {
             yield return fragment;
         }
@@ -235,7 +235,7 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
             Heading = Heading
         };
 
-        await foreach( var fragment in ((ITiledProjection)_projection).GetExtractAsync(viewportData, ctx: ctx))
+        await foreach( var fragment in ( (ITiledProjection) _projection ).GetExtractAsync( viewportData, ctx: ctx ) )
         {
             yield return fragment;
         }

@@ -23,6 +23,7 @@ public class StaticBounds : IEquatable<StaticBounds>
             return false;
         if( ReferenceEquals( this, obj ) )
             return true;
+
         return obj.GetType() == this.GetType() && Equals( (StaticBounds) obj );
     }
 
@@ -48,5 +49,4 @@ public class StaticBounds : IEquatable<StaticBounds>
     public float CenterLongitude { get; }
     public float Height { get; }
     public float Width { get; }
-
 }

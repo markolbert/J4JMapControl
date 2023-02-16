@@ -28,12 +28,12 @@ public class TiledExtract : MapExtract
             return false;
         }
 
-        var minX = castTiles.Min(x => x.X);
-        var maxX = castTiles.Max(x => x.X);
-        var minY = castTiles.Min(x => x.Y);
-        var maxY = castTiles.Max(x => x.Y);
+        var minX = castTiles.Min( x => x.X );
+        var maxX = castTiles.Max( x => x.X );
+        var minY = castTiles.Min( x => x.Y );
+        var maxY = castTiles.Max( x => x.Y );
 
-        bounds = new TiledBounds(new TileCoordinates(minX, minY), new TileCoordinates(maxX, maxY));
+        bounds = new TiledBounds( new TileCoordinates( minX, minY ), new TileCoordinates( maxX, maxY ) );
 
         return true;
     }

@@ -6,12 +6,12 @@ public class ProjectionScale : IProjectionScale
 
     public ProjectionScale(
         IMapServer mapServer
-        )
+    )
     {
         MapServer = mapServer;
     }
 
-    protected ProjectionScale(ProjectionScale toCopy)
+    protected ProjectionScale( ProjectionScale toCopy )
     {
         MapServer = toCopy.MapServer;
         Scale = toCopy.Scale;

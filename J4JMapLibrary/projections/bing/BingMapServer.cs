@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace J4JMapLibrary;
 
-[ MapServer( "BingMaps") ]
+[ MapServer( "BingMaps" ) ]
 public class BingMapServer : MapServer<TiledFragment, BingCredentials>
 {
     public const string MetadataUrl =

@@ -14,15 +14,12 @@ public partial class ProjectionFactory
         if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        var ctorArgs = new List<ParameterValue>
-        {
-            new( ParameterType.Logger, _logger ),
-        };
+        var ctorArgs = new List<ParameterValue> { new( ParameterType.Logger, _logger ), };
 
-        if (ctorInfo!.IsTiled)
-            ctorArgs.Add(new ParameterValue(ParameterType.TileCache, tileCache));
+        if( ctorInfo!.IsTiled )
+            ctorArgs.Add( new ParameterValue( ParameterType.TileCache, tileCache ) );
 
-        if ( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
+        if( !TryCreateProjection( ctorInfo, ctorArgs, out var mapProjection ) )
             return ProjectionCreationResult.NoProjection;
 
         if( await mapProjection!.AuthenticateAsync( credentials, ctx ) )
@@ -49,8 +46,7 @@ public partial class ProjectionFactory
         var ctorArgs = new List<ParameterValue>
         {
             //new( ParameterType.MapServer, mapServer ),
-            new( ParameterType.Logger, _logger ),
-            new( ParameterType.Credentials, ProjectionCredentials )
+            new( ParameterType.Logger, _logger ), new( ParameterType.Credentials, ProjectionCredentials )
         };
 
         if( ctorInfo!.IsTiled )

@@ -23,7 +23,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         : base( credentials, logger )
     {
         MapServer = new GoogleMapsServer();
-        MapScale = new ProjectionScale(MapServer);
+        MapScale = new ProjectionScale( MapServer );
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -32,12 +32,15 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     public override IProjectionScale MapScale { get; }
 
 #pragma warning disable CS1998
-    public override async Task<bool> AuthenticateAsync( GoogleCredentials? credentials, CancellationToken ctx = default )
+    public override async Task<bool> AuthenticateAsync(
+        GoogleCredentials? credentials,
+        CancellationToken ctx = default
+    )
 #pragma warning restore CS1998
     {
-        if (MapServer is not GoogleMapsServer googleServer)
+        if( MapServer is not GoogleMapsServer googleServer )
         {
-            Logger.Error("Undefined or inaccessible IMessageCreator, cannot initialize");
+            Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
             return false;
         }
 

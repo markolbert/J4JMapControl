@@ -15,7 +15,7 @@ public class Cartesian
     public Cartesian()
     {
         XRange = new MinMax<int>( int.MinValue, int.MaxValue );
-        YRange = new MinMax<int>(int.MinValue, int.MaxValue);
+        YRange = new MinMax<int>( int.MinValue, int.MaxValue );
     }
 
     public MinMax<int> XRange { get; internal set; }
