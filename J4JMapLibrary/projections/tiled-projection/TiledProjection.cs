@@ -19,7 +19,7 @@ using J4JSoftware.Logging;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, TiledFragment>, ITiledProjection
     where TAuth : class

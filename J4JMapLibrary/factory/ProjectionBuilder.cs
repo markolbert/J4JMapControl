@@ -20,7 +20,7 @@ using J4JSoftware.Logging;
 // this class has to be in a different namespace from the
 // assembly's main one so that we can avoid naming conflicts between
 // property names and extension method names
-namespace J4JMapLibrary.MapBuilder;
+namespace J4JSoftware.J4JMapLibrary.MapBuilder;
 
 public class ProjectionBuilder
 {

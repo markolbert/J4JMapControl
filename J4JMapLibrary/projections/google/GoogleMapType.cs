@@ -17,7 +17,7 @@
 
 using System.ComponentModel;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public enum GoogleMapType
 {

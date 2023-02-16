@@ -17,7 +17,7 @@
 
 using System.Collections.ObjectModel;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public interface ITileCache
 {

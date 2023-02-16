@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
-using J4JMapLibrary;
+using J4JSoftware.J4JMapLibrary;
 
 namespace MapLibTests;
 

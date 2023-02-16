@@ -17,7 +17,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public class BingResource
 {

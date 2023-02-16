@@ -17,7 +17,7 @@
 
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class OpenMapProjection : TiledProjection<string>
 {
