@@ -4,14 +4,11 @@
 public class MapServerAttribute : Attribute
 {
     public MapServerAttribute(
-        string projectionName,
-        Type credentialType
+        string projectionName
     )
     {
         ProjectionName = projectionName;
-        CredentialType = credentialType;
     }
 
     public string ProjectionName { get; }
-    public Type CredentialType { get; }
 }

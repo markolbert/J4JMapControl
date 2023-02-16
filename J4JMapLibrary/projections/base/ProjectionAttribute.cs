@@ -4,14 +4,11 @@
 public class ProjectionAttribute : Attribute
 {
     public ProjectionAttribute(
-        string name,
-        Type mapServerType
+        string name
     )
     {
         Name = name;
-        MapServerType = mapServerType;
     }
 
     public string Name { get; }
-    public Type MapServerType { get; }
 }
