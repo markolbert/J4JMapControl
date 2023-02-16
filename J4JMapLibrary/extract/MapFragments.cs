@@ -29,7 +29,7 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
     public event EventHandler? Changed;
 
     private readonly IProjection _projection;
-    private readonly Func<IMapFragment, TFrag?> _fragmentFactory;
+    private readonly Func<IMapFragment, Task<TFrag?>> _fragmentFactory;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
     private readonly List<TFrag> _fragments = new();
 
@@ -38,7 +38,7 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
 
     protected MapFragments(
         IProjection projection,
-        Func<IMapFragment, TFrag?> fragmentFactory,
+        Func<IMapFragment, Task<TFrag?>> fragmentFactory,
         IJ4JLogger logger
     )
     {
@@ -168,7 +168,7 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
 
             await foreach( var imgData in RetrieveImagesAsync( ctx ) )
             {
-                var fragment = _fragmentFactory( imgData );
+                var fragment = await _fragmentFactory( imgData );
 
                 if( fragment == null )
                     continue;

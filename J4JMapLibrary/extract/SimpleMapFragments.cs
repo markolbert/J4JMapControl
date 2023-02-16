@@ -21,7 +21,9 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class SimpleMapFragments : MapFragments<IMapFragment>
 {
-    private static IMapFragment DefaultFactory( IMapFragment fragment ) => fragment;
+#pragma warning disable CS1998
+    private static async Task<IMapFragment?> DefaultFactory( IMapFragment fragment ) => fragment;
+#pragma warning restore CS1998
 
     public SimpleMapFragments(
         IProjection projection,
