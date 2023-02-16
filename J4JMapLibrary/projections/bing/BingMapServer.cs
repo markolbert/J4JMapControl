@@ -4,18 +4,16 @@ using System.Text.Json;
 
 namespace J4JMapLibrary;
 
-[ MapServer( "BingMaps", typeof( BingCredentials ) ) ]
+[ MapServer( "BingMaps") ]
 public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMapServer
 {
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
 
     private readonly Random _random = new( Environment.TickCount );
-
-    private string _apiKey = string.Empty;
     private string? _cultureCode;
-    private MinMax<int>? _scaleRange;
-    private string? _imageFileExt;
+
+    public string ApiKey { get; internal set; } = string.Empty;
 
     public string? CultureCode
     {
@@ -34,169 +32,10 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
         }
     }
 
-    public override bool Initialized => !string.IsNullOrEmpty( _apiKey ) && Metadata != null;
+    public override bool Initialized => !string.IsNullOrEmpty( ApiKey );
 
-    public BingMapType MapType { get; private set; } = BingMapType.Aerial;
-
-    public BingImageryMetadata? Metadata { get; private set; }
-
-    public override MinMax<int> ScaleRange
-    {
-        get
-        {
-            if( _scaleRange != null )
-                return _scaleRange;
-
-            if(Metadata?.PrimaryResource == null)
-                return new MinMax<int>( 0, 0 );
-
-            _scaleRange = new MinMax<int>( Metadata.PrimaryResource.ZoomMin, Metadata.PrimaryResource.ZoomMax );
-            return _scaleRange;
-        }
-
-        // ReSharper disable once ValueParameterNotUsed
-        set => Logger.Error( "BingMaps ScaleRange is set automatically and cannot be changed" );
-    }
-
-    public override int TileHeightWidth
-    {
-        get => Metadata?.PrimaryResource?.ImageWidth ?? 0;
-
-        // ReSharper disable once ValueParameterNotUsed
-        protected set => Logger.Error("BingMaps TileWidthHeight is set automatically and cannot be changed");
-    }
-
-    public override int MaxScale
-    {
-        get => Metadata?.PrimaryResource?.ZoomMax ?? 0;
-
-        // ReSharper disable once ValueParameterNotUsed
-        protected set => Logger.Error("BingMaps MaxScale is set automatically and cannot be changed");
-    }
-
-    public override int MinScale
-    {
-        get => Metadata?.PrimaryResource?.ZoomMin ?? 0;
-
-        // ReSharper disable once ValueParameterNotUsed
-        protected set => Logger.Error("BingMaps MinScale is set automatically and cannot be changed");
-    }
-
-    public override string ImageFileExtension
-    {
-        get
-        {
-            if( _imageFileExt != null ) 
-                return _imageFileExt;
-
-            if( Metadata?.PrimaryResource == null )
-                return string.Empty;
-
-            var urlText = Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
-                                  .Replace("{quadkey}", "0")
-                                  .Replace("{culture}", null);
-
-            var extUri = new Uri(urlText);
-            _imageFileExt = Path.GetExtension( extUri.LocalPath );
-
-            return _imageFileExt;
-        }
-
-        // ReSharper disable once ValueParameterNotUsed
-        protected set => Logger.Error("BingMaps ImageFileExtension is set automatically and cannot be changed");
-    }
-
-    public override async Task<bool> InitializeAsync( BingCredentials credentials, CancellationToken ctx = default )
-    {
-        _apiKey = credentials.ApiKey;
-        MapType = credentials.MapType;
-
-        var replacements = new Dictionary<string, string>
-        {
-            { "{mode}", MapType.ToString() },
-            { "{apikey}", _apiKey }
-        };
-
-        var temp = ReplaceParameters( MetadataUrl, replacements );
-        var uri = new Uri( temp );
-
-        var request = new HttpRequestMessage( HttpMethod.Get, uri );
-
-        var uriText = uri.AbsoluteUri;
-        var httpClient = new HttpClient();
-
-        HttpResponseMessage? response;
-
-        Logger.Verbose( "Attempting to retrieve Bing Maps metadata" );
-
-        try
-        {
-            response = MaxRequestLatency < 0
-                ? await httpClient.SendAsync( request, ctx )
-                : await httpClient.SendAsync( request, ctx )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
-        }
-        catch( Exception ex )
-        {
-            Logger.Error<string, string>( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
-                                          uriText,
-                                          ex.Message );
-            return false;
-        }
-
-        if( response.StatusCode != HttpStatusCode.OK )
-        {
-            var error = MaxRequestLatency < 0
-                ? await response.Content.ReadAsStringAsync( ctx )
-                : await response.Content.ReadAsStringAsync( ctx )
-                                .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
-
-            Logger.Error<string, string>(
-                "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
-                uriText,
-                error );
-
-            return false;
-        }
-
-        Logger.Verbose( "Attempting to parse Bing Maps metadata" );
-
-        BingImageryMetadata? retVal;
-
-        try
-        {
-            var respText = await response.Content.ReadAsStringAsync( CancellationToken.None );
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            retVal = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
-            Logger.Verbose( "Bing Maps metadata retrieved" );
-        }
-        catch( Exception ex )
-        {
-            Logger.Error<string>( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
-
-            return false;
-        }
-
-        if( retVal!.PrimaryResource == null )
-        {
-            Logger.Error( "Primary resource is not defined" );
-            return false;
-        }
-
-        var urlText = retVal
-                     .PrimaryResource.ImageUrl.Replace( "{subdomain}", "subdomain" )
-                     .Replace( "{quadkey}", "0" )
-                     .Replace( "{culture}", null );
-
-        var extUri = new Uri( urlText );
-
-        ImageFileExtension = Path.GetExtension( extUri.LocalPath );
-        TileHeightWidth = retVal.PrimaryResource!.ImageWidth;
-        Metadata = retVal;
-
-        return true;
-    }
+    public BingMapType MapType { get; internal set; } = BingMapType.Aerial;
+    public BingImageryMetadata? Metadata { get; internal set; }
 
     public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment, int scale )
     {
@@ -218,7 +57,7 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
             { "{culture}", _cultureCode ?? string.Empty },
         };
 
-        var uriText = ReplaceParameters( Metadata!.PrimaryResource.ImageUrl, replacements );
+        var uriText = InternalExtensions.ReplaceParameters( Metadata!.PrimaryResource.ImageUrl, replacements );
 
         return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
