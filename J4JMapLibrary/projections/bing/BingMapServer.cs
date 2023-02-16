@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace J4JMapLibrary;
 
 [ MapServer( "BingMaps") ]
-public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMapServer
+public class BingMapServer : MapServer<TiledFragment, BingCredentials>
 {
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";

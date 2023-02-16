@@ -1,7 +1,7 @@
 ﻿namespace J4JMapLibrary;
 
 [ MapServer("OpenStreetMaps") ]
-public sealed class OpenStreetMapServer : OpenMapServer, IOpenMapServer
+public sealed class OpenStreetMapServer : OpenMapServer
 {
     public OpenStreetMapServer()
     {

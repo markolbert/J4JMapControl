@@ -1,7 +1,7 @@
 ﻿namespace J4JMapLibrary;
 
 [ MapServer("OpenTopoMaps") ]
-public sealed class OpenTopoMapServer : OpenMapServer, IOpenMapServer
+public sealed class OpenTopoMapServer : OpenMapServer
 {
     public OpenTopoMapServer()
     {
