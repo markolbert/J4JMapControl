@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021, 2022 Mark A. Olbert 
+﻿// Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // 
 // This file is part of ConsoleUtilities.
 //
