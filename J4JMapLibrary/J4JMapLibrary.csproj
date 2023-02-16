@@ -5,6 +5,23 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<AssemblyName>J4JSoftware.J4JMapLibrary</AssemblyName>
+		<RootNamespace>J4JSoftware.J4JMapLibrary</RootNamespace>
+		<Authors>Mark A. Olbert</Authors>
+		<Company>Jump for Joy Software</Company>
+		<Product>J4JSoftware J4JMapLibrary</Product>
+		<Description>library for interfacing with map image servers</Description>
+		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
+		<Version>0.5.0.0</Version>
+		<AssemblyVersion>0.5.0.0</AssemblyVersion>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageDescription>library for interfacing with map image servers</PackageDescription>
+		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+		<PackageIcon>Diego nuspec.png</PackageIcon>
+		<PackageReleaseNotes>initial release</PackageReleaseNotes>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -17,6 +34,18 @@
 		<ProjectReference Include="..\..\ProgrammingUtilities\DeusEx\DeusEx.csproj" />
 		<ProjectReference Include="..\..\ProgrammingUtilities\TypeUtilities\TypeUtilities.csproj" />
 		<ProjectReference Include="..\..\ProgrammingUtilities\VisualUtilities\VisualUtilities.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\Media\JumpForJoy\Diego nuspec.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="..\..\ProgrammingUtilities\ConsoleUtilities\GPLv3-2022.licenseheader" Link="GPLv3-2022.licenseheader" />
+
+		<None Include="docs/readme.md" Pack="true" PackagePath="/" />
+		<None Include="../LICENSE.md" />
+
 	</ItemGroup>
 
 </Project>
