@@ -5,7 +5,7 @@ namespace J4JMapLibrary;
 public class StaticExtract : MapExtract
 {
     public StaticExtract(
-        IStaticProjection projection,
+        IProjection projection,
         IJ4JLogger logger
     )
         : base( projection, logger )
