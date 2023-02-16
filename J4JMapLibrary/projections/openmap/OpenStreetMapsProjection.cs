@@ -2,25 +2,29 @@
 
 namespace J4JMapLibrary;
 
-[ Projection( "OpenStreetMaps", typeof( IOpenMapServer ) ) ]
+[ Projection( "OpenStreetMaps") ]
 public sealed class OpenStreetMapsProjection : OpenMapProjection
 {
     public OpenStreetMapsProjection(
-        IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( mapServer, logger, tileCache )
+        : base( logger, tileCache )
     {
+        MapServer = new OpenStreetMapServer();
+        TiledScale = new TiledScale(MapServer);
     }
 
     public OpenStreetMapsProjection(
         IProjectionCredentials credentials,
-        IMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
-        : base( credentials, mapServer, logger, tileCache )
+        : base( credentials, logger, tileCache )
     {
+        MapServer = new OpenStreetMapServer();
+        TiledScale = new TiledScale(MapServer);
     }
+
+    public override IMapServer MapServer { get; }
 }

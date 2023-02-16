@@ -1,57 +1,49 @@
-﻿using J4JSoftware.Logging;
+﻿using System.Runtime.CompilerServices;
+using J4JSoftware.Logging;
 
 namespace J4JMapLibrary;
 
-public abstract class StaticProjection<TAuth> : Projection<TAuth>, IStaticProjection
+public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedViewport, StaticFragment>
     where TAuth : class
 {
     protected StaticProjection(
-        IMapServer mapServer,
-        ProjectionScale projectionScale,
         IJ4JLogger logger
     )
-        : base( mapServer, projectionScale, logger )
+        : base( logger )
     {
     }
 
     protected StaticProjection(
         IProjectionCredentials credentials,
-        IMapServer mapServer,
-        ProjectionScale projectionScale,
         IJ4JLogger logger
     )
-        : base( credentials, mapServer, projectionScale, logger )
+        : base( credentials, logger )
     {
     }
 
-    public async Task<StaticExtract?> GetExtractAsync(
+    public override async IAsyncEnumerable<StaticFragment> GetExtractAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad = false,
-        CancellationToken ctx = default
+        [EnumeratorCancellation] CancellationToken ctx = default
     )
     {
         if (!Initialized)
         {
             Logger.Error("Projection not initialized");
-            return null;
+            yield break;
         }
 
-        var mapTile = new StaticFragment( this,
+        var mapTile = new StaticFragment(this,
                                           viewportData.CenterLatitude,
                                           viewportData.CenterLongitude,
                                           viewportData.Height,
                                           viewportData.Width,
-                                          viewportData.Scale );
+                                          viewportData.Scale);
 
         if (!deferImageLoad)
             await mapTile.GetImageAsync(viewportData.Scale, ctx: ctx);
 
-        var retVal = new StaticExtract(this, Logger);
-
-        if (!retVal.Add(mapTile))
-            Logger.Error("Problem adding StaticFragment to collection (probably differing ITiledScale)");
-
-        return retVal;
+        yield return mapTile;
     }
 
 }
