@@ -17,7 +17,7 @@
 
 using System.Reflection;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public partial class ProjectionFactory
 {

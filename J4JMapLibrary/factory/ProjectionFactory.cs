@@ -19,7 +19,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 ///TODO: google maps doesn't support ITileCache, but the factory logic assumes ALL projections do!
 public partial class ProjectionFactory

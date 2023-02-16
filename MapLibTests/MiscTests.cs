@@ -1,4 +1,4 @@
-﻿using J4JMapLibrary;
+﻿using J4JSoftware.J4JMapLibrary;
 using FluentAssertions;
 
 namespace MapLibTests;

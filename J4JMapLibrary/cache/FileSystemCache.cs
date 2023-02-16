@@ -20,7 +20,7 @@ using System.Reflection.Metadata.Ecma335;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public class FileSystemCache : CacheBase
 {

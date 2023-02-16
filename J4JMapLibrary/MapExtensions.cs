@@ -20,7 +20,7 @@ using System.Text;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapExtensions
 {

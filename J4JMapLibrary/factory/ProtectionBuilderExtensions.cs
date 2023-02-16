@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JMapLibrary.MapBuilder;
+using J4JSoftware.J4JMapLibrary.MapBuilder;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public static class ProtectionBuilderExtensions
 {

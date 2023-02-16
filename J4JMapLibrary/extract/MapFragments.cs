@@ -21,7 +21,7 @@ using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
 using J4JSoftware.VisualUtilities;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
     where TFrag : class

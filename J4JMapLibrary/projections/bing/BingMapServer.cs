@@ -19,7 +19,7 @@ using System.Net;
 using System.Security.Cryptography.Xml;
 using System.Text.Json;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 [ MapServer( "BingMaps" ) ]
 public class BingMapServer : MapServer<TiledFragment, BingCredentials>

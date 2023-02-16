@@ -19,7 +19,7 @@ using J4JSoftware.Logging;
 using System.Net;
 using System.Text.Json;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "BingMaps" ) ]
 public sealed class BingMapsProjection : TiledProjection<BingCredentials>

@@ -1,6 +1,6 @@
 ﻿using Autofac;
-using J4JMapLibrary;
-using J4JMapLibrary.MapBuilder;
+using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.J4JMapLibrary.MapBuilder;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.Hosting;
 

@@ -19,7 +19,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TAuth, TViewport, TFrag>
     where TAuth : class

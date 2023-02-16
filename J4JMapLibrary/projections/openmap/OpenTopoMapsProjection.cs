@@ -17,7 +17,7 @@
 
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "OpenTopoMaps" ) ]
 public sealed class OpenTopoMapsProjection : OpenMapProjection

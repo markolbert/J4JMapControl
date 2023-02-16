@@ -17,7 +17,7 @@
 
 using static System.Formats.Asn1.AsnWriter;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public interface ITiledProjection : IProjection
 {

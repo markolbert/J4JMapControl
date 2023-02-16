@@ -19,7 +19,7 @@ using System.Collections;
 using J4JSoftware.Logging;
 using System.Runtime.CompilerServices;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class MapExtract : IMapExtract
 {

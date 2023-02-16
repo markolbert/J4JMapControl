@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using J4JMapLibrary;
+using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.DeusEx;
 using Microsoft.Extensions.DependencyInjection;
 

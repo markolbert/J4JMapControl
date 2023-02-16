@@ -18,7 +18,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 [ MapServer( "GoogleMaps" ) ]
 public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>

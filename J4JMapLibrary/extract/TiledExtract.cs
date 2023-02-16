@@ -18,7 +18,7 @@
 using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
 
-namespace J4JMapLibrary;
+namespace J4JSoftware.J4JMapLibrary;
 
 public class TiledExtract : MapExtract
 {
