@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
+using System.Text;
 
 namespace J4JMapLibrary;
 
@@ -16,10 +17,26 @@ internal static class InternalExtensions
 
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
-    public static int Pow(int numBase, int exp) =>
+    internal static int Pow(int numBase, int exp) =>
         Enumerable
            .Repeat(numBase, Math.Abs(exp))
            .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
+
+    // key value matching is case sensitive
+    internal static string ReplaceParameters(
+        string template,
+        Dictionary<string, string> values
+    )
+    {
+        var sb = new StringBuilder( template );
+
+        foreach( var kvp in values )
+        {
+            sb.Replace( kvp.Key, kvp.Value );
+        }
+
+        return sb.ToString();
+    }
 
     internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name )
         where T : struct, IComparable
