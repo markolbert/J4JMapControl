@@ -2,7 +2,7 @@
 
 public partial class TiledFragment : MapFragment, ITiledFragment
 {
-    protected override string FragmentId => $"{X}, {Y}, {TiledScale.Scale}";
+    public override string FragmentId => QuadKey;
 
     public ITiledScale TiledScale { get; }
     public int HeightWidth { get; }
