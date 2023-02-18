@@ -59,19 +59,21 @@ public class TiledFragment : MapFragment, ITiledFragment
     )
         : base( projection.MapServer )
     {
-        TiledScale = projection.TiledScale!;
-        Scale = TiledScale.Scale;
+        Projection = projection;
+        //TiledScale = projection.TiledScale!;
+        Scale = projection.TiledScale!.Scale;
         HeightWidth = projection.MapServer.TileHeightWidth;
         ActualHeight = HeightWidth;
         ActualWidth = HeightWidth;
 
         X = xTile < 0 ? 0 : xTile;
         Y = yTile < 0 ? 0 : yTile;
-        QuadKey = this.GetQuadKey( TiledScale.Scale );
+        QuadKey = this.GetQuadKey( Scale );
         FragmentId = QuadKey;
     }
 
-    public ITiledScale TiledScale { get; }
+    public ITiledProjection Projection { get; }
+    //public ITiledScale TiledScale { get; }
     
     public int HeightWidth { get; }
 
