@@ -44,4 +44,6 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
     }
 
     public override IMapServer MapServer { get; }
+
+    public override int TileHeightWidth => ( (OpenStreetMapServer) MapServer ).TileHeightWidth;
 }

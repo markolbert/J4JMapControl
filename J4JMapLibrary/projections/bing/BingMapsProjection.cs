@@ -54,6 +54,8 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
     public override IMapServer MapServer { get; }
 
+    public override int TileHeightWidth => ( (BingMapServer) MapServer ).TileHeightWidth;
+
     public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
     {
         if( MapServer is not BingMapServer bingMapServer )

@@ -44,4 +44,6 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
     }
 
     public override IMapServer MapServer { get; }
+
+    public override int TileHeightWidth => ( (OpenTopoMapServer) MapServer ).TileHeightWidth;
 }

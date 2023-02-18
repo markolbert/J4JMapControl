@@ -23,6 +23,7 @@ public interface ITiledProjection : IProjection
 {
     int Width { get; }
     int Height { get; }
+    int TileHeightWidth { get; }
 
     MinMax<int> TileXRange { get; }
     MinMax<int> TileYRange { get; }
