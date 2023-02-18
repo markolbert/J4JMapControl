@@ -149,18 +149,18 @@ public static class MapExtensions
         return true;
     }
 
-    public static LatLong CenterLatLong( this TiledFragment mapFragment ) =>
-        mapFragment.TiledScale.CartesianToLatLong( mapFragment.CenterCartesian() );
+    //public static LatLong CenterLatLong( this TiledFragment mapFragment ) =>
+    //    mapFragment.Projection.TiledCartesianToLatLong( mapFragment.CenterCartesian() );
 
-    public static Cartesian CenterCartesian( this TiledFragment mapFragment )
-    {
-        var retVal = new Cartesian( mapFragment.TiledScale );
+    //public static TiledCartesian CenterCartesian( this TiledFragment mapFragment )
+    //{
+    //    var retVal = new TiledCartesian( mapFragment.TiledScale );
 
-        retVal.SetCartesian( mapFragment.X * mapFragment.HeightWidth + mapFragment.HeightWidth / 2,
-                             mapFragment.Y * mapFragment.HeightWidth + mapFragment.HeightWidth / 2 );
+    //    retVal.SetCartesian( mapFragment.X * mapFragment.HeightWidth + mapFragment.HeightWidth / 2,
+    //                         mapFragment.Y * mapFragment.HeightWidth + mapFragment.HeightWidth / 2 );
 
-        return retVal;
-    }
+    //    return retVal;
+    //}
 
     public static string ToText( this LatLong latLong ) =>
         $"{LatitudeToText( latLong.Latitude )}-{LongitudeToText( latLong.Longitude )}";
