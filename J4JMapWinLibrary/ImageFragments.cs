@@ -18,7 +18,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Windows.Storage.Streams;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.Logging;
 using Microsoft.UI.Xaml.Controls;
@@ -29,9 +28,15 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-public class ImageFragments : MapFragments<Image>
+public record MapImage( Image Image, int X, int Y ) : IImagedFragment
 {
-    private static async Task<Image?> DefaultFactory(IMapFragment fragment)
+    public float ActualHeight => (float) Image.ActualHeight;
+    public float ActualWidth => (float) Image.ActualWidth;
+}
+
+public class ImageFragments : MapFragments<MapImage>
+{
+    private static async Task<MapImage?> DefaultFactory(IMapFragment fragment)
     {
         var imageBytes = await fragment.GetImageAsync();
         if( imageBytes == null )
@@ -41,8 +46,8 @@ public class ImageFragments : MapFragments<Image>
         var bitmapImage = new BitmapImage();
         await bitmapImage.SetSourceAsync( memStream.AsRandomAccessStream() );
 
-        var retVal = new Image { Source = bitmapImage };
-        return retVal;
+        var image = new Image { Source = bitmapImage };
+        return new MapImage( image, fragment.X, fragment.Y );
     }
 
     public ImageFragments( 
@@ -50,5 +55,10 @@ public class ImageFragments : MapFragments<Image>
         IJ4JLogger logger )
         : base( projection, DefaultFactory, logger )
     {
+    }
+
+    protected override void OnConfigurationChanged()
+    {
+        base.OnConfigurationChanged();
     }
 }
