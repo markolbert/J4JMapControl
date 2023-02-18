@@ -149,22 +149,6 @@ public static class MapExtensions
         return true;
     }
 
-    //public static LatLong CenterLatLong( this TiledFragment mapFragment ) =>
-    //    mapFragment.Projection.TiledCartesianToLatLong( mapFragment.CenterCartesian() );
-
-    //public static TiledCartesian CenterCartesian( this TiledFragment mapFragment )
-    //{
-    //    var retVal = new TiledCartesian( mapFragment.TiledScale );
-
-    //    retVal.SetCartesian( mapFragment.X * mapFragment.HeightWidth + mapFragment.HeightWidth / 2,
-    //                         mapFragment.Y * mapFragment.HeightWidth + mapFragment.HeightWidth / 2 );
-
-    //    return retVal;
-    //}
-
-    public static string ToText( this LatLong latLong ) =>
-        $"{LatitudeToText( latLong.Latitude )}-{LongitudeToText( latLong.Longitude )}";
-
     public static string LatitudeToText( float value, int decimals = 5 )
     {
         if( decimals < 0 )
