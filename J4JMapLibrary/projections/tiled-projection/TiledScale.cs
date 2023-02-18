@@ -62,9 +62,9 @@ public class TiledScale : ProjectionScale, ITiledScale
         }
     }
 
-    protected override void UpdateScaleRelated()
+    protected override void OnScaleChanged()
     {
-        base.UpdateScaleRelated();
+        base.OnScaleChanged();
 
         _xRange = null;
         _yRange = null;
