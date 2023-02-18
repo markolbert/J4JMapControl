@@ -24,8 +24,8 @@ public partial class MapFragments<TFrag>
         float Longitude,
         float Heading,
         int Scale,
-        float Height,
-        float Width,
+        float RequestedHeight,
+        float RequestedWidth,
         Buffer Buffer
     )
     {
@@ -40,16 +40,16 @@ public partial class MapFragments<TFrag>
              && Longitude.Equals( other.Longitude )
              && Heading.Equals( other.Heading )
              && Scale == other.Scale
-             && Height.Equals( other.Height )
-             && Width.Equals( other.Width )
+             && RequestedHeight.Equals( other.RequestedHeight )
+             && RequestedWidth.Equals( other.RequestedWidth )
              && Buffer.Equals( other.Buffer );
         }
 
         public override int GetHashCode() =>
-            HashCode.Combine( Latitude, Longitude, Heading, Scale, Height, Width, Buffer );
+            HashCode.Combine( Latitude, Longitude, Heading, Scale, RequestedHeight, RequestedWidth, Buffer );
 
         public bool IsValid( IProjection projection ) =>
-            Height > 0 && Width > 0 && Scale >= projection.MapServer.MinScale && Scale <= projection.MapServer.MaxScale;
+            RequestedHeight > 0 && RequestedWidth > 0 && Scale >= projection.MapServer.MinScale && Scale <= projection.MapServer.MaxScale;
 
         public float Rotation => 360 - Heading;
     }

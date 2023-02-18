@@ -44,8 +44,8 @@ public class NormalizedViewport : INormalizedViewport
         set => _longitude = _projection.MapServer.LongitudeRange.ConformValueToRange( value, "Longitude" );
     }
 
-    public float Height { get; set; }
-    public float Width { get; set; }
+    public float RequestedHeight { get; set; }
+    public float RequestedWidth { get; set; }
 
     public int Scale
     {

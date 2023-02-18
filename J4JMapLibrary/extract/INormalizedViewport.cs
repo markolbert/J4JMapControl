@@ -21,8 +21,8 @@ public interface INormalizedViewport
 {
     float CenterLatitude { get; set; }
     float CenterLongitude { get; set; }
-    float Height { get; set; }
-    float Width { get; set; }
+    float RequestedHeight { get; set; }
+    float RequestedWidth { get; set; }
     int Scale { get; set; }
 }
 
