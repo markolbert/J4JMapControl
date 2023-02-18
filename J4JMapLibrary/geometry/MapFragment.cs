@@ -25,29 +25,29 @@ public abstract class MapFragment : IMapFragment
 {
     public event EventHandler? ImageChanged;
 
+    private readonly int _maxRequestLatency;
+
     protected MapFragment(
-        IProjection projection
+        IMapServer mapServer
     )
     {
         Logger = J4JDeusEx.GetLogger();
         Logger?.SetLoggedType( GetType() );
 
-        MapServer = projection.MapServer;
+        MapServer = mapServer;
 
-        MaxRequestLatency = projection.MapServer.MaxRequestLatency;
+        _maxRequestLatency = mapServer.MaxRequestLatency;
     }
 
     protected IJ4JLogger? Logger { get; }
+    protected int Scale { get; init; }
 
     public IMapServer MapServer { get; }
     
-    public abstract int Scale { get; }
-    public abstract float ActualHeight { get; }
-    public abstract float ActualWidth { get; }
+    public float ActualHeight { get; init; }
+    public float ActualWidth { get; init; }
 
-    public int MaxRequestLatency { get; }
-
-    public abstract string FragmentId { get; }
+    public string FragmentId { get; init; } = string.Empty;
 
     public int X { get; init; }
     public int Y { get; init; }
@@ -86,10 +86,10 @@ public abstract class MapFragment : IMapFragment
 
         try
         {
-            response = MaxRequestLatency <= 0
+            response = _maxRequestLatency <= 0
                 ? await httpClient.SendAsync( request, ctx )
                 : await httpClient.SendAsync( request, ctx )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
+                                  .WaitAsync( TimeSpan.FromMilliseconds( _maxRequestLatency ), ctx );
 
             Logger?.Verbose<string>( "Got response from {0}", uriText );
         }
@@ -138,10 +138,10 @@ public abstract class MapFragment : IMapFragment
     {
         try
         {
-            await using var responseStream = MaxRequestLatency < 0
+            await using var responseStream = _maxRequestLatency < 0
                 ? await response.Content.ReadAsStreamAsync( ctx )
                 : await response.Content.ReadAsStreamAsync( ctx )
-                                .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
+                                .WaitAsync( TimeSpan.FromMilliseconds( _maxRequestLatency ), ctx );
 
             var memStream = new MemoryStream();
             await responseStream.CopyToAsync( memStream, ctx );

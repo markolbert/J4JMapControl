@@ -17,34 +17,30 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class StaticFragment : MapFragment, IStaticFragment
+public sealed class StaticFragment : MapFragment, IStaticFragment
 {
     private readonly INormalizedViewport _viewport;
 
     public StaticFragment(
-        IProjection projection,
+        IMapServer mapServer,
         INormalizedViewport viewport
     )
-        : base( projection )
+        : base( mapServer )
     {
         _viewport = viewport;
 
-        Center = new LatLong( projection.MapServer );
+        Center = new LatLong( MapServer );
         Center.SetLatLong( viewport.CenterLatitude, viewport.CenterLongitude );
 
         ActualHeight = (int) Math.Ceiling( viewport.RequestedHeight );
         ActualWidth = (int) Math.Ceiling( viewport.RequestedWidth );
         Scale = viewport.Scale;
-    }
 
-    public override string FragmentId => $"{Center.ToText()}-{Scale}-{ActualHeight}-{ActualWidth}";
+        FragmentId = $"{Center.ToText()}-{Scale}-{ActualHeight}-{ActualWidth}";
+    }
 
     public float RequestedHeight => _viewport.RequestedHeight;
     public float RequestedWidth => _viewport.RequestedWidth;
 
-    public override float ActualHeight { get; }
-    public override float ActualWidth { get; }
-
     public LatLong Center { get; }
-    public override int Scale { get; }
 }

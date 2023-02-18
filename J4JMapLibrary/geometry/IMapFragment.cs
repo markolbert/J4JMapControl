@@ -24,11 +24,9 @@ public interface IMapFragment : IImagedFragment
     public string FragmentId { get; }
 
     IMapServer MapServer { get; }
-    int Scale { get; }
 
     public byte[]? ImageData { get; }
     long ImageBytes { get; }
     
-    int MaxRequestLatency { get; }
     Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default );
 }

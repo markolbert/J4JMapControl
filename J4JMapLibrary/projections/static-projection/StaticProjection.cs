@@ -50,7 +50,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
             yield break;
         }
 
-        var mapTile = new StaticFragment( this, viewportData );
+        var mapTile = new StaticFragment( MapServer, viewportData );
 
         if( !deferImageLoad )
             await mapTile.GetImageAsync( ctx: ctx );

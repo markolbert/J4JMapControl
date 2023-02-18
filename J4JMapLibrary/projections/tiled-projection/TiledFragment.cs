@@ -57,25 +57,23 @@ public class TiledFragment : MapFragment, ITiledFragment
         int xTile,
         int yTile
     )
-        : base(projection)
+        : base( projection.MapServer )
     {
         TiledScale = projection.TiledScale!;
+        Scale = TiledScale.Scale;
         HeightWidth = projection.MapServer.TileHeightWidth;
+        ActualHeight = HeightWidth;
+        ActualWidth = HeightWidth;
 
         X = xTile < 0 ? 0 : xTile;
         Y = yTile < 0 ? 0 : yTile;
         QuadKey = this.GetQuadKey( TiledScale.Scale );
+        FragmentId = QuadKey;
     }
-
-    public override string FragmentId => QuadKey;
 
     public ITiledScale TiledScale { get; }
     
-    public override int Scale => TiledScale.Scale;
     public int HeightWidth { get; }
-
-    public override float ActualHeight => HeightWidth;
-    public override float ActualWidth => HeightWidth;
 
     public string QuadKey { get; }
 }
