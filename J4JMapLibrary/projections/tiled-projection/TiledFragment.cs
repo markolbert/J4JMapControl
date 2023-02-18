@@ -73,8 +73,9 @@ public class TiledFragment : MapFragment, ITiledFragment
     
     public override int Scale => TiledScale.Scale;
     public int HeightWidth { get; }
-    
+
+    public override float ActualHeight => HeightWidth;
+    public override float ActualWidth => HeightWidth;
+
     public string QuadKey { get; }
-    public int X { get; }
-    public int Y { get; }
 }
