@@ -61,7 +61,7 @@ public class MapTests : TestBase
     }
 
     [ Theory ]
-    [InlineData(0, 0, 0, "")]
+    [InlineData(0, 0, 0, "0")] // scale can't be set to zero, so it gets overridden to 1
     [InlineData(1, 0, 0, "0")]
     [InlineData(1, 1, 0, "1")]
     [InlineData(1, 0, 1, "2")]
