@@ -28,7 +28,6 @@ public interface ITiledProjection : IProjection
     MinMax<int> TileXRange { get; }
     MinMax<int> TileYRange { get; }
 
-    ITiledScale? TiledScale { get; }
     ITileCache? TileCache { get; }
 
     float GroundResolution( float latitude );

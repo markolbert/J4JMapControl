@@ -36,7 +36,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         : base( logger, tileCache )
     {
         MapServer = new BingMapServer();
-        TiledScale = new TiledScale( MapServer );
+        MapScale = new TiledScale(MapServer);
     }
 
     public BingMapsProjection(
@@ -47,17 +47,15 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         : base( credentials, logger, tileCache )
     {
         MapServer = new BingMapServer();
-        TiledScale = new TiledScale( MapServer );
+        MapScale = new TiledScale( MapServer );
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
 
-    public override IMapServer MapServer { get; }
-
-    public override int TileHeightWidth => ( (BingMapServer) MapServer ).TileHeightWidth;
-
     public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
     {
+        await base.AuthenticateAsync( credentials, ctx );
+
         if( MapServer is not BingMapServer bingMapServer )
         {
             Logger.Error( "MapServer was not initialized with an instance of BingMapServer" );
@@ -108,8 +106,10 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         {
             // need to re-throw the exception to satisfy tests that look for
             // thrown exceptions
-            //if( bingMapServer.MaxRequestLatency == 1 )
-            //    throw ex;
+#if DEBUG
+            if (bingMapServer.MaxRequestLatency == 1)
+                throw ex;
+#endif
 
             Logger.Error<string, string>( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
                                           uriText,
