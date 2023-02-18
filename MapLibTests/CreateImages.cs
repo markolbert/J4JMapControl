@@ -68,7 +68,7 @@ public class CreateImages : TestBase
             Scale = data.Scale
         };
 
-        var mapTile = new StaticFragment( projection, viewport );
+        var mapTile = new StaticFragment( projection.MapServer, viewport );
 
         await WriteImageFileAsync( projection, mapTile, data, true );
     }
