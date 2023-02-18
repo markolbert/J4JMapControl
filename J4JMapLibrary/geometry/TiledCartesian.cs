@@ -17,28 +17,32 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class Cartesian
+public class TiledCartesian
 {
     public EventHandler? Changed;
 
-    public Cartesian(
-        ITiledScale scale
+    private readonly MinMax<int> _xRange;
+    private readonly MinMax<int> _yRange;
+
+    public TiledCartesian(
+        ITiledProjection projection
     )
     {
-        XRange = scale.XRange;
-        YRange = scale.YRange;
+        if( projection.TiledScale == null )
+            throw new NullReferenceException( $"ITiledProjection is not initialized" );
+
+        _xRange = projection.TiledScale.XRange;
+        _yRange = projection.TiledScale.YRange;
     }
 
-    public Cartesian()
+    public TiledCartesian()
     {
-        XRange = new MinMax<int>( int.MinValue, int.MaxValue );
-        YRange = new MinMax<int>( int.MinValue, int.MaxValue );
+        _xRange = new MinMax<int>( int.MinValue, int.MaxValue );
+        _yRange = new MinMax<int>( int.MinValue, int.MaxValue );
     }
 
-    public MinMax<int> XRange { get; internal set; }
     public int X { get; private set; }
 
-    public MinMax<int> YRange { get; internal set; }
     public int Y { get; private set; }
 
     public void SetCartesian( int? x, int? y )
@@ -47,18 +51,18 @@ public class Cartesian
             return;
 
         if( x.HasValue )
-            X = XRange.ConformValueToRange( x.Value, "X" );
+            X = _xRange.ConformValueToRange( x.Value, "X" );
 
         if( y.HasValue )
-            Y = YRange.ConformValueToRange( y.Value, "Y" );
+            Y = _yRange.ConformValueToRange( y.Value, "Y" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
 
-    public void SetCartesian( Cartesian cartesian )
+    public void SetCartesian( TiledCartesian tiledCartesian )
     {
-        X = XRange.ConformValueToRange( cartesian.X, "X" );
-        Y = YRange.ConformValueToRange( cartesian.Y, "Y" );
+        X = _xRange.ConformValueToRange( tiledCartesian.X, "X" );
+        Y = _yRange.ConformValueToRange( tiledCartesian.Y, "Y" );
 
         Changed?.Invoke( this, EventArgs.Empty );
     }
