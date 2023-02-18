@@ -18,6 +18,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using J4JSoftware.Logging;
+#pragma warning disable CS8618
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -69,8 +70,8 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
 
     public string Name { get; } = string.Empty;
 
-    public abstract IProjectionScale MapScale { get; }
-    public abstract IMapServer MapServer { get; }
+    public IProjectionScale MapScale { get; init; }
+    public IMapServer MapServer { get; init; }
 
     public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;
 

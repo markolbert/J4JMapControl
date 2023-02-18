@@ -29,7 +29,7 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         : base( logger, tileCache )
     {
         MapServer = new OpenStreetMapServer();
-        TiledScale = new TiledScale( MapServer );
+        MapScale = new TiledScale( MapServer );
     }
 
     public OpenStreetMapsProjection(
@@ -40,10 +40,6 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         : base( credentials, logger, tileCache )
     {
         MapServer = new OpenStreetMapServer();
-        TiledScale = new TiledScale( MapServer );
+        MapScale = new TiledScale( MapServer );
     }
-
-    public override IMapServer MapServer { get; }
-
-    public override int TileHeightWidth => ( (OpenStreetMapServer) MapServer ).TileHeightWidth;
 }

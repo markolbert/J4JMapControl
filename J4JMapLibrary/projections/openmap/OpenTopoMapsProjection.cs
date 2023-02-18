@@ -29,7 +29,7 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
         : base( logger, cache )
     {
         MapServer = new OpenTopoMapServer();
-        TiledScale = new TiledScale( MapServer );
+        MapScale = new TiledScale( MapServer );
     }
 
     public OpenTopoMapsProjection(
@@ -40,10 +40,6 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
         : base( credentials, logger, cache )
     {
         MapServer = new OpenTopoMapServer();
-        TiledScale = new TiledScale( MapServer );
+        MapScale = new TiledScale( MapServer );
     }
-
-    public override IMapServer MapServer { get; }
-
-    public override int TileHeightWidth => ( (OpenTopoMapServer) MapServer ).TileHeightWidth;
 }
