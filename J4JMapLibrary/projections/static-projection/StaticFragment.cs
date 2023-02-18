@@ -29,18 +29,20 @@ public sealed class StaticFragment : MapFragment, IStaticFragment
     {
         _viewport = viewport;
 
-        Center = new LatLong( MapServer );
-        Center.SetLatLong( viewport.CenterLatitude, viewport.CenterLongitude );
+        CenterLatitude = MapServer.LatitudeRange.ConformValueToRange( viewport.CenterLatitude, "Latitude" );
+        CenterLongitude = MapServer.LongitudeRange.ConformValueToRange( viewport.CenterLongitude, "Longitude" );
 
         ActualHeight = (int) Math.Ceiling( viewport.RequestedHeight );
         ActualWidth = (int) Math.Ceiling( viewport.RequestedWidth );
         Scale = viewport.Scale;
 
-        FragmentId = $"{Center.ToText()}-{Scale}-{ActualHeight}-{ActualWidth}";
+        FragmentId =
+            $"{MapExtensions.LatitudeToText( CenterLatitude )}-{MapExtensions.LongitudeToText( CenterLongitude )}-{Scale}-{ActualHeight}-{ActualWidth}";
     }
 
     public float RequestedHeight => _viewport.RequestedHeight;
     public float RequestedWidth => _viewport.RequestedWidth;
 
-    public LatLong Center { get; }
+    public float CenterLatitude { get; }
+    public float CenterLongitude { get; }
 }

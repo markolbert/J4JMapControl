@@ -19,5 +19,6 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface IStaticFragment : IMapFragment
 {
-    LatLong Center { get; }
+    float CenterLatitude { get; }
+    float CenterLongitude { get; }
 }

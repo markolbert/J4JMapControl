@@ -57,7 +57,7 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
 
         var replacements = new Dictionary<string, string>
         {
-            { "{center}", $"{mapFragment.Center.Latitude}, {mapFragment.Center.Longitude}" },
+            { "{center}", $"{mapFragment.CenterLatitude}, {mapFragment.CenterLongitude}" },
             { "{format}", ImageFormat.ToString() },
             { "{zoom}", scale.ToString() },
             { "{size}", $"{mapFragment.ActualWidth}x{mapFragment.ActualHeight}" },

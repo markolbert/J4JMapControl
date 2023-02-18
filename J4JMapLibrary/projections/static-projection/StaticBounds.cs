@@ -56,8 +56,8 @@ public class StaticBounds : IEquatable<StaticBounds>
         IStaticFragment mapTile
     )
     {
-        CenterLatitude = mapTile.Center.Latitude;
-        CenterLongitude = mapTile.Center.Longitude;
+        CenterLatitude = mapTile.CenterLatitude;
+        CenterLongitude = mapTile.CenterLatitude;
         Height = mapTile.ActualHeight;
         Width = mapTile.ActualWidth;
     }
