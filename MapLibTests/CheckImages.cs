@@ -73,12 +73,16 @@ public class CheckImages : TestBase
 
         projection.MapScale.Scale = data.Scale;
 
-        var mapTile = new StaticFragment( projection,
-                                          data.Latitude,
-                                          data.Longitude,
-                                          data.Height,
-                                          data.Width,
-                                          data.Scale );
+        var viewport = new NormalizedViewport( projection )
+        {
+            CenterLatitude = data.Latitude,
+            CenterLongitude = data.Longitude,
+            RequestedHeight = data.Height,
+            RequestedWidth = data.Width,
+            Scale = data.Scale
+        };
+
+        var mapTile = new StaticFragment( projection, viewport );
 
         var filePath = Path.Combine(GetCheckImagesFolder(projection.Name),
                                     $"{data.FragmentId}{projection.MapServer.ImageFileExtension}");

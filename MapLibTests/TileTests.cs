@@ -42,8 +42,8 @@ public class TileTests : TestBase
             {
                 CenterLatitude = latitude,
                 CenterLongitude = longitude,
-                Height = height,
-                Width = width,
+                RequestedHeight = height,
+                RequestedWidth = width,
                 Scale = scale
             },
 
@@ -51,8 +51,8 @@ public class TileTests : TestBase
             {
                 CenterLatitude = latitude,
                 CenterLongitude = longitude,
-                Height = height,
-                Width = width,
+                RequestedHeight = height,
+                RequestedWidth = width,
                 Heading = heading,
                 Scale = scale
             }

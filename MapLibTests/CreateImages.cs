@@ -59,12 +59,16 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = new StaticFragment( projection,
-                                          data.Latitude,
-                                          data.Longitude,
-                                          data.Height,
-                                          data.Width,
-                                          data.Scale );
+        var viewport = new NormalizedViewport(projection)
+        {
+            CenterLatitude = data.Latitude,
+            CenterLongitude = data.Longitude,
+            RequestedHeight = data.Height,
+            RequestedWidth = data.Width,
+            Scale = data.Scale
+        };
+
+        var mapTile = new StaticFragment( projection, viewport );
 
         await WriteImageFileAsync( projection, mapTile, data, true );
     }

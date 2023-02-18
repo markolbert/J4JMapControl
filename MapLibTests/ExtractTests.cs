@@ -53,11 +53,11 @@ public class ExtractTests : TestBase
         var extractor = new SimpleMapFragments( projBuilder.Projection!, Logger );
         extractor.SetCenter( latitude, longitude );
         extractor.Heading = heading;
-        extractor.SetHeightWidth( height, width );
+        extractor.SetRequestedHeightWidth( height, width );
         extractor.SetBuffer( buffer, buffer );
         extractor.Scale = scale;
 
-        var fragments = await extractor.ToListAsync();
-        fragments.Count.Should().Be( numFragments );
+        await extractor.UpdateAsync();
+        extractor.Fragments.Count.Should().Be( numFragments );
     }
 }
