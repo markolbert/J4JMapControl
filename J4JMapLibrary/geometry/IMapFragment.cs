@@ -17,15 +17,18 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface IMapFragment
+public interface IMapFragment : IImagedFragment
 {
+    event EventHandler? ImageChanged;
+
     public string FragmentId { get; }
 
     IMapServer MapServer { get; }
     int Scale { get; }
-    int MaxRequestLatency { get; }
+
     public byte[]? ImageData { get; }
     long ImageBytes { get; }
-    event EventHandler? ImageChanged;
+    
+    int MaxRequestLatency { get; }
     Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default );
 }

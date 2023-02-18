@@ -40,10 +40,17 @@ public abstract class MapFragment : IMapFragment
     protected IJ4JLogger? Logger { get; }
 
     public IMapServer MapServer { get; }
+    
     public abstract int Scale { get; }
+    public abstract float ActualHeight { get; }
+    public abstract float ActualWidth { get; }
+
     public int MaxRequestLatency { get; }
 
     public abstract string FragmentId { get; }
+
+    public int X { get; init; }
+    public int Y { get; init; }
 
     public byte[]? ImageData { get; protected set; }
     public long ImageBytes { get; private set; } = -1L;
