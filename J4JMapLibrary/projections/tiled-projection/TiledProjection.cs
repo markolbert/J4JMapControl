@@ -47,19 +47,15 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         TileYRange = new MinMax<int>( 0, 0 );
     }
 
-    public ITiledScale? TiledScale { get; protected set; }
-    public abstract int TileHeightWidth { get; }
+    public int TileHeightWidth => MapServer.TileHeightWidth;
 
-    public override IProjectionScale MapScale =>
-        TiledScale ?? throw new NullReferenceException( $"{nameof( TiledScale )} was not initialized" );
-
-    public int Height => TiledScale == null ? 0 : TiledScale.YRange.Maximum - TiledScale.YRange.Minimum + 1;
-    public int Width => TiledScale == null ? 0 : TiledScale.XRange.Maximum - TiledScale.XRange.Minimum + 1;
+    public int Height => ( (TiledScale) MapScale ).YRange.Maximum - ( (TiledScale) MapScale ).YRange.Minimum + 1;
+    public int Width => ( (TiledScale) MapScale ).XRange.Maximum - ( (TiledScale) MapScale ).XRange.Minimum + 1;
 
     public ITileCache? TileCache { get; }
 
-    public MinMax<int> TileXRange { get; }
-    public MinMax<int> TileYRange { get; }
+    public MinMax<int> TileXRange { get; private set; }
+    public MinMax<int> TileYRange { get; private set; }
 
     public float GroundResolution( float latitude )
     {
@@ -79,6 +75,14 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
     public string ScaleDescription( float latitude, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
+#pragma warning disable CS1998
+    public override async Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default )
+#pragma warning restore CS1998
+    {
+        ( (TiledScale) MapScale ).ScaleChanged += ( sender, args ) => OnScaleChanged();
+        return true;
+    }
+
     public override async IAsyncEnumerable<TiledFragment> GetExtractAsync(
         IViewport viewportData,
         bool deferImageLoad = false,
@@ -91,11 +95,10 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
             yield break;
         }
 
-        TiledScale!.Scale = viewportData.Scale;
+        MapScale.Scale = viewportData.Scale;
 
-        var cartesianCenter = new TiledCartesian( this );
-        cartesianCenter.SetCartesian(
-            this.LatLongToTiledCartesian( viewportData.CenterLatitude, viewportData.CenterLongitude ) );
+        var cartesianCenter = new TiledPoint( this );
+        cartesianCenter.SetLatLong( viewportData.CenterLatitude, viewportData.CenterLongitude );
 
         var corner1 = new Vector3( cartesianCenter.X - viewportData.RequestedWidth / 2,
                                    cartesianCenter.Y + viewportData.RequestedHeight / 2,
@@ -146,6 +149,12 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
                 yield return mapTile;
             }
         }
+    }
+
+    protected virtual void OnScaleChanged()
+    {
+        TileXRange = new MinMax<int>( 0, InternalExtensions.Pow(2,MapScale.Scale) );
+        TileYRange = new MinMax<int>( 0, InternalExtensions.Pow(2, MapScale.Scale));
     }
 
     private int CartesianToTile( float value ) => Convert.ToInt32( Math.Floor( value / MapServer.TileHeightWidth ) );
