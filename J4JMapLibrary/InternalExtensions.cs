@@ -71,58 +71,90 @@ internal static class InternalExtensions
         return range.Maximum;
     }
 
-    internal static Cartesian LatLongToCartesian( this ITiledScale scale, float latitude, float longitude ) =>
-        scale.LatLongToCartesianInternal( scale.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" ),
-                                          scale.MapServer.LongitudeRange
-                                               .ConformValueToRange( longitude, "Longitude" ) );
-
-    internal static LatLong CartesianToLatLong( this ITiledScale scale, Cartesian cartesian )
+    internal static LatLong TiledCartesianToLatLong( this ITiledProjection projection, TiledCartesian tiledCartesian )
     {
         // ReSharper disable once UseObjectOrCollectionInitializer
-        var retVal = new LatLong( scale.MapServer );
+        var retVal = new LatLong( projection.MapServer );
 
         retVal.SetLatLong( (float) ( 2
                              * Math.Atan( Math.Exp( MapConstants.TwoPi
-                                                  * cartesian.Y
-                                                  / ( scale.YRange.Maximum - scale.YRange.Minimum ) ) )
+                                                  * tiledCartesian.Y
+                                                  / projection.TileHeightWidth ) )
                              - MapConstants.HalfPi )
                          / MapConstants.RadiansPerDegree,
-                           360 * cartesian.X / ( scale.XRange.Maximum - scale.XRange.Minimum ) - 180 );
+                           360 * tiledCartesian.X / projection.TileHeightWidth - 180 );
 
         return retVal;
     }
 
-    internal static Cartesian LatLongToCartesian( this ITiledScale scale, LatLong latLong ) =>
-        scale.LatLongToCartesianInternal( latLong.Latitude, latLong.Longitude );
+    //internal static TiledCartesian LatLongToTiledCartesian(this ITiledScale scale, float latitude, float longitude) =>
+    //    scale.LatLongToCartesianInternal(scale.MapServer.LatitudeRange.ConformValueToRange(latitude, "Latitude"),
+    //                                     scale.MapServer.LongitudeRange
+    //                                          .ConformValueToRange(longitude, "Longitude"));
 
-    private static Cartesian LatLongToCartesianInternal( this ITiledScale scale, float latitude, float longitude )
+    internal static TiledCartesian LatLongToTiledCartesian(this ITiledProjection projection, LatLong latLong) =>
+        projection.LatLongToTiledCartesian(latLong.Latitude, latLong.Longitude);
+
+    //internal static TiledCartesian LatLongToTiledCartesian( this ITiledScale scale, LatLong latLong ) =>
+    //    scale.LatLongToCartesianInternal( latLong.Latitude, latLong.Longitude );
+
+    internal static TiledCartesian LatLongToTiledCartesian(this ITiledProjection projection, float latitude, float longitude)
     {
-        var retVal = new Cartesian( scale );
+        latitude = projection.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" );
+        longitude = projection.MapServer.LongitudeRange.ConformValueToRange( longitude, "Longitude" );
 
-        var width = scale.XRange.Maximum - scale.XRange.Minimum + 1;
-        var x = width * ( longitude / 360 + 0.5 );
+        var retVal = new TiledCartesian(projection);
 
-        var height = scale.YRange.Maximum - scale.YRange.Minimum + 1;
+        var x = projection.TileHeightWidth * (longitude / 360 + 0.5);
 
         // this weird "subtract the calculation from half the height" is due to the
         // fact y values increase going >>down<< the display, so the top is y = 0
         // while the bottom is y = height
-        var y = height / 2F
-          - height
-          * Math.Log( Math.Tan( MapConstants.QuarterPi + latitude * MapConstants.RadiansPerDegree / 2 ) )
+        var y = projection.TileHeightWidth / 2F
+          - projection.TileHeightWidth
+          * Math.Log(Math.Tan(MapConstants.QuarterPi + latitude * MapConstants.RadiansPerDegree / 2))
           / MapConstants.TwoPi;
 
         try
         {
-            retVal.SetCartesian( Convert.ToInt32( Math.Round( x ) ), Convert.ToInt32( Math.Round( y ) ) );
+            retVal.SetCartesian(Convert.ToInt32(Math.Round(x)), Convert.ToInt32(Math.Round(y)));
         }
-        catch( Exception ex )
+        catch (Exception ex)
         {
-            Logger?.Error<string>( "Could not convert float to int32, message was '{0}'", ex.Message );
+            Logger?.Error<string>("Could not convert float to int32, message was '{0}'", ex.Message);
         }
 
         return retVal;
     }
+
+    //private static TiledCartesian LatLongToCartesianInternal( this ITiledScale scale, float latitude, float longitude )
+    //{
+    //    var retVal = new TiledCartesian( scale );
+
+    //    var width = scale.XRange.Maximum - scale.XRange.Minimum + 1;
+    //    var x = width * ( longitude / 360 + 0.5 );
+
+    //    var height = scale.YRange.Maximum - scale.YRange.Minimum + 1;
+
+    //    // this weird "subtract the calculation from half the height" is due to the
+    //    // fact y values increase going >>down<< the display, so the top is y = 0
+    //    // while the bottom is y = height
+    //    var y = height / 2F
+    //      - height
+    //      * Math.Log( Math.Tan( MapConstants.QuarterPi + latitude * MapConstants.RadiansPerDegree / 2 ) )
+    //      / MapConstants.TwoPi;
+
+    //    try
+    //    {
+    //        retVal.SetCartesian( Convert.ToInt32( Math.Round( x ) ), Convert.ToInt32( Math.Round( y ) ) );
+    //    }
+    //    catch( Exception ex )
+    //    {
+    //        Logger?.Error<string>( "Could not convert float to int32, message was '{0}'", ex.Message );
+    //    }
+
+    //    return retVal;
+    //}
 
     internal static Vector3[] ApplyTransform( this Vector3[] points, Matrix4x4 transform )
     {
