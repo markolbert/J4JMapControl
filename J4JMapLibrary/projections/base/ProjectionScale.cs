@@ -19,6 +19,8 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class ProjectionScale : IProjectionScale
 {
+    public event EventHandler? ScaleChanged;
+
     private int _scale;
 
     public ProjectionScale(
@@ -47,12 +49,13 @@ public class ProjectionScale : IProjectionScale
                 return;
 
             _scale = temp;
-            UpdateScaleRelated();
+            OnScaleChanged();
         }
     }
 
-    protected virtual void UpdateScaleRelated()
+    protected virtual void OnScaleChanged()
     {
+        ScaleChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public bool Equals( ProjectionScale? other )

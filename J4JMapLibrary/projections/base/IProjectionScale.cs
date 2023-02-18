@@ -19,6 +19,8 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface IProjectionScale : IEquatable<ProjectionScale>
 {
+    event EventHandler? ScaleChanged;
+
     int Scale { get; set; }
     IMapServer MapServer { get; }
 }
