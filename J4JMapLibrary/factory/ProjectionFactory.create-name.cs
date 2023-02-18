@@ -57,12 +57,8 @@ public partial class ProjectionFactory
         if( !TryGetConstructorInfo( projectionName, out var ctorInfo ) )
             return ProjectionCreationResult.NoProjection;
 
-        //if( !EnsureMapServer( ctorInfo!, ref mapServer ) )
-        //    return ProjectionCreationResult.NoProjection;
-
         var ctorArgs = new List<ParameterValue>
         {
-            //new( ParameterType.MapServer, mapServer ),
             new( ParameterType.Logger, _logger ), new( ParameterType.Credentials, ProjectionCredentials )
         };
 

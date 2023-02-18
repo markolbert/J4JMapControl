@@ -45,9 +45,6 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 
     public override bool Initialized => base.Initialized && _authenticated;
 
-    public override IMapServer MapServer { get; }
-    public override IProjectionScale MapScale { get; }
-
 #pragma warning disable CS1998
     public override async Task<bool> AuthenticateAsync(
         GoogleCredentials? credentials,
