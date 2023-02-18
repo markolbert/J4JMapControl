@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -23,8 +24,8 @@ using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
-    where TFrag : class
+public partial class MapFragments<TFrag>
+    where TFrag : class, IImagedFragment
 {
     public event EventHandler? Changed;
 
@@ -56,7 +57,6 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
     public ProjectionType ProjectionType { get; }
 
     public float CenterLatitude => _curConfig?.Latitude ?? 0;
-
     public float CenterLongitude => _curConfig?.Longitude ?? 0;
 
     public void SetCenter( float latitude, float longitude )
@@ -68,22 +68,22 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
             ? new Configuration( latitude, longitude, 0, 0, 0, 0, Buffer.Default )
             : _curConfig with { Latitude = latitude, Longitude = longitude };
 
-        OnConfigurationChanged();
+        RaiseChangedEvent();
     }
 
-    public float Height => _curConfig?.Height ?? 0;
-    public float Width => _curConfig?.Width ?? 0;
+    public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
+    public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
 
-    public void SetHeightWidth( float height, float width )
+    public void SetRequestedHeightWidth( float height, float width )
     {
-        height = _heightWidthRange.ConformValueToRange( height, "Height" );
-        width = _heightWidthRange.ConformValueToRange( width, "Width" );
+        height = _heightWidthRange.ConformValueToRange( height, "RequestedHeight" );
+        width = _heightWidthRange.ConformValueToRange( width, "RequestedWidth" );
 
         _curConfig = _curConfig == null
             ? new Configuration( 0, 0, 0, 0, height, width, Buffer.Default )
-            : _curConfig with { Height = height, Width = width };
+            : _curConfig with { RequestedHeight = height, RequestedWidth = width };
 
-        OnConfigurationChanged();
+        RaiseChangedEvent();
     }
 
     public float HeightBufferPercent => _curConfig?.Buffer.HeightPercent ?? 0;
@@ -91,14 +91,14 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
 
     public void SetBuffer( float heightPercent, float widthPercent )
     {
-        var buffer = new Buffer( _heightWidthRange.ConformValueToRange( heightPercent, "Height Buffer (percent)" ),
-                                 _heightWidthRange.ConformValueToRange( widthPercent, "Width Buffer (percent)" ) );
+        var buffer = new Buffer( _heightWidthRange.ConformValueToRange( heightPercent, "RequestedHeight Buffer (percent)" ),
+                                 _heightWidthRange.ConformValueToRange( widthPercent, "RequestedWidth Buffer (percent)" ) );
 
         _curConfig = _curConfig == null
             ? new Configuration( 0, 0, 0, 0, 0, 0, buffer )
             : _curConfig with { Buffer = buffer };
 
-        OnConfigurationChanged();
+        RaiseChangedEvent();
     }
 
     public int Scale
@@ -113,7 +113,7 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
                 ? new Configuration( 0, 0, 0, value, 0, 0, Buffer.Default )
                 : _curConfig with { Scale = value };
 
-            OnConfigurationChanged();
+            RaiseChangedEvent();
         }
     }
 
@@ -130,69 +130,102 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
                 ? new Configuration( 0, 0, value, 0, 0, 0, Buffer.Default )
                 : _curConfig with { Heading = value };
 
-            OnConfigurationChanged();
+            RaiseChangedEvent();
         }
     }
 
     public float Rotation => 360 - Heading;
 
-    public async IAsyncEnumerator<TFrag> GetAsyncEnumerator( CancellationToken ctx = default )
+    public ReadOnlyCollection<TFrag> Fragments => _fragments.AsReadOnly();
+
+    public float ActualHeight
     {
-        if( _curConfig == null )
+        get
         {
-            Logger.Error( "MapExtractNG is not configured, map fragments cannot be retrieved" );
-            yield break;
-        }
+            if( !_fragments.Any() )
+                return 0;
 
-        if( !_curConfig.IsValid( _projection ) )
-        {
-            Logger.Error( "MapExtractNG is not validly configured, map fragments cannot be retrieved" );
-            yield break;
-        }
-
-        var needToRetrieve = _lastConfig == null;
-
-        // if we've already retrieved something, check to see if the new configuration
-        // requires retrieving stuff from outside the previous configuration's scope
-        if( !needToRetrieve )
-        {
-            var curRectangle = CreateRectangle( _curConfig );
-            var lastRectangle = CreateRectangle( _lastConfig! );
-
-            needToRetrieve = lastRectangle.Contains( curRectangle ) == RelativePosition2D.Outside;
-        }
-
-        if( needToRetrieve )
-        {
-            _fragments.Clear();
-
-            await foreach( var imgData in RetrieveImagesAsync( ctx ) )
-            {
-                var fragment = await _fragmentFactory( imgData );
-
-                if( fragment == null )
-                    continue;
-
-                _fragments.Add( fragment );
-                yield return fragment;
-            }
-
-            _lastConfig = _curConfig;
-        }
-        else
-        {
-            foreach( var fragment in _fragments )
-            {
-                yield return fragment;
-            }
+            return ProjectionType == ProjectionType.Static
+                ? _fragments[ 0 ].ActualHeight
+                : _fragments.GroupBy( f => f.X ).First().Sum( g => g.ActualHeight );
         }
     }
 
-    protected virtual void OnConfigurationChanged() => Changed?.Invoke( this, EventArgs.Empty );
+    public float ActualWidth
+    {
+        get
+        {
+            if (!_fragments.Any())
+                return 0;
+
+            return ProjectionType == ProjectionType.Static
+                ? _fragments[ 0 ].ActualWidth
+                : _fragments.GroupBy( f => f.Y ).First().Sum( g => g.ActualWidth );
+        }
+    }
+
+    public bool Invalidated
+    {
+        get
+        {
+            if( _curConfig == null )
+            {
+                Logger.Error( "MapExtractNG is not configured, map fragments cannot be retrieved" );
+                return false;
+            }
+
+            if( !_curConfig.IsValid( _projection ) )
+            {
+                Logger.Error( "MapExtractNG is not validly configured, map fragments cannot be retrieved" );
+                return false;
+            }
+
+            if( _lastConfig == null )
+                return true;
+
+            // if we've already retrieved something, check to see if the new configuration
+            // requires retrieving stuff from outside the previous configuration's scope
+            var curRectangle = CreateRectangle( _curConfig );
+            var lastRectangle = CreateRectangle( _lastConfig! );
+
+            return lastRectangle.Contains( curRectangle ) == RelativePosition2D.Outside;
+        }
+    }
+
+    public async Task UpdateAsync( CancellationToken ctx = default )
+    {
+        if( !Invalidated )
+            return;
+
+        _fragments.Clear();
+
+        await foreach( var imgData in RetrieveImagesAsync( ctx ) )
+        {
+            var fragment = await _fragmentFactory( imgData );
+
+            if( fragment == null )
+                continue;
+
+            _fragments.Add( fragment );
+        }
+
+        _lastConfig = _curConfig;
+    }
+
+    private void RaiseChangedEvent()
+    {
+        OnConfigurationChanged();
+
+        Changed?.Invoke( this, EventArgs.Empty );
+    }
+
+    protected virtual void OnConfigurationChanged()
+    {
+    }
 
     private Rectangle2D CreateRectangle( Configuration config )
     {
-        var retVal = new Rectangle2D( config.Height, config.Width, config.Rotation );
+        var retVal = new Rectangle2D( config.RequestedHeight, config.RequestedWidth, config.Rotation );
 
         // apply buffer
         var bufferTransform = Matrix4x4.CreateScale( 1 + config.Buffer.WidthPercent,
@@ -227,8 +260,8 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
             Scale = Scale,
             CenterLatitude = CenterLatitude,
             CenterLongitude = CenterLongitude,
-            Height = Height,
-            Width = Width
+            RequestedHeight = (int) Math.Ceiling(RequestedHeight),
+            RequestedWidth = (int) Math.Ceiling(RequestedWidth)
         };
 
         await foreach( var fragment in _projection.GetExtractAsync( viewportData, ctx: ctx ) )
@@ -247,8 +280,8 @@ public partial class MapFragments<TFrag> : IAsyncEnumerable<TFrag>
             Scale = Scale,
             CenterLatitude = CenterLatitude,
             CenterLongitude = CenterLongitude,
-            Height = Height,
-            Width = Width,
+            RequestedHeight = (int) Math.Ceiling( RequestedHeight ),
+            RequestedWidth = (int) Math.Ceiling( RequestedWidth ),
             Heading = Heading
         };
 
