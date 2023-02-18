@@ -93,9 +93,9 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
 
         TiledScale!.Scale = viewportData.Scale;
 
-        var cartesianCenter = new Cartesian( TiledScale );
+        var cartesianCenter = new TiledCartesian( this );
         cartesianCenter.SetCartesian(
-            TiledScale.LatLongToCartesian( viewportData.CenterLatitude, viewportData.CenterLongitude ) );
+            this.LatLongToTiledCartesian( viewportData.CenterLatitude, viewportData.CenterLongitude ) );
 
         var corner1 = new Vector3( cartesianCenter.X - viewportData.RequestedWidth / 2,
                                    cartesianCenter.Y + viewportData.RequestedHeight / 2,
