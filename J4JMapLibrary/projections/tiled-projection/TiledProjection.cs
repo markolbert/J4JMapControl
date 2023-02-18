@@ -48,6 +48,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
     }
 
     public ITiledScale? TiledScale { get; protected set; }
+    public abstract int TileHeightWidth { get; }
 
     public override IProjectionScale MapScale =>
         TiledScale ?? throw new NullReferenceException( $"{nameof( TiledScale )} was not initialized" );
@@ -96,11 +97,11 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         cartesianCenter.SetCartesian(
             TiledScale.LatLongToCartesian( viewportData.CenterLatitude, viewportData.CenterLongitude ) );
 
-        var corner1 = new Vector3( cartesianCenter.X - viewportData.Width / 2,
-                                   cartesianCenter.Y + viewportData.Height / 2,
+        var corner1 = new Vector3( cartesianCenter.X - viewportData.RequestedWidth / 2,
+                                   cartesianCenter.Y + viewportData.RequestedHeight / 2,
                                    0 );
-        var corner2 = new Vector3( corner1.X + viewportData.Width, corner1.Y, 0 );
-        var corner3 = new Vector3( corner2.X, corner2.Y - viewportData.Height, 0 );
+        var corner2 = new Vector3( corner1.X + viewportData.RequestedWidth, corner1.Y, 0 );
+        var corner3 = new Vector3( corner2.X, corner2.Y - viewportData.RequestedHeight, 0 );
         var corner4 = new Vector3( corner1.X, corner3.Y, 0 );
 
         var corners = new[] { corner1, corner2, corner3, corner4 };

@@ -60,7 +60,7 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
             { "{center}", $"{mapFragment.Center.Latitude}, {mapFragment.Center.Longitude}" },
             { "{format}", ImageFormat.ToString() },
             { "{zoom}", scale.ToString() },
-            { "{size}", $"{mapFragment.Width}x{mapFragment.Height}" },
+            { "{size}", $"{mapFragment.ActualWidth}x{mapFragment.ActualHeight}" },
             { "{apikey}", ApiKey }
         };
 
