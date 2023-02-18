@@ -50,12 +50,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
             yield break;
         }
 
-        var mapTile = new StaticFragment( this,
-                                          viewportData.CenterLatitude,
-                                          viewportData.CenterLongitude,
-                                          viewportData.Height,
-                                          viewportData.Width,
-                                          viewportData.Scale );
+        var mapTile = new StaticFragment( this, viewportData );
 
         if( !deferImageLoad )
             await mapTile.GetImageAsync( ctx: ctx );

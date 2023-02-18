@@ -19,28 +19,32 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class StaticFragment : MapFragment, IStaticFragment
 {
+    private readonly INormalizedViewport _viewport;
+
     public StaticFragment(
         IProjection projection,
-        float latitude,
-        float longitude,
-        float height,
-        float width,
-        int scale
+        INormalizedViewport viewport
     )
         : base( projection )
     {
-        Center = new LatLong( projection.MapServer );
-        Center.SetLatLong( latitude, longitude );
+        _viewport = viewport;
 
-        Height = height;
-        Width = width;
-        Scale = scale;
+        Center = new LatLong( projection.MapServer );
+        Center.SetLatLong( viewport.CenterLatitude, viewport.CenterLongitude );
+
+        ActualHeight = (int) Math.Ceiling( viewport.RequestedHeight );
+        ActualWidth = (int) Math.Ceiling( viewport.RequestedWidth );
+        Scale = viewport.Scale;
     }
 
-    public override string FragmentId => $"{Center.ToText()}-{Scale}-{Height}-{Width}";
+    public override string FragmentId => $"{Center.ToText()}-{Scale}-{ActualHeight}-{ActualWidth}";
+
+    public float RequestedHeight => _viewport.RequestedHeight;
+    public float RequestedWidth => _viewport.RequestedWidth;
+
+    public override float ActualHeight { get; }
+    public override float ActualWidth { get; }
 
     public LatLong Center { get; }
-    public float Height { get; }
-    public float Width { get; }
     public override int Scale { get; }
 }
