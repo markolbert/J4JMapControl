@@ -168,8 +168,8 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var key = $"{projection.Name}{projection.GetQuadKey( xTile, yTile, scale )}";
-        var filePath = Path.Combine( _cacheDir, $"{projection.Name}-{key}{projection.MapServer.ImageFileExtension}" );
+        var key = $"{projection.Name}-{projection.GetQuadKey( xTile, yTile, scale )}";
+        var filePath = Path.Combine( _cacheDir, $"{key}{projection.MapServer.ImageFileExtension}" );
 
         return File.Exists( filePath )
             ? new CacheEntry( projection, xTile, yTile, scale, await File.ReadAllBytesAsync( filePath, ctx ) )
