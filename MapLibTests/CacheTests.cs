@@ -17,8 +17,7 @@ public class CacheTests : TestBase
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
 
-        var result = await GetFactory().CreateMapProjection( "BingMaps", cache );
-        var projection = result.Projection as BingMapsProjection;
+        var projection = await CreateProjection( "BingMaps", cache ) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.MapServer.Scale = scale;
 
@@ -57,8 +56,7 @@ public class CacheTests : TestBase
             File.Delete( fileName );
         }
 
-        var result = await GetFactory().CreateMapProjection("BingMaps", cache);
-        var projection = result.Projection as BingMapsProjection;
+        var projection = await CreateProjection("BingMaps", cache) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.MapServer.Scale = scale;
 

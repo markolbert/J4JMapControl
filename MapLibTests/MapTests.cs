@@ -8,12 +8,9 @@ public class MapTests : TestBase
     [ Fact ]
     public async Task ValidApiKey()
     {
-        var factory = GetFactory();
-
-        foreach( var projectionName in factory.ProjectionNames )
+        foreach( var projectionName in ProjectionNames )
         {
-            var result = await factory.CreateMapProjection( projectionName, null );
-            var projection = result.Projection;
+            var projection = await CreateProjection( projectionName );
             projection.Should().NotBeNull();
             projection!.Initialized.Should().BeTrue();
 
@@ -37,15 +34,12 @@ public class MapTests : TestBase
     [ InlineData( 1, false ) ]
     public async Task BingApiKeyLatency( int maxLatency, bool testResult )
     {
-        Configuration.TryGetCredential( "BingMaps", out var rawCredentials ).Should().BeTrue();
+        Credentials.TryGetCredential( "BingMaps", out var rawCredentials ).Should().BeTrue();
         rawCredentials.Should().NotBeNull();        
         
         var credentials = new BingCredentials( rawCredentials!.ApiKey, BingMapType.Aerial );
 
-        var result = await GetFactory().CreateMapProjection( "BingMaps", null, authenticate: false );
-        result.Authenticated.Should().Be( false );
-
-        var projection = result.Projection as BingMapsProjection;
+        var projection = await CreateProjection( "BingMaps", null, credentials ) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.MapServer.MaxRequestLatency = maxLatency;
 
@@ -88,8 +82,7 @@ public class MapTests : TestBase
     [InlineData( 3, 3, 3, "033" )]
     public async Task BingMapsQuadKeys( int scale, int xTile, int yTile, string quadKey )
     {
-        var result = await GetFactory().CreateMapProjection( "BingMaps", null );
-        var projection = result.Projection as BingMapsProjection;
+        var projection = await CreateProjection("BingMaps") as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -128,8 +121,7 @@ public class MapTests : TestBase
     [InlineData(3, 3, 3, "0330")]
     public async Task OpenStreetMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
     {
-        var result = await GetFactory().CreateMapProjection( "OpenStreetMaps", null );
-        var projection = result.Projection as OpenStreetMapsProjection;
+        var projection = await CreateProjection("OpenStreetMaps") as OpenStreetMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -168,8 +160,7 @@ public class MapTests : TestBase
     [InlineData(3, 3, 3, "0330")]
     public async Task OpenTopoMapsQuadKeys(int scale, int xTile, int yTile, string quadKey)
     {
-        var result = await GetFactory().CreateMapProjection( "OpenTopoMaps", null );
-        var projection = result.Projection as OpenTopoMapsProjection;
+        var projection = await CreateProjection("OpenTopoMaps") as OpenTopoMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 

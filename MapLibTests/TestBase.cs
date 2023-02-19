@@ -3,11 +3,15 @@ using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 namespace MapLibTests;
 
 public class TestBase
 {
+    public static string[] ProjectionNames =
+        new[] { "BingMaps", "OpenStreetMaps", "OpenTopoMaps", "GoogleMaps" };
+
     protected TestBase()
     {
         var deusEx = new DeusEx();
@@ -19,20 +23,64 @@ public class TestBase
 
         var config = J4JDeusEx.ServiceProvider.GetRequiredService<IProjectionCredentials>();
         config.Should().NotBeNull();
-        Configuration = config;
+        Credentials = config;
     }
 
     protected IJ4JLogger Logger { get; }
-    protected IProjectionCredentials Configuration { get; }
+    protected IProjectionCredentials Credentials { get; }
 
-    protected ProjectionFactory GetFactory()
+    protected async Task<IProjection?> CreateProjection(
+        string projName,
+        ITileCache? cache = null,
+        object? credentials = null
+    )
     {
-        var retVal = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        retVal.Should().NotBeNull();
-        retVal!.Initialize();
+        if( credentials != null )
+            return await CreateProjectionWithSuppliedCredentials( projName, cache, credentials);
 
+        return await CreateProjectionUsingBuiltInCredentials(projName, cache);
+    }
+
+    private async Task<IProjection?> CreateProjectionWithSuppliedCredentials(
+        string projName,
+        ITileCache? cache,
+        object credentials
+    )
+    {
+        var retVal = projName switch
+        {
+            "BingMaps" => (IProjection) new BingMapsProjection(Logger, cache),
+            "OpenStreetMaps" => new OpenStreetMapsProjection(Logger, cache),
+            "OpenTopoMaps" => new OpenTopoMapsProjection(Logger, cache),
+            "GoogleMaps" => new GoogleMapsProjection(Logger),
+            _ => null
+        };
+
+        if( retVal == null )
+            return null;
+
+        await retVal.AuthenticateAsync( credentials );
         return retVal;
     }
+
+    private async Task<IProjection?> CreateProjectionUsingBuiltInCredentials( string projName, ITileCache? cache )
+    {
+        var retVal = projName switch
+        {
+            "BingMaps" => (IProjection) new BingMapsProjection( Credentials, Logger, cache ),
+            "OpenStreetMaps" => new OpenStreetMapsProjection( Credentials, Logger, cache ),
+            "OpenTopoMaps" => new OpenTopoMapsProjection( Credentials, Logger, cache ),
+            "GoogleMaps" => new GoogleMapsProjection( Credentials, Logger ),
+            _ => null
+        };
+
+        if( retVal == null )
+            return null;
+
+        await retVal.AuthenticateAsync( null );
+        return retVal;
+    }
+
     protected string GetCheckImagesFolder(string projectionName)
     {
         var retVal = Environment.CurrentDirectory;

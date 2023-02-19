@@ -29,8 +29,7 @@ public class TileTests : TestBase
         int maxTileY
     )
     {
-        var result = await GetFactory().CreateMapProjection( projectionName, null );
-        var projection = result.Projection;
+        var projection = await CreateProjection( projectionName );
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 

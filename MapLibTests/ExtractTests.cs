@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
 
 namespace MapLibTests;
@@ -43,14 +38,12 @@ public class ExtractTests : TestBase
         int numFragments
     )
     {
-        var projBuilder = await GetFactory().CreateMapProjection( projectionName, null );
-        projBuilder.Should().NotBeNull();
-        projBuilder.Authenticated.Should().BeTrue();
-        projBuilder.Projection.Should().NotBeNull();
+        var projection = await CreateProjection(projectionName);
+        projection.Should().NotBeNull();
+        projection!.MapServer.Initialized.Should().BeTrue();
+        projection.MapServer.MaxRequestLatency = 0;
 
-        projBuilder.Projection!.MapServer.MaxRequestLatency = 0;
-
-        var extractor = new SimpleMapFragments( projBuilder.Projection!, Logger );
+        var extractor = new SimpleMapFragments( projection, Logger );
         extractor.SetCenter( latitude, longitude );
         extractor.Heading = heading;
         extractor.SetRequestedHeightWidth( height, width );
