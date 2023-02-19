@@ -21,30 +21,20 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class OpenMapProjection : TiledProjection<string>
 {
-    private bool _authenticated;
-
     protected OpenMapProjection(
-        IOpenMapServer mapServer,
-        IJ4JLogger logger,
-        ITileCache? tileCache = null
+        IJ4JLogger logger
     )
-        : base( logger, tileCache )
+        : base( logger )
     {
-        MapServer = mapServer;
     }
 
     protected OpenMapProjection(
         IProjectionCredentials credentials,
-        IOpenMapServer mapServer,
-        IJ4JLogger logger,
-        ITileCache? tileCache = null
+        IJ4JLogger logger
     )
-        : base( credentials, logger, tileCache )
+        : base( credentials, logger )
     {
-        MapServer = mapServer;
     }
-
-    public override bool Initialized => base.Initialized && _authenticated;
 
     public override async Task<bool> AuthenticateAsync( string? credentials, CancellationToken ctx = default )
     {

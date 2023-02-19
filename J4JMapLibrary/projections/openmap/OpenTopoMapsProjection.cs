@@ -23,23 +23,25 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class OpenTopoMapsProjection : OpenMapProjection
 {
     public OpenTopoMapsProjection(
-        IOpenMapServer mapServer,
         IJ4JLogger logger,
-        ITileCache? cache = null
+        ITileCache? tileCache = null,
+        IOpenTopoMapsServer? mapServer = null
     )
-        : base(mapServer, logger, cache )
+        : base(logger )
     {
-        MapServer = new OpenTopoMapServer();
+        TileCache = tileCache;
+        MapServer = mapServer ?? new OpenTopoMapServer();
     }
 
     public OpenTopoMapsProjection(
         IProjectionCredentials credentials,
-        IOpenMapServer mapServer,
         IJ4JLogger logger,
-        ITileCache? cache = null
+        ITileCache? tileCache = null,
+        IOpenTopoMapsServer? mapServer = null
     )
-        : base( credentials, mapServer, logger, cache )
+        : base( credentials, logger )
     {
-        MapServer = new OpenTopoMapServer();
+        TileCache = tileCache;
+        MapServer = mapServer ?? new OpenTopoMapServer();
     }
 }

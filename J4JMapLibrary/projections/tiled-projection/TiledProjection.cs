@@ -25,24 +25,20 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
     where TAuth : class
 {
     protected TiledProjection(
-        IJ4JLogger logger,
-        ITileCache? tileCache
+        IJ4JLogger logger
     )
         : base( logger )
     {
-        TileCache = tileCache;
         TileXRange = new MinMax<int>( 0, 0 );
         TileYRange = new MinMax<int>( 0, 0 );
     }
 
     protected TiledProjection(
         IProjectionCredentials credentials,
-        IJ4JLogger logger,
-        ITileCache? tileCache
+        IJ4JLogger logger
     )
         : base( credentials, logger )
     {
-        TileCache = tileCache;
         TileXRange = new MinMax<int>( 0, 0 );
         TileYRange = new MinMax<int>( 0, 0 );
     }
@@ -52,7 +48,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
     public int Height =>MapServer.YRange.Maximum - MapServer.YRange.Minimum + 1;
     public int Width => MapServer.XRange.Maximum - MapServer.XRange.Minimum + 1;
 
-    public ITileCache? TileCache { get; }
+    public ITileCache? TileCache { get; protected set; }
 
     public MinMax<int> TileXRange { get; private set; }
     public MinMax<int> TileYRange { get; private set; }

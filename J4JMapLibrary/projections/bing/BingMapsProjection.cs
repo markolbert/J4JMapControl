@@ -16,8 +16,6 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.Logging;
-using System.Net;
-using System.Text.Json;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -30,24 +28,26 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     private bool _authenticated;
 
     public BingMapsProjection(
-        IBingMapServer mapServer,
         IJ4JLogger logger,
-        ITileCache? tileCache = null
+        ITileCache? tileCache = null,
+        IBingMapServer? mapServer = null
     )
-        : base( logger, tileCache )
+        : base( logger )
     {
-        MapServer = mapServer;
+        MapServer = mapServer ?? new BingMapServer();
+        TileCache = tileCache;
     }
 
     public BingMapsProjection(
         IProjectionCredentials credentials,
-        IBingMapServer mapServer,
         IJ4JLogger logger,
-        ITileCache? tileCache = null
+        ITileCache? tileCache = null,
+        IBingMapServer? mapServer = null
     )
-        : base( credentials, logger, tileCache )
+        : base( credentials, logger )
     {
-        MapServer = mapServer;
+        MapServer = mapServer ?? new BingMapServer();
+        TileCache = tileCache;
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -66,11 +66,13 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
                                              .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
                                              .Select( x => new BingCredentials( x.ApiKey, bingMapServer.MapType ) )
                                              .FirstOrDefault();
+        _authenticated = false;
 
         if( credentials != null )
-            return await bingMapServer.InitializeAsync( credentials, ctx );
+            _authenticated = await bingMapServer.InitializeAsync( credentials, ctx );
+        else
+            Logger.Error( "No credentials provided or available" );
 
-        Logger.Error( "No credentials provided or available" );
-        return false;
+        return _authenticated;
     }
 }

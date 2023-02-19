@@ -23,23 +23,25 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class OpenStreetMapsProjection : OpenMapProjection
 {
     public OpenStreetMapsProjection(
-        IOpenMapServer mapServer,
         IJ4JLogger logger,
-        ITileCache? tileCache = null
+        ITileCache? tileCache = null,
+        IOpenStreetMapsServer? mapServer = null
     )
-        : base( mapServer, logger, tileCache )
+        : base( logger )
     {
-        MapServer = new OpenStreetMapServer();
+        TileCache = tileCache;
+        MapServer = mapServer ?? new OpenStreetMapServer();
     }
 
     public OpenStreetMapsProjection(
         IProjectionCredentials credentials,
-        IOpenMapServer mapServer,
         IJ4JLogger logger,
-        ITileCache? tileCache = null
+        ITileCache? tileCache = null,
+        IOpenStreetMapsServer? mapServer = null
     )
-        : base( credentials, mapServer, logger, tileCache )
+        : base( credentials, logger )
     {
-        MapServer = new OpenStreetMapServer();
+        TileCache = tileCache;
+        MapServer = mapServer ?? new OpenStreetMapServer();
     }
 }

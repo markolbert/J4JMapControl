@@ -22,28 +22,25 @@ namespace J4JSoftware.J4JMapLibrary;
 [ Projection( "GoogleMaps" ) ]
 public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 {
-    private bool _authenticated;
-
     public GoogleMapsProjection(
-        IGoogleMapsServer mapServer,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        IGoogleMapsServer? mapServer = null
+
     )
         : base( logger )
     {
-        MapServer = mapServer;
+        MapServer = mapServer ?? new GoogleMapsServer();
     }
 
     public GoogleMapsProjection(
         IProjectionCredentials credentials,
-        IGoogleMapsServer mapServer,
-        IJ4JLogger logger
+        IJ4JLogger logger,
+        IGoogleMapsServer? mapServer = null
     )
         : base( credentials, logger )
     {
-        MapServer = mapServer;
+        MapServer = mapServer ?? new GoogleMapsServer();
     }
-
-    public override bool Initialized => base.Initialized && _authenticated;
 
     public override async Task<bool> AuthenticateAsync(
         GoogleCredentials? credentials,
