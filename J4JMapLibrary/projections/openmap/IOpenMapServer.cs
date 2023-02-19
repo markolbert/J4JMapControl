@@ -6,3 +6,14 @@ public interface IOpenMapServer : IMapServer
     string UserAgent { get; }
     Task<bool> InitializeAsync( string credentials, CancellationToken ctx = default );
 }
+
+// marker interface
+public interface IOpenStreetMapsServer : IOpenMapServer
+{
+}
+
+
+// marker interface
+public interface IOpenTopoMapsServer : IOpenMapServer
+{
+}
