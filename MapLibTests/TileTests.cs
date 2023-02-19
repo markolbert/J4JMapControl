@@ -34,7 +34,7 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = scale;
+        projection.MapServer.Scale = scale;
 
         var viewportData = projectionName switch
         {

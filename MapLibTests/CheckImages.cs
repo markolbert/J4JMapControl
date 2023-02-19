@@ -14,7 +14,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = data.Scale;
+        projection.MapServer.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync( projection, data.TileX, data.TileY );
 
@@ -33,7 +33,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = data.Scale;
+        projection.MapServer.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
 
@@ -52,14 +52,14 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = data.Scale;
+        projection.MapServer.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.FragmentId}{projection.MapServer.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync(), true );
+        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
     }
 
     [Theory]
@@ -71,7 +71,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapScale.Scale = data.Scale;
+        projection.MapServer.Scale = data.Scale;
 
         var viewport = new NormalizedViewport( projection )
         {
@@ -87,7 +87,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine(GetCheckImagesFolder(projection.Name),
                                     $"{data.FragmentId}{projection.MapServer.ImageFileExtension}");
 
-        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync(), true);
+        await CompareImageFileAsync(filePath, await mapTile.GetImageAsync() );
     }
 
     private async Task CompareImageFileAsync( string filePath, byte[]? imageData, bool sleep = true )
