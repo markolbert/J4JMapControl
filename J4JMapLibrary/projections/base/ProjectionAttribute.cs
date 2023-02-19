@@ -21,11 +21,11 @@ namespace J4JSoftware.J4JMapLibrary;
 public class ProjectionAttribute : Attribute
 {
     public ProjectionAttribute(
-        string name
+        string projectionName
     )
     {
-        Name = name;
+        ProjectionName = projectionName;
     }
 
-    public string Name { get; }
+    public string ProjectionName { get; }
 }

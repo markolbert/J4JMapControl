@@ -37,7 +37,7 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         var attribute = GetType().GetCustomAttribute<ProjectionAttribute>();
         if( attribute == null )
             Logger.Error( "Map projection class is not decorated with ProjectionAttribute(s), cannot be used" );
-        else Name = attribute.Name;
+        else Name = attribute.ProjectionName;
     }
 
     protected Projection(
@@ -55,14 +55,14 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
             throw new ApplicationException( "Map projection class is not decorated with ProjectionAttribute(s)" );
         }
 
-        Name = attributes.First().Name;
+        Name = attributes.First().ProjectionName;
 
         LibraryConfiguration = credentials;
 
         var attribute = GetType().GetCustomAttribute<ProjectionAttribute>();
         if( attribute == null )
             Logger.Error( "Map projection class is not decorated with ProjectionAttribute(s), cannot be used" );
-        else Name = attribute.Name;
+        else Name = attribute.ProjectionName;
     }
 
     protected IJ4JLogger Logger { get; }
