@@ -24,7 +24,6 @@ public interface IProjection
     bool Initialized { get; }
 
     IMapServer MapServer { get; }
-    IProjectionScale MapScale { get; }
 
     Task<bool> AuthenticateAsync( object? credentials, CancellationToken ctx = default );
 

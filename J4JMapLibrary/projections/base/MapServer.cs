@@ -16,7 +16,6 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Reflection;
-using System.Text;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
@@ -28,6 +27,9 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 {
     public const int DefaultMaxRequestLatency = 500;
 
+    public event EventHandler? ScaleChanged;
+
+    private int _scale;
     private int _minScale;
     private int _maxScale;
     private MinMax<int>? _scaleRange;
@@ -35,6 +37,8 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     private float _maxLat = MapConstants.Wgs84MaxLatitude;
     private float _minLong = -180;
     private float _maxLong = 180;
+    private MinMax<int>? _xRange;
+    private MinMax<int>? _yRange;
 
     protected MapServer()
     {
@@ -59,6 +63,29 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
 
     public string SupportedProjection { get; }
     public abstract bool Initialized { get; }
+
+    public int Scale
+    {
+        get => _scale;
+
+        set
+        {
+            var temp = ScaleRange.ConformValueToRange(value, "Scale");
+            if (temp == _scale)
+                return;
+
+            _scale = temp;
+            OnScaleChanged();
+        }
+    }
+
+    private void OnScaleChanged()
+    {
+        _xRange = null;
+        _yRange = null;
+
+        ScaleChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     public int MinScale
     {
@@ -140,6 +167,34 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     }
 
     public MinMax<float> LongitudeRange { get; private set; }
+
+    public MinMax<int> XRange
+    {
+        get
+        {
+            if (_xRange != null)
+                return _xRange;
+
+            var pow2 = InternalExtensions.Pow(2, Scale);
+            _xRange = new MinMax<int>(0, TileHeightWidth * pow2 - 1);
+
+            return _xRange;
+        }
+    }
+
+    public MinMax<int> YRange
+    {
+        get
+        {
+            if (_yRange != null)
+                return _yRange;
+
+            var pow2 = InternalExtensions.Pow(2, Scale);
+            _yRange = new MinMax<int>(0, TileHeightWidth * pow2 - 1);
+
+            return _yRange;
+        }
+    }
 
     public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
     public int TileHeightWidth { get; internal set; }

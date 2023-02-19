@@ -70,7 +70,6 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
 
     public string Name { get; } = string.Empty;
 
-    public IProjectionScale MapScale { get; init; }
     public IMapServer MapServer { get; init; }
 
     public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;

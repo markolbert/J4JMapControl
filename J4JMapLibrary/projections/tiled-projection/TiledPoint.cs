@@ -22,7 +22,7 @@ public class TiledPoint
         _logger = J4JDeusEx.GetLogger()!;
         _logger.SetLoggedType( GetType() );
 
-        projection.MapScale.ScaleChanged += ( _, _ ) => SetTileRanges();
+        projection.MapServer.ScaleChanged += ( _, _ ) => SetTileRanges();
         SetTileRanges();
     }
 

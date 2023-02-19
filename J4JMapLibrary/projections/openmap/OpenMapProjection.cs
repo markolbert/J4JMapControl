@@ -66,7 +66,7 @@ public abstract class OpenMapProjection : TiledProjection<string>
         _authenticated = false;
 
         mapServer.UserAgent = credentials;
-        MapScale.Scale = MapServer.MinScale;
+        MapServer.Scale = MapServer.MinScale;
 
         _authenticated = true;
 

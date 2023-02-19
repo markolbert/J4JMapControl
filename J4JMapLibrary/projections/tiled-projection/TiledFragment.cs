@@ -34,7 +34,7 @@ public class TiledFragment : MapFragment, ITiledFragment
         var entry = await projection.TileCache.GetEntryAsync(projection,
                                                              x,
                                                              y,
-                                                             projection.MapScale.Scale,
+                                                             projection.MapServer.Scale,
                                                              ctx: ctx);
 
         return entry != null ? entry.Tile : new TiledFragment(projection, x, y);
@@ -60,7 +60,7 @@ public class TiledFragment : MapFragment, ITiledFragment
         : base( projection.MapServer )
     {
         Projection = projection;
-        Scale = projection.MapScale.Scale;
+        Scale = projection.MapServer.Scale;
         HeightWidth = projection.MapServer.TileHeightWidth;
         ActualHeight = HeightWidth;
         ActualWidth = HeightWidth;

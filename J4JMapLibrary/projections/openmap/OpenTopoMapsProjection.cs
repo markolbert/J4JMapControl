@@ -29,7 +29,6 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
         : base( logger, cache )
     {
         MapServer = new OpenTopoMapServer();
-        MapScale = new TiledScale( MapServer );
     }
 
     public OpenTopoMapsProjection(
@@ -40,6 +39,5 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
         : base( credentials, logger, cache )
     {
         MapServer = new OpenTopoMapServer();
-        MapScale = new TiledScale( MapServer );
     }
 }

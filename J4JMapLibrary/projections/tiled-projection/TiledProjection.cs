@@ -49,8 +49,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
 
     public int TileHeightWidth => MapServer.TileHeightWidth;
 
-    public int Height => ( (TiledScale) MapScale ).YRange.Maximum - ( (TiledScale) MapScale ).YRange.Minimum + 1;
-    public int Width => ( (TiledScale) MapScale ).XRange.Maximum - ( (TiledScale) MapScale ).XRange.Minimum + 1;
+    public int Height =>MapServer.YRange.Maximum - MapServer.YRange.Minimum + 1;
+    public int Width => MapServer.XRange.Maximum - MapServer.XRange.Minimum + 1;
 
     public ITileCache? TileCache { get; }
 
@@ -79,7 +79,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
     public override async Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        ( (TiledScale) MapScale ).ScaleChanged += ( sender, args ) => OnScaleChanged();
+        MapServer.ScaleChanged += ( _, _ ) => OnScaleChanged();
         return true;
     }
 
@@ -95,7 +95,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
             yield break;
         }
 
-        MapScale.Scale = viewportData.Scale;
+        MapServer.Scale = viewportData.Scale;
 
         var cartesianCenter = new TiledPoint( this );
         cartesianCenter.SetLatLong( viewportData.CenterLatitude, viewportData.CenterLongitude );
@@ -153,8 +153,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
 
     protected virtual void OnScaleChanged()
     {
-        TileXRange = new MinMax<int>( 0, InternalExtensions.Pow(2,MapScale.Scale) );
-        TileYRange = new MinMax<int>( 0, InternalExtensions.Pow(2, MapScale.Scale));
+        TileXRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, MapServer.Scale ) - 1 );
+        TileYRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, MapServer.Scale ) - 1 );
     }
 
     private int CartesianToTile( float value ) => Convert.ToInt32( Math.Floor( value / MapServer.TileHeightWidth ) );

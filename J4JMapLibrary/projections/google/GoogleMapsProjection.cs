@@ -30,7 +30,6 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         : base( logger )
     {
         MapServer = new GoogleMapsServer();
-        MapScale = new ProjectionScale( MapServer );
     }
 
     public GoogleMapsProjection(
@@ -40,7 +39,6 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         : base( credentials, logger )
     {
         MapServer = new GoogleMapsServer();
-        MapScale = new ProjectionScale( MapServer );
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -79,7 +77,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 
         _authenticated = true;
 
-        MapScale.Scale = MapServer.MinScale;
+        MapServer.Scale = MapServer.MinScale;
 
         return true;
     }

@@ -19,9 +19,12 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface IMapServer
 {
+    event EventHandler? ScaleChanged;
+
     string SupportedProjection { get; }
     bool Initialized { get; }
 
+    int Scale { get; set; }
     int MinScale { get; }
     int MaxScale { get; }
     MinMax<int> ScaleRange { get; }
@@ -33,6 +36,9 @@ public interface IMapServer
     float MaxLongitude { get; }
     float MinLongitude { get; }
     MinMax<float> LongitudeRange { get; }
+
+    MinMax<int> XRange { get; }
+    MinMax<int> YRange { get; }
 
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }

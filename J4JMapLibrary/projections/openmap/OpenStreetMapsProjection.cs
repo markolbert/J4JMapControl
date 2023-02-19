@@ -29,7 +29,6 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         : base( logger, tileCache )
     {
         MapServer = new OpenStreetMapServer();
-        MapScale = new TiledScale( MapServer );
     }
 
     public OpenStreetMapsProjection(
@@ -40,6 +39,5 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         : base( credentials, logger, tileCache )
     {
         MapServer = new OpenStreetMapServer();
-        MapScale = new TiledScale( MapServer );
     }
 }

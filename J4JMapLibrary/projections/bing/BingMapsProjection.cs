@@ -36,7 +36,6 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         : base( logger, tileCache )
     {
         MapServer = new BingMapServer();
-        MapScale = new TiledScale(MapServer);
     }
 
     public BingMapsProjection(
@@ -47,7 +46,6 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         : base( credentials, logger, tileCache )
     {
         MapServer = new BingMapServer();
-        MapScale = new TiledScale( MapServer );
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -168,7 +166,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
         _authenticated = true;
 
-        MapScale.Scale = MapServer.ScaleRange.Minimum;
+        MapServer.Scale = MapServer.ScaleRange.Minimum;
 
         return true;
     }
