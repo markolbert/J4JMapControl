@@ -38,8 +38,6 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
             "https://maps.googleapis.com/maps/api/staticmap?center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
     }
 
-    public override bool Initialized => !string.IsNullOrEmpty( ApiKey ) && !string.IsNullOrEmpty( Signature );
-
     public string ApiKey { get; private set; } = string.Empty;
     public string Signature { get; private set; } = string.Empty;
 
@@ -51,11 +49,13 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
     public override async Task<bool> InitializeAsync( GoogleCredentials credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
+        Initialized = false;
+
         ApiKey = credentials.ApiKey;
         Signature = credentials.SignatureSecret;
-
         Scale = MinScale;
 
+        Initialized = true;
         return true;
     }
 

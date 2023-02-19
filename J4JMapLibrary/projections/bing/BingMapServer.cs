@@ -48,13 +48,13 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
         }
     }
 
-    public override bool Initialized => !string.IsNullOrEmpty( ApiKey );
-
     public BingMapType MapType { get; private set; } = BingMapType.Aerial;
     public BingImageryMetadata? Metadata { get; internal set; }
 
     public override async Task<bool> InitializeAsync(BingCredentials credentials, CancellationToken ctx = default)
     {
+        Initialized = false;
+
         ApiKey = credentials.ApiKey;
         MapType = credentials.MapType;
 
@@ -151,7 +151,8 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
 
         Scale = ScaleRange.Minimum;
 
-        return true;
+        Initialized = true;
+        return Initialized;
     }
 
     public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment, int scale )

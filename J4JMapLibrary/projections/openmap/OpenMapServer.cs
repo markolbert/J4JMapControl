@@ -26,18 +26,19 @@ public class OpenMapServer : MapServer<TiledFragment, string>, IOpenMapServer
     }
 
     public string RetrievalUrl { get; init; } = string.Empty;
-    public override bool Initialized => !string.IsNullOrEmpty( UserAgent );
     public string UserAgent { get; private set; } = string.Empty;
 
 #pragma warning disable CS1998
     public override async Task<bool> InitializeAsync( string credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        UserAgent = credentials;
+        Initialized = false;
 
+        UserAgent = credentials;
         Scale = MinScale;
 
-        return true;
+        Initialized = true;
+        return Initialized;
     }
 
     public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment, int scale )
