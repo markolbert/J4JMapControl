@@ -49,7 +49,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         LongitudeRange = new MinMax<float>( -180, 180 );
 
         var attr = GetType().GetCustomAttribute<ProjectionAttribute>();
-        SupportedProjection = attr?.Name ?? string.Empty;
+        SupportedProjection = attr?.ProjectionName ?? string.Empty;
 
         if( !string.IsNullOrEmpty( SupportedProjection ) )
             return;
@@ -62,7 +62,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     protected IJ4JLogger Logger { get; }
 
     public string SupportedProjection { get; }
-    public abstract bool Initialized { get; }
+    public bool Initialized { get; protected set; }
 
     public int Scale
     {
