@@ -24,20 +24,24 @@ public abstract class OpenMapProjection : TiledProjection<string>
     private bool _authenticated;
 
     protected OpenMapProjection(
+        IOpenMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
         : base( logger, tileCache )
     {
+        MapServer = mapServer;
     }
 
     protected OpenMapProjection(
         IProjectionCredentials credentials,
+        IOpenMapServer mapServer,
         IJ4JLogger logger,
         ITileCache? tileCache = null
     )
         : base( credentials, logger, tileCache )
     {
+        MapServer = mapServer;
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
@@ -46,7 +50,7 @@ public abstract class OpenMapProjection : TiledProjection<string>
     {
         await base.AuthenticateAsync(credentials, ctx);
 
-        if ( MapServer is not OpenMapServer mapServer )
+        if ( MapServer is not IOpenMapServer mapServer )
         {
             Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
             return false;
@@ -57,19 +61,10 @@ public abstract class OpenMapProjection : TiledProjection<string>
                                              .Select( x => x.ApiKey )
                                              .FirstOrDefault();
 
-        if( credentials == null )
-        {
-            Logger.Error( "No credentials provided or available" );
-            return false;
-        }
+        if( credentials != null )
+            return await mapServer.InitializeAsync( credentials, ctx );
 
-        _authenticated = false;
-
-        mapServer.UserAgent = credentials;
-        MapServer.Scale = MapServer.MinScale;
-
-        _authenticated = true;
-
-        return true;
+        Logger.Error( "No credentials provided or available" );
+        return false;
     }
 }

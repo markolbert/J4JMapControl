@@ -25,60 +25,51 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     private bool _authenticated;
 
     public GoogleMapsProjection(
+        IGoogleMapsServer mapServer,
         IJ4JLogger logger
     )
         : base( logger )
     {
-        MapServer = new GoogleMapsServer();
+        MapServer = mapServer;
     }
 
     public GoogleMapsProjection(
         IProjectionCredentials credentials,
+        IGoogleMapsServer mapServer,
         IJ4JLogger logger
     )
         : base( credentials, logger )
     {
-        MapServer = new GoogleMapsServer();
+        MapServer = mapServer;
     }
 
     public override bool Initialized => base.Initialized && _authenticated;
 
-#pragma warning disable CS1998
     public override async Task<bool> AuthenticateAsync(
         GoogleCredentials? credentials,
         CancellationToken ctx = default
     )
-#pragma warning restore CS1998
     {
-        if( MapServer is not GoogleMapsServer googleServer )
+        if( MapServer is not IGoogleMapsServer googleServer )
         {
             Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
             return false;
         }
 
-        if( credentials == null )
-        {
-            if( LibraryConfiguration?
-               .Credentials
-               .FirstOrDefault( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) ) is not SignedCredential
-               signedCredential )
-            {
-                Logger.Error( "Configuration credential not found or is not a SignedCredential" );
-                return false;
-            }
+        if( credentials != null )
+            return await googleServer.InitializeAsync( credentials, ctx );
 
-            credentials = new GoogleCredentials( signedCredential.ApiKey, signedCredential.Signature );
+        if( LibraryConfiguration?
+           .Credentials
+           .FirstOrDefault( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) ) is not SignedCredential
+           signedCredential )
+        {
+            Logger.Error( "Configuration credential not found or is not a SignedCredential" );
+            return false;
         }
 
-        _authenticated = false;
+        credentials = new GoogleCredentials( signedCredential.ApiKey, signedCredential.Signature );
 
-        googleServer.ApiKey = credentials.ApiKey;
-        googleServer.Signature = credentials.SignatureSecret;
-
-        _authenticated = true;
-
-        MapServer.Scale = MapServer.MinScale;
-
-        return true;
+        return await googleServer.InitializeAsync( credentials, ctx );
     }
 }

@@ -48,15 +48,15 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         LatitudeRange = new MinMax<float>( -90, 90 );
         LongitudeRange = new MinMax<float>( -180, 180 );
 
-        var attr = GetType().GetCustomAttribute<MapServerAttribute>();
-        SupportedProjection = attr?.ProjectionName ?? string.Empty;
+        var attr = GetType().GetCustomAttribute<ProjectionAttribute>();
+        SupportedProjection = attr?.Name ?? string.Empty;
 
         if( !string.IsNullOrEmpty( SupportedProjection ) )
             return;
 
         Logger.Error( "{0} is not decorated with a {1}, will not be accessible by projections",
                       GetType(),
-                      typeof( MapServerAttribute ) );
+                      typeof( ProjectionAttribute ) );
     }
 
     protected IJ4JLogger Logger { get; }
@@ -203,6 +203,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     public string Copyright { get; internal set; } = string.Empty;
     public Uri? CopyrightUri { get; internal set; }
 
+    public abstract Task<bool> InitializeAsync(TAuth credentials, CancellationToken ctx = default);
     public abstract HttpRequestMessage? CreateMessage( TTile tile, int scale );
 
     HttpRequestMessage? IMapServer.CreateMessage( object requestInfo, int scale )

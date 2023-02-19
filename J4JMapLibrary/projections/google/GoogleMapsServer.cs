@@ -20,8 +20,8 @@ using System.Text;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ MapServer( "GoogleMaps" ) ]
-public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>
+[ Projection( "GoogleMaps" ) ]
+public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapsServer
 {
     public GoogleMapsServer()
     {
@@ -40,12 +40,24 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
 
     public override bool Initialized => !string.IsNullOrEmpty( ApiKey ) && !string.IsNullOrEmpty( Signature );
 
-    public string ApiKey { get; internal set; } = string.Empty;
-    public string Signature { get; internal set; } = string.Empty;
+    public string ApiKey { get; private set; } = string.Empty;
+    public string Signature { get; private set; } = string.Empty;
 
     public GoogleMapType MapType { get; set; } = GoogleMapType.RoadMap;
     public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
     public string RetrievalUrl { get; }
+
+#pragma warning disable CS1998
+    public override async Task<bool> InitializeAsync( GoogleCredentials credentials, CancellationToken ctx = default )
+#pragma warning restore CS1998
+    {
+        ApiKey = credentials.ApiKey;
+        Signature = credentials.SignatureSecret;
+
+        Scale = MinScale;
+
+        return true;
+    }
 
     public override HttpRequestMessage? CreateMessage( StaticFragment mapFragment, int scale )
     {
