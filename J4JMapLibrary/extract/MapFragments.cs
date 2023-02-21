@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
@@ -33,6 +34,8 @@ public partial class MapFragments<TFrag>
     private readonly Func<IMapFragment, Task<TFrag?>> _fragmentFactory;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
     private readonly List<TFrag> _fragments = new();
+    private readonly List<int> _xRange = new();
+    private readonly List<int> _yRange = new();
 
     private Configuration? _curConfig;
     private Configuration? _lastConfig;
@@ -73,6 +76,9 @@ public partial class MapFragments<TFrag>
 
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
+
+    public void SetRequestedHeightWidth( double height, double width ) =>
+        SetRequestedHeightWidth( (float) height, (float) width );
 
     public void SetRequestedHeightWidth( float height, float width )
     {
@@ -136,6 +142,23 @@ public partial class MapFragments<TFrag>
 
     public float Rotation => 360 - Heading;
 
+    public ReadOnlyCollection<int> XRange => _xRange.AsReadOnly();
+    public ReadOnlyCollection<int> YRange => _yRange.AsReadOnly();
+
+    public TFrag? this[ int xTile, int yTile ]
+    {
+        get
+        {
+            if( !XRange.Any() || !YRange.Any() )
+                return null;
+
+            if( xTile < XRange.First() || xTile > XRange.Last() || yTile < YRange.First() || yTile > YRange.Last() )
+                return null;
+
+            return _fragments.First( f => f.X == xTile && f.Y == yTile );
+        }
+    }
+
     public ReadOnlyCollection<TFrag> Fragments => _fragments.AsReadOnly();
 
     public float ActualHeight
@@ -164,22 +187,23 @@ public partial class MapFragments<TFrag>
         }
     }
 
-    public bool Invalidated
+    public bool UpdateNeeded
     {
         get
         {
             if( _curConfig == null )
             {
-                Logger.Error( "MapExtractNG is not configured, map fragments cannot be retrieved" );
+                Logger.Error( "MapFragments is not configured, map fragments cannot be retrieved" );
                 return false;
             }
 
             if( !_curConfig.IsValid( _projection ) )
             {
-                Logger.Error( "MapExtractNG is not validly configured, map fragments cannot be retrieved" );
+                Logger.Error( "MapFragments is not validly configured, map fragments cannot be retrieved" );
                 return false;
             }
 
+            // force retrieval if we've never done a retrieval before
             if( _lastConfig == null )
                 return true;
 
@@ -194,7 +218,7 @@ public partial class MapFragments<TFrag>
 
     public async Task UpdateAsync( CancellationToken ctx = default )
     {
-        if( !Invalidated )
+        if( !UpdateNeeded )
             return;
 
         _fragments.Clear();
@@ -210,6 +234,23 @@ public partial class MapFragments<TFrag>
         }
 
         _lastConfig = _curConfig;
+
+        UpdateRanges();
+    }
+
+    private void UpdateRanges()
+    {
+        var min = _fragments.Min( f => f.X );
+        var max = _fragments.Max( f => f.X );
+
+        _xRange.Clear();
+        _xRange.AddRange( Enumerable.Range( min, max - min + 1 ) );
+
+        min = _fragments.Min( f => f.Y );
+        max = _fragments.Max( f => f.Y );
+
+        _yRange.Clear();
+        _yRange.AddRange( Enumerable.Range( min, max - min + 1 ) );
     }
 
     private void RaiseChangedEvent()
