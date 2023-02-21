@@ -1,36 +1,69 @@
-using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
-        typeof( IProjection ),
+    public DependencyProperty UseMemoryCacheProperty = DependencyProperty.Register( nameof( UseMemoryCache ),
+        typeof( bool ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( null, OnMapProjectionChanged ) );
+        new PropertyMetadata( true, OnCachingChanged ) );
 
-    public DependencyProperty LatitudeProperty = DependencyProperty.Register( nameof( Latitude ),
-                                                                              typeof( float ),
+    public DependencyProperty MemoryCacheSizeProperty = DependencyProperty.Register(nameof(MemoryCacheSize),
+        typeof(int),
+        typeof(J4JMapControl),
+        new PropertyMetadata(DefaultMemoryCacheSize, OnCachingChanged));
+
+    public DependencyProperty MemoryCacheEntriesProperty = DependencyProperty.Register(nameof(MemoryCacheEntries),
+        typeof(int),
+        typeof(J4JMapControl),
+        new PropertyMetadata(DefaultMemoryCacheEntries, OnCachingChanged));
+
+    public DependencyProperty MemoryCacheRetentionProperty = DependencyProperty.Register(nameof(MemoryCacheRetention),
+        typeof(string),
+        typeof(J4JMapControl),
+        new PropertyMetadata(DefaultMemoryCacheRetention.ToString(), OnCachingChanged));
+
+    public DependencyProperty FileSystemCachePathProperty = DependencyProperty.Register( nameof( FileSystemCachePath ),
+        typeof( string ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( GetDefaultFileSystemCachePath(), OnCachingChanged ) );
+
+    public DependencyProperty FileSystemCacheSizeProperty = DependencyProperty.Register(nameof(FileSystemCacheSize),
+        typeof(int),
+        typeof(J4JMapControl),
+        new PropertyMetadata(DefaultFileSystemCacheSize, OnCachingChanged));
+
+    public DependencyProperty FileSystemCacheEntriesProperty = DependencyProperty.Register(nameof(FileSystemCacheEntries),
+        typeof(int),
+        typeof(J4JMapControl),
+        new PropertyMetadata(DefaultFileSystemCacheEntries, OnCachingChanged));
+
+    public DependencyProperty FileSystemCacheRetentionProperty = DependencyProperty.Register(nameof(FileSystemCacheRetention),
+        typeof(string),
+        typeof(J4JMapControl),
+        new PropertyMetadata(DefaultFileSystemCacheRetention.ToString(), OnCachingChanged));
+
+    public DependencyProperty MapNameProperty = DependencyProperty.Register( nameof( MapName ),
+                                                                             typeof( string ),
+                                                                             typeof( J4JMapControl ),
+                                                                             new PropertyMetadata( null, OnMapProjectionChanged ) );
+
+    public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
+                                                                              typeof( string ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( 0F,
+                                                                              new PropertyMetadata( "0,0",
                                                                                   OnViewportChanged ) );
 
-    public DependencyProperty LongitudeProperty = DependencyProperty.Register( nameof( Longitude ),
-                                                                               typeof( float ),
-                                                                               typeof( J4JMapControl ),
-                                                                               new PropertyMetadata( 0F,
-                                                                                   OnViewportChanged ) );
-
-    public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( Scale ),
-                                                                              typeof( int ),
+    public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
+                                                                              typeof( string ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( 0F,
+                                                                              new PropertyMetadata( "0",
                                                                                   OnViewportChanged ) );
 
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
-                                                                             typeof( float ),
+                                                                             typeof( string ),
                                                                              typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( 0F,
+                                                                             new PropertyMetadata( "0",
                                                                                  OnViewportChanged ) );
 }

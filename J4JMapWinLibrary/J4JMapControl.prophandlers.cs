@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+using CommunityToolkit.WinUI;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
 
@@ -5,19 +8,21 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    private static void OnCachingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not J4JMapControl mapControl)
+            return;
+
+        mapControl._cacheIsValid = false;
+        mapControl.UpdateCaching();
+    }
+
     private static void OnMapProjectionChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl )
             return;
 
-        if( e.NewValue is not IProjection projection )
-        {
-            mapControl._logger.Error( "Object assigned to MapProjection is not an IProjection" );
-            return;
-        }
-
-        mapControl._fragments = new ImageFragments( projection, mapControl._logger );
-        mapControl.InvalidateMeasure();
+        mapControl.UpdateProjection();
     }
 
     private static void OnViewportChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
@@ -31,10 +36,7 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        mapControl._fragments.Scale = mapControl.MapScale;
-        mapControl._fragments.SetCenter( mapControl.Latitude, mapControl.Longitude );
-        mapControl._fragments.Heading = mapControl.Heading;
-
-        mapControl.InvalidateMeasure();
+        mapControl.UpdateChildControls();
     }
+
 }
