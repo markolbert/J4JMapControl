@@ -43,7 +43,7 @@ public class ExtractTests : TestBase
         projection!.MapServer.Initialized.Should().BeTrue();
         projection.MapServer.MaxRequestLatency = 0;
 
-        var extractor = new SimpleMapFragments( projection, Logger );
+        var extractor = new MapFragments( projection, Logger );
         extractor.SetCenter( latitude, longitude );
         extractor.Heading = heading;
         extractor.SetRequestedHeightWidth( height, width );

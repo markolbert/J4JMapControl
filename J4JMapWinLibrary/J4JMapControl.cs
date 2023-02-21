@@ -47,7 +47,7 @@ public sealed partial class J4JMapControl : Panel
     private IProjection? _projection;
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
-    private SimpleMapFragments? _fragments;
+    private MapFragments? _fragments;
     private bool _suppressLayout;
     private bool _cacheIsValid;
 
@@ -180,7 +180,7 @@ public sealed partial class J4JMapControl : Panel
             _logger.Error<string>("Authentication of {0} failed", MapName);
 
         _projection = tempProjection;
-        _fragments = new SimpleMapFragments(_projection, _logger);
+        _fragments = new MapFragments(_projection, _logger);
         InvalidateMeasure();
     }
 
