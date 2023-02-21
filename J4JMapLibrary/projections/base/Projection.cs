@@ -74,6 +74,9 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
 
     public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;
 
+    public bool Authenticate( TAuth? credentials ) =>
+        Task.Run( async () => await AuthenticateAsync( credentials ) ).Result;
+
     public abstract Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default );
 
     public abstract IAsyncEnumerable<TFrag> GetExtractAsync(
@@ -98,15 +101,31 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         }
     }
 
+    bool IProjection.Authenticate(object? credentials)
+    {
+        switch (credentials)
+        {
+            case TAuth castCredentials:
+                return Authenticate(castCredentials);
+
+            case null:
+                return Authenticate(null);
+
+            default:
+                Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
+                return false;
+        }
+    }
+
     async IAsyncEnumerable<IMapFragment> IProjection.GetExtractAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad,
         [ EnumeratorCancellation ] CancellationToken ctx
     )
     {
-        if( viewportData is TViewport castData )
+        if( viewportData.GetType().IsAssignableTo( typeof( TViewport ) ) )
         {
-            await foreach( var fragment in GetExtractAsync( castData, deferImageLoad, ctx ) )
+            await foreach( var fragment in GetExtractAsync( ( TViewport ) viewportData, deferImageLoad, ctx ) )
             {
                 yield return fragment;
             }
