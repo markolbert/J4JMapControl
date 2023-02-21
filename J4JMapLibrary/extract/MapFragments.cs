@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
@@ -25,31 +24,26 @@ using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public partial class MapFragments<TFrag>
-    where TFrag : class, IImagedFragment
+public class MapFragments
 {
     public event EventHandler? Changed;
 
     private readonly IProjection _projection;
-    private readonly Func<IMapFragment, Task<TFrag?>> _fragmentFactory;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
-    private readonly List<TFrag> _fragments = new();
+    private readonly List<IMapFragment> _fragments = new();
     private readonly List<int> _xRange = new();
     private readonly List<int> _yRange = new();
 
-    private Configuration? _curConfig;
-    private Configuration? _lastConfig;
+    private MapFragmentsConfiguration? _curConfig;
+    private MapFragmentsConfiguration? _lastConfig;
 
-    protected MapFragments(
+    public MapFragments(
         IProjection projection,
-        Func<IMapFragment, Task<TFrag?>> fragmentFactory,
         IJ4JLogger logger
     )
     {
         _projection = projection;
         ProjectionType = _projection.GetProjectionType();
-
-        _fragmentFactory = fragmentFactory;
 
         Logger = logger;
         Logger.SetLoggedType( GetType() );
@@ -68,7 +62,7 @@ public partial class MapFragments<TFrag>
         longitude = _projection.MapServer.LongitudeRange.ConformValueToRange( longitude, "Longitude" );
 
         _curConfig = _curConfig == null
-            ? new Configuration( latitude, longitude, 0, 0, 0, 0, Buffer.Default )
+            ? new MapFragmentsConfiguration( latitude, longitude, 0, 0, 0, 0, MapFragmentsBuffer.Default )
             : _curConfig with { Latitude = latitude, Longitude = longitude };
 
         RaiseChangedEvent();
@@ -86,23 +80,23 @@ public partial class MapFragments<TFrag>
         width = _heightWidthRange.ConformValueToRange( width, "RequestedWidth" );
 
         _curConfig = _curConfig == null
-            ? new Configuration( 0, 0, 0, 0, height, width, Buffer.Default )
+            ? new MapFragmentsConfiguration( 0, 0, 0, 0, height, width, MapFragmentsBuffer.Default )
             : _curConfig with { RequestedHeight = height, RequestedWidth = width };
 
         RaiseChangedEvent();
     }
 
-    public float HeightBufferPercent => _curConfig?.Buffer.HeightPercent ?? 0;
-    public float WidthBufferPercent => _curConfig?.Buffer.WidthPercent ?? 0;
+    public float HeightBufferPercent => _curConfig?.FragmentBuffer.HeightPercent ?? 0;
+    public float WidthBufferPercent => _curConfig?.FragmentBuffer.WidthPercent ?? 0;
 
     public void SetBuffer( float heightPercent, float widthPercent )
     {
-        var buffer = new Buffer( _heightWidthRange.ConformValueToRange( heightPercent, "RequestedHeight Buffer (percent)" ),
-                                 _heightWidthRange.ConformValueToRange( widthPercent, "RequestedWidth Buffer (percent)" ) );
+        var buffer = new MapFragmentsBuffer( _heightWidthRange.ConformValueToRange( heightPercent, "RequestedHeight MapFragmentsBuffer (percent)" ),
+                                 _heightWidthRange.ConformValueToRange( widthPercent, "RequestedWidth MapFragmentsBuffer (percent)" ) );
 
         _curConfig = _curConfig == null
-            ? new Configuration( 0, 0, 0, 0, 0, 0, buffer )
-            : _curConfig with { Buffer = buffer };
+            ? new MapFragmentsConfiguration( 0, 0, 0, 0, 0, 0, buffer )
+            : _curConfig with { FragmentBuffer = buffer };
 
         RaiseChangedEvent();
     }
@@ -116,7 +110,7 @@ public partial class MapFragments<TFrag>
             value = _projection.MapServer.ScaleRange.ConformValueToRange( value, "Scale" );
 
             _curConfig = _curConfig == null
-                ? new Configuration( 0, 0, 0, value, 0, 0, Buffer.Default )
+                ? new MapFragmentsConfiguration( 0, 0, 0, value, 0, 0, MapFragmentsBuffer.Default )
                 : _curConfig with { Scale = value };
 
             RaiseChangedEvent();
@@ -133,7 +127,7 @@ public partial class MapFragments<TFrag>
             value = value % 360;
 
             _curConfig = _curConfig == null
-                ? new Configuration( 0, 0, value, 0, 0, 0, Buffer.Default )
+                ? new MapFragmentsConfiguration( 0, 0, value, 0, 0, 0, MapFragmentsBuffer.Default )
                 : _curConfig with { Heading = value };
 
             RaiseChangedEvent();
@@ -145,7 +139,7 @@ public partial class MapFragments<TFrag>
     public ReadOnlyCollection<int> XRange => _xRange.AsReadOnly();
     public ReadOnlyCollection<int> YRange => _yRange.AsReadOnly();
 
-    public TFrag? this[ int xTile, int yTile ]
+    public IMapFragment? this[ int xTile, int yTile ]
     {
         get
         {
@@ -159,7 +153,7 @@ public partial class MapFragments<TFrag>
         }
     }
 
-    public ReadOnlyCollection<TFrag> Fragments => _fragments.AsReadOnly();
+    public ReadOnlyCollection<IMapFragment> Fragments => _fragments.AsReadOnly();
 
     public float ActualHeight
     {
@@ -223,13 +217,8 @@ public partial class MapFragments<TFrag>
 
         _fragments.Clear();
 
-        await foreach( var imgData in RetrieveImagesAsync( ctx ) )
+        await foreach( var fragment in RetrieveImagesAsync( ctx ) )
         {
-            var fragment = await _fragmentFactory( imgData );
-
-            if( fragment == null )
-                continue;
-
             _fragments.Add( fragment );
         }
 
@@ -264,13 +253,13 @@ public partial class MapFragments<TFrag>
     {
     }
 
-    private Rectangle2D CreateRectangle( Configuration config )
+    private Rectangle2D CreateRectangle( MapFragmentsConfiguration config )
     {
         var retVal = new Rectangle2D( config.RequestedHeight, config.RequestedWidth, config.Rotation );
 
         // apply buffer
-        var bufferTransform = Matrix4x4.CreateScale( 1 + config.Buffer.WidthPercent,
-                                                     1 + config.Buffer.HeightPercent,
+        var bufferTransform = Matrix4x4.CreateScale( 1 + config.FragmentBuffer.WidthPercent,
+                                                     1 + config.FragmentBuffer.HeightPercent,
                                                      1 );
 
         retVal = retVal.ApplyTransform( bufferTransform );
