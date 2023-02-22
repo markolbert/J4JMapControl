@@ -83,6 +83,7 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
     {
         _xRange = null;
         _yRange = null;
+        HeightWidth = TileHeightWidth * InternalExtensions.Pow(2, Scale);
 
         ScaleChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -119,6 +120,8 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
             return _scaleRange;
         }
     }
+
+    public int HeightWidth { get; protected set; }
 
     public float MaxLatitude
     {

@@ -29,6 +29,8 @@ public interface IMapServer
     int MaxScale { get; }
     MinMax<int> ScaleRange { get; }
 
+    int HeightWidth { get; }
+
     float MaxLatitude { get; }
     float MinLatitude { get; }
     MinMax<float> LatitudeRange { get; }
