@@ -43,8 +43,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         TileYRange = new MinMax<int>( 0, 0 );
     }
 
-    public int TileHeightWidth => MapServer.TileHeightWidth;
-
     public int Height =>MapServer.YRange.Maximum - MapServer.YRange.Minimum + 1;
     public int Width => MapServer.XRange.Maximum - MapServer.XRange.Minimum + 1;
 
@@ -145,6 +143,28 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
                 yield return mapTile;
             }
         }
+    }
+
+    public IMapFragment? GetTile( int xTile, int yTile, bool deferImageLoad = false ) =>
+        Task.Run( async () => await GetTileAsync( xTile, yTile, deferImageLoad ) ).Result;
+
+    public async Task<IMapFragment?> GetTileAsync(
+        int xTile,
+        int yTile,
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
+    )
+    {
+        if( xTile < MapServer.XRange.Minimum || xTile > MapServer.XRange.Maximum
+           || yTile < MapServer.YRange.Minimum || yTile > MapServer.YRange.Maximum)
+            return null;
+
+        var retVal = await TiledFragment.CreateAsync(this, xTile, yTile, ctx: ctx);
+
+        if (!deferImageLoad)
+            await retVal.GetImageAsync(ctx: ctx);
+
+        return retVal;
     }
 
     protected virtual void OnScaleChanged()

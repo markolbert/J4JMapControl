@@ -21,10 +21,6 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface ITiledProjection : IProjection
 {
-    int Width { get; }
-    int Height { get; }
-    int TileHeightWidth { get; }
-
     MinMax<int> TileXRange { get; }
     MinMax<int> TileYRange { get; }
 
@@ -32,4 +28,13 @@ public interface ITiledProjection : IProjection
 
     float GroundResolution( float latitude );
     string ScaleDescription( float latitude, float dotsPerInch );
+
+    IMapFragment? GetTile( int xTile, int yTile, bool deferImageLoad = false );
+
+    Task<IMapFragment?> GetTileAsync(
+        int xTile,
+        int yTile,
+        bool deferImageLoad = false,
+        CancellationToken ctx = default
+    );
 }
