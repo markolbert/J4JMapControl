@@ -57,7 +57,7 @@ public class TileTests : TestBase
             }
         };
 
-        var rawTiles = await projection.GetExtractAsync( viewportData, true ).ToListAsync();
+        var rawTiles = await projection.GetViewportAsync( viewportData, true ).ToListAsync();
         var tiles = rawTiles.Cast<ITiledFragment>().ToList();
         tiles.Count.Should().BeGreaterThan( 0 );
 
