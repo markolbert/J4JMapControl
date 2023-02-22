@@ -28,7 +28,7 @@ public interface IProjection
     Task<bool> AuthenticateAsync( object? credentials, CancellationToken ctx = default );
     bool Authenticate( object? credentials );
 
-    IAsyncEnumerable<IMapFragment> GetExtractAsync(
+    IAsyncEnumerable<IMapFragment> GetViewportAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad = false,
         CancellationToken ctx = default

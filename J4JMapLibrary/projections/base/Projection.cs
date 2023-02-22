@@ -117,7 +117,7 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         }
     }
 
-    async IAsyncEnumerable<IMapFragment> IProjection.GetExtractAsync(
+    async IAsyncEnumerable<IMapFragment> IProjection.GetViewportAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad,
         [ EnumeratorCancellation ] CancellationToken ctx
