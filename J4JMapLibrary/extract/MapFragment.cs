@@ -42,6 +42,7 @@ public abstract class MapFragment : IMapFragment
     
     public float ActualHeight { get; init; }
     public float ActualWidth { get; init; }
+    public bool InViewport { get; set; }
 
     public string FragmentId { get; init; } = string.Empty;
 

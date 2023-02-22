@@ -29,6 +29,7 @@ public interface IMapFragment
     int Y { get; }
     float ActualHeight { get; }
     float ActualWidth { get; }
+    bool InViewport { get; set; }
 
     public byte[]? ImageData { get; }
     long ImageBytes { get; }
