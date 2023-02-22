@@ -45,6 +45,13 @@ public class MapFragments
         _projection = projection;
         ProjectionType = _projection.GetProjectionType();
 
+        CenterPoint = ProjectionType switch
+        {
+            ProjectionType.Static => new StaticPoint( _projection ),
+            ProjectionType.Tiled => new TiledPoint( (ITiledProjection) _projection ),
+            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( ProjectionType )} '{ProjectionType}'" )
+        };
+
         Logger = logger;
         Logger.SetLoggedType( GetType() );
     }
@@ -65,8 +72,12 @@ public class MapFragments
             ? new MapFragmentsConfiguration( latitude, longitude, 0, 0, 0, 0, MapFragmentsBuffer.Default )
             : _curConfig with { Latitude = latitude, Longitude = longitude };
 
+        CenterPoint.SetLatLong( latitude, longitude );
+
         RaiseChangedEvent();
     }
+
+    public StaticPoint CenterPoint { get; }
 
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
@@ -217,8 +228,32 @@ public class MapFragments
 
         _fragments.Clear();
 
-        await foreach( var fragment in RetrieveImagesAsync( ctx ) )
+        var viewportRect = new Rectangle2D(_curConfig!.RequestedHeight, _curConfig.RequestedWidth, _curConfig.Rotation);
+
+        await foreach ( var fragment in RetrieveImagesAsync( ctx ) )
         {
+            // a static projection fragment is always in the viewport,
+            // although it may extend beyond the viewport
+            if( ProjectionType == ProjectionType.Static )
+                fragment.InViewport = true;
+            else
+            {
+                var tiledFragment = (ITiledFragment) fragment;
+
+                // see if this fragment is totally inside the viewport or extends beyond it
+                var tileCenter = new Vector3( tiledFragment.X * tiledFragment.HeightWidth - _curConfig.RequestedWidth / 2,
+                                              tiledFragment.Y * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
+                                              0 );
+
+                var fragmentRect = new Rectangle2D( tiledFragment.HeightWidth,
+                                                    tiledFragment.HeightWidth,
+                                                    0,
+                                                    tileCenter,
+                                                    CoordinateSystem2D.Display );
+
+                fragment.InViewport = viewportRect.Contains( fragmentRect ) != RelativePosition2D.Outside;
+            }
+
             _fragments.Add( fragment );
         }
 
@@ -294,7 +329,7 @@ public class MapFragments
             RequestedWidth = (int) Math.Ceiling(RequestedWidth)
         };
 
-        await foreach( var fragment in _projection.GetExtractAsync( viewportData, ctx: ctx ) )
+        await foreach( var fragment in _projection.GetViewportAsync( viewportData, ctx: ctx ) )
         {
             yield return fragment;
         }
@@ -315,7 +350,7 @@ public class MapFragments
             Heading = Heading
         };
 
-        await foreach( var fragment in ( (ITiledProjection) _projection ).GetExtractAsync( viewportData, ctx: ctx ) )
+        await foreach( var fragment in ( (ITiledProjection) _projection ).GetViewportAsync( viewportData, ctx: ctx ) )
         {
             yield return fragment;
         }
