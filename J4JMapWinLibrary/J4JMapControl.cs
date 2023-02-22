@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -13,7 +14,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
+using System.Linq;
 using J4JSoftware.DependencyInjection;
+using Microsoft.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -28,6 +31,12 @@ public sealed partial class J4JMapControl : Panel
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
+
+    private enum InsertedTileSide
+    {
+        Left,
+        Right
+    }
 
     private static string GetDefaultFileSystemCachePath()
     {
@@ -233,44 +242,51 @@ public sealed partial class J4JMapControl : Panel
         var tilePosition = new Vector3(0, 0, 0);
         var retVal = new Size();
 
-        foreach (var xTile in _fragments.XRange)
+        foreach( var xTile in _fragments.XRange )
         {
             tilePosition.Y = 0;
             var maxTileWidth = 0F;
 
-            foreach (var yTile in _fragments.YRange)
+            foreach( var yTile in _fragments.YRange )
             {
-                var fragment = _fragments[xTile, yTile];
+                var fragment = _fragments[ xTile, yTile ];
+                AddImageTile( fragment, xTile, yTile, tilePosition );
 
-                if (fragment == null)
-                {
-                    _logger.Error("Could not retrieve tile ({0}, {1})", xTile, yTile);
-                    continue;
-                }
+                tilePosition.Y += fragment?.ActualHeight ?? 0;
 
-                var imageBytes = fragment.GetImage();
-                if (imageBytes == null)
-                    continue;
-
-                var memStream = new MemoryStream(imageBytes);
-                var bitmapImage = new BitmapImage();
-                bitmapImage.SetSource(memStream.AsRandomAccessStream());
-                var image = new Image { Source = bitmapImage, Translation = tilePosition };
-
-                Children.Add(image);
-
-                tilePosition.Y += fragment.ActualHeight;
-
-                if (fragment.ActualWidth > maxTileWidth)
+                if( fragment?.ActualWidth > maxTileWidth )
                     maxTileWidth = fragment.ActualWidth;
             }
 
             tilePosition.X += maxTileWidth;
 
-            if (tilePosition.Y > retVal.Height)
+            if( tilePosition.Y > retVal.Height )
                 retVal.Height = tilePosition.Y;
 
             retVal.Width += maxTileWidth;
+        }
+
+        // determine the clipping rectangle so we can figure out whether we
+        // need to repeat tiles on the left or right
+        Clip = new RectangleGeometry()
+        {
+            Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2,
+                                      _fragments.CenterPoint.Y - Height / 2),
+                            new Size(Width, Height))
+        };
+
+        // handling tiled projection viewport edge issues...
+        if( _projection is ITiledProjection tiledProjection )
+        {
+            // if the left edge of the clipping rectangle is < 0 we need to insert
+            // tiles from the right edge of the map in each row of images
+            if( Clip.Rect.Left < 0 )
+                InsertTiles( tiledProjection, InsertedTileSide.Left );
+            else
+            {
+                if( Clip.Rect.Right > _fragments.ActualWidth )
+                    InsertTiles( tiledProjection, InsertedTileSide.Right );
+            }
         }
 
         _suppressLayout = false;
@@ -278,17 +294,72 @@ public sealed partial class J4JMapControl : Panel
         InvalidateMeasure();
     }
 
+    private void AddImageTile( IMapFragment? fragment, int xTile, int yTile, Vector3 tilePosition )
+    {
+        if (fragment == null)
+        {
+            _logger.Error("Could not retrieve tile ({0}, {1})", xTile, yTile);
+            return;
+        }
+
+        var imageBytes = fragment.GetImage();
+        if( imageBytes == null )
+        {
+            _logger.Error("Could not get image data for tile ({0}, {1})", xTile, yTile);
+            return;
+        }
+
+        var memStream = new MemoryStream( imageBytes );
+        
+        var bitmapImage = new BitmapImage();
+        bitmapImage.SetSource( memStream.AsRandomAccessStream() );
+
+        Children.Add( new Image { Source = bitmapImage, Translation = tilePosition } );
+    }
+
+    private void InsertTiles( ITiledProjection projection, InsertedTileSide side )
+    {
+        // should never happen, but...
+        if( _fragments == null )
+            return;
+
+        var x = side switch
+        {
+            InsertedTileSide.Left => -projection.MapServer.TileHeightWidth,
+            InsertedTileSide.Right => projection.MapServer.HeightWidth,
+            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( InsertedTileSide )} value '{side}'" )
+        };
+
+        var xTile = side switch
+        {
+            InsertedTileSide.Left => _fragments.XRange.Last(),
+            InsertedTileSide.Right => _fragments.XRange.First(),
+            _ => throw new InvalidEnumArgumentException($"Unsupported {typeof(InsertedTileSide)} value '{side}'")
+        };
+
+        var tilePosition = new Vector3(x , 0, 0 );
+
+        for ( var yTile = _fragments.YRange.First(); yTile <= _fragments.YRange.Last(); yTile++ )
+        {
+            var fragment = projection.GetTile(xTile, yTile);
+            AddImageTile( fragment, xTile, yTile, tilePosition );
+
+            tilePosition.Y += fragment?.ActualHeight ?? 0;
+        }
+    }
+
     protected override Size MeasureOverride( Size availableSize )
     {
         if( _fragments == null || _suppressLayout )
             return Size.Empty;
 
-        return new Size( _fragments.ActualWidth > availableSize.Width 
-                             ? availableSize.Width 
-                             : _fragments.ActualWidth,
-                         _fragments.ActualHeight > availableSize.Height
-                             ? availableSize.Height
-                             : _fragments.ActualHeight );
+        return availableSize;
+        //return new Size( _fragments.ActualWidth > availableSize.Width 
+        //                     ? availableSize.Width 
+        //                     : _fragments.ActualWidth,
+        //                 _fragments.ActualHeight > availableSize.Height
+        //                     ? availableSize.Height
+        //                     : _fragments.ActualHeight );
     }
 
     protected override Size ArrangeOverride( Size finalSize )
