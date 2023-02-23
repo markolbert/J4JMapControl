@@ -22,7 +22,7 @@ using J4JSoftware.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
-    where TTile : class
+    where TTile : class, IMapFragment
     where TAuth : class
 {
     public const int DefaultMaxRequestLatency = 500;
@@ -48,20 +48,23 @@ public abstract class MapServer<TTile, TAuth> : IMapServer<TTile, TAuth>
         LatitudeRange = new MinMax<float>( -90, 90 );
         LongitudeRange = new MinMax<float>( -180, 180 );
 
-        var attr = GetType().GetCustomAttribute<ProjectionAttribute>();
-        SupportedProjection = attr?.ProjectionName ?? string.Empty;
+        var attr = GetType().GetCustomAttribute<MapServerAttribute>();
 
-        if( !string.IsNullOrEmpty( SupportedProjection ) )
-            return;
-
-        Logger.Error( "{0} is not decorated with a {1}, will not be accessible by projections",
-                      GetType(),
-                      typeof( ProjectionAttribute ) );
+        if( attr != null )
+        {
+            ProjectionName = attr.ServerName;
+            ProjectionType = attr.ProjectionType;
+        }
+        else
+            Logger.Error( "{0} is not decorated with a {1}, will not be accessible by IMapFactory",
+                          GetType(),
+                          typeof( MapServerAttribute ) );
     }
 
     protected IJ4JLogger Logger { get; }
 
-    public string SupportedProjection { get; }
+    public string? ProjectionName { get; }
+    public Type? ProjectionType { get; }
     public bool Initialized { get; protected set; }
 
     public int Scale

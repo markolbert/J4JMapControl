@@ -17,8 +17,8 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ Projection( "OpenStreetMaps" ) ]
-public sealed class OpenStreetMapServer : OpenMapServer, IOpenStreetMapsServer
+[MapServer("OpenStreetMaps", typeof(IMapServer<ITiledFragment, string>))]
+public sealed class OpenStreetMapServer : OpenMapServer<OpenStreetCredentials>, IOpenStreetMapsServer
 {
     public OpenStreetMapServer()
     {

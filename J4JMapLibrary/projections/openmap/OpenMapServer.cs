@@ -17,7 +17,8 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class OpenMapServer : MapServer<TiledFragment, string>, IOpenMapServer
+public class OpenMapServer<TAuth> : MapServer<ITiledFragment, TAuth>, IOpenMapServer
+where TAuth : class, IOpenMapCredentials, new()
 {
     protected OpenMapServer()
     {
@@ -29,19 +30,19 @@ public class OpenMapServer : MapServer<TiledFragment, string>, IOpenMapServer
     public string UserAgent { get; private set; } = string.Empty;
 
 #pragma warning disable CS1998
-    public override async Task<bool> InitializeAsync( string credentials, CancellationToken ctx = default )
+    public override async Task<bool> InitializeAsync( TAuth credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
         Initialized = false;
 
-        UserAgent = credentials;
+        UserAgent = credentials.UserAgent;
         Scale = MinScale;
 
         Initialized = true;
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment, int scale )
+    public override HttpRequestMessage? CreateMessage( ITiledFragment mapFragment, int scale )
     {
         if( !Initialized )
             return null;
@@ -63,5 +64,14 @@ public class OpenMapServer : MapServer<TiledFragment, string>, IOpenMapServer
         retVal.Headers.Add( "User-Agent", UserAgent );
 
         return retVal;
+    }
+
+    async Task<bool> IOpenMapServer.InitializeAsync( IOpenMapCredentials credentials, CancellationToken ctx )
+    {
+        if( credentials is TAuth castCredentials )
+            return await InitializeAsync( castCredentials, ctx );
+
+        Logger.Error( "Expected a {0} but got a {1} instead", typeof( TAuth ), credentials.GetType() );
+        return false;
     }
 }

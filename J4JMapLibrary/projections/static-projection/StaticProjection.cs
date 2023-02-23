@@ -21,20 +21,12 @@ using J4JSoftware.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedViewport, StaticFragment>
-    where TAuth : class
+    where TAuth : class, new()
 {
     protected StaticProjection(
         IJ4JLogger logger
     )
         : base( logger )
-    {
-    }
-
-    protected StaticProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger
-    )
-        : base( credentials, logger )
     {
     }
 

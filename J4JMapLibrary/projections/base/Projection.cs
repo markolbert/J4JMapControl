@@ -23,7 +23,7 @@ using J4JSoftware.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
-    where TAuth : class
+    where TAuth : class, new()
     where TFrag : IMapFragment
     where TViewport : INormalizedViewport
 {
@@ -40,44 +40,16 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         else Name = attribute.ProjectionName;
     }
 
-    protected Projection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger
-    )
-    {
-        Logger = logger;
-        Logger.SetLoggedType( GetType() );
-
-        var attributes = GetType().GetCustomAttributes<ProjectionAttribute>().ToList();
-        if( !attributes.Any() )
-        {
-            Logger.Fatal( "Map projection class is not decorated with ProjectionAttribute(s)" );
-            throw new ApplicationException( "Map projection class is not decorated with ProjectionAttribute(s)" );
-        }
-
-        Name = attributes.First().ProjectionName;
-
-        LibraryConfiguration = credentials;
-
-        var attribute = GetType().GetCustomAttribute<ProjectionAttribute>();
-        if( attribute == null )
-            Logger.Error( "Map projection class is not decorated with ProjectionAttribute(s), cannot be used" );
-        else Name = attribute.ProjectionName;
-    }
-
     protected IJ4JLogger Logger { get; }
-    protected IProjectionCredentials? LibraryConfiguration { get; }
 
     public string Name { get; } = string.Empty;
-
     public IMapServer MapServer { get; init; }
-
     public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;
 
-    public bool Authenticate( TAuth? credentials ) =>
+    public bool Authenticate( TAuth credentials ) =>
         Task.Run( async () => await AuthenticateAsync( credentials ) ).Result;
 
-    public abstract Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default );
+    public abstract Task<bool> AuthenticateAsync( TAuth credentials, CancellationToken ctx = default );
 
     public abstract IAsyncEnumerable<TFrag> GetExtractAsync(
         TViewport viewportData,
@@ -85,15 +57,12 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         CancellationToken ctx = default
     );
 
-    async Task<bool> IProjection.AuthenticateAsync( object? credentials, CancellationToken ctx )
+    async Task<bool> IProjection.AuthenticateAsync( object credentials, CancellationToken ctx )
     {
         switch( credentials )
         {
             case TAuth castCredentials:
                 return await AuthenticateAsync( castCredentials, ctx );
-
-            case null:
-                return await AuthenticateAsync( null, ctx );
 
             default:
                 Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
@@ -101,15 +70,12 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         }
     }
 
-    bool IProjection.Authenticate(object? credentials)
+    bool IProjection.Authenticate(object credentials)
     {
         switch (credentials)
         {
             case TAuth castCredentials:
                 return Authenticate(castCredentials);
-
-            case null:
-                return Authenticate(null);
 
             default:
                 Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());

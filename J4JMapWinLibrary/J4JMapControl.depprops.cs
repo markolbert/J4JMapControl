@@ -49,11 +49,16 @@ public sealed partial class J4JMapControl
                                                                              typeof( J4JMapControl ),
                                                                              new PropertyMetadata( null, OnMapProjectionChanged ) );
 
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
+                                                                            typeof(string),
+                                                                            typeof(J4JMapControl),
+                                                                            new PropertyMetadata(null, OnMapProjectionChanged));
+
     public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
-                                                                              typeof( string ),
-                                                                              typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( "0,0",
-                                                                                  OnViewportChanged ) );
+                                                                            typeof( string ),
+                                                                            typeof( J4JMapControl ),
+                                                                            new PropertyMetadata( "0,0",
+                                                                                OnViewportChanged ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( string ),

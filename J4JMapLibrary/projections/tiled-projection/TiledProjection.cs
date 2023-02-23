@@ -22,22 +22,12 @@ using System.Runtime.CompilerServices;
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, TiledFragment>, ITiledProjection
-    where TAuth : class
+    where TAuth : class, new()
 {
     protected TiledProjection(
         IJ4JLogger logger
     )
         : base( logger )
-    {
-        TileXRange = new MinMax<int>( 0, 0 );
-        TileYRange = new MinMax<int>( 0, 0 );
-    }
-
-    protected TiledProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger
-    )
-        : base( credentials, logger )
     {
         TileXRange = new MinMax<int>( 0, 0 );
         TileYRange = new MinMax<int>( 0, 0 );
@@ -70,7 +60,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
 
 #pragma warning disable CS1998
-    public override async Task<bool> AuthenticateAsync( TAuth? credentials, CancellationToken ctx = default )
+    public override async Task<bool> AuthenticateAsync( TAuth credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
         MapServer.ScaleChanged += ( _, _ ) => OnScaleChanged();

@@ -38,40 +38,19 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         TileCache = tileCache;
     }
 
-    public BingMapsProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger,
-        ITileCache? tileCache = null,
-        IBingMapServer? mapServer = null
-    )
-        : base( credentials, logger )
-    {
-        MapServer = mapServer ?? new BingMapServer();
-        TileCache = tileCache;
-    }
-
     public override bool Initialized => base.Initialized && _authenticated;
 
-    public override async Task<bool> AuthenticateAsync( BingCredentials? credentials, CancellationToken ctx = default )
+    public override async Task<bool> AuthenticateAsync( BingCredentials credentials, CancellationToken ctx = default )
     {
         await base.AuthenticateAsync( credentials, ctx );
 
         if( MapServer is not IBingMapServer bingMapServer )
         {
-            Logger.Error( "MapServer was not initialized with an instance of BingMapServer" );
+            Logger.Error( "MapServer was not initialized with an instance of IBingMapServer" );
             return false;
         }
 
-        credentials ??= LibraryConfiguration?.Credentials
-                                             .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
-                                             .Select( x => new BingCredentials( x.ApiKey, bingMapServer.MapType ) )
-                                             .FirstOrDefault();
-        _authenticated = false;
-
-        if( credentials != null )
-            _authenticated = await bingMapServer.InitializeAsync( credentials, ctx );
-        else
-            Logger.Error( "No credentials provided or available" );
+        _authenticated = await bingMapServer.InitializeAsync( credentials, ctx );
 
         return _authenticated;
     }

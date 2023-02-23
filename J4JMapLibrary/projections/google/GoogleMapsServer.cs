@@ -20,8 +20,8 @@ using System.Text;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ Projection( "GoogleMaps" ) ]
-public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentials>, IGoogleMapsServer
+[MapServer("GoogleMaps", typeof(IMapServer<IStaticFragment, BingCredentials>))]
+public sealed class GoogleMapsServer : MapServer<IStaticFragment, GoogleCredentials>, IGoogleMapsServer
 {
     public GoogleMapsServer()
     {
@@ -59,7 +59,7 @@ public sealed class GoogleMapsServer : MapServer<StaticFragment, GoogleCredentia
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage( StaticFragment mapFragment, int scale )
+    public override HttpRequestMessage? CreateMessage( IStaticFragment mapFragment, int scale )
     {
         if( !Initialized )
         {

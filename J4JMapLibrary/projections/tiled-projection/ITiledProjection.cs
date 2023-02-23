@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using static System.Formats.Asn1.AsnWriter;
-
 namespace J4JSoftware.J4JMapLibrary;
 
 public interface ITiledProjection : IProjection

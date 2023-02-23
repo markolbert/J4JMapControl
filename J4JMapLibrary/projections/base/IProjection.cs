@@ -25,8 +25,8 @@ public interface IProjection
 
     IMapServer MapServer { get; }
 
-    Task<bool> AuthenticateAsync( object? credentials, CancellationToken ctx = default );
-    bool Authenticate( object? credentials );
+    Task<bool> AuthenticateAsync( object credentials, CancellationToken ctx = default );
+    bool Authenticate( object credentials );
 
     IAsyncEnumerable<IMapFragment> GetViewportAsync(
         INormalizedViewport viewportData,

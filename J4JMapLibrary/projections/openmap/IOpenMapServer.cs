@@ -4,7 +4,7 @@ public interface IOpenMapServer : IMapServer
 {
     string RetrievalUrl { get; }
     string UserAgent { get; }
-    Task<bool> InitializeAsync( string credentials, CancellationToken ctx = default );
+    Task<bool> InitializeAsync( IOpenMapCredentials credentials, CancellationToken ctx = default );
 }
 
 // marker interface

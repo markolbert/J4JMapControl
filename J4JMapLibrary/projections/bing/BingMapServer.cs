@@ -20,8 +20,8 @@ using System.Text.Json;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ Projection( "BingMaps" ) ]
-public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMapServer
+[ MapServer( "BingMaps", typeof(IMapServer<ITiledFragment, BingCredentials>) ) ]
+public class BingMapServer : MapServer<ITiledFragment, BingCredentials>, IBingMapServer
 {
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
@@ -155,7 +155,7 @@ public class BingMapServer : MapServer<TiledFragment, BingCredentials>, IBingMap
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( TiledFragment mapFragment, int scale )
+    public override HttpRequestMessage? CreateMessage( ITiledFragment mapFragment, int scale )
     {
         if( !Initialized )
         {

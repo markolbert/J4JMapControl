@@ -21,7 +21,8 @@ public interface IMapServer
 {
     event EventHandler? ScaleChanged;
 
-    string SupportedProjection { get; }
+    string? ProjectionName { get; }
+    Type? ProjectionType { get; }
     bool Initialized { get; }
 
     int Scale { get; set; }

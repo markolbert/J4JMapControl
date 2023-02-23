@@ -163,6 +163,12 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue( MapNameProperty, value );
     }
 
+    public string MapStyle
+    {
+        get => (string)GetValue(MapStyleProperty);
+        set => SetValue(MapStyleProperty, value);
+    }
+
     private void UpdateProjection()
     {
         if( !_cacheIsValid )
@@ -172,10 +178,10 @@ public sealed partial class J4JMapControl : Panel
 
         var tempProjection = MapName switch
         {
-            "BingMaps" => (IProjection) new BingMapsProjection( _projCredentials, _logger, cache ),
-            "OpenStreetMaps" => new OpenStreetMapsProjection( _projCredentials, _logger, cache ),
-            "OpenTopoMaps" => new OpenTopoMapsProjection( _projCredentials, _logger, cache ),
-            "GoogleMaps" => new GoogleMapsProjection( _projCredentials, _logger ),
+            "BingMaps" => (IProjection) new BingMapsProjection( _logger, cache ),
+            "OpenStreetMaps" => new OpenStreetMapsProjection( _logger, cache ),
+            "OpenTopoMaps" => new OpenTopoMapsProjection( _logger, cache ),
+            "GoogleMaps" => new GoogleMapsProjection(  _logger ),
             _ => null
         };
 

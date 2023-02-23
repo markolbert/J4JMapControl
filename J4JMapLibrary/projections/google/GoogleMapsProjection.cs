@@ -32,41 +32,12 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         MapServer = mapServer ?? new GoogleMapsServer();
     }
 
-    public GoogleMapsProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger,
-        IGoogleMapsServer? mapServer = null
-    )
-        : base( credentials, logger )
+    public override async Task<bool> AuthenticateAsync( GoogleCredentials credentials, CancellationToken ctx = default )
     {
-        MapServer = mapServer ?? new GoogleMapsServer();
-    }
-
-    public override async Task<bool> AuthenticateAsync(
-        GoogleCredentials? credentials,
-        CancellationToken ctx = default
-    )
-    {
-        if( MapServer is not IGoogleMapsServer googleServer )
-        {
-            Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
-            return false;
-        }
-
-        if( credentials != null )
+        if( MapServer is IGoogleMapsServer googleServer )
             return await googleServer.InitializeAsync( credentials, ctx );
 
-        if( LibraryConfiguration?
-           .Credentials
-           .FirstOrDefault( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) ) is not SignedCredential
-           signedCredential )
-        {
-            Logger.Error( "Configuration credential not found or is not a SignedCredential" );
-            return false;
-        }
-
-        credentials = new GoogleCredentials( signedCredential.ApiKey, signedCredential.Signature );
-
-        return await googleServer.InitializeAsync( credentials, ctx );
+        Logger.Error("MapServer was not initialized with an instance of IGoogleMapsServer");
+        return false;
     }
 }

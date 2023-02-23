@@ -56,28 +56,44 @@ public class TestBase
             _ => null
         };
 
-        if( retVal == null )
+        if (retVal == null)
+        {
+            Logger.Error<string>("Unknown projection {0}", projName);
             return null;
+        }
 
-        await retVal.AuthenticateAsync( credentials );
+        var authenticated = await retVal.AuthenticateAsync(credentials!);
+        authenticated.Should().BeTrue();
+
         return retVal;
     }
 
     private async Task<IProjection?> CreateProjectionUsingBuiltInCredentials( string projName, ITileCache? cache )
     {
+        if( !Credentials.TryGetCredential( projName, out var credentials ) )
+        {
+            Logger.Error<string>("Couldn't find credentials for {0}", projName  );
+            return null;
+        }
+
         var retVal = projName switch
         {
-            "BingMaps" => (IProjection) new BingMapsProjection( Credentials, Logger, cache ),
-            "OpenStreetMaps" => new OpenStreetMapsProjection( Credentials, Logger, cache ),
-            "OpenTopoMaps" => new OpenTopoMapsProjection( Credentials, Logger, cache ),
-            "GoogleMaps" => new GoogleMapsProjection( Credentials, Logger ),
+            "BingMaps" => (IProjection) new BingMapsProjection( Logger, cache ),
+            "OpenStreetMaps" => new OpenStreetMapsProjection( Logger, cache ),
+            "OpenTopoMaps" => new OpenTopoMapsProjection( Logger, cache ),
+            "GoogleMaps" => new GoogleMapsProjection( Logger ),
             _ => null
         };
 
         if( retVal == null )
+        {
+            Logger.Error<string>("Unknown projection {0}", projName);
             return null;
+        }
 
-        await retVal.AuthenticateAsync( null );
+        var authenticated = await retVal.AuthenticateAsync( credentials! );
+        authenticated.Should().BeTrue();
+
         return retVal;
     }
 

@@ -19,8 +19,8 @@ using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ Projection( "OpenTopoMaps" ) ]
-public sealed class OpenTopoMapsProjection : OpenMapProjection
+[MapServer("OpenTopoMaps", typeof(IMapServer<ITiledFragment, string>))]
+public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials>
 {
     public OpenTopoMapsProjection(
         IJ4JLogger logger,
@@ -28,18 +28,6 @@ public sealed class OpenTopoMapsProjection : OpenMapProjection
         IOpenTopoMapsServer? mapServer = null
     )
         : base(logger )
-    {
-        TileCache = tileCache;
-        MapServer = mapServer ?? new OpenTopoMapServer();
-    }
-
-    public OpenTopoMapsProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger,
-        ITileCache? tileCache = null,
-        IOpenTopoMapsServer? mapServer = null
-    )
-        : base( credentials, logger )
     {
         TileCache = tileCache;
         MapServer = mapServer ?? new OpenTopoMapServer();

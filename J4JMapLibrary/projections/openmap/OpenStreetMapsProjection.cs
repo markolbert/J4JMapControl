@@ -20,7 +20,7 @@ using J4JSoftware.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "OpenStreetMaps" ) ]
-public sealed class OpenStreetMapsProjection : OpenMapProjection
+public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredentials>
 {
     public OpenStreetMapsProjection(
         IJ4JLogger logger,
@@ -33,15 +33,12 @@ public sealed class OpenStreetMapsProjection : OpenMapProjection
         MapServer = mapServer ?? new OpenStreetMapServer();
     }
 
-    public OpenStreetMapsProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger,
-        ITileCache? tileCache = null,
-        IOpenStreetMapsServer? mapServer = null
-    )
-        : base( credentials, logger )
+    public override async Task<bool> AuthenticateAsync(OpenStreetCredentials credentials, CancellationToken ctx = default)
     {
-        TileCache = tileCache;
-        MapServer = mapServer ?? new OpenStreetMapServer();
+        if (MapServer is IOpenStreetMapsServer openServer)
+            return await openServer.InitializeAsync(credentials, ctx);
+
+        Logger.Error("MapServer was not initialized with an instance of IGoogleMapsServer");
+        return false;
     }
 }

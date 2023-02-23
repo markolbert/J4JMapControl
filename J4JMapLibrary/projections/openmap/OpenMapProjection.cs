@@ -19,42 +19,13 @@ using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class OpenMapProjection : TiledProjection<string>
+public abstract class OpenMapProjection<TAuth> : TiledProjection<TAuth>
+where TAuth : class, new()
 {
     protected OpenMapProjection(
         IJ4JLogger logger
     )
         : base( logger )
     {
-    }
-
-    protected OpenMapProjection(
-        IProjectionCredentials credentials,
-        IJ4JLogger logger
-    )
-        : base( credentials, logger )
-    {
-    }
-
-    public override async Task<bool> AuthenticateAsync( string? credentials, CancellationToken ctx = default )
-    {
-        await base.AuthenticateAsync(credentials, ctx);
-
-        if ( MapServer is not IOpenMapServer mapServer )
-        {
-            Logger.Error( "Undefined or inaccessible IMessageCreator, cannot initialize" );
-            return false;
-        }
-
-        credentials ??= LibraryConfiguration?.Credentials
-                                             .Where( x => x.Name.Equals( Name, StringComparison.OrdinalIgnoreCase ) )
-                                             .Select( x => x.ApiKey )
-                                             .FirstOrDefault();
-
-        if( credentials != null )
-            return await mapServer.InitializeAsync( credentials, ctx );
-
-        Logger.Error( "No credentials provided or available" );
-        return false;
     }
 }
