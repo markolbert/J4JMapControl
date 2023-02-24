@@ -91,14 +91,14 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
     {
         if( viewportData.GetType().IsAssignableTo( typeof( TViewport ) ) )
         {
-            await foreach( var fragment in GetExtractAsync( ( TViewport ) viewportData, deferImageLoad, ctx ) )
+            await foreach( var fragment in GetExtractAsync( (TViewport) viewportData, deferImageLoad, ctx ) )
             {
                 yield return fragment;
             }
         }
-
-        Logger.Error( "Expected viewport data to be an {0}, got a {1} instead",
-                      typeof( TViewport ),
-                      viewportData.GetType() );
+        else
+            Logger.Error( "Expected viewport data to be an {0}, got a {1} instead",
+                          typeof( TViewport ),
+                          viewportData.GetType() );
     }
 }
