@@ -20,7 +20,7 @@ using System.Text;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[MapServer("GoogleMaps", typeof(IMapServer<IStaticFragment, BingCredentials>))]
+[MapServer("GoogleMaps", typeof(GoogleMapsProjection))]
 public sealed class GoogleMapsServer : MapServer<IStaticFragment, GoogleCredentials>, IGoogleMapsServer
 {
     public GoogleMapsServer()

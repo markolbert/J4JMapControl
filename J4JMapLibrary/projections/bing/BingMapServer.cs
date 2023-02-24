@@ -20,7 +20,7 @@ using System.Text.Json;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ MapServer( "BingMaps", typeof(IMapServer<ITiledFragment, BingCredentials>) ) ]
+[ MapServer( "BingMaps", typeof(BingMapsProjection) ) ]
 public class BingMapServer : MapServer<ITiledFragment, BingCredentials>, IBingMapServer
 {
     public const string MetadataUrl =
