@@ -40,8 +40,16 @@ internal class DeusEx : J4JDeusExWinApp
 
     private void SetupDependencyInjection(HostBuilderContext hbc, ContainerBuilder builder)
     {
-        builder.Register(_ => new ProjectionCredentials(hbc.Configuration))
-               .As<IProjectionCredentials>()
+        builder.Register(c =>
+                {
+                    var retVal = new ProjectionFactory(c.Resolve<IConfiguration>(),
+                                                       c.Resolve<IJ4JLogger>());
+
+                    retVal.ScanAssemblies();
+
+                    return retVal;
+                })
+               .AsSelf()
                .SingleInstance();
 
         builder.RegisterType<MemoryCache>()

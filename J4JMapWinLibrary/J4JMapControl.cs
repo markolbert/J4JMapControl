@@ -15,6 +15,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using J4JSoftware.DependencyInjection;
 using Microsoft.UI.Xaml.Media;
 
@@ -49,9 +50,8 @@ public sealed partial class J4JMapControl : Panel
     }
 
     private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
+    private readonly ProjectionFactory _projFactory;
     private readonly IJ4JLogger _logger;
-    private readonly IProjectionCredentials _projCredentials;
 
     private IProjection? _projection;
     private ITileCache? _tileMemCache;
@@ -65,14 +65,10 @@ public sealed partial class J4JMapControl : Panel
         _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain IJ4JLogger instance" );
         _logger.SetLoggedType( GetType() );
 
-        var tempCredentials = J4JDeusEx.ServiceProvider.GetService<IProjectionCredentials>();
-        if( tempCredentials == null )
-        {
-            _logger.Fatal( "Could not obtain map projection credentials" );
-            throw new NullReferenceException( "Could not obtain map projection credentials" );
-        }
+        _projFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>()
+         ?? throw new NullReferenceException( "Could not create ProjectionFactory" );
 
-        _projCredentials = tempCredentials;
+        _projFactory.ScanAssemblies();
     }
 
     public bool UseMemoryCache
@@ -176,25 +172,20 @@ public sealed partial class J4JMapControl : Panel
 
         var cache = _tileMemCache ?? _tileFileCache;
 
-        var tempProjection = MapName switch
+        var projResult = _projFactory.CreateProjection( MapName, cache );
+        if( !projResult.ProjectionTypeFound )
         {
-            "BingMaps" => (IProjection) new BingMapsProjection( _logger, cache ),
-            "OpenStreetMaps" => new OpenStreetMapsProjection( _logger, cache ),
-            "OpenTopoMaps" => new OpenTopoMapsProjection( _logger, cache ),
-            "GoogleMaps" => new GoogleMapsProjection(  _logger ),
-            _ => null
-        };
-
-        if (tempProjection == null)
-        {
-            _logger.Fatal<string>("Unsupported map projection '{0}'", MapName);
-            throw new NullReferenceException($"Unsupported map projection '{MapName}'");
+            J4JDeusEx.OutputFatalMessage($"Could not create projection '{MapName}'", _logger);
+            throw new InvalidOperationException( $"Could not create projection '{MapName}'" );
         }
 
-        if (!tempProjection.Authenticate(null))
-            _logger.Error<string>("Authentication of {0} failed", MapName);
+        if( !projResult.Authenticated )
+        {
+            J4JDeusEx.OutputFatalMessage($"Could not authenticate projection '{MapName}'", _logger);
+            throw new InvalidOperationException($"Could not authenticate projection '{MapName}'");
+        }
 
-        _projection = tempProjection;
+        _projection = projResult.Projection!;
         _fragments = new MapFragments(_projection, _logger);
         InvalidateMeasure();
     }
