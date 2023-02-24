@@ -1,21 +1,27 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel;
+using System.Reflection;
 using J4JSoftware.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public class ProjectionFactory
 {
+    private readonly IConfiguration _config;
     private readonly IJ4JLogger _logger;
     private readonly bool _includeDefaults;
     private readonly List<ProjectionTypeInfo> _projTypes = new();
     private readonly List<ServerTypeInfo> _serverTypes = new();
-    private readonly List<CredentialsTypeInfo> _credentialTypes = new();
+    private readonly List<CredentialsTypeInfo> _credTypes = new();
 
     public ProjectionFactory(
+        IConfiguration config,
         IJ4JLogger logger,
         bool includeDefaults = true
     )
     {
+        _config = config;
+
         _logger = logger;
         _logger.SetLoggedType( GetType() );
 
@@ -24,6 +30,8 @@ public class ProjectionFactory
 
     public void ScanAssemblies( params Type[] types ) =>
         ScanAssemblies( types.Distinct().Select( t => t.Assembly ).ToArray() );
+
+    public void ScanAssemblies() => ScanAssemblies( Enumerable.Empty<Assembly>().ToArray() );
 
     public void ScanAssemblies( params Assembly[] assemblies )
     {
@@ -34,8 +42,9 @@ public class ProjectionFactory
 
         toScan = toScan.Distinct().ToList();
 
-        ProcessProjectionTypes(toScan);
+        ProcessProjectionTypes( toScan );
         ProcessServerTypes( toScan );
+        ProcessCredentialTypes( toScan );
     }
 
     private void ProcessProjectionTypes( List<Assembly> toScan )
@@ -110,23 +119,297 @@ public class ProjectionFactory
             return;
         }
 
-        _credentials.AddRange(types.Select(t => new ServerTypeInfo(t)));
+        _credTypes.AddRange(types.Select(t => new CredentialsTypeInfo(t)));
     }
 
-    public ProjectionFactoryResult CreateProjection( string projectionName, bool authenticate = true )
+    public ProjectionFactoryResult CreateProjection(
+        string projName,
+        ITileCache? cache = null,
+        string? serverName = null,
+        string? credentialsName = null,
+        bool authenticate = true
+    )
     {
-        return ProjectionFactoryResult.NotFound;
+        return Task.Run(async () =>
+                            await CreateProjectionAsync(projName, cache, serverName, credentialsName, authenticate))
+                   .Result;
     }
 
-    public ProjectionFactoryResult CreateProjection<TProj>(bool authenticate = true)
+    public async Task<ProjectionFactoryResult> CreateProjectionAsync(
+        string projName,
+        ITileCache? cache = null,
+        string? serverName = null,
+        string? credentialsName = null,
+        bool authenticate = true
+    )
+    {
+        var projInfo = _projTypes
+           .FirstOrDefault(x => x.Name.Equals(projName, StringComparison.OrdinalIgnoreCase));
+
+        if (projInfo == null)
+        {
+            _logger.Error<string>("Could not find IProjection type named '{0}'", projName);
+            return ProjectionFactoryResult.NotFound;
+        }
+
+        // see if there's an IMapServer type supporting the projection
+        var serverInfo = GetMapServerInfo(projInfo, serverName);
+
+        var retVal = CreateProjectionInternal(projInfo, serverInfo, cache);
+        if (!retVal.ProjectionTypeFound || !authenticate)
+            return retVal;
+
+        var credentials = CreateCredentials(projInfo, credentialsName);
+        if (credentials == null)
+            return retVal;
+
+        return retVal with { Authenticated = await retVal.Projection!.AuthenticateAsync(credentials) };
+    }
+
+    public ProjectionFactoryResult CreateProjection<TProj>(
+        ITileCache? cache = null,
+        string? serverName = null,
+        string? credentialsName = null,
+        bool authenticate = true
+        )
         where TProj : IProjection =>
-        CreateProjection( typeof( TProj ), authenticate );
+        CreateProjection(typeof(TProj), cache, serverName, credentialsName, authenticate);
 
-    public ProjectionFactoryResult CreateProjection( Type type, bool authenticate = true)
+    public async Task<ProjectionFactoryResult> CreateProjectionAsync<TProj>(
+        ITileCache? cache = null,
+        string? serverName = null,
+        string? credentialsName = null,
+        bool authenticate = true
+    )
+        where TProj : IProjection
     {
-        if( !type.IsAssignableTo( typeof( IProjection ) ) )
+        return await CreateProjectionAsync( typeof( TProj ),
+                                            cache,
+                                            serverName,
+                                            credentialsName,
+                                            authenticate );
+    }
+
+    public ProjectionFactoryResult CreateProjection(
+        Type projType,
+        ITileCache? cache = null,
+        string? serverName = null,
+        string? credentialsName = null,
+        bool authenticate = true
+    )
+    {
+        return Task.Run( async () =>
+                             await CreateProjectionAsync( projType, cache, serverName, credentialsName, authenticate ) )
+                   .Result;
+
+        //if (!projType.IsAssignableTo(typeof(IProjection)))
+        //    return ProjectionFactoryResult.NotFound;
+
+        //var projInfo = _projTypes
+        //   .FirstOrDefault(x => x.ProjectionType == projType);
+
+        //if (projInfo == null)
+        //{
+        //    _logger.Error("Could not find IProjection type '{0}'", projType);
+        //    return ProjectionFactoryResult.NotFound;
+        //}
+
+        //// see if there's an IMapServer type supporting the projection
+        //var serverInfo = GetMapServerInfo(projInfo, serverName);
+
+        //var retVal = CreateProjectionInternal(projInfo, serverInfo, cache);
+        //if (!retVal.ProjectionTypeFound || !authenticate)
+        //    return retVal;
+
+        //var credentials = CreateCredentials(projInfo, credentialsName);
+        //if (credentials == null)
+        //    return retVal;
+
+        //return retVal with { Authenticated = retVal.Projection!.Authenticate(credentials) };
+    }
+
+    public async Task<ProjectionFactoryResult> CreateProjectionAsync(
+        Type projType,
+        ITileCache? cache = null,
+        string? serverName = null,
+        string? credentialsName = null,
+        bool authenticate = true
+    )
+    {
+        if (!projType.IsAssignableTo(typeof(IProjection)))
             return ProjectionFactoryResult.NotFound;
 
-        return ProjectionFactoryResult.NotFound;
+        var projInfo = _projTypes
+           .FirstOrDefault(x => x.ProjectionType == projType);
+
+        if (projInfo == null)
+        {
+            _logger.Error("Could not find IProjection type '{0}'", projType);
+            return ProjectionFactoryResult.NotFound;
+        }
+
+        // see if there's an IMapServer type supporting the projection
+        var serverInfo = GetMapServerInfo(projInfo, serverName);
+
+        var retVal = CreateProjectionInternal(projInfo, serverInfo, cache);
+        if (!retVal.ProjectionTypeFound || !authenticate)
+            return retVal;
+
+        var credentials = CreateCredentials(projInfo, credentialsName);
+        if (credentials == null)
+            return retVal;
+
+        return retVal with { Authenticated = await retVal.Projection!.AuthenticateAsync(credentials) };
+    }
+
+    private ServerTypeInfo? GetMapServerInfo( ProjectionTypeInfo projInfo, string? serverName)
+    {
+        var serverTypes = _serverTypes
+                         .Where(x => x.ProjectionType == projInfo.ProjectionType)
+                         .ToList();
+
+        var retVal = string.IsNullOrEmpty(serverName)
+            ? serverTypes.FirstOrDefault()
+            : serverTypes.FirstOrDefault(x => x.Name.Equals(serverName, StringComparison.OrdinalIgnoreCase));
+
+        // it's possible the search on serverName failed, so we need a fallback
+        retVal ??= serverTypes.FirstOrDefault();
+
+        if (retVal == null)
+        {
+            if (string.IsNullOrEmpty(serverName))
+                _logger.Warning<string>("No valid IMapServer type supporting '{0}' projection found", projInfo.Name);
+            else
+                _logger.Warning<string, string>(
+                    "No IMapServer type named '{0}' found, and no other IMapServer supporting '{1}' projection found",
+                    serverName,
+                    projInfo.Name);
+        }
+
+        if (serverTypes.Count > 1)
+            _logger.Warning<string, string>(
+                "Multiple IMapServer types supporting '{0}' projection found, using {1} map server",
+                projInfo.Name,
+                retVal?.Name ?? "Default");
+
+        return retVal;
+    }
+
+    private ProjectionFactoryResult CreateProjectionInternal(
+        ProjectionTypeInfo projInfo,
+        ServerTypeInfo? serverInfo,
+        ITileCache? cache
+    )
+    {
+        // create an instance of IMapServer if we can (otherwise, the default will
+        // be used, assuming the projection supports using a default)
+        IMapServer? mapServer = null;
+
+        if( serverInfo != null )
+        {
+            try
+            {
+                mapServer = (IMapServer) Activator.CreateInstance( serverInfo.ServerType )!;
+            }
+            catch( Exception ex )
+            {
+                _logger.Warning<Type, string>( "Could not create instance of {0}, message was {1}",
+                                               serverInfo.ServerType,
+                                               ex.Message );
+            }
+        }
+
+        // create instance of IProjection and return
+        IProjection? projection;
+
+        // figure out the sequence of ctor parameters
+        var ctorInfo = projInfo.ConstructorInfo.FirstOrDefault( x => cache == null || x.SupportsCaching );
+        if( ctorInfo == null )
+        {
+            _logger.Error("Could not find supported constructor for {0}", projInfo.ProjectionType  );
+            return ProjectionFactoryResult.NotFound;
+        }
+
+        var args = new object?[ ctorInfo.ParameterTypes.Count ];
+
+        for( var idx = 0; idx < ctorInfo.ParameterTypes.Count; idx++ )
+        {
+            args[ idx ] = ( ctorInfo.ParameterTypes[ idx ] switch
+            {
+                ProjectionCtorParameterType.Cache => cache,
+                ProjectionCtorParameterType.Logger => _logger,
+                ProjectionCtorParameterType.MapServer => mapServer,
+                _ => throw new InvalidEnumArgumentException(
+                    $"Unsupported {typeof( ProjectionCtorParameterType )} value '{ctorInfo.ParameterTypes[ idx ]}'" )
+            } );
+        }
+
+        try
+        {
+            projection = (IProjection) Activator.CreateInstance( projInfo.ProjectionType, args )!;
+        }
+        catch( Exception ex )
+        {
+            _logger.Error<Type, string>( "Could not create instance of {0}, message was {1}",
+                                         projInfo.ProjectionType,
+                                         ex.Message );
+            return ProjectionFactoryResult.NotFound;
+        }
+
+        return new ProjectionFactoryResult( projection, true );
+    }
+
+    private object? CreateCredentials(ProjectionTypeInfo projInfo, string? credentialsName)
+    {
+        var credTypes = _credTypes
+                         .Where(x => x.ProjectionType == projInfo.ProjectionType)
+                         .ToList();
+
+        var credType = string.IsNullOrEmpty(credentialsName)
+            ? credTypes.FirstOrDefault()
+            : credTypes.FirstOrDefault(x => x.Name.Equals(credentialsName, StringComparison.OrdinalIgnoreCase));
+
+        // it's possible the search on serverName failed, so we need a fallback
+        credType ??= credTypes.FirstOrDefault();
+
+        if (credType == null)
+        {
+            if (string.IsNullOrEmpty(credentialsName))
+                _logger.Warning<string>("No valid credentials type supporting '{0}' projection found", projInfo.Name);
+            else
+                _logger.Warning<string, string>(
+                    "No credentials type named '{0}' found, and no other credentials supporting '{1}' projection found",
+                    credentialsName,
+                    projInfo.Name);
+        }
+
+        if (credTypes.Count > 1)
+            _logger.Warning<string, string>(
+                "Multiple credentials types supporting '{0}' projection found, using {1} credentials type",
+                projInfo.Name,
+                credType?.Name ?? "Default");
+
+        if( credType == null )
+        {
+            _logger.Error<string>( "Could not find a credentials type supporting projection {0}", projInfo.Name );
+            return null;
+        }
+
+        try
+        {
+            var retVal = Activator.CreateInstance( credType.CredentialsType )!;
+
+            var section = _config.GetSection( $"Credentials:{credType.Name!}" );
+            section.Bind( retVal );
+
+            return retVal;
+        }
+        catch( Exception ex )
+        {
+            _logger.Error<Type, string>( "Could not create an instance of credentials type {0}, message was {1}",
+                                         credType.CredentialsType,
+                                         ex.Message );
+            return null;
+        }
     }
 }

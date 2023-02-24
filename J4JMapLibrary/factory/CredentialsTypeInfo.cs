@@ -1,13 +1,23 @@
-﻿namespace J4JSoftware.J4JMapLibrary;
+﻿using System.Reflection;
 
-internal class CredentialsTypeInfo : SupportingTypeInfo
+namespace J4JSoftware.J4JMapLibrary;
+
+internal record CredentialsTypeInfo
 {
     public CredentialsTypeInfo(
-        string name,
-        Type supportingType,
-        Type projType
+        Type credentialsType
     )
-        : base( supportingType, SupportingEntity.Credentials )
     {
+        var attr = credentialsType.GetCustomAttribute<MapCredentialsAttribute>(false)
+         ?? throw new NullReferenceException(
+                $"{credentialsType} is not decorated with a {typeof(MapCredentialsAttribute)}");
+
+        Name = attr.CredentialsName;
+        ProjectionType = attr.ProjectionType;
+        CredentialsType = credentialsType;
     }
+
+    public string Name { get; init; }
+    public Type CredentialsType { get; init; }
+    public Type ProjectionType { get; init; }
 }

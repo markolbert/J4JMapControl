@@ -1,6 +1,6 @@
 ﻿namespace J4JSoftware.J4JMapLibrary;
 
-public record ProjectionFactoryResult( IProjection? Projection, bool ProjectionTypeFound, object? Credentials = null )
+public record ProjectionFactoryResult( IProjection? Projection, bool ProjectionTypeFound )
 {
     public static ProjectionFactoryResult NotFound => new( null, false );
 
@@ -11,6 +11,4 @@ public record ProjectionFactoryResult( IProjection? Projection, bool ProjectionT
         get => Projection != null && _authenticated;
         init => _authenticated = value;
     }
-
-    public bool HasCredentials => Credentials != null;
 }
