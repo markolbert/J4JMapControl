@@ -34,22 +34,20 @@ public class MapTests : TestBase
     [ InlineData( 1, false ) ]
     public async Task BingApiKeyLatency( int maxLatency, bool testResult )
     {
-        Credentials.TryGetCredential( "BingMaps", out var rawCredentials ).Should().BeTrue();
-        rawCredentials.Should().NotBeNull();        
+        var credentials = GetCredentials( "BingMaps" ) as BingCredentials;
+        credentials.Should().NotBeNull();
         
-        var credentials = new BingCredentials( rawCredentials!.ApiKey, BingMapType.Aerial );
-
         var projection = await CreateProjection( "BingMaps", null, credentials ) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.MapServer.MaxRequestLatency = maxLatency;
 
         if( maxLatency is > 0 and < 10 )
         {
-            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.AuthenticateAsync( credentials ) );
+            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.AuthenticateAsync( credentials! ) );
         }
         else
         {
-            var initialized = await projection.AuthenticateAsync( credentials );
+            var initialized = await projection.AuthenticateAsync( credentials! );
             initialized.Should().Be( testResult );
         }
     }

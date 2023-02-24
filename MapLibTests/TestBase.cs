@@ -4,6 +4,7 @@ using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using Microsoft.Extensions.Configuration;
 
 namespace MapLibTests;
 
@@ -11,6 +12,8 @@ public class TestBase
 {
     public static string[] ProjectionNames =
         new[] { "BingMaps", "OpenStreetMaps", "OpenTopoMaps", "GoogleMaps" };
+
+    private readonly IConfiguration _config;
 
     protected TestBase()
     {
@@ -21,13 +24,10 @@ public class TestBase
         logger.Should().NotBeNull();
         Logger = logger;
 
-        var config = J4JDeusEx.ServiceProvider.GetRequiredService<IProjectionCredentials>();
-        config.Should().NotBeNull();
-        Credentials = config;
+        _config = J4JDeusEx.ServiceProvider.GetRequiredService<IConfiguration>();
     }
 
     protected IJ4JLogger Logger { get; }
-    protected IProjectionCredentials Credentials { get; }
 
     protected async Task<IProjection?> CreateProjection(
         string projName,
@@ -70,12 +70,6 @@ public class TestBase
 
     private async Task<IProjection?> CreateProjectionUsingBuiltInCredentials( string projName, ITileCache? cache )
     {
-        if( !Credentials.TryGetCredential( projName, out var credentials ) )
-        {
-            Logger.Error<string>("Couldn't find credentials for {0}", projName  );
-            return null;
-        }
-
         var retVal = projName switch
         {
             "BingMaps" => (IProjection) new BingMapsProjection( Logger, cache ),
@@ -91,8 +85,35 @@ public class TestBase
             return null;
         }
 
-        var authenticated = await retVal.AuthenticateAsync( credentials! );
+        var credentials = GetCredentials( projName );
+        if( credentials == null )
+            return null;
+
+        var authenticated = await retVal.AuthenticateAsync( credentials );
         authenticated.Should().BeTrue();
+
+        return retVal;
+    }
+
+    protected object? GetCredentials( string credentialName )
+    {
+        var retVal = credentialName switch
+        {
+            "BingMaps" => (object)new BingCredentials(),
+            "OpenStreetMaps" => new OpenStreetCredentials(),
+            "OpenTopoMaps" => new OpenTopoCredentials(),
+            "GoogleMaps" => new GoogleCredentials(),
+            _ => null
+        };
+
+        if (retVal == null)
+        {
+            Logger.Error<string>("Unknown credentials type {0}", credentialName);
+            return null;
+        }
+
+        var section = _config.GetSection($"Credentials:{credentialName}");
+        section.Bind(retVal);
 
         return retVal;
     }
