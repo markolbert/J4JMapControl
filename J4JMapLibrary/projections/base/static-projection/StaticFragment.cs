@@ -22,15 +22,15 @@ public sealed class StaticFragment : MapFragment, IStaticFragment
     private readonly INormalizedViewport _viewport;
 
     public StaticFragment(
-        IMapServer mapServer,
+        IProjection projection,
         INormalizedViewport viewport
     )
-        : base( mapServer )
+        : base( projection )
     {
         _viewport = viewport;
 
-        CenterLatitude = MapServer.LatitudeRange.ConformValueToRange( viewport.CenterLatitude, "Latitude" );
-        CenterLongitude = MapServer.LongitudeRange.ConformValueToRange( viewport.CenterLongitude, "Longitude" );
+        CenterLatitude = Projection.LatitudeRange.ConformValueToRange( viewport.CenterLatitude, "Latitude" );
+        CenterLongitude = Projection.LongitudeRange.ConformValueToRange( viewport.CenterLongitude, "Longitude" );
 
         ActualHeight = (int) Math.Ceiling( viewport.RequestedHeight );
         ActualWidth = (int) Math.Ceiling( viewport.RequestedWidth );

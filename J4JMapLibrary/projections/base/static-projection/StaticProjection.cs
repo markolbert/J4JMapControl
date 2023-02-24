@@ -20,7 +20,7 @@ using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedViewport, StaticFragment>
+public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedViewport, IStaticFragment>
     where TAuth : class, new()
 {
     protected StaticProjection(
@@ -42,7 +42,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
             yield break;
         }
 
-        var mapTile = new StaticFragment( MapServer, viewportData );
+        var mapTile = new StaticFragment( this, viewportData );
 
         if( !deferImageLoad )
             await mapTile.GetImageAsync( ctx: ctx );

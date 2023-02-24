@@ -1,7 +1,4 @@
-﻿using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
-
-namespace J4JSoftware.J4JMapLibrary;
+﻿namespace J4JSoftware.J4JMapLibrary;
 
 public class TiledPoint : StaticPoint
 {
@@ -28,6 +25,6 @@ public class TiledPoint : StaticPoint
         _yTileRange = ( (ITiledProjection) Projection ).TileYRange;
     }
 
-    public int XTile => X / Projection.MapServer.TileHeightWidth;
-    public int YTile => Y / Projection.MapServer.TileHeightWidth;
+    public int XTile => X / Projection.TileHeightWidth;
+    public int YTile => Y / Projection.TileHeightWidth;
 }

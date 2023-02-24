@@ -21,7 +21,7 @@ using System.Runtime.CompilerServices;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, TiledFragment>, ITiledProjection
+public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITiledFragment>, ITiledProjection
     where TAuth : class, new()
 {
     protected TiledProjection(
@@ -32,9 +32,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         TileXRange = new MinMax<int>( 0, 0 );
         TileYRange = new MinMax<int>( 0, 0 );
     }
-
-    public int Height =>MapServer.YRange.Maximum - MapServer.YRange.Minimum + 1;
-    public int Width => MapServer.XRange.Maximum - MapServer.XRange.Minimum + 1;
 
     public ITileCache? TileCache { get; protected set; }
 
@@ -49,11 +46,11 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
             return 0;
         }
 
-        latitude = MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" );
+        latitude = LatitudeRange.ConformValueToRange( latitude, "Latitude" );
 
         return (float) Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters
-          / Width;
+          / HeightWidth;
     }
 
     public string ScaleDescription( float latitude, float dotsPerInch ) =>
@@ -63,8 +60,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
     public override async Task<bool> AuthenticateAsync( TAuth credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        MapServer.ScaleChanged += ( _, _ ) => OnScaleChanged();
-        return true;
+        ScaleChanged += ( _, _ ) => OnScaleChanged();
+        return !string.IsNullOrEmpty( Name );
     }
 
     public override async IAsyncEnumerable<TiledFragment> GetExtractAsync(
@@ -79,7 +76,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
             yield break;
         }
 
-        MapServer.Scale = viewportData.Scale;
+        Scale = viewportData.Scale;
 
         var cartesianCenter = new TiledPoint( this );
         cartesianCenter.SetLatLong( viewportData.CenterLatitude, viewportData.CenterLongitude );
@@ -111,13 +108,13 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         // because in display space, increasing y values take you >>down<< the screen,
         // not up the screen. So the first adjustment is to subject the raw Y values from
         // the height of the projection to reverse the direction. 
-        var minTileY = CartesianToTile( corners.Min( y => Height - y.Y ) );
-        var maxTileY = CartesianToTile( corners.Max( y => Height - y.Y ) );
+        var minTileY = CartesianToTile( corners.Min( y => HeightWidth - y.Y ) );
+        var maxTileY = CartesianToTile( corners.Max( y => HeightWidth - y.Y ) );
 
         minTileX = minTileX < 0 ? 0 : minTileX;
         minTileY = minTileY < 0 ? 0 : minTileY;
 
-        var maxTiles = Height / MapServer.TileHeightWidth - 1;
+        var maxTiles = HeightWidth / TileHeightWidth - 1;
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
@@ -145,8 +142,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
         CancellationToken ctx = default
     )
     {
-        if( xTile < MapServer.XRange.Minimum || xTile > MapServer.XRange.Maximum
-           || yTile < MapServer.YRange.Minimum || yTile > MapServer.YRange.Maximum)
+        if( xTile < XRange.Minimum || xTile > XRange.Maximum
+           || yTile < YRange.Minimum || yTile > YRange.Maximum)
             return null;
 
         var retVal = await TiledFragment.CreateAsync(this, xTile, yTile, ctx: ctx);
@@ -159,9 +156,9 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, Tile
 
     protected virtual void OnScaleChanged()
     {
-        TileXRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, MapServer.Scale ) - 1 );
-        TileYRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, MapServer.Scale ) - 1 );
+        TileXRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, Scale ) - 1 );
+        TileYRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, Scale ) - 1 );
     }
 
-    private int CartesianToTile( float value ) => Convert.ToInt32( Math.Floor( value / MapServer.TileHeightWidth ) );
+    private int CartesianToTile( float value ) => Convert.ToInt32( Math.Floor( value / TileHeightWidth ) );
 }

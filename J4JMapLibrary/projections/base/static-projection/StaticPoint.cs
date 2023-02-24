@@ -14,7 +14,7 @@ public class StaticPoint
     {
         Projection = projection;
 
-        projection.MapServer.ScaleChanged += (_, _) => OnScaleChanged();
+        projection.ScaleChanged += (_, _) => OnScaleChanged();
         OnScaleChangedCartesian();
     }
 
@@ -27,8 +27,8 @@ public class StaticPoint
 
     private void OnScaleChangedCartesian()
     {
-        _xRange = new MinMax<int>( 0, Projection.MapServer.HeightWidth - 1 );
-        _yRange = new MinMax<int>( 0, Projection.MapServer.HeightWidth - 1 );
+        _xRange = new MinMax<int>( 0, Projection.HeightWidth - 1 );
+        _yRange = new MinMax<int>( 0, Projection.HeightWidth - 1 );
     }
 
     public int X { get; private set; }
@@ -40,10 +40,10 @@ public class StaticPoint
             return;
 
         if( x.HasValue )
-            X = _xRange.ConformValueToRange( x.Value, "X", Projection.MapServer.HeightWidth );
+            X = _xRange.ConformValueToRange( x.Value, "X", Projection.HeightWidth );
 
         if( y.HasValue )
-            Y = _yRange.ConformValueToRange( y.Value, "Y", Projection.MapServer.HeightWidth );
+            Y = _yRange.ConformValueToRange( y.Value, "Y", Projection.HeightWidth );
 
         UpdateLatLong();
     }
@@ -56,10 +56,10 @@ public class StaticPoint
         _suppressUpdate = true;
 
         SetLatLong((float)(2
-                     * Math.Atan(Math.Exp(MapConstants.TwoPi * Y / Projection.MapServer.TileHeightWidth))
+                     * Math.Atan(Math.Exp(MapConstants.TwoPi * Y / Projection.TileHeightWidth))
                      - MapConstants.HalfPi)
                  / MapConstants.RadiansPerDegree,
-                   360 * X / Projection.MapServer.TileHeightWidth - 180);
+                   360 * X / Projection.TileHeightWidth - 180);
 
         _suppressUpdate = false;
         Changed?.Invoke( this, EventArgs.Empty );
@@ -74,10 +74,10 @@ public class StaticPoint
             return;
 
         if( latitude.HasValue )
-            Latitude = Projection.MapServer.LatitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
+            Latitude = Projection.LatitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
 
         if( longitude.HasValue )
-            Longitude = Projection.MapServer.LongitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
+            Longitude = Projection.LongitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
 
         UpdateCartesian();
     }
@@ -91,7 +91,7 @@ public class StaticPoint
 
         // x == 0 is the left hand edge of the projection (the x/y origin is in
         // the upper left corner)
-        var x = (int) Math.Round( Projection.MapServer.HeightWidth * ( Longitude / 360 + 0.5 ) );
+        var x = (int) Math.Round( Projection.HeightWidth * ( Longitude / 360 + 0.5 ) );
 
         // another way of calculating Y...leave as comment for testing
         //var latRadians = Latitude * MapConstants.RadiansPerDegree;
@@ -102,8 +102,8 @@ public class StaticPoint
         // this weird "subtract the calculation from half the height" is due to the
         // fact y values increase going >>down<< the display, so the top is y = 0
         // while the bottom is y = height
-        var y = (int) Math.Round( Projection.MapServer.HeightWidth / 2F
-                                - Projection.MapServer.HeightWidth
+        var y = (int) Math.Round( Projection.HeightWidth / 2F
+                                - Projection.HeightWidth
                                 * Math.Log( Math.Tan( MapConstants.QuarterPi
                                                     + Latitude * MapConstants.RadiansPerDegree / 2 ) )
                                 / MapConstants.TwoPi );
