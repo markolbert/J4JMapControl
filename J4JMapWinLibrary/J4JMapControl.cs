@@ -263,28 +263,28 @@ public sealed partial class J4JMapControl : Panel
             retVal.Width += maxTileWidth;
         }
 
-        // determine the clipping rectangle so we can figure out whether we
-        // need to repeat tiles on the left or right
-        Clip = new RectangleGeometry()
-        {
-            Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2,
-                                      _fragments.CenterPoint.Y - Height / 2),
-                            new Size(Width, Height))
-        };
+        //// determine the clipping rectangle so we can figure out whether we
+        //// need to repeat tiles on the left or right
+        //Clip = new RectangleGeometry()
+        //{
+        //    Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2,
+        //                              _fragments.CenterPoint.Y - Height / 2),
+        //                    new Size(Width, Height))
+        //};
 
-        // handling tiled projection viewport edge issues...
-        if( _projection is ITiledProjection tiledProjection )
-        {
-            // if the left edge of the clipping rectangle is < 0 we need to insert
-            // tiles from the right edge of the map in each row of images
-            if( Clip.Rect.Left < 0 )
-                InsertTiles( tiledProjection, InsertedTileSide.Left );
-            else
-            {
-                if( Clip.Rect.Right > _fragments.ActualWidth )
-                    InsertTiles( tiledProjection, InsertedTileSide.Right );
-            }
-        }
+        //// handling tiled projection viewport edge issues...
+        //if (_projection is ITiledProjection tiledProjection)
+        //{
+        //    // if the left edge of the clipping rectangle is < 0 we need to insert
+        //    // tiles from the right edge of the map in each row of images
+        //    if (Clip.Rect.Left < 0)
+        //        InsertTiles(tiledProjection, InsertedTileSide.Left);
+        //    else
+        //    {
+        //        if (Clip.Rect.Right > _fragments.ActualWidth)
+        //            InsertTiles(tiledProjection, InsertedTileSide.Right);
+        //    }
+        //}
 
         _suppressLayout = false;
 
