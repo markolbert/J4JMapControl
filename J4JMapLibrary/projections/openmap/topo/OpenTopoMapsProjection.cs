@@ -19,7 +19,7 @@ using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[MapServer("OpenTopoMaps", typeof(IMapServer<ITiledFragment, string>))]
+[Projection("OpenTopoMaps")]
 public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials>
 {
     public OpenTopoMapsProjection(

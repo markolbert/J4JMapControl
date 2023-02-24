@@ -17,15 +17,16 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[MapServer("OpenStreetMaps", typeof(IMapServer<ITiledFragment, string>))]
-public sealed class OpenStreetMapServer : OpenMapServer<OpenStreetCredentials>, IOpenStreetMapsServer
+[MapServer("OpenTopoMaps", typeof(OpenTopoMapsProjection))]
+public sealed class OpenTopoMapServer : OpenMapServer<OpenTopoCredentials>, IOpenTopoMapsServer
 {
-    public OpenStreetMapServer()
+    public OpenTopoMapServer()
     {
         MinScale = 0;
-        MaxScale = 20;
-        RetrievalUrl = "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png";
-        Copyright = "© OpenStreetMap Contributors";
-        CopyrightUri = new Uri( "http://www.openstreetmap.org/copyright" );
+        MaxScale = 15;
+        MaxRequestLatency = 5000;
+        RetrievalUrl = "https://tile.opentopomap.org/{zoom}/{x}/{y}.png";
+        Copyright = "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA";
+        CopyrightUri = new Uri( "http://opentopomap.org/" );
     }
 }
