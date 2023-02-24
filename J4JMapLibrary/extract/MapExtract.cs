@@ -45,7 +45,7 @@ public abstract class MapExtract : IMapExtract
             return true;
         }
 
-        if( Tiles[ 0 ].MapServer != mapFragment.MapServer )
+        if( !Tiles[ 0 ].Projection.Equals(mapFragment.Projection) )
             return false;
 
         Tiles.Add( mapFragment );

@@ -17,14 +17,40 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface IProjection
+public interface IProjection : IEquatable<IProjection>
 {
+    event EventHandler? ScaleChanged;
+
     string Name { get; }
 
     bool Initialized { get; }
 
-    IMapServer MapServer { get; }
+    int Scale { get; set; }
+    int MinScale { get; }
+    int MaxScale { get; }
+    MinMax<int> ScaleRange { get; }
 
+    int HeightWidth { get; }
+
+    float MaxLatitude { get; }
+    float MinLatitude { get; }
+    MinMax<float> LatitudeRange { get; }
+
+    float MaxLongitude { get; }
+    float MinLongitude { get; }
+    MinMax<float> LongitudeRange { get; }
+
+    MinMax<int> XRange { get; }
+    MinMax<int> YRange { get; }
+
+    int MaxRequestLatency { get; set; }
+    int TileHeightWidth { get; }
+    string ImageFileExtension { get; }
+
+    string Copyright { get; }
+    Uri? CopyrightUri { get; }
+
+    HttpRequestMessage? CreateMessage(object requestInfo, int scale);
     Task<bool> AuthenticateAsync( object credentials, CancellationToken ctx = default );
     bool Authenticate( object credentials );
 
@@ -33,4 +59,10 @@ public interface IProjection
         bool deferImageLoad = false,
         CancellationToken ctx = default
     );
+}
+
+public interface IProjection<in TFrag> : IProjection
+    where TFrag : class, IMapFragment
+{
+    HttpRequestMessage? CreateMessage( TFrag fragment, int scale );
 }

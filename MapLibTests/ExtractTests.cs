@@ -40,8 +40,8 @@ public class ExtractTests : TestBase
     {
         var projection = await CreateProjection(projectionName);
         projection.Should().NotBeNull();
-        projection!.MapServer.Initialized.Should().BeTrue();
-        projection.MapServer.MaxRequestLatency = 0;
+        projection!.Initialized.Should().BeTrue();
+        projection.MaxRequestLatency = 0;
 
         var extractor = new MapFragments( projection, Logger );
         extractor.SetCenter( latitude, longitude );

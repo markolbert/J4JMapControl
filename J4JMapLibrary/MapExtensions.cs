@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Text;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
@@ -42,7 +41,7 @@ public static class MapExtensions
     {
         var retVal = new StringBuilder();
 
-        for( var i = scale; i > mapFragment.MapServer.ScaleRange.Minimum - 1; i-- )
+        for( var i = scale; i > mapFragment.Projection.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
             var mask = 1 << ( i - 1 );

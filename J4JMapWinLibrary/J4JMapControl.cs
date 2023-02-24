@@ -15,9 +15,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using J4JSoftware.DependencyInjection;
-using Microsoft.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -322,8 +320,8 @@ public sealed partial class J4JMapControl : Panel
 
         var x = side switch
         {
-            InsertedTileSide.Left => -projection.MapServer.TileHeightWidth,
-            InsertedTileSide.Right => projection.MapServer.HeightWidth,
+            InsertedTileSide.Left => -projection.TileHeightWidth,
+            InsertedTileSide.Right => projection.HeightWidth,
             _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( InsertedTileSide )} value '{side}'" )
         };
 

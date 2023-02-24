@@ -13,12 +13,12 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync( projection, data.TileX, data.TileY );
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.MapServer.ImageFileExtension}" );
+                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
@@ -31,12 +31,12 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.MapServer.ImageFileExtension}" );
+                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
@@ -49,12 +49,12 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.MapServer.ImageFileExtension}" );
+                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
         await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
     }
@@ -67,7 +67,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var viewport = new NormalizedViewport( projection )
         {
@@ -78,10 +78,10 @@ public class CheckImages : TestBase
             Scale = data.Scale
         };
 
-        var mapTile = new StaticFragment( projection.MapServer, viewport );
+        var mapTile = new StaticFragment( projection, viewport );
 
         var filePath = Path.Combine(GetCheckImagesFolder(projection.Name),
-                                    $"{data.FragmentId}{projection.MapServer.ImageFileExtension}");
+                                    $"{data.FragmentId}{projection.ImageFileExtension}");
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync() );
     }

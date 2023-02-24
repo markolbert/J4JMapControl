@@ -47,7 +47,7 @@ internal record MapFragmentsConfiguration(
         HashCode.Combine( Latitude, Longitude, Heading, Scale, RequestedHeight, RequestedWidth, FragmentBuffer );
 
     public bool IsValid( IProjection projection ) =>
-        RequestedHeight > 0 && RequestedWidth > 0 && Scale >= projection.MapServer.MinScale && Scale <= projection.MapServer.MaxScale;
+        RequestedHeight > 0 && RequestedWidth > 0 && Scale >= projection.MinScale && Scale <= projection.MaxScale;
 
     public float Rotation => 360 - Heading;
 }

@@ -65,8 +65,8 @@ public class MapFragments
 
     public void SetCenter( float latitude, float longitude )
     {
-        latitude = _projection.MapServer.LatitudeRange.ConformValueToRange( latitude, "Latitude" );
-        longitude = _projection.MapServer.LongitudeRange.ConformValueToRange( longitude, "Longitude" );
+        latitude = _projection.LatitudeRange.ConformValueToRange( latitude, "Latitude" );
+        longitude = _projection.LongitudeRange.ConformValueToRange( longitude, "Longitude" );
 
         _curConfig = _curConfig == null
             ? new MapFragmentsConfiguration( latitude, longitude, 0, 0, 0, 0, MapFragmentsBuffer.Default )
@@ -118,7 +118,7 @@ public class MapFragments
 
         set
         {
-            value = _projection.MapServer.ScaleRange.ConformValueToRange( value, "Scale" );
+            value = _projection.ScaleRange.ConformValueToRange( value, "Scale" );
 
             _curConfig = _curConfig == null
                 ? new MapFragmentsConfiguration( 0, 0, 0, value, 0, 0, MapFragmentsBuffer.Default )

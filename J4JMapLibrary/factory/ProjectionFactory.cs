@@ -11,7 +11,6 @@ public class ProjectionFactory
     private readonly IJ4JLogger _logger;
     private readonly bool _includeDefaults;
     private readonly List<ProjectionTypeInfo> _projTypes = new();
-    private readonly List<ServerTypeInfo> _serverTypes = new();
     private readonly List<CredentialsTypeInfo> _credTypes = new();
 
     public ProjectionFactory(
@@ -43,7 +42,6 @@ public class ProjectionFactory
         toScan = toScan.Distinct().ToList();
 
         ProcessProjectionTypes( toScan );
-        ProcessServerTypes( toScan );
         ProcessCredentialTypes( toScan );
     }
 
@@ -63,12 +61,7 @@ public class ProjectionFactory
 
                                                            return ctorParams.Any(
                                                                    p => p.ParameterType.IsAssignableTo(
-                                                                       typeof( IJ4JLogger ) ) )
-                                                            && ctorParams.Any(
-                                                                   p => p.ParameterType.GetInterface(
-                                                                           typeof( IMapServer ).FullName
-                                                                        ?? string.Empty )
-                                                                    != null );
+                                                                       typeof( IJ4JLogger ) ) );
                                                        } )
                                                   && t.GetInterface( typeof( IProjection ).FullName ?? string.Empty )
                                                   != null ) )
@@ -81,26 +74,6 @@ public class ProjectionFactory
         }
 
         _projTypes.AddRange(types.Select(t=>new ProjectionTypeInfo(t)));
-    }
-
-    private void ProcessServerTypes( List<Assembly> toScan )
-    {
-        var types = toScan
-           .SelectMany(a => a.GetTypes()
-                             .Where(t => !t.IsAbstract
-                                     && t.GetCustomAttribute<MapServerAttribute>(false) != null
-                                     && t.IsAssignableTo(typeof(IMapServer))
-                                     && t.GetConstructors()
-                                         .Any(c => c.GetParameters().Length == 0)))
-                         .ToList();
-
-        if( !types.Any() )
-        {
-            _logger.Warning( "No IMapServer types found" );
-            return;
-        }
-
-        _serverTypes.AddRange(types.Select(t => new ServerTypeInfo(t)));
     }
 
     private void ProcessCredentialTypes(List<Assembly> toScan)
@@ -152,10 +125,7 @@ public class ProjectionFactory
             return ProjectionFactoryResult.NotFound;
         }
 
-        // see if there's an IMapServer type supporting the projection
-        var serverInfo = GetMapServerInfo(projInfo, serverName);
-
-        var retVal = CreateProjectionInternal(projInfo, serverInfo, cache);
+        var retVal = CreateProjectionInternal(projInfo, cache);
         if (!retVal.ProjectionTypeFound || !authenticate)
             return retVal;
 
@@ -248,10 +218,7 @@ public class ProjectionFactory
             return ProjectionFactoryResult.NotFound;
         }
 
-        // see if there's an IMapServer type supporting the projection
-        var serverInfo = GetMapServerInfo(projInfo, serverName);
-
-        var retVal = CreateProjectionInternal(projInfo, serverInfo, cache);
+        var retVal = CreateProjectionInternal(projInfo, cache);
         if (!retVal.ProjectionTypeFound || !authenticate)
             return retVal;
 
@@ -262,63 +229,11 @@ public class ProjectionFactory
         return retVal with { Authenticated = await retVal.Projection!.AuthenticateAsync(credentials) };
     }
 
-    private ServerTypeInfo? GetMapServerInfo( ProjectionTypeInfo projInfo, string? serverName)
-    {
-        var serverTypes = _serverTypes
-                         .Where(x => x.ProjectionType == projInfo.ProjectionType)
-                         .ToList();
-
-        var retVal = string.IsNullOrEmpty(serverName)
-            ? serverTypes.FirstOrDefault()
-            : serverTypes.FirstOrDefault(x => x.Name.Equals(serverName, StringComparison.OrdinalIgnoreCase));
-
-        // it's possible the search on serverName failed, so we need a fallback
-        retVal ??= serverTypes.FirstOrDefault();
-
-        if (retVal == null)
-        {
-            if (string.IsNullOrEmpty(serverName))
-                _logger.Warning<string>("No valid IMapServer type supporting '{0}' projection found", projInfo.Name);
-            else
-                _logger.Warning<string, string>(
-                    "No IMapServer type named '{0}' found, and no other IMapServer supporting '{1}' projection found",
-                    serverName,
-                    projInfo.Name);
-        }
-
-        if (serverTypes.Count > 1)
-            _logger.Warning<string, string>(
-                "Multiple IMapServer types supporting '{0}' projection found, using {1} map server",
-                projInfo.Name,
-                retVal?.Name ?? "Default");
-
-        return retVal;
-    }
-
     private ProjectionFactoryResult CreateProjectionInternal(
         ProjectionTypeInfo projInfo,
-        ServerTypeInfo? serverInfo,
         ITileCache? cache
     )
     {
-        // create an instance of IMapServer if we can (otherwise, the default will
-        // be used, assuming the projection supports using a default)
-        IMapServer? mapServer = null;
-
-        if( serverInfo != null )
-        {
-            try
-            {
-                mapServer = (IMapServer) Activator.CreateInstance( serverInfo.ServerType )!;
-            }
-            catch( Exception ex )
-            {
-                _logger.Warning<Type, string>( "Could not create instance of {0}, message was {1}",
-                                               serverInfo.ServerType,
-                                               ex.Message );
-            }
-        }
-
         // create instance of IProjection and return
         IProjection? projection;
 
@@ -338,7 +253,6 @@ public class ProjectionFactory
             {
                 ProjectionCtorParameterType.Cache => cache,
                 ProjectionCtorParameterType.Logger => _logger,
-                ProjectionCtorParameterType.MapServer => mapServer,
                 _ => throw new InvalidEnumArgumentException(
                     $"Unsupported {typeof( ProjectionCtorParameterType )} value '{ctorInfo.ParameterTypes[ idx ]}'" )
             } );

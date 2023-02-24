@@ -23,7 +23,7 @@ public interface IMapFragment
 
     public string FragmentId { get; }
 
-    IMapServer MapServer { get; }
+    IProjection Projection { get; }
 
     int X { get; }
     int Y { get; }

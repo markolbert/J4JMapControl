@@ -19,6 +19,7 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapConstants
 {
+    public const float FloatTolerance = 0.0001F;
     public const float FourPi = (float)Math.PI * 4;
     public const float TwoPi = (float) Math.PI * 2;
     public const float HalfPi = (float) Math.PI / 2;

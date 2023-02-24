@@ -43,7 +43,7 @@ internal record ProjectionTypeInfo
             var supportsCaching =
                 ctor.GetParameters().Any(p => p.ParameterType.IsAssignableTo(typeof(ITileCache)));
 
-            var requiredCount = supportsCaching ? 3 : 2;
+            var requiredCount = supportsCaching ? 2 : 1;
 
             var ctorParameters = new List<ProjectionCtorParameterType>();
 
@@ -52,12 +52,6 @@ internal record ProjectionTypeInfo
                 if (ctorParameter.ParameterType.IsAssignableTo(typeof(IJ4JLogger)))
                 {
                     ctorParameters.Add(ProjectionCtorParameterType.Logger);
-                    continue;
-                }
-
-                if (ctorParameter.ParameterType.GetInterface(typeof(IMapServer).FullName ?? string.Empty) != null)
-                {
-                    ctorParameters.Add(ProjectionCtorParameterType.MapServer);
                     continue;
                 }
 

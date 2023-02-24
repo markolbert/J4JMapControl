@@ -35,13 +35,13 @@ public class NormalizedViewport : INormalizedViewport
     public float CenterLatitude
     {
         get => _latitude;
-        set => _latitude = _projection.MapServer.LatitudeRange.ConformValueToRange( value, "Latitude" );
+        set => _latitude = _projection.LatitudeRange.ConformValueToRange( value, "Latitude" );
     }
 
     public float CenterLongitude
     {
         get => _longitude;
-        set => _longitude = _projection.MapServer.LongitudeRange.ConformValueToRange( value, "Longitude" );
+        set => _longitude = _projection.LongitudeRange.ConformValueToRange( value, "Longitude" );
     }
 
     public float RequestedHeight { get; set; }
@@ -50,6 +50,6 @@ public class NormalizedViewport : INormalizedViewport
     public int Scale
     {
         get => _scale;
-        set => _scale = _projection.MapServer.ScaleRange.ConformValueToRange( value, "Scale" );
+        set => _scale = _projection.ScaleRange.ConformValueToRange( value, "Scale" );
     }
 }

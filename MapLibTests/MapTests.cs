@@ -17,14 +17,11 @@ public class MapTests : TestBase
             if( projection is not BingMapsProjection bingMaps )
                 continue;
 
-            var bingServer = bingMaps.MapServer as BingMapServer;
-            bingServer.Should().NotBeNull();
-
-            bingServer!.Metadata!.PrimaryResource.Should().NotBeNull();
-            bingServer.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
-            bingServer.Metadata.PrimaryResource.ZoomMin.Should().Be( 1 );
-            bingServer.Metadata.PrimaryResource.ImageHeight.Should().Be( 256 );
-            bingServer.Metadata.PrimaryResource.ImageWidth.Should().Be( 256 );
+            bingMaps.Metadata!.PrimaryResource.Should().NotBeNull();
+            bingMaps.Metadata.PrimaryResource!.ZoomMax.Should().Be( 21 );
+            bingMaps.Metadata.PrimaryResource.ZoomMin.Should().Be( 1 );
+            bingMaps.Metadata.PrimaryResource.ImageHeight.Should().Be( 256 );
+            bingMaps.Metadata.PrimaryResource.ImageWidth.Should().Be( 256 );
         }
     }
 
@@ -39,7 +36,7 @@ public class MapTests : TestBase
         
         var projection = await CreateProjection( "BingMaps", null, credentials ) as BingMapsProjection;
         projection.Should().NotBeNull();
-        projection!.MapServer.MaxRequestLatency = maxLatency;
+        projection!.MaxRequestLatency = maxLatency;
 
         if( maxLatency is > 0 and < 10 )
         {
@@ -84,7 +81,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = scale;
+        projection.Scale = scale;
 
         var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile );
         mapTile.Should().NotBeNull();
@@ -123,7 +120,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = scale;
+        projection.Scale = scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         mapTile.Should().NotBeNull();
@@ -162,7 +159,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = scale;
+        projection.Scale = scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
         mapTile.Should().NotBeNull();

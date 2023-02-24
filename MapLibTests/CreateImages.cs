@@ -13,7 +13,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
         await WriteImageFileAsync(projection, mapTile,data.Scale);
@@ -27,7 +27,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
         await WriteImageFileAsync(projection, mapTile, data.Scale);
@@ -41,7 +41,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.MapServer.Scale = data.Scale;
+        projection.Scale = data.Scale;
 
         var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
         await WriteImageFileAsync(projection, mapTile, data.Scale);
@@ -64,7 +64,7 @@ public class CreateImages : TestBase
             Scale = data.Scale
         };
 
-        var mapTile = new StaticFragment( projection.MapServer, viewport );
+        var mapTile = new StaticFragment( projection, viewport );
 
         await WriteImageFileAsync( projection, mapTile, data, true );
     }
@@ -80,7 +80,7 @@ public class CreateImages : TestBase
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapFragment.FragmentId}{projection.MapServer.ImageFileExtension}" );
+                                     $"{mapFragment.FragmentId}{projection.ImageFileExtension}" );
 
         await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
 
@@ -99,7 +99,7 @@ public class CreateImages : TestBase
         stream.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{data.FragmentId}{projection.MapServer.ImageFileExtension}" );
+                                     $"{data.FragmentId}{projection.ImageFileExtension}" );
 
         await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
 

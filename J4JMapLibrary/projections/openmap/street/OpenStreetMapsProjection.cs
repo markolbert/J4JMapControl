@@ -24,21 +24,57 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
 {
     public OpenStreetMapsProjection(
         IJ4JLogger logger,
-        ITileCache? tileCache = null,
-        IOpenStreetMapsServer? mapServer = null
+        ITileCache? tileCache = null
     )
         : base( logger )
     {
         TileCache = tileCache;
-        MapServer = mapServer ?? new OpenStreetMapServer();
+        ImageFileExtension = ".png";
+        TileHeightWidth = 256;
+        MinScale = 0;
+        MaxScale = 20;
+        RetrievalUrl = "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png";
+        Copyright = "© OpenStreetMap Contributors";
+        CopyrightUri = new Uri("http://www.openstreetmap.org/copyright");
     }
 
-    public override async Task<bool> AuthenticateAsync(OpenStreetCredentials credentials, CancellationToken ctx = default)
-    {
-        if (MapServer is IOpenStreetMapsServer openServer)
-            return await openServer.InitializeAsync(credentials, ctx);
+    public string RetrievalUrl { get; }
+    public string UserAgent { get; private set; } = string.Empty;
 
-        Logger.Error("MapServer was not initialized with an instance of IGoogleMapsServer");
-        return false;
+#pragma warning disable CS1998
+    public override async Task<bool> AuthenticateAsync(OpenStreetCredentials credentials, CancellationToken ctx = default)
+#pragma warning restore CS1998
+    {
+        Initialized = false;
+
+        UserAgent = credentials.UserAgent;
+        Scale = MinScale;
+
+        Initialized = true;
+        return Initialized;
+    }
+
+    public override HttpRequestMessage? CreateMessage(ITiledFragment mapFragment, int scale)
+    {
+        if (!Initialized)
+            return null;
+
+        if (string.IsNullOrEmpty(UserAgent))
+        {
+            Logger.Error("Undefined or empty User-Agent");
+            return null;
+        }
+
+        var replacements = new Dictionary<string, string>
+        {
+            { "{zoom}", scale.ToString() }, { "{x}", mapFragment.X.ToString() }, { "{y}", mapFragment.Y.ToString() }
+        };
+
+        var uriText = InternalExtensions.ReplaceParameters(RetrievalUrl, replacements);
+
+        var retVal = new HttpRequestMessage(HttpMethod.Get, new Uri(uriText));
+        retVal.Headers.Add("User-Agent", UserAgent);
+
+        return retVal;
     }
 }

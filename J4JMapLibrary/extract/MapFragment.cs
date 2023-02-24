@@ -26,19 +26,19 @@ public abstract class MapFragment : IMapFragment
     public event EventHandler? ImageChanged;
 
     protected MapFragment(
-        IMapServer mapServer
+        IProjection projection
     )
     {
         Logger = J4JDeusEx.GetLogger();
         Logger?.SetLoggedType( GetType() );
 
-        MapServer = mapServer;
+        Projection = projection;
     }
 
     protected IJ4JLogger? Logger { get; }
     protected int Scale { get; init; }
 
-    public IMapServer MapServer { get; }
+    public IProjection Projection { get; }
     
     public float ActualHeight { get; init; }
     public float ActualWidth { get; init; }
@@ -69,7 +69,7 @@ public abstract class MapFragment : IMapFragment
 
         Logger?.Verbose( "Beginning image retrieval from web" );
 
-        var request = MapServer.CreateMessage( this, Scale );
+        var request = Projection.CreateMessage( this, Scale );
         if( request == null )
         {
             Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", FragmentId );
@@ -88,10 +88,10 @@ public abstract class MapFragment : IMapFragment
 
         try
         {
-            response = MapServer.MaxRequestLatency <= 0
+            response = Projection.MaxRequestLatency <= 0
                 ? await httpClient.SendAsync( request, ctx )
                 : await httpClient.SendAsync( request, ctx )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( MapServer.MaxRequestLatency ), ctx );
+                                  .WaitAsync( TimeSpan.FromMilliseconds( Projection.MaxRequestLatency ), ctx );
 
             Logger?.Verbose<string>( "Got response from {0}", uriText );
         }
@@ -140,10 +140,10 @@ public abstract class MapFragment : IMapFragment
     {
         try
         {
-            await using var responseStream = MapServer.MaxRequestLatency < 0
+            await using var responseStream = Projection.MaxRequestLatency < 0
                 ? await response.Content.ReadAsStreamAsync( ctx )
                 : await response.Content.ReadAsStreamAsync( ctx )
-                                .WaitAsync( TimeSpan.FromMilliseconds( MapServer.MaxRequestLatency ), ctx );
+                                .WaitAsync( TimeSpan.FromMilliseconds( Projection.MaxRequestLatency ), ctx );
 
             var memStream = new MemoryStream();
             await responseStream.CopyToAsync( memStream, ctx );

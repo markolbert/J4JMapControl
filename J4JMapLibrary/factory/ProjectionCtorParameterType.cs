@@ -4,6 +4,5 @@ internal enum ProjectionCtorParameterType
 {
     Logger,
     Cache,
-    MapServer,
     Other
 }

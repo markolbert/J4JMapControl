@@ -22,11 +22,26 @@ using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
+public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
     where TAuth : class, new()
-    where TFrag : IMapFragment
+    where TFrag : class, IMapFragment
     where TViewport : INormalizedViewport
 {
+    public const int DefaultMaxRequestLatency = 500;
+
+    public event EventHandler? ScaleChanged;
+
+    private int _scale = -1; // ensure the change handler gets called on first assignment (which might be 0)
+    private int _minScale;
+    private int _maxScale;
+    private MinMax<int>? _scaleRange;
+    private float _minLat = -MapConstants.Wgs84MaxLatitude;
+    private float _maxLat = MapConstants.Wgs84MaxLatitude;
+    private float _minLong = -180;
+    private float _maxLong = 180;
+    private MinMax<int>? _xRange;
+    private MinMax<int>? _yRange;
+
     protected Projection(
         IJ4JLogger logger
     )
@@ -38,13 +53,171 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         if( attribute == null )
             Logger.Error( "Map projection class is not decorated with ProjectionAttribute(s), cannot be used" );
         else Name = attribute.ProjectionName;
+
+        Initialized = !string.IsNullOrEmpty( Name );
+
+        LatitudeRange = new MinMax<float>(-90, 90);
+        LongitudeRange = new MinMax<float>(-180, 180);
     }
 
     protected IJ4JLogger Logger { get; }
 
     public string Name { get; } = string.Empty;
-    public IMapServer MapServer { get; init; }
-    public virtual bool Initialized => !string.IsNullOrEmpty( Name ) && MapServer.Initialized;
+    public bool Initialized { get; protected set; }
+
+    #region Scale
+
+    public int Scale
+    {
+        get => _scale;
+
+        set
+        {
+            var temp = ScaleRange.ConformValueToRange(value, "Scale");
+            if (temp == _scale)
+                return;
+
+            _scale = temp;
+            OnScaleChanged();
+        }
+    }
+
+    private void OnScaleChanged()
+    {
+        _xRange = null;
+        _yRange = null;
+        HeightWidth = TileHeightWidth * InternalExtensions.Pow(2, Scale);
+
+        ScaleChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public int MinScale
+    {
+        get => _minScale;
+
+        protected set
+        {
+            _minScale = value;
+            _scaleRange = null;
+        }
+    }
+
+    public int MaxScale
+    {
+        get => _maxScale;
+
+        protected set
+        {
+            _maxScale = value;
+            _scaleRange = null;
+        }
+    }
+
+    public MinMax<int> ScaleRange
+    {
+        get
+        {
+            if (_scaleRange == null)
+                _scaleRange = new MinMax<int>(MinScale, MaxScale);
+
+            return _scaleRange;
+        }
+    }
+
+    #endregion
+
+    #region LatLong
+
+    public float MaxLatitude
+    {
+        get => _maxLat;
+
+        protected set
+        {
+            _maxLat = value;
+            LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
+        }
+    }
+
+    public float MinLatitude
+    {
+        get => _minLat;
+
+        protected set
+        {
+            _minLat = value;
+            LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
+        }
+    }
+
+    public MinMax<float> LatitudeRange { get; private set; }
+
+    public float MaxLongitude
+    {
+        get => _maxLong;
+
+        protected set
+        {
+            _maxLong = value;
+            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+        }
+    }
+
+    public float MinLongitude
+    {
+        get => _minLong;
+
+        protected set
+        {
+            _minLong = value;
+            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+        }
+    }
+
+    public MinMax<float> LongitudeRange { get; private set; }
+
+    #endregion
+
+    #region Cartesian X,Y
+
+    public MinMax<int> XRange
+    {
+        get
+        {
+            if (_xRange != null)
+                return _xRange;
+
+            var pow2 = InternalExtensions.Pow(2, Scale);
+            _xRange = new MinMax<int>(0, TileHeightWidth * pow2 - 1);
+
+            return _xRange;
+        }
+    }
+
+    public MinMax<int> YRange
+    {
+        get
+        {
+            if (_yRange != null)
+                return _yRange;
+
+            var pow2 = InternalExtensions.Pow(2, Scale);
+            _yRange = new MinMax<int>(0, TileHeightWidth * pow2 - 1);
+
+            return _yRange;
+        }
+    }
+
+    #endregion
+
+    public int TileHeightWidth { get; protected set; }
+    public int HeightWidth { get; protected set; }
+    public string ImageFileExtension { get; protected set; } = string.Empty;
+
+    public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
+
+    public string Copyright { get; protected set; } = string.Empty;
+    public Uri? CopyrightUri { get; protected set; }
 
     public bool Authenticate( TAuth credentials ) =>
         Task.Run( async () => await AuthenticateAsync( credentials ) ).Result;
@@ -83,6 +256,17 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
         }
     }
 
+    public abstract HttpRequestMessage? CreateMessage(TFrag fragment, int scale);
+
+    HttpRequestMessage? IProjection.CreateMessage(object requestInfo, int scale)
+    {
+        if (requestInfo is TFrag castInfo)
+            return CreateMessage(castInfo, scale);
+
+        Logger.Error("Expected a {0} but was passed a {1}", typeof(TFrag), requestInfo.GetType());
+        return null;
+    }
+
     async IAsyncEnumerable<IMapFragment> IProjection.GetViewportAsync(
         INormalizedViewport viewportData,
         bool deferImageLoad,
@@ -100,5 +284,50 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection
             Logger.Error( "Expected viewport data to be an {0}, got a {1} instead",
                           typeof( TViewport ),
                           viewportData.GetType() );
+    }
+
+    public static bool operator==( Projection<TAuth, TViewport, TFrag>? left, Projection<TAuth, TViewport, TFrag>? right ) => Equals( left, right );
+
+    public static bool operator!=( Projection<TAuth, TViewport, TFrag>? left, Projection<TAuth, TViewport, TFrag>? right ) => !Equals( left, right );
+
+    public bool Equals( IProjection? other ) =>
+        other != null
+     && Scale == other.Scale
+     && MinScale == other.MinScale
+     && MaxScale == other.MaxScale
+     && Math.Abs( MinLatitude - other.MinLatitude ) < MapConstants.FloatTolerance
+     && Math.Abs( MaxLatitude - other.MaxLatitude ) < MapConstants.FloatTolerance
+     && Math.Abs(MinLongitude - other.MinLongitude) < MapConstants.FloatTolerance
+     && Math.Abs(MaxLongitude - other.MaxLongitude) < MapConstants.FloatTolerance
+     && Equals( _xRange, other.XRange )
+     && Equals( _yRange, other.YRange )
+     && Name.Equals( other.Name, StringComparison.OrdinalIgnoreCase );
+
+    public override bool Equals( object? obj )
+    {
+        if( ReferenceEquals( null, obj ) )
+            return false;
+        if( ReferenceEquals( this, obj ) )
+            return true;
+        if( obj.GetType() != this.GetType() )
+            return false;
+
+        return Equals( (IProjection) obj );
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add( Scale );
+        hashCode.Add( MinScale );
+        hashCode.Add( MaxScale );
+        hashCode.Add( MinLatitude );
+        hashCode.Add( MaxLatitude );
+        hashCode.Add( MinLongitude );
+        hashCode.Add( MaxLongitude );
+        hashCode.Add( XRange );
+        hashCode.Add( YRange );
+        hashCode.Add( Name );
+        return hashCode.ToHashCode();
     }
 }

@@ -169,7 +169,7 @@ public class FileSystemCache : CacheBase
         }
 
         var key = $"{projection.Name}-{projection.GetQuadKey( xTile, yTile, scale )}";
-        var filePath = Path.Combine( _cacheDir, $"{key}{projection.MapServer.ImageFileExtension}" );
+        var filePath = Path.Combine( _cacheDir, $"{key}{projection.ImageFileExtension}" );
 
         return File.Exists( filePath )
             ? new CacheEntry( projection, xTile, yTile, scale, await File.ReadAllBytesAsync( filePath, ctx ) )
@@ -195,7 +195,7 @@ public class FileSystemCache : CacheBase
 
         var retVal = new CacheEntry( projection, xTile, yTile, scale, ctx );
 
-        var fileName = $"{projection.Name}-{retVal.Tile.FragmentId}{projection.MapServer.ImageFileExtension}";
+        var fileName = $"{projection.Name}-{retVal.Tile.FragmentId}{projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         var bytesToWrite = retVal.Tile.ImageBytes <= 0L

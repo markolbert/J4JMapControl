@@ -80,7 +80,7 @@ public class FactoryTests : TestBase
     {
         var projection = await CreateProjection(projectionName);
         projection.Should().NotBeNull();
-        projection!.MapServer.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
+        projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }
 
 }

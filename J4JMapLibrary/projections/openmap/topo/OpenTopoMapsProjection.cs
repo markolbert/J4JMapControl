@@ -24,12 +24,59 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
 {
     public OpenTopoMapsProjection(
         IJ4JLogger logger,
-        ITileCache? tileCache = null,
-        IOpenTopoMapsServer? mapServer = null
+        ITileCache? tileCache = null
     )
         : base(logger )
     {
         TileCache = tileCache;
-        MapServer = mapServer ?? new OpenTopoMapServer();
+        ImageFileExtension = ".png";
+        TileHeightWidth = 256;
+        MinScale = 0;
+        MaxScale = 15;
+        MaxRequestLatency = 5000;
+        RetrievalUrl = "https://tile.opentopomap.org/{zoom}/{x}/{y}.png";
+        Copyright = "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA";
+        CopyrightUri = new Uri("http://opentopomap.org/");
     }
+
+    public string RetrievalUrl { get; }
+    public string UserAgent { get; private set; } = string.Empty;
+
+#pragma warning disable CS1998
+    public override async Task<bool> AuthenticateAsync(OpenTopoCredentials credentials, CancellationToken ctx = default)
+#pragma warning restore CS1998
+    {
+        Initialized = false;
+
+        UserAgent = credentials.UserAgent;
+        Scale = MinScale;
+
+        Initialized = true;
+        return Initialized;
+    }
+
+    public override HttpRequestMessage? CreateMessage(ITiledFragment mapFragment, int scale)
+    {
+        if (!Initialized)
+            return null;
+
+        if (string.IsNullOrEmpty(UserAgent))
+        {
+            Logger.Error("Undefined or empty User-Agent");
+            return null;
+        }
+
+        var replacements = new Dictionary<string, string>
+        {
+            { "{zoom}", scale.ToString() }, { "{x}", mapFragment.X.ToString() }, { "{y}", mapFragment.Y.ToString() }
+        };
+
+        var uriText = InternalExtensions.ReplaceParameters(RetrievalUrl, replacements);
+
+        var retVal = new HttpRequestMessage(HttpMethod.Get, new Uri(uriText));
+        retVal.Headers.Add("User-Agent", UserAgent);
+
+        return retVal;
+    }
+
 }
