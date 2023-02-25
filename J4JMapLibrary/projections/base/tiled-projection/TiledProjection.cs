@@ -29,16 +29,11 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
     )
         : base( logger )
     {
-        TileXRange = new MinMax<int>( 0, 0 );
-        TileYRange = new MinMax<int>( 0, 0 );
     }
 
     public ITileCache? TileCache { get; protected set; }
 
-    public MinMax<int> TileXRange { get; private set; }
-    public MinMax<int> TileYRange { get; private set; }
-
-    public float GroundResolution( float latitude )
+    public float GroundResolution( float latitude, int scale )
     {
         if( !Initialized )
         {
@@ -47,26 +42,25 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         }
 
         latitude = LatitudeRange.ConformValueToRange( latitude, "Latitude" );
+        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
 
         return (float) Math.Cos( latitude * MapConstants.RadiansPerDegree )
           * MapConstants.EarthCircumferenceMeters
-          / HeightWidth;
+          / GetHeightWidth( scale );
     }
 
-    public string ScaleDescription( float latitude, float dotsPerInch ) =>
-        $"1 : {GroundResolution( latitude ) * dotsPerInch / MapConstants.MetersPerInch}";
+    public string ScaleDescription( float latitude, int scale, float dotsPerInch ) =>
+        $"1 : {GroundResolution( latitude, scale ) * dotsPerInch / MapConstants.MetersPerInch}";
 
 #pragma warning disable CS1998
     public override async Task<bool> AuthenticateAsync( TAuth credentials, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        ScaleChanged += ( _, _ ) => OnScaleChanged();
         return !string.IsNullOrEmpty( Name );
     }
 
     public override async IAsyncEnumerable<TiledFragment> GetExtractAsync(
         IViewport viewportData,
-        bool deferImageLoad = false,
         [ EnumeratorCancellation ] CancellationToken ctx = default
     )
     {
@@ -76,10 +70,17 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
             yield break;
         }
 
-        Scale = viewportData.Scale;
+        var scale = ScaleRange.ConformValueToRange( viewportData.Scale, "Viewport Scale" );
 
-        var cartesianCenter = new TiledPoint( this );
-        cartesianCenter.SetLatLong( viewportData.CenterLatitude, viewportData.CenterLongitude );
+        var cartesianCenter = new TiledPoint(this) { Scale = viewportData.Scale };
+        cartesianCenter.SetLatLong(viewportData.CenterLatitude, viewportData.CenterLongitude);
+        var vpCenter = new Vector3(cartesianCenter.X, cartesianCenter.Y, 0);
+
+        //var testRect = new Rectangle2D( viewportData.RequestedHeight,
+        //                                viewportData.RequestedWidth,
+        //                                viewportData.Rotation,
+        //                                vpCenter,
+        //                                CoordinateSystem2D.Display );
 
         var corner1 = new Vector3( cartesianCenter.X - viewportData.RequestedWidth / 2,
                                    cartesianCenter.Y + viewportData.RequestedHeight / 2,
@@ -89,8 +90,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         var corner4 = new Vector3( corner1.X, corner3.Y, 0 );
 
         var corners = new[] { corner1, corner2, corner3, corner4 };
-
-        var vpCenter = new Vector3( cartesianCenter.X, cartesianCenter.Y, 0 );
 
         // apply rotation if one is defined
         // heading == 270 is rotation == 90, hence the angle adjustment
@@ -108,13 +107,14 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         // because in display space, increasing y values take you >>down<< the screen,
         // not up the screen. So the first adjustment is to subject the raw Y values from
         // the height of the projection to reverse the direction. 
-        var minTileY = CartesianToTile( corners.Min( y => HeightWidth - y.Y ) );
-        var maxTileY = CartesianToTile( corners.Max( y => HeightWidth - y.Y ) );
+        var heightWidth = GetHeightWidth( scale );
+        var minTileY = CartesianToTile( corners.Min( y => heightWidth - y.Y ) );
+        var maxTileY = CartesianToTile( corners.Max( y => heightWidth - y.Y ) );
 
         minTileX = minTileX < 0 ? 0 : minTileX;
         minTileY = minTileY < 0 ? 0 : minTileY;
 
-        var maxTiles = HeightWidth / TileHeightWidth - 1;
+        var maxTiles = heightWidth / TileHeightWidth - 1;
         maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
         maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
 
@@ -122,42 +122,46 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         {
             for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
             {
-                var mapTile = await TiledFragment.CreateAsync( this, xTile, yTile, ctx: ctx );
+                var mapTile = new TiledFragment( this, xTile, yTile, scale );
 
-                if( !deferImageLoad )
-                    await mapTile.GetImageAsync( ctx: ctx );
+                //await TiledFragment.CreateAsync( this, xTile, yTile, ctx: ctx );
+
+                if( TileCache != null )
+                    mapTile.ImageData = await TileCache.GetImageDataAsync( mapTile, ctx );
+
+                if( mapTile.ImageBytes <= 0 )
+                    mapTile.ImageData = await mapTile.GetImageAsync( ctx );
+
+                //await mapTile.GetImageAsync( ctx: ctx );
 
                 yield return mapTile;
             }
         }
     }
 
-    public IMapFragment? GetTile( int xTile, int yTile, bool deferImageLoad = false ) =>
-        Task.Run( async () => await GetTileAsync( xTile, yTile, deferImageLoad ) ).Result;
+    public override IMapFragment? GetFragment( int xTile, int yTile, int scale ) =>
+        Task.Run( async () => await GetFragmentAsync( xTile, yTile, scale ) ).Result;
 
-    public async Task<IMapFragment?> GetTileAsync(
-        int xTile,
-        int yTile,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    )
+    public override async Task<IMapFragment?> GetFragmentAsync(int xTile, int yTile, int scale, CancellationToken ctx = default )
     {
-        if( xTile < XRange.Minimum || xTile > XRange.Maximum
-           || yTile < YRange.Minimum || yTile > YRange.Maximum)
+        var tileXRange = GetTileXRange( scale );
+        var tileYRange = GetTileYRange( scale );
+
+        if( xTile < tileXRange.Minimum
+        || xTile > tileXRange.Maximum
+        || yTile < tileYRange.Minimum
+        || yTile > tileYRange.Maximum )
             return null;
 
-        var retVal = await TiledFragment.CreateAsync(this, xTile, yTile, ctx: ctx);
+        var retVal = new TiledFragment( this, xTile, yTile, scale );
 
-        if (!deferImageLoad)
-            await retVal.GetImageAsync(ctx: ctx);
+        if( TileCache != null )
+            retVal.ImageData = await TileCache.GetImageDataAsync( retVal, ctx );
+
+        if( retVal.ImageBytes <= 0 )
+            retVal.ImageData = await retVal.GetImageAsync( ctx );
 
         return retVal;
-    }
-
-    protected virtual void OnScaleChanged()
-    {
-        TileXRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, Scale ) - 1 );
-        TileYRange = new MinMax<int>( 0, InternalExtensions.Pow( 2, Scale ) - 1 );
     }
 
     private int CartesianToTile( float value ) => Convert.ToInt32( Math.Floor( value / TileHeightWidth ) );

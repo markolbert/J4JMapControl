@@ -19,18 +19,15 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface IProjection : IEquatable<IProjection>
 {
-    event EventHandler? ScaleChanged;
-
     string Name { get; }
 
     bool Initialized { get; }
 
-    int Scale { get; set; }
     int MinScale { get; }
     int MaxScale { get; }
     MinMax<int> ScaleRange { get; }
 
-    int HeightWidth { get; }
+    int GetHeightWidth( int scale );
 
     float MaxLatitude { get; }
     float MinLatitude { get; }
@@ -40,8 +37,11 @@ public interface IProjection : IEquatable<IProjection>
     float MinLongitude { get; }
     MinMax<float> LongitudeRange { get; }
 
-    MinMax<int> XRange { get; }
-    MinMax<int> YRange { get; }
+    MinMax<int> GetXRange( int scale );
+    MinMax<int> GetYRange( int scale );
+
+    MinMax<int> GetTileXRange(int scale);
+    MinMax<int> GetTileYRange(int scale);
 
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }
@@ -50,13 +50,15 @@ public interface IProjection : IEquatable<IProjection>
     string Copyright { get; }
     Uri? CopyrightUri { get; }
 
-    HttpRequestMessage? CreateMessage(object requestInfo, int scale);
+    HttpRequestMessage? CreateMessage(object requestInfo );
     Task<bool> AuthenticateAsync( object credentials, CancellationToken ctx = default );
     bool Authenticate( object credentials );
 
+    IMapFragment? GetFragment( int xTile, int yTile, int scale );
+    Task<IMapFragment?> GetFragmentAsync( int xTile, int yTile, int scale, CancellationToken ctx = default );
+
     IAsyncEnumerable<IMapFragment> GetViewportAsync(
         INormalizedViewport viewportData,
-        bool deferImageLoad = false,
         CancellationToken ctx = default
     );
 }
@@ -64,5 +66,5 @@ public interface IProjection : IEquatable<IProjection>
 public interface IProjection<in TFrag> : IProjection
     where TFrag : class, IMapFragment
 {
-    HttpRequestMessage? CreateMessage( TFrag fragment, int scale );
+    HttpRequestMessage? CreateMessage( TFrag fragment );
 }

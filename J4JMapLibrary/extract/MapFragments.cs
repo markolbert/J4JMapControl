@@ -160,7 +160,7 @@ public class MapFragments
             if( xTile < XRange.First() || xTile > XRange.Last() || yTile < YRange.First() || yTile > YRange.Last() )
                 return null;
 
-            return _fragments.First( f => f.X == xTile && f.Y == yTile );
+            return _fragments.First( f => f.XTile == xTile && f.YTile == yTile );
         }
     }
 
@@ -174,8 +174,8 @@ public class MapFragments
                 return 0;
 
             return ProjectionType == ProjectionType.Static
-                ? _fragments[ 0 ].ActualHeight
-                : _fragments.GroupBy( f => f.X ).First().Sum( g => g.ActualHeight );
+                ? _fragments[ 0 ].ImageHeight
+                : _fragments.GroupBy( f => f.XTile ).First().Sum( g => g.ImageHeight );
         }
     }
 
@@ -187,8 +187,8 @@ public class MapFragments
                 return 0;
 
             return ProjectionType == ProjectionType.Static
-                ? _fragments[ 0 ].ActualWidth
-                : _fragments.GroupBy( f => f.Y ).First().Sum( g => g.ActualWidth );
+                ? _fragments[ 0 ].ImageWidth
+                : _fragments.GroupBy( f => f.YTile ).First().Sum( g => g.ImageWidth );
         }
     }
 
@@ -241,8 +241,8 @@ public class MapFragments
                 var tiledFragment = (ITiledFragment) fragment;
 
                 // see if this fragment is totally inside the viewport or extends beyond it
-                var tileCenter = new Vector3( tiledFragment.X * tiledFragment.HeightWidth - _curConfig.RequestedWidth / 2,
-                                              tiledFragment.Y * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
+                var tileCenter = new Vector3( tiledFragment.XTile * tiledFragment.HeightWidth - _curConfig.RequestedWidth / 2,
+                                              tiledFragment.YTile * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
                                               0 );
 
                 var fragmentRect = new Rectangle2D( tiledFragment.HeightWidth,
@@ -264,14 +264,14 @@ public class MapFragments
 
     private void UpdateRanges()
     {
-        var min = _fragments.Min( f => f.X );
-        var max = _fragments.Max( f => f.X );
+        var min = _fragments.Min( f => f.XTile );
+        var max = _fragments.Max( f => f.XTile );
 
         _xRange.Clear();
         _xRange.AddRange( Enumerable.Range( min, max - min + 1 ) );
 
-        min = _fragments.Min( f => f.Y );
-        max = _fragments.Max( f => f.Y );
+        min = _fragments.Min( f => f.YTile );
+        max = _fragments.Max( f => f.YTile );
 
         _yRange.Clear();
         _yRange.AddRange( Enumerable.Range( min, max - min + 1 ) );

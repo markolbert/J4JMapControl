@@ -25,8 +25,3 @@ public interface INormalizedViewport
     float RequestedWidth { get; set; }
     int Scale { get; set; }
 }
-
-public interface IViewport : INormalizedViewport
-{
-    float Heading { get; set; }
-}

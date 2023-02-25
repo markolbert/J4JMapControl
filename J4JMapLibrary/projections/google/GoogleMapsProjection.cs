@@ -32,6 +32,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     {
         MinScale = 0;
         MaxScale = 20;
+        TileHeightWidth = 256;
         Copyright = "© Google";
         CopyrightUri = new Uri("http://www.google.com");
         ImageFileExtension = ".png";
@@ -39,8 +40,8 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         // this doesn't have the required signature field, but that gets appended
         // when the request is created because it involves a cryptographic call
         // against the raw URL
-        RetrievalUrl =
-            "https://maps.googleapis.com/maps/api/staticmap?center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
+        RetrievalUrl = "https://maps.googleapis.com/maps/api/staticmap?";
+        RetrievalQueryString = "center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
     }
 
     public string ApiKey { get; private set; } = string.Empty;
@@ -49,6 +50,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     public GoogleMapType MapType { get; set; } = GoogleMapType.RoadMap;
     public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
     public string RetrievalUrl { get; }
+    public string RetrievalQueryString { get; }
 
 #pragma warning disable CS1998
     public override async Task<bool> AuthenticateAsync( GoogleCredentials credentials, CancellationToken ctx = default )
@@ -58,14 +60,13 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 
         ApiKey = credentials.ApiKey;
         Signature = credentials.SignatureSecret;
-        Scale = MinScale;
 
         Initialized = true;
 
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage(IStaticFragment mapFragment, int scale)
+    public override HttpRequestMessage? CreateMessage(IStaticFragment mapFragment )
     {
         if (!Initialized)
         {
@@ -77,12 +78,14 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         {
             { "{center}", $"{mapFragment.CenterLatitude}, {mapFragment.CenterLongitude}" },
             { "{format}", ImageFormat.ToString() },
-            { "{zoom}", scale.ToString() },
-            { "{size}", $"{mapFragment.ActualWidth}x{mapFragment.ActualHeight}" },
+            { "{zoom}", mapFragment.Scale.ToString() },
+            { "{size}", $"{mapFragment.ImageWidth}x{mapFragment.ImageHeight}" },
             { "{apikey}", ApiKey }
         };
 
-        var unsignedUrl = InternalExtensions.ReplaceParameters(RetrievalUrl, replacements);
+        var unsignedQuery = InternalExtensions.ReplaceParameters(RetrievalQueryString, replacements);
+        var encodedQuery = unsignedQuery;// HttpUtility.UrlEncode(unsignedQuery);
+        var unsignedUrl = $"{RetrievalUrl}{encodedQuery}";
         var signedUrl = SignUrl(unsignedUrl);
 
         return new HttpRequestMessage(HttpMethod.Get, new Uri(signedUrl));

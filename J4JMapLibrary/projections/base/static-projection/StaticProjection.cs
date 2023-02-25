@@ -32,7 +32,6 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
 
     public override async IAsyncEnumerable<StaticFragment> GetExtractAsync(
         INormalizedViewport viewportData,
-        bool deferImageLoad = false,
         [ EnumeratorCancellation ] CancellationToken ctx = default
     )
     {
@@ -43,10 +42,39 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
         }
 
         var mapTile = new StaticFragment( this, viewportData );
-
-        if( !deferImageLoad )
-            await mapTile.GetImageAsync( ctx: ctx );
+        mapTile.ImageData = await mapTile.GetImageAsync(ctx);
 
         yield return mapTile;
+    }
+
+    public override IMapFragment? GetFragment( int xTile, int yTile, int scale ) =>
+        Task.Run( async () => await GetFragmentAsync( xTile, yTile, scale ) ).Result;
+
+    public override async Task<IMapFragment?> GetFragmentAsync(
+        int xTile,
+        int yTile,
+        int scale,
+        CancellationToken ctx = default
+    )
+    {
+        xTile = GetTileXRange( scale ).ConformValueToRange( xTile, "GetFragmentAsync xTile" );
+        yTile = GetTileYRange( scale ).ConformValueToRange( yTile, "GetFragmentAsync yTile" );
+
+        var centerX = (int) Math.Round( ( xTile + 0.5F ) * TileHeightWidth );
+        var centerY = (int) Math.Round( ( yTile + 0.5F ) * TileHeightWidth );
+
+        var centerPoint = new StaticPoint( this );
+        centerPoint.SetCartesian( centerX, centerY );
+
+        var retVal = new StaticFragment( this,
+                                         centerPoint.Latitude,
+                                         centerPoint.Longitude,
+                                         scale,
+                                         TileHeightWidth,
+                                         TileHeightWidth );
+
+        retVal.ImageData = await retVal.GetImageAsync( ctx );
+
+        return retVal;
     }
 }

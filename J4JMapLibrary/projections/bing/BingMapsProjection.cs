@@ -163,26 +163,24 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         var extUri = new Uri(urlText);
         ImageFileExtension = Path.GetExtension(extUri.LocalPath);
 
-        Scale = ScaleRange.Minimum;
-
         Initialized = true;
 
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage(ITiledFragment mapFragment, int scale)
+    public override HttpRequestMessage? CreateMessage( ITiledFragment mapFragment )
     {
-        if (!Initialized)
+        if( !Initialized )
         {
-            Logger.Error("Trying to create image retrieval HttpRequestMessage when uninitialized");
+            Logger.Error( "Trying to create image retrieval HttpRequestMessage when uninitialized" );
             return null;
         }
 
         var subDomain = Metadata!.PrimaryResource!
-                                 .ImageUrlSubdomains[_random.Next(Metadata!
-                                                                 .PrimaryResource!
-                                                                 .ImageUrlSubdomains
-                                                                 .Length)];
+                                 .ImageUrlSubdomains[ _random.Next( Metadata!
+                                                                   .PrimaryResource!
+                                                                   .ImageUrlSubdomains
+                                                                   .Length ) ];
         var replacements = new Dictionary<string, string>
         {
             { "{subdomain}", subDomain },
@@ -190,8 +188,8 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             { "{culture}", _cultureCode ?? string.Empty }
         };
 
-        var uriText = InternalExtensions.ReplaceParameters(Metadata!.PrimaryResource.ImageUrl, replacements);
+        var uriText = InternalExtensions.ReplaceParameters( Metadata!.PrimaryResource.ImageUrl, replacements );
 
-        return new HttpRequestMessage(HttpMethod.Get, new Uri(uriText));
+        return new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
     }
 }

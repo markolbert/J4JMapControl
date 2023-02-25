@@ -19,20 +19,8 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface ITiledProjection : IProjection
 {
-    MinMax<int> TileXRange { get; }
-    MinMax<int> TileYRange { get; }
-
     ITileCache? TileCache { get; }
 
-    float GroundResolution( float latitude );
-    string ScaleDescription( float latitude, float dotsPerInch );
-
-    IMapFragment? GetTile( int xTile, int yTile, bool deferImageLoad = false );
-
-    Task<IMapFragment?> GetTileAsync(
-        int xTile,
-        int yTile,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    );
+    float GroundResolution( float latitude, int scale );
+    string ScaleDescription( float latitude, int scale, float dotsPerInch );
 }

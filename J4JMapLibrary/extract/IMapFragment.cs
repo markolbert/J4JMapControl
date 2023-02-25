@@ -25,15 +25,16 @@ public interface IMapFragment
 
     IProjection Projection { get; }
 
-    int X { get; }
-    int Y { get; }
-    float ActualHeight { get; }
-    float ActualWidth { get; }
+    int XTile { get; }
+    int YTile { get; }
+    int Scale { get; }
+    float ImageHeight { get; set; }
+    float ImageWidth { get; set; }
     bool InViewport { get; set; }
 
-    public byte[]? ImageData { get; }
+    public byte[]? ImageData { get; set; }
     long ImageBytes { get; }
 
-    byte[]? GetImage( bool forceRetrieval = false );
-    Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default );
+    //byte[]? GetImage( bool forceRetrieval = false );
+    //Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default );
 }

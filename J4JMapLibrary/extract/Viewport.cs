@@ -34,4 +34,6 @@ public class Viewport : NormalizedViewport, IViewport
         get => _heading;
         set => _heading = value % 360;
     }
+
+    public float Rotation => 360 - Heading;
 }

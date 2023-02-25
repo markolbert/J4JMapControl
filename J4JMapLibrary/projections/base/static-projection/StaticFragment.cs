@@ -19,29 +19,44 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public sealed class StaticFragment : MapFragment, IStaticFragment
 {
-    private readonly INormalizedViewport _viewport;
-
     public StaticFragment(
         IProjection projection,
         INormalizedViewport viewport
     )
-        : base( projection )
+        : this( projection,
+                viewport.CenterLatitude,
+                viewport.CenterLongitude,
+                viewport.Scale,
+                viewport.RequestedHeight,
+                viewport.RequestedWidth )
     {
-        _viewport = viewport;
-
-        CenterLatitude = Projection.LatitudeRange.ConformValueToRange( viewport.CenterLatitude, "Latitude" );
-        CenterLongitude = Projection.LongitudeRange.ConformValueToRange( viewport.CenterLongitude, "Longitude" );
-
-        ActualHeight = (int) Math.Ceiling( viewport.RequestedHeight );
-        ActualWidth = (int) Math.Ceiling( viewport.RequestedWidth );
-        Scale = viewport.Scale;
-
-        FragmentId =
-            $"{MapExtensions.LatitudeToText( CenterLatitude )}-{MapExtensions.LongitudeToText( CenterLongitude )}-{Scale}-{ActualHeight}-{ActualWidth}";
     }
 
-    public float RequestedHeight => _viewport.RequestedHeight;
-    public float RequestedWidth => _viewport.RequestedWidth;
+    public StaticFragment(
+        IProjection projection,
+        float centerLatitude,
+        float centerLongitude,
+        int scale,
+        float height,
+        float width
+    )
+        : base( projection )
+    {
+        CenterLatitude = Projection.LatitudeRange.ConformValueToRange( centerLatitude, "StaticFragment Latitude" );
+        CenterLongitude = Projection.LongitudeRange.ConformValueToRange( centerLongitude, "StaticFragment Latitude" );
+        Scale = scale;
+        RequestedHeight = height;
+        RequestedWidth = width;
+
+        ImageHeight = (int) Math.Ceiling( height );
+        ImageWidth = (int) Math.Ceiling( width );
+
+        FragmentId =
+            $"{MapExtensions.LatitudeToText( CenterLatitude )}-{MapExtensions.LongitudeToText( CenterLongitude )}-{Scale}-{ImageHeight}-{ImageWidth}";
+    }
+
+    public float RequestedHeight { get; }
+    public float RequestedWidth { get; }
 
     public float CenterLatitude { get; }
     public float CenterLongitude { get; }

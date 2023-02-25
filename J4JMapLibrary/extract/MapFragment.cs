@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
 using J4JSoftware.DeusEx;
 using J4JSoftware.Logging;
 
@@ -36,127 +35,124 @@ public abstract class MapFragment : IMapFragment
     }
 
     protected IJ4JLogger? Logger { get; }
-    protected int Scale { get; init; }
 
     public IProjection Projection { get; }
     
-    public float ActualHeight { get; init; }
-    public float ActualWidth { get; init; }
+    public float ImageHeight { get; set; }
+    public float ImageWidth { get; set; }
     public bool InViewport { get; set; }
 
     public string FragmentId { get; init; } = string.Empty;
 
-    public int X { get; init; }
-    public int Y { get; init; }
+    public int XTile { get; init; }
+    public int YTile { get; init; }
+    public int Scale { get; protected set; }
 
-    public byte[]? ImageData { get; protected set; }
-    public long ImageBytes { get; private set; } = -1L;
+    public byte[]? ImageData { get; set; }
+    public long ImageBytes => ImageData?.Length <= 0 ? -1 : ImageData?.Length ?? -1;
 
-    public byte[]? GetImage( bool forceRetrieval = false )
-    {
-        return Task.Run(async()=>await GetImageAsync(forceRetrieval)  ).Result;
-    }
+    //public byte[]? GetImage( bool forceRetrieval = false )
+    //{
+    //    return Task.Run(async()=>await GetImageAsync(forceRetrieval)  ).Result;
+    //}
 
-    public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default )
-    {
-        if( ImageData != null && !forceRetrieval )
-            return ImageData;
+    //public async Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default )
+    //{
+    //    if( ImageData != null && !forceRetrieval )
+    //        return ImageData;
 
-        var wasNull = ImageData == null;
+    //    var wasNull = ImageData == null;
 
-        ImageData = null;
-        ImageBytes = -1L;
+    //    ImageData = null;
 
-        Logger?.Verbose( "Beginning image retrieval from web" );
+    //    Logger?.Verbose( "Beginning image retrieval from web" );
 
-        var request = Projection.CreateMessage( this, Scale );
-        if( request == null )
-        {
-            Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", FragmentId );
-            if( wasNull )
-                ImageChanged?.Invoke( this, EventArgs.Empty );
+    //    var request = Projection.CreateMessage( this, Scale );
+    //    if( request == null )
+    //    {
+    //        Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", FragmentId );
+    //        if( wasNull )
+    //            ImageChanged?.Invoke( this, EventArgs.Empty );
 
-            return null;
-        }
+    //        return null;
+    //    }
 
-        var uriText = request.RequestUri!.AbsoluteUri;
-        var httpClient = new HttpClient();
+    //    var uriText = request.RequestUri!.AbsoluteUri;
+    //    var httpClient = new HttpClient();
 
-        Logger?.Verbose<string>( "Querying {0}", uriText );
+    //    Logger?.Verbose<string>( "Querying {0}", uriText );
 
-        HttpResponseMessage? response;
+    //    HttpResponseMessage? response;
 
-        try
-        {
-            response = Projection.MaxRequestLatency <= 0
-                ? await httpClient.SendAsync( request, ctx )
-                : await httpClient.SendAsync( request, ctx )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( Projection.MaxRequestLatency ), ctx );
+    //    try
+    //    {
+    //        response = Projection.MaxRequestLatency <= 0
+    //            ? await httpClient.SendAsync( request, ctx )
+    //            : await httpClient.SendAsync( request, ctx )
+    //                              .WaitAsync( TimeSpan.FromMilliseconds( Projection.MaxRequestLatency ), ctx );
 
-            Logger?.Verbose<string>( "Got response from {0}", uriText );
-        }
-        catch( Exception ex )
-        {
-            Logger?.Error<Uri, string>( "Image request from {0} failed, message was '{1}'",
-                                        request.RequestUri,
-                                        ex.Message );
-            if( wasNull )
-                ImageChanged?.Invoke( this, EventArgs.Empty );
+    //        Logger?.Verbose<string>( "Got response from {0}", uriText );
+    //    }
+    //    catch( Exception ex )
+    //    {
+    //        Logger?.Error<Uri, string>( "Image request from {0} failed, message was '{1}'",
+    //                                    request.RequestUri,
+    //                                    ex.Message );
+    //        if( wasNull )
+    //            ImageChanged?.Invoke( this, EventArgs.Empty );
 
-            return null;
-        }
+    //        return null;
+    //    }
 
-        if( response.StatusCode != HttpStatusCode.OK )
-        {
-            Logger?.Error<string, HttpStatusCode, string>(
-                "Image request from {0} failed with response code {1}, message was '{2}'",
-                uriText,
-                response.StatusCode,
-                await response.Content.ReadAsStringAsync( ctx ) );
+    //    if( response.StatusCode != HttpStatusCode.OK )
+    //    {
+    //        Logger?.Error<string, HttpStatusCode, string>(
+    //            "Image request from {0} failed with response code {1}, message was '{2}'",
+    //            uriText,
+    //            response.StatusCode,
+    //            await response.Content.ReadAsStringAsync( ctx ) );
 
-            if( wasNull )
-                ImageChanged?.Invoke( this, EventArgs.Empty );
+    //        if( wasNull )
+    //            ImageChanged?.Invoke( this, EventArgs.Empty );
 
-            return null;
-        }
+    //        return null;
+    //    }
 
-        Logger?.Verbose<string>( "Reading response from {0}", uriText );
+    //    Logger?.Verbose<string>( "Reading response from {0}", uriText );
 
-        ImageData = await ExtractImageStreamAsync( response, ctx );
-        ImageChanged?.Invoke( this, EventArgs.Empty );
+    //    ImageData = await ExtractImageStreamAsync( response, ctx );
+    //    ImageChanged?.Invoke( this, EventArgs.Empty );
 
-        if( ImageData == null )
-            return null;
+    //    if( ImageData == null )
+    //        return null;
 
-        ImageBytes = ImageData.Length;
+    //    return ImageData;
+    //}
 
-        return ImageData;
-    }
+    //protected virtual async Task<byte[]?> ExtractImageStreamAsync(
+    //    HttpResponseMessage response,
+    //    CancellationToken ctx = default
+    //)
+    //{
+    //    try
+    //    {
+    //        await using var responseStream = Projection.MaxRequestLatency < 0
+    //            ? await response.Content.ReadAsStreamAsync( ctx )
+    //            : await response.Content.ReadAsStreamAsync( ctx )
+    //                            .WaitAsync( TimeSpan.FromMilliseconds( Projection.MaxRequestLatency ), ctx );
 
-    protected virtual async Task<byte[]?> ExtractImageStreamAsync(
-        HttpResponseMessage response,
-        CancellationToken ctx = default
-    )
-    {
-        try
-        {
-            await using var responseStream = Projection.MaxRequestLatency < 0
-                ? await response.Content.ReadAsStreamAsync( ctx )
-                : await response.Content.ReadAsStreamAsync( ctx )
-                                .WaitAsync( TimeSpan.FromMilliseconds( Projection.MaxRequestLatency ), ctx );
+    //        var memStream = new MemoryStream();
+    //        await responseStream.CopyToAsync( memStream, ctx );
 
-            var memStream = new MemoryStream();
-            await responseStream.CopyToAsync( memStream, ctx );
+    //        return memStream.ToArray();
+    //    }
+    //    catch( Exception ex )
+    //    {
+    //        Logger?.Error<Uri, string>( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
+    //                                    response.RequestMessage!.RequestUri!,
+    //                                    ex.Message );
 
-            return memStream.ToArray();
-        }
-        catch( Exception ex )
-        {
-            Logger?.Error<Uri, string>( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
-                                        response.RequestMessage!.RequestUri!,
-                                        ex.Message );
-
-            return null;
-        }
-    }
+    //        return null;
+    //    }
+    //}
 }

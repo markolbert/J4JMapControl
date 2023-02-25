@@ -48,32 +48,33 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
         Initialized = false;
 
         UserAgent = credentials.UserAgent;
-        Scale = MinScale;
 
         Initialized = true;
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage(ITiledFragment mapFragment, int scale)
+    public override HttpRequestMessage? CreateMessage( ITiledFragment mapFragment )
     {
-        if (!Initialized)
+        if( !Initialized )
             return null;
 
-        if (string.IsNullOrEmpty(UserAgent))
+        if( string.IsNullOrEmpty( UserAgent ) )
         {
-            Logger.Error("Undefined or empty User-Agent");
+            Logger.Error( "Undefined or empty User-Agent" );
             return null;
         }
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", scale.ToString() }, { "{x}", mapFragment.X.ToString() }, { "{y}", mapFragment.Y.ToString() }
+            { "{zoom}", mapFragment.Scale.ToString() },
+            { "{x}", mapFragment.XTile.ToString() },
+            { "{y}", mapFragment.YTile.ToString() }
         };
 
-        var uriText = InternalExtensions.ReplaceParameters(RetrievalUrl, replacements);
+        var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );
 
-        var retVal = new HttpRequestMessage(HttpMethod.Get, new Uri(uriText));
-        retVal.Headers.Add("User-Agent", UserAgent);
+        var retVal = new HttpRequestMessage( HttpMethod.Get, new Uri( uriText ) );
+        retVal.Headers.Add( "User-Agent", UserAgent );
 
         return retVal;
     }

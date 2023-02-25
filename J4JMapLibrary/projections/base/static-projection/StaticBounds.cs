@@ -58,8 +58,8 @@ public class StaticBounds : IEquatable<StaticBounds>
     {
         CenterLatitude = mapTile.CenterLatitude;
         CenterLongitude = mapTile.CenterLatitude;
-        Height = mapTile.ActualHeight;
-        Width = mapTile.ActualWidth;
+        Height = mapTile.ImageHeight;
+        Width = mapTile.ImageWidth;
     }
 
     public float CenterLatitude { get; }
