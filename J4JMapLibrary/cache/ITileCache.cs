@@ -19,20 +19,19 @@ using System.Collections.ObjectModel;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface ITileCache
+public interface ITileCache : IEnumerable<CachedEntry>
 {
     ITileCache? ParentCache { get; }
-    ReadOnlyCollection<string> FragmentIds { get; }
-    int Count { get; }
+    CacheStats Stats { get; }
+
     void Clear();
     void PurgeExpired();
 
-    Task<CacheEntry?> GetEntryAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    );
+    //Task<CacheEntry?> GetEntryAsync(
+    //    ITiledProjection projection,
+    //    ITiledFragment fragment,
+    //    CancellationToken ctx = default
+    //);
+
+    Task<byte[]?> GetImageDataAsync( ITiledFragment fragment, CancellationToken ctx = default );
 }

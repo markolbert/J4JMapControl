@@ -15,14 +15,13 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.ObjectModel;
 using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public class MemoryCache : CacheBase
 {
-    private readonly Dictionary<string, CacheEntry> _cached = new( StringComparer.OrdinalIgnoreCase );
+    private readonly Dictionary<string, CachedTile> _cached = new( StringComparer.OrdinalIgnoreCase );
 
     public MemoryCache(
         IJ4JLogger logger
@@ -30,14 +29,6 @@ public class MemoryCache : CacheBase
         : base( logger )
     {
     }
-
-    public override int Count => _cached.Count;
-
-    public override ReadOnlyCollection<string> FragmentIds =>
-        _cached
-           .Select( x => x.Value.Tile.FragmentId )
-           .ToList()
-           .AsReadOnly();
 
     public override void Clear() => _cached.Clear();
 
@@ -67,7 +58,10 @@ public class MemoryCache : CacheBase
         }
 
         if( MaxBytes <= 0 || _cached.Sum( x => x.Value.Tile.ImageBytes ) <= MaxBytes )
+        {
+            Stats.Initialize( this );
             return;
+        }
 
         var entriesByLargest = _cached.OrderByDescending( x => x.Value.Tile.ImageBytes )
                                       .ToList();
@@ -77,75 +71,67 @@ public class MemoryCache : CacheBase
             _cached.Remove( entriesByLargest.First().Key );
             entriesByLargest.RemoveAt( 0 );
         }
+
+        Stats.Initialize( this );
     }
 
-    protected override async Task<CacheEntry?> GetEntryInternalAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
+#pragma warning disable CS1998
+    protected override async Task<byte[]?> GetImageDataInternalAsync(
+#pragma warning restore CS1998
+        ITiledFragment fragment,
         CancellationToken ctx = default
     )
     {
-        var quadKey = projection.GetQuadKey( xTile, yTile, scale );
-        if( string.IsNullOrEmpty( quadKey ) )
+        if( string.IsNullOrEmpty( fragment.QuadKey ) )
             return null;
 
-        var key = $"{projection.Name}-{quadKey}";
+        var key = $"{fragment.Projection.Name}-{fragment.QuadKey}";
 
         var retVal = _cached.ContainsKey( key ) ? _cached[ key ] : null;
-        if( retVal == null )
-            return retVal;
-
-        if( !retVal.ImageIsLoaded && !deferImageLoad )
-            await retVal.Tile.GetImageAsync( ctx: ctx );
-
-        return retVal;
+        return retVal?.Tile.ImageData;
     }
 
-    protected override async Task<CacheEntry?> AddEntryAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
+    protected override async Task<byte[]?> AddEntryAsync(
+        ITiledFragment fragment,
         CancellationToken ctx = default
     )
     {
-        var quadKey = projection.GetQuadKey( xTile, yTile, scale );
-        if( string.IsNullOrEmpty( quadKey ) )
-            return null;
-
-        var retVal = new CacheEntry( projection, xTile, yTile, scale, ctx );
-
-        if( !deferImageLoad )
+        var retVal = await fragment.GetImageAsync( ctx: ctx ) ?? Array.Empty<byte>();
+        if( retVal.Length == 0 )
         {
-            var imageData = await retVal.Tile.GetImageAsync( ctx: ctx ) ?? Array.Empty<byte>();
-
-            if( imageData.Length == 0 )
-            {
-                Logger.Error( "Failed to retrieve image data" );
-                return null;
-            }
+            Logger.Error( "Failed to retrieve image data" );
+            return null;
         }
 
-        var key = $"{projection.Name}-{quadKey}";
+        var key = $"{fragment.Projection.Name}-{fragment.QuadKey}";
 
-        if( _cached.ContainsKey( key ) )
+        var cacheEntry = new CachedTile( retVal.Length, DateTime.UtcNow, DateTime.UtcNow, fragment );
+
+        if ( _cached.ContainsKey( key ) )
         {
-            Logger.Warning<string>( "Replacing map mapFragment with fragment '{0}'", retVal.Tile.FragmentId );
-            _cached[ key ] = retVal;
+            Logger.Warning<string>( "Replacing map mapFragment with fragment '{0}'", cacheEntry.Tile.FragmentId );
+            _cached[ key ] = cacheEntry;
+
+            Stats.Initialize( this );
         }
         else
         {
-            _cached.Add( key, retVal );
+            _cached.Add( key, cacheEntry );
 
-            if( ( MaxEntries > 0 && _cached.Count > MaxEntries )
-            || ( MaxBytes > 0 && _cached.Sum( x => x.Value.Tile.ImageBytes ) > MaxBytes ) )
-                PurgeExpired();
+            Stats.RecordEntry(retVal);
         }
 
+        if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
+            PurgeExpired();
+
         return retVal;
+    }
+
+    public override IEnumerator<CachedEntry> GetEnumerator()
+    {
+        foreach( var kvp in _cached )
+        {
+            yield return kvp.Value;
+        }
     }
 }

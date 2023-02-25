@@ -17,34 +17,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class CacheEntry
-{
-    internal CacheEntry(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        byte[] imageData
-    )
-    {
-        Tile = new TiledFragment( projection, xTile, yTile, imageData );
-        CreatedUtc = DateTime.UtcNow;
-    }
+public record CachedEntry( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc );
 
-    internal CacheEntry(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        CancellationToken ctx
-    )
-    {
-        Tile = TiledFragment.CreateAsync( projection, xTile, yTile, true, ctx ).Result;
-        CreatedUtc = DateTime.UtcNow;
-    }
-
-    public TiledFragment Tile { get; }
-    public DateTime CreatedUtc { get; }
-    public DateTime LastAccessedUtc { get; set; }
-    public bool ImageIsLoaded => Tile.ImageBytes > 0L;
-}
+public record CachedTile( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc, ITiledFragment Tile )
+    : CachedEntry( ImageBytes, CreatedUtc, LastAccessedUtc );

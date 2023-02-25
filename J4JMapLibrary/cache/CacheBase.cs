@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.ObjectModel;
+using System.Collections;
 using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -32,71 +32,90 @@ public abstract class CacheBase : ITileCache
 
     protected IJ4JLogger Logger { get; }
 
+    public CacheStats Stats { get; } = new();
+
     public int MaxEntries { get; set; }
     public long MaxBytes { get; set; }
     public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
 
     public ITileCache? ParentCache { get; set; }
-    public abstract int Count { get; }
-    public abstract ReadOnlyCollection<string> FragmentIds { get; }
 
     public abstract void Clear();
     public abstract void PurgeExpired();
 
-    public virtual async Task<CacheEntry?> GetEntryAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    )
+    public async Task<byte[]?> GetImageDataAsync( ITiledFragment fragment, CancellationToken ctx = default )
     {
-        xTile = projection.TileXRange.ConformValueToRange( xTile, "X Tile" );
-        yTile = projection.TileYRange.ConformValueToRange( yTile, "Y Tile" );
-
-        var retVal = await GetEntryInternalAsync( projection, xTile, yTile, scale, deferImageLoad, ctx );
+        var retVal = await GetImageDataInternalAsync( fragment, ctx );
         if( retVal != null )
-        {
-            retVal.LastAccessedUtc = DateTime.UtcNow;
             return retVal;
-        }
 
         retVal = ParentCache == null
             ? null
-            : await ParentCache.GetEntryAsync( projection, xTile, yTile, scale, deferImageLoad, ctx );
+            : await ParentCache.GetImageDataAsync(fragment, ctx);
 
-        retVal ??= await AddEntryAsync( projection, xTile, yTile, scale, deferImageLoad, ctx );
+        retVal ??= await AddEntryAsync(fragment, ctx);
 
-        if( retVal == null )
-        {
-            Logger.Error( "Failed to create {0} cache entry for mapFragment ({1}, {2})",
-                          projection.Name,
-                          xTile,
-                          yTile );
+        if( retVal != null )
+            return retVal;
 
-            return null;
-        }
+        Logger.Error("Failed to create {0} cache entry for mapFragment ({1}, {2})",
+                     fragment.Projection.Name,
+                     fragment.XTile,
+                     fragment.YTile);
 
-        retVal.LastAccessedUtc = DateTime.UtcNow;
-        return retVal;
+        return null;
     }
 
-    protected abstract Task<CacheEntry?> GetEntryInternalAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
+    protected abstract Task<byte[]?> GetImageDataInternalAsync(
+        ITiledFragment fragment,
         CancellationToken ctx = default
     );
 
-    protected abstract Task<CacheEntry?> AddEntryAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
+    //public virtual async Task<CacheEntry?> GetEntryAsync(
+    //    ITiledProjection projection,
+    //    ITiledFragment fragment,
+    //    CancellationToken ctx = default
+    //)
+    //{
+    //    var retVal = await GetEntryInternalAsync( projection, fragment, ctx );
+    //    if( retVal != null )
+    //    {
+    //        retVal.LastAccessedUtc = DateTime.UtcNow;
+    //        return retVal;
+    //    }
+
+    //    retVal = ParentCache == null
+    //        ? null
+    //        : await ParentCache.GetEntryAsync( projection, fragment, ctx );
+
+    //    retVal ??= await AddEntryAsync( projection, fragment, ctx );
+
+    //    if( retVal == null )
+    //    {
+    //        Logger.Error( "Failed to create {0} cache entry for mapFragment ({1}, {2})",
+    //                      projection.Name,
+    //                      fragment.XTile,
+    //                      fragment.YTile );
+
+    //        return null;
+    //    }
+
+    //    retVal.LastAccessedUtc = DateTime.UtcNow;
+    //    return retVal;
+    //}
+
+    //protected abstract Task<CacheEntry?> GetEntryInternalAsync(
+    //    ITiledProjection projection,
+    //    ITiledFragment fragment,
+    //    CancellationToken ctx = default
+    //);
+
+    protected abstract Task<byte[]?> AddEntryAsync(
+        ITiledFragment fragment,
         CancellationToken ctx = default
     );
+
+    public abstract IEnumerator<CachedEntry> GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

@@ -15,17 +15,14 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.ObjectModel;
 using J4JSoftware.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
+// it's presumed that the cache directory contains NOTHING BUT TILE IMAGE FILES
 public class FileSystemCache : CacheBase
 {
-    private long _bytesCached;
-
     private string? _cacheDir;
-    private int _tilesCached;
 
     public FileSystemCache(
         IJ4JLogger logger
@@ -33,21 +30,6 @@ public class FileSystemCache : CacheBase
         : base( logger )
     {
     }
-
-    public override int Count => GetFiles().Count;
-
-    public override ReadOnlyCollection<string> FragmentIds =>
-        GetFiles()
-           .Select( x =>
-            {
-                var woExt = Path.GetFileNameWithoutExtension( x.Name );
-                var lastDash = woExt.LastIndexOf( "-", StringComparison.InvariantCultureIgnoreCase );
-                return lastDash > 0 && lastDash < woExt.Length ? woExt[ ( lastDash + 1 ).. ] : string.Empty;
-            } )
-           .Where( x => !string.IsNullOrEmpty( x ) )
-           .OrderBy( x => x )
-           .ToList()
-           .AsReadOnly();
 
     public bool IsValid => _cacheDir != null;
 
@@ -101,9 +83,6 @@ public class FileSystemCache : CacheBase
                               .Select( x => new FileInfo( x ) )
                               .ToList();
 
-        _tilesCached = retVal.Count;
-        _bytesCached = retVal.Sum( x => x.Length );
-
         return retVal;
     }
 
@@ -130,35 +109,76 @@ public class FileSystemCache : CacheBase
 
         if( MaxEntries > 0 && files.Count > MaxEntries )
         {
-            var filesByOldest = files.OrderBy( x => x.CreationTime )
-                                     .ToList();
+            files = files.OrderBy( x => x.CreationTime )
+                         .ToList();
 
-            while( filesByOldest.Count > MaxEntries )
+            while( files.Count > MaxEntries )
             {
-                File.Delete( filesByOldest.First().FullName );
-                filesByOldest.RemoveAt( 0 );
+                File.Delete( files.First().FullName );
+                files.RemoveAt( 0 );
             }
         }
 
         if( MaxBytes <= 0 || files.Sum( x => x.Length ) <= MaxBytes )
+        {
+            Stats.Initialize( files );
             return;
-
-        var filesByLargest = files.OrderByDescending( x => x.Length )
-                                  .ToList();
-
-        while( MaxBytes >= 0 && filesByLargest.Sum( x => x.Length ) > MaxBytes )
-        {
-            File.Delete( filesByLargest.First().FullName );
-            filesByLargest.RemoveAt( 0 );
         }
+
+        files = files.OrderByDescending( x => x.Length )
+                     .ToList();
+
+        while( MaxBytes >= 0 && files.Sum( x => x.Length ) > MaxBytes )
+        {
+            File.Delete( files.First().FullName );
+            files.RemoveAt( 0 );
+        }
+
+        Stats.Initialize( files );
     }
 
-    protected override async Task<CacheEntry?> GetEntryInternalAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
+    protected override async Task<byte[]?> GetImageDataInternalAsync( ITiledFragment fragment, CancellationToken ctx = default )
+    {
+        if (string.IsNullOrEmpty(_cacheDir))
+        {
+            Logger.Error("Caching directory is undefined");
+            return null;
+        }
+
+        var key = $"{fragment.Projection.Name}-{fragment.QuadKey}";
+        var filePath = Path.Combine(_cacheDir, $"{key}{fragment.Projection.ImageFileExtension}");
+
+        if( !File.Exists( filePath ) )
+            return null;
+
+        return await File.ReadAllBytesAsync( filePath, ctx );
+        //return File.Exists(filePath)
+        //    ? new FileCacheEntry(projection, fragment, this)
+        //    : new CacheEntry(projection, xTile, yTile, scale, ctx);
+    }
+
+    //protected override async Task<CacheEntry?> GetEntryInternalAsync(
+    //    ITiledProjection projection,
+    //    ITiledFragment fragment,
+    //    CancellationToken ctx = default
+    //)
+    //{
+    //    if( string.IsNullOrEmpty( _cacheDir ) )
+    //    {
+    //        Logger.Error( "Caching directory is undefined" );
+    //        return null;
+    //    }
+
+    //    var key = $"{projection.Name}-{fragment.QuadKey}";
+    //    var filePath = Path.Combine( _cacheDir, $"{key}{projection.ImageFileExtension}" );
+
+    //    return File.Exists( filePath )
+    //        ? new FileCacheEntry(projection, fragment, this)
+    //        : new CacheEntry( projection, xTile, yTile, scale, ctx );
+    //}
+
+    protected override async Task<byte[]?> AddEntryAsync(
+        ITiledFragment fragment,
         CancellationToken ctx = default
     )
     {
@@ -168,62 +188,66 @@ public class FileSystemCache : CacheBase
             return null;
         }
 
-        var key = $"{projection.Name}-{projection.GetQuadKey( xTile, yTile, scale )}";
-        var filePath = Path.Combine( _cacheDir, $"{key}{projection.ImageFileExtension}" );
-
-        return File.Exists( filePath )
-            ? new CacheEntry( projection, xTile, yTile, scale, await File.ReadAllBytesAsync( filePath, ctx ) )
-            : deferImageLoad
-                ? new CacheEntry( projection, xTile, yTile, scale, ctx )
-                : null;
-    }
-
-    protected override async Task<CacheEntry?> AddEntryAsync(
-        ITiledProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        bool deferImageLoad = false,
-        CancellationToken ctx = default
-    )
-    {
-        if( string.IsNullOrEmpty( _cacheDir ) )
-        {
-            Logger.Error( "Caching directory is undefined" );
-            return null;
-        }
-
-        var retVal = new CacheEntry( projection, xTile, yTile, scale, ctx );
-
-        var fileName = $"{projection.Name}-{retVal.Tile.FragmentId}{projection.ImageFileExtension}";
+        var fileName = $"{fragment.Projection.Name}-{fragment.QuadKey}{fragment.Projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
-        var bytesToWrite = retVal.Tile.ImageBytes <= 0L
-            ? deferImageLoad ? null : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null
-            : await retVal.Tile.GetImageAsync( ctx: ctx ) ?? null;
+        var retVal = await fragment.GetImageAsync( ctx: ctx );
 
-        if( bytesToWrite == null )
+        if( retVal == null )
         {
-            if( !deferImageLoad )
-                Logger.Error( "Failed to retrieve image data" );
-
+            Logger.Error( "Failed to retrieve image data" );
             return null;
         }
 
         if( File.Exists( filePath ) )
-            Logger.Warning<string>( "Replacing map mapFragment with fragment ID '{0}'", retVal.Tile.FragmentId );
+            Logger.Warning<string>( "Replacing map mapFragment with fragment ID '{0}'", fragment.FragmentId );
 
         await using var imgFile = File.Create( filePath );
-        await imgFile.WriteAsync( bytesToWrite, ctx );
+        await imgFile.WriteAsync( retVal, ctx );
         imgFile.Close();
 
-        _tilesCached++;
-        _bytesCached += bytesToWrite.Length;
+        Stats.RecordEntry(retVal);
 
-        if( ( MaxEntries > 0 && _tilesCached > MaxEntries )
-        || ( MaxBytes > 0 && _bytesCached > MaxBytes ) )
+        if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
 
         return retVal;
+    }
+
+    public override IEnumerator<CachedEntry> GetEnumerator()
+    {
+        if (string.IsNullOrEmpty(_cacheDir))
+        {
+            Logger.Error("Caching directory is undefined");
+            yield break;
+        }
+
+        foreach( var path in Directory.EnumerateFiles( _cacheDir,
+                                                       "*",
+                                                       new EnumerationOptions()
+                                                       {
+                                                           IgnoreInaccessible = true, 
+                                                           RecurseSubdirectories = false
+                                                       } ) )
+        {
+            var fileName = Path.GetFileNameWithoutExtension( path );
+            var parts = fileName.Split( '-' );
+
+            if( parts.Length != 2 )
+            {
+                Logger.Error<string>("Unable to parse cached filename '{0}'", fileName);
+                continue;
+            }
+
+            if( !MapExtensions.TryParseQuadKey( parts[ 1 ], out _ ) )
+            {
+                Logger.Error<string>("Could not deconstruct quadkey for file '{0}'", fileName  );
+                continue;
+            }
+
+            var fileInfo = new FileInfo( path );
+
+            yield return new CachedEntry( fileInfo.Length, fileInfo.CreationTimeUtc, fileInfo.LastAccessTime );
+        }
     }
 }
