@@ -34,7 +34,4 @@ public interface IMapFragment
 
     public byte[]? ImageData { get; set; }
     long ImageBytes { get; }
-
-    //byte[]? GetImage( bool forceRetrieval = false );
-    //Task<byte[]?> GetImageAsync( bool forceRetrieval = false, CancellationToken ctx = default );
 }

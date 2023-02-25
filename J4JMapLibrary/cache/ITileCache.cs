@@ -27,11 +27,5 @@ public interface ITileCache : IEnumerable<CachedEntry>
     void Clear();
     void PurgeExpired();
 
-    //Task<CacheEntry?> GetEntryAsync(
-    //    ITiledProjection projection,
-    //    ITiledFragment fragment,
-    //    CancellationToken ctx = default
-    //);
-
     Task<byte[]?> GetImageDataAsync( ITiledFragment fragment, CancellationToken ctx = default );
 }

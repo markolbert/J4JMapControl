@@ -76,12 +76,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         cartesianCenter.SetLatLong(viewportData.CenterLatitude, viewportData.CenterLongitude);
         var vpCenter = new Vector3(cartesianCenter.X, cartesianCenter.Y, 0);
 
-        //var testRect = new Rectangle2D( viewportData.RequestedHeight,
-        //                                viewportData.RequestedWidth,
-        //                                viewportData.Rotation,
-        //                                vpCenter,
-        //                                CoordinateSystem2D.Display );
-
         var corner1 = new Vector3( cartesianCenter.X - viewportData.RequestedWidth / 2,
                                    cartesianCenter.Y + viewportData.RequestedHeight / 2,
                                    0 );
@@ -124,15 +118,11 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
             {
                 var mapTile = new TiledFragment( this, xTile, yTile, scale );
 
-                //await TiledFragment.CreateAsync( this, xTile, yTile, ctx: ctx );
-
                 if( TileCache != null )
                     mapTile.ImageData = await TileCache.GetImageDataAsync( mapTile, ctx );
 
                 if( mapTile.ImageBytes <= 0 )
                     mapTile.ImageData = await mapTile.GetImageAsync( ctx );
-
-                //await mapTile.GetImageAsync( ctx: ctx );
 
                 yield return mapTile;
             }

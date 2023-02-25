@@ -152,30 +152,7 @@ public class FileSystemCache : CacheBase
             return null;
 
         return await File.ReadAllBytesAsync( filePath, ctx );
-        //return File.Exists(filePath)
-        //    ? new FileCacheEntry(projection, fragment, this)
-        //    : new CacheEntry(projection, xTile, yTile, scale, ctx);
     }
-
-    //protected override async Task<CacheEntry?> GetEntryInternalAsync(
-    //    ITiledProjection projection,
-    //    ITiledFragment fragment,
-    //    CancellationToken ctx = default
-    //)
-    //{
-    //    if( string.IsNullOrEmpty( _cacheDir ) )
-    //    {
-    //        Logger.Error( "Caching directory is undefined" );
-    //        return null;
-    //    }
-
-    //    var key = $"{projection.Name}-{fragment.QuadKey}";
-    //    var filePath = Path.Combine( _cacheDir, $"{key}{projection.ImageFileExtension}" );
-
-    //    return File.Exists( filePath )
-    //        ? new FileCacheEntry(projection, fragment, this)
-    //        : new CacheEntry( projection, xTile, yTile, scale, ctx );
-    //}
 
     protected override async Task<byte[]?> AddEntryAsync(
         ITiledFragment fragment,

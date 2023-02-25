@@ -71,45 +71,6 @@ public abstract class CacheBase : ITileCache
         CancellationToken ctx = default
     );
 
-    //public virtual async Task<CacheEntry?> GetEntryAsync(
-    //    ITiledProjection projection,
-    //    ITiledFragment fragment,
-    //    CancellationToken ctx = default
-    //)
-    //{
-    //    var retVal = await GetEntryInternalAsync( projection, fragment, ctx );
-    //    if( retVal != null )
-    //    {
-    //        retVal.LastAccessedUtc = DateTime.UtcNow;
-    //        return retVal;
-    //    }
-
-    //    retVal = ParentCache == null
-    //        ? null
-    //        : await ParentCache.GetEntryAsync( projection, fragment, ctx );
-
-    //    retVal ??= await AddEntryAsync( projection, fragment, ctx );
-
-    //    if( retVal == null )
-    //    {
-    //        Logger.Error( "Failed to create {0} cache entry for mapFragment ({1}, {2})",
-    //                      projection.Name,
-    //                      fragment.XTile,
-    //                      fragment.YTile );
-
-    //        return null;
-    //    }
-
-    //    retVal.LastAccessedUtc = DateTime.UtcNow;
-    //    return retVal;
-    //}
-
-    //protected abstract Task<CacheEntry?> GetEntryInternalAsync(
-    //    ITiledProjection projection,
-    //    ITiledFragment fragment,
-    //    CancellationToken ctx = default
-    //);
-
     protected abstract Task<byte[]?> AddEntryAsync(
         ITiledFragment fragment,
         CancellationToken ctx = default

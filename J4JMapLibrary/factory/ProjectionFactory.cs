@@ -166,37 +166,10 @@ public class ProjectionFactory
         string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
-    )
-    {
-        return Task.Run( async () =>
-                             await CreateProjectionAsync( projType, cache, serverName, credentialsName, authenticate ) )
-                   .Result;
-
-        //if (!projType.IsAssignableTo(typeof(IProjection)))
-        //    return ProjectionFactoryResult.NotFound;
-
-        //var projInfo = _projTypes
-        //   .FirstOrDefault(x => x.ProjectionType == projType);
-
-        //if (projInfo == null)
-        //{
-        //    _logger.Error("Could not find IProjection type '{0}'", projType);
-        //    return ProjectionFactoryResult.NotFound;
-        //}
-
-        //// see if there's an IMapServer type supporting the projection
-        //var serverInfo = GetMapServerInfo(projInfo, serverName);
-
-        //var retVal = CreateProjectionInternal(projInfo, serverInfo, cache);
-        //if (!retVal.ProjectionTypeFound || !authenticate)
-        //    return retVal;
-
-        //var credentials = CreateCredentials(projInfo, credentialsName);
-        //if (credentials == null)
-        //    return retVal;
-
-        //return retVal with { Authenticated = retVal.Projection!.Authenticate(credentials) };
-    }
+    ) =>
+        Task.Run( async () =>
+                      await CreateProjectionAsync( projType, cache, serverName, credentialsName, authenticate ) )
+            .Result;
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         Type projType,
