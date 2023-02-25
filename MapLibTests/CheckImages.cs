@@ -13,12 +13,13 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
-
-        var mapTile = await TiledFragment.CreateAsync( projection, data.TileX, data.TileY );
+        var mapTile = await projection.GetFragmentAsync( data.TileX, data.TileY, data.Scale );
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
+                                     $"{mapTile!.FragmentId}{projection.ImageFileExtension}" );
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
@@ -31,12 +32,13 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
-
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
+        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale);
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
+                                     $"{mapTile!.FragmentId}{projection.ImageFileExtension}" );
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync());
     }
@@ -49,46 +51,41 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
-
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
+        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale);
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
+                                     $"{mapTile!.FragmentId}{projection.ImageFileExtension}" );
 
         await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
     }
 
     [Theory]
-    [ClassData(typeof(StaticImageData))]
-    public async Task GoogleMaps(StaticImageData.Region data)
+    [ClassData(typeof(TileImageData))]
+    public async Task GoogleMaps(TileImageData.Tile data)
     {
         var projection = await CreateProjection("GoogleMaps") as GoogleMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
-
-        var viewport = new NormalizedViewport( projection )
-        {
-            CenterLatitude = data.Latitude,
-            CenterLongitude = data.Longitude,
-            RequestedHeight = data.Height,
-            RequestedWidth = data.Width,
-            Scale = data.Scale
-        };
-
-        var mapTile = new StaticFragment( projection, viewport );
+        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as IStaticFragment;
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
         var filePath = Path.Combine(GetCheckImagesFolder(projection.Name),
-                                    $"{data.FragmentId}{projection.ImageFileExtension}");
+                                    $"{mapTile.FragmentId}{projection.ImageFileExtension}");
 
         await CompareImageFileAsync(filePath, await mapTile.GetImageAsync() );
     }
 
-    private async Task CompareImageFileAsync( string filePath, byte[]? imageData, bool sleep = true )
+    private async Task CompareImageFileAsync( string filePath, byte[]? imageData )
     {
         imageData.Should().NotBeNull();
+
+        //await File.WriteAllBytesAsync( "c:/users/mark/desktop/google.png", imageData! );
 
         var imageBytes = await File.ReadAllBytesAsync( filePath );
         var checkBytes = imageData!.ToArray();
@@ -99,8 +96,5 @@ public class CheckImages : TestBase
         {
             imageBytes[ idx ].Should().Be( checkBytes[ idx ], $"because data at {idx} should match" );
         }
-
-        if( sleep )
-            Thread.Sleep( 5000 );
     }
 }

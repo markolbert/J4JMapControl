@@ -33,8 +33,6 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
-
         var viewportData = projectionName switch
         {
             "GoogleMaps" => new NormalizedViewport( projection )
@@ -57,18 +55,18 @@ public class TileTests : TestBase
             }
         };
 
-        var rawTiles = await projection.GetViewportAsync( viewportData, true ).ToListAsync();
+        var rawTiles = await projection.GetViewportAsync( viewportData ).ToListAsync();
         var tiles = rawTiles.Cast<ITiledFragment>().ToList();
         tiles.Count.Should().BeGreaterThan( 0 );
 
-        tiles.Min( t => t.X ).Should().Be( minTileX );
-        tiles.Min(t => t.Y).Should().Be(minTileY);
-        tiles.Max(t => t.X).Should().Be(maxTileX);
-        tiles.Max(t => t.Y).Should().Be(maxTileY);
+        tiles.Min( t => t.XTile ).Should().Be( minTileX );
+        tiles.Min(t => t.YTile).Should().Be(minTileY);
+        tiles.Max(t => t.XTile).Should().Be(maxTileX);
+        tiles.Max(t => t.YTile).Should().Be(maxTileY);
 
         foreach ( var tile in tiles)
         {
-            tile.ImageBytes.Should().BeNegative();
+            tile.ImageBytes.Should().BePositive();
         }
     }
 }

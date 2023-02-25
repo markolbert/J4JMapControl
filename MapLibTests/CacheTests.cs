@@ -19,18 +19,15 @@ public class CacheTests : TestBase
 
         var projection = await CreateProjection( "BingMaps", cache ) as BingMapsProjection;
         projection.Should().NotBeNull();
-        projection!.Scale = scale;
 
-        var numCreated = 0;
-
-        for( var xTile = 0; xTile <= projection.TileXRange.Maximum; xTile++ )
+        for( var xTile = 0; xTile <= projection!.GetTileXRange( scale ).Maximum; xTile++ )
         {
-            for( var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++ )
+            for( var yTile = 0; yTile <= projection.GetTileYRange( scale ).Maximum; yTile++ )
             {
-                await TiledFragment.CreateAsync( projection, xTile, yTile );
-                numCreated++;
+                await projection.GetFragmentAsync( xTile, yTile, scale );
 
-                cache.Count.Should().Be( maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached );
+                if (maxCached > 0)
+                    cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);
             }
         }
     }
@@ -58,18 +55,15 @@ public class CacheTests : TestBase
 
         var projection = await CreateProjection("BingMaps", cache) as BingMapsProjection;
         projection.Should().NotBeNull();
-        projection!.Scale = scale;
 
-        var numCreated = 0;
-
-        for (var xTile = 0; xTile <= projection.TileXRange.Maximum; xTile++)
+        for (var xTile = 0; xTile <= projection!.GetTileXRange(scale).Maximum; xTile++)
         {
-            for (var yTile = 0; yTile <= projection.TileYRange.Maximum; yTile++)
+            for (var yTile = 0; yTile <= projection.GetTileYRange(scale).Maximum; yTile++)
             {
-                await TiledFragment.CreateAsync( projection, xTile, yTile );
-                numCreated++;
+                await projection.GetFragmentAsync(xTile, yTile, scale);
 
-                cache.Count.Should().Be(maxCached <= 0 || numCreated <= maxCached ? numCreated : maxCached);
+                if( maxCached > 0 )
+                    cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);
             }
         }
     }

@@ -81,9 +81,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
-
-        var mapTile = await TiledFragment.CreateAsync( projection, xTile, yTile );
+        var mapTile = new TiledFragment( projection, xTile, yTile, scale );
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be( quadKey );
     }
@@ -120,9 +118,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
-
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
+        var mapTile = new TiledFragment(projection, xTile, yTile, scale);
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }
@@ -159,9 +155,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = scale;
-
-        var mapTile = await TiledFragment.CreateAsync(projection, xTile, yTile);
+        var mapTile = new TiledFragment(projection, xTile, yTile, scale);
         mapTile.Should().NotBeNull();
         mapTile.QuadKey.Should().Be(quadKey);
     }

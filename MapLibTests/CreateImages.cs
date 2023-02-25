@@ -13,10 +13,12 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
+        var mapTile = await projection.GetFragmentAsync( data.TileX, data.TileY, data.Scale ) as ITiledFragment;
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
-        await WriteImageFileAsync(projection, mapTile,data.Scale);
+        await WriteTiledImageFileAsync( projection, mapTile );
     }
 
     [Theory]
@@ -27,10 +29,12 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
+        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as ITiledFragment;
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
-        await WriteImageFileAsync(projection, mapTile, data.Scale);
+        await WriteTiledImageFileAsync(projection, mapTile);
     }
 
     [Theory]
@@ -41,69 +45,49 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        projection.Scale = data.Scale;
+        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as ITiledFragment;
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
-        var mapTile = await TiledFragment.CreateAsync(projection, data.TileX, data.TileY);
-        await WriteImageFileAsync(projection, mapTile, data.Scale);
+        await WriteTiledImageFileAsync(projection, mapTile);
     }
 
     [ Theory ]
-    [ ClassData( typeof( StaticImageData ) ) ]
-    public async Task GoogleMaps( StaticImageData.Region data )
+    [ ClassData( typeof( TileImageData ) ) ]
+    public async Task GoogleMaps( TileImageData.Tile data )
     {
         var projection = await CreateProjection("GoogleMaps") as GoogleMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var viewport = new NormalizedViewport(projection)
-        {
-            CenterLatitude = data.Latitude,
-            CenterLongitude = data.Longitude,
-            RequestedHeight = data.Height,
-            RequestedWidth = data.Width,
-            Scale = data.Scale
-        };
+        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as IStaticFragment;
+        mapTile.Should().NotBeNull();
+        mapTile!.ImageBytes.Should().BePositive();
+        mapTile.ImageData.Should().NotBeNull();
 
-        var mapTile = new StaticFragment( projection, viewport );
-
-        await WriteImageFileAsync( projection, mapTile, data, true );
+        await WriteStaticImageFileAsync( projection, mapTile );
     }
 
-    private async Task WriteImageFileAsync(
+    private async Task WriteTiledImageFileAsync(
         ITiledProjection projection,
-        TiledFragment mapFragment,
-        int scale,
-        bool sleep = false
+        ITiledFragment mapFragment
     )
     {
-        var stream = await mapFragment.GetImageAsync();
-        stream.Should().NotBeNull();
-
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapFragment.FragmentId}{projection.ImageFileExtension}" );
 
-        await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
-
-        if( sleep )
-            Thread.Sleep( 5000 );
+        await File.WriteAllBytesAsync( filePath, mapFragment.ImageData! );
     }
 
-    private async Task WriteImageFileAsync(
+    private async Task WriteStaticImageFileAsync(
         IProjection projection,
-        StaticFragment mapFragment,
-        StaticImageData.Region data,
-        bool sleep = false
+        IStaticFragment mapFragment
     )
     {
-        var stream = await mapFragment.GetImageAsync();
-        stream.Should().NotBeNull();
-
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{data.FragmentId}{projection.ImageFileExtension}" );
+                                     $"{mapFragment.FragmentId}{projection.ImageFileExtension}" );
 
-        await File.WriteAllBytesAsync( filePath, stream!.ToArray() );
-
-        if( sleep )
-            Thread.Sleep( 5000 );
+        await File.WriteAllBytesAsync( filePath, mapFragment.ImageData! );
     }
 }

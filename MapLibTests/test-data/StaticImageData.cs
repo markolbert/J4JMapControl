@@ -13,9 +13,9 @@ public class StaticImageData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { new Region(0,0,0, 512, 512) };
-        yield return new object[] { new Region(0,0,2, 512, 512) };
-        yield return new object[] { new Region( 37, -122, 5, 512, 512) };
+        yield return new object[] { new Region(0,0,0, 256, 256) };
+        yield return new object[] { new Region(0,0,12, 256, 256) };
+        yield return new object[] { new Region( 37, -122, 12, 256, 256) };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
