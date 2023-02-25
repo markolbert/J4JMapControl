@@ -247,10 +247,10 @@ public sealed partial class J4JMapControl : Panel
                 var fragment = _fragments[ xTile, yTile ];
                 AddImageTile( fragment, xTile, yTile, tilePosition );
 
-                tilePosition.Y += fragment?.ActualHeight ?? 0;
+                tilePosition.Y += fragment?.ImageHeight ?? 0;
 
-                if( fragment?.ActualWidth > maxTileWidth )
-                    maxTileWidth = fragment.ActualWidth;
+                if( fragment?.ImageWidth > maxTileWidth )
+                    maxTileWidth = fragment.ImageWidth;
             }
 
             tilePosition.X += maxTileWidth;
@@ -279,7 +279,7 @@ public sealed partial class J4JMapControl : Panel
         //        InsertTiles(tiledProjection, InsertedTileSide.Left);
         //    else
         //    {
-        //        if (Clip.Rect.Right > _fragments.ActualWidth)
+        //        if (Clip.Rect.Right > _fragments.ImageWidth)
         //            InsertTiles(tiledProjection, InsertedTileSide.Right);
         //    }
         //}
@@ -321,7 +321,7 @@ public sealed partial class J4JMapControl : Panel
         var x = side switch
         {
             InsertedTileSide.Left => -projection.TileHeightWidth,
-            InsertedTileSide.Right => projection.HeightWidth,
+            InsertedTileSide.Right => projection.GetHeightWidth( _fragments.Scale ),
             _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( InsertedTileSide )} value '{side}'" )
         };
 
@@ -334,12 +334,12 @@ public sealed partial class J4JMapControl : Panel
 
         var tilePosition = new Vector3(x , 0, 0 );
 
-        for ( var yTile = _fragments.YRange.First(); yTile <= _fragments.YRange.Last(); yTile++ )
+        for( var yTile = _fragments.YRange.First(); yTile <= _fragments.YRange.Last(); yTile++ )
         {
-            var fragment = projection.GetTile(xTile, yTile);
+            var fragment = projection.GetFragment( xTile, yTile, _fragments.Scale );
             AddImageTile( fragment, xTile, yTile, tilePosition );
 
-            tilePosition.Y += fragment?.ActualHeight ?? 0;
+            tilePosition.Y += fragment?.ImageHeight ?? 0;
         }
     }
 
@@ -349,12 +349,12 @@ public sealed partial class J4JMapControl : Panel
             return Size.Empty;
 
         return availableSize;
-        //return new Size( _fragments.ActualWidth > availableSize.Width 
+        //return new Size( _fragments.ImageWidth > availableSize.Width 
         //                     ? availableSize.Width 
-        //                     : _fragments.ActualWidth,
-        //                 _fragments.ActualHeight > availableSize.Height
+        //                     : _fragments.ImageWidth,
+        //                 _fragments.ImageHeight > availableSize.Height
         //                     ? availableSize.Height
-        //                     : _fragments.ActualHeight );
+        //                     : _fragments.ImageHeight );
     }
 
     protected override Size ArrangeOverride( Size finalSize )
