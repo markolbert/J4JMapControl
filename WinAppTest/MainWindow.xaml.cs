@@ -13,8 +13,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using J4JSoftware.J4JMapWinLibrary;
+using Microsoft.UI.Dispatching;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -25,8 +28,18 @@ namespace WinAppTest;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
+    private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
     public MainWindow()
     {
         this.InitializeComponent();
+    }
+
+    private void J4JMapControl_OnViewportChanged( object sender, ControlViewport e )
+    {
+        if( !e.IsValid || sender is not J4JMapControl mapControl )
+            return;
+
+        mapControl.Update();
     }
 }

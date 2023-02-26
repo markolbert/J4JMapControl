@@ -17,8 +17,9 @@
 
         <map:J4JMapControl Height="400" Width="400"
                            MapName="BingMaps"
-                           MapScale="1"
-                           Center="37.5072N,122.2605W"/>
+                           MapScale="2"
+                           Center="37.5072N,122.2605W"
+                           ViewportChanged="J4JMapControl_OnViewportChanged"/>
 
     </StackPanel>
 </Window>

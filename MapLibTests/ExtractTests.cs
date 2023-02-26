@@ -43,12 +43,18 @@ public class ExtractTests : TestBase
         projection!.Initialized.Should().BeTrue();
         projection.MaxRequestLatency = 0;
 
+        var viewport = new Viewport(projection)
+        {
+            CenterLatitude = latitude,
+            CenterLongitude = longitude,
+            Heading = heading,
+            RequestedHeight = height,
+            RequestedWidth = width,
+            Scale = scale
+        };
+
         var extractor = new MapFragments( projection, Logger );
-        extractor.SetCenter( latitude, longitude );
-        extractor.Heading = heading;
-        extractor.SetRequestedHeightWidth( height, width );
-        extractor.SetBuffer( buffer, buffer );
-        extractor.Scale = scale;
+        extractor.SetViewport( viewport) ;
 
         await extractor.UpdateAsync();
         extractor.Fragments.Count.Should().Be( numFragments );
