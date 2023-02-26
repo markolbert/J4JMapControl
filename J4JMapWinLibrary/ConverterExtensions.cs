@@ -28,10 +28,13 @@ internal static class ConverterExtensions
         Logger?.SetLoggedType( typeof( ConverterExtensions ) );
     }
 
-    public static bool TryParseToLatLong( string text, out float latitude, out float longitude )
+    public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
     {
         latitude = float.MinValue;
         longitude = float.MinValue;
+
+        if( string.IsNullOrEmpty( text ) )
+            return false;
 
         var parts = text.Split( new char[] { ',' } );
         if( parts.Length != 2 )
@@ -118,10 +121,13 @@ internal static class ConverterExtensions
         return false;
     }
 
-    private static bool TryParseDirection( string text, out float direction, out DirectionType dirType )
+    private static bool TryParseDirection( string? text, out float direction, out DirectionType dirType )
     {
         direction = float.MinValue;
         dirType = DirectionType.Unknown;
+
+        if( string.IsNullOrEmpty( text ) )
+            return false;
 
         var sign = 1;
         text = text.ToUpper();
