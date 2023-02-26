@@ -215,7 +215,7 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
     public abstract IMapFragment? GetFragment( int xTile, int yTile, int scale );
     public abstract Task<IMapFragment?> GetFragmentAsync(int xTile, int yTile, int scale, CancellationToken ctx = default );
 
-    public abstract IAsyncEnumerable<TFrag> GetExtractAsync(
+    public abstract IAsyncEnumerable<TFrag> GetViewportAsync(
         TViewport viewportData,
         CancellationToken ctx = default
     );
@@ -262,7 +262,7 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
     {
         if( viewportData.GetType().IsAssignableTo( typeof( TViewport ) ) )
         {
-            await foreach( var fragment in GetExtractAsync( (TViewport) viewportData, ctx ) )
+            await foreach( var fragment in GetViewportAsync( (TViewport) viewportData, ctx ) )
             {
                 yield return fragment;
             }

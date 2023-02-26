@@ -30,7 +30,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
     {
     }
 
-    public override async IAsyncEnumerable<StaticFragment> GetExtractAsync(
+    public override async IAsyncEnumerable<StaticFragment> GetViewportAsync(
         INormalizedViewport viewportData,
         [ EnumeratorCancellation ] CancellationToken ctx = default
     )
