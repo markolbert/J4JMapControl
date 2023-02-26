@@ -137,7 +137,9 @@ public class FileSystemCache : CacheBase
         Stats.Initialize( files );
     }
 
+#pragma warning disable CS1998
     protected override async Task<byte[]?> GetImageDataInternalAsync( ITiledFragment fragment, CancellationToken ctx = default )
+#pragma warning restore CS1998
     {
         if (string.IsNullOrEmpty(_cacheDir))
         {
@@ -151,7 +153,12 @@ public class FileSystemCache : CacheBase
         if( !File.Exists( filePath ) )
             return null;
 
-        return await File.ReadAllBytesAsync( filePath, ctx );
+        var retVal = File.ReadAllBytes(filePath);
+
+        // this next call will mysteriously fail if you call it on a UI thread
+        //var retVal = await File.ReadAllBytesAsync(filePath, ctx);
+
+        return retVal;
     }
 
     protected override async Task<byte[]?> AddEntryAsync(
