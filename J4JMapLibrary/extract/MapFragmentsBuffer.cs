@@ -17,7 +17,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-internal record MapFragmentsBuffer( float HeightPercent, float WidthPercent )
+public record MapFragmentsBuffer( float HeightPercent, float WidthPercent )
 {
     public virtual bool Equals( MapFragmentsBuffer? other )
     {

@@ -26,8 +26,6 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class MapFragments
 {
-    public event EventHandler? Changed;
-
     private readonly IProjection _projection;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
     private readonly List<IMapFragment> _fragments = new();
@@ -63,88 +61,31 @@ public class MapFragments
     public float CenterLatitude => _curConfig?.Latitude ?? 0;
     public float CenterLongitude => _curConfig?.Longitude ?? 0;
 
-    public void SetCenter( float latitude, float longitude )
+    public void SetViewport( Viewport viewport, MapFragmentsBuffer? buffer = null )
     {
-        latitude = _projection.LatitudeRange.ConformValueToRange( latitude, "Latitude" );
-        longitude = _projection.LongitudeRange.ConformValueToRange( longitude, "Longitude" );
+        buffer ??= MapFragmentsBuffer.Default;
 
-        _curConfig = _curConfig == null
-            ? new MapFragmentsConfiguration( latitude, longitude, 0, 0, 0, 0, MapFragmentsBuffer.Default )
-            : _curConfig with { Latitude = latitude, Longitude = longitude };
+        var latitude = _projection.LatitudeRange.ConformValueToRange(viewport.CenterLatitude, "MapFragments Latitude");
+        var longitude = _projection.LongitudeRange.ConformValueToRange(viewport.CenterLongitude, "MapFragments Longitude");
+        var height = _heightWidthRange.ConformValueToRange(viewport.RequestedHeight, "MapFragments RequestedHeight");
+        var width = _heightWidthRange.ConformValueToRange(viewport.RequestedWidth, "MapFragments RequestedWidth");
+        var scale  = _projection.ScaleRange.ConformValueToRange(viewport.Scale, "MapFragments Scale");
+        var heading = viewport.Heading % 360;
 
-        CenterPoint.SetLatLong( latitude, longitude );
+        _curConfig =new MapFragmentsConfiguration(latitude, longitude, heading, scale, height, width, buffer);
 
-        RaiseChangedEvent();
+        CenterPoint.SetLatLong(latitude, longitude);
     }
 
     public StaticPoint CenterPoint { get; }
-
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
-
-    public void SetRequestedHeightWidth( double height, double width ) =>
-        SetRequestedHeightWidth( (float) height, (float) width );
-
-    public void SetRequestedHeightWidth( float height, float width )
-    {
-        height = _heightWidthRange.ConformValueToRange( height, "RequestedHeight" );
-        width = _heightWidthRange.ConformValueToRange( width, "RequestedWidth" );
-
-        _curConfig = _curConfig == null
-            ? new MapFragmentsConfiguration( 0, 0, 0, 0, height, width, MapFragmentsBuffer.Default )
-            : _curConfig with { RequestedHeight = height, RequestedWidth = width };
-
-        RaiseChangedEvent();
-    }
-
     public float HeightBufferPercent => _curConfig?.FragmentBuffer.HeightPercent ?? 0;
     public float WidthBufferPercent => _curConfig?.FragmentBuffer.WidthPercent ?? 0;
-
-    public void SetBuffer( float heightPercent, float widthPercent )
-    {
-        var buffer = new MapFragmentsBuffer( _heightWidthRange.ConformValueToRange( heightPercent, "RequestedHeight MapFragmentsBuffer (percent)" ),
-                                 _heightWidthRange.ConformValueToRange( widthPercent, "RequestedWidth MapFragmentsBuffer (percent)" ) );
-
-        _curConfig = _curConfig == null
-            ? new MapFragmentsConfiguration( 0, 0, 0, 0, 0, 0, buffer )
-            : _curConfig with { FragmentBuffer = buffer };
-
-        RaiseChangedEvent();
-    }
-
-    public int Scale
-    {
-        get => _curConfig?.Scale ?? 0;
-
-        set
-        {
-            value = _projection.ScaleRange.ConformValueToRange( value, "Scale" );
-
-            _curConfig = _curConfig == null
-                ? new MapFragmentsConfiguration( 0, 0, 0, value, 0, 0, MapFragmentsBuffer.Default )
-                : _curConfig with { Scale = value };
-
-            RaiseChangedEvent();
-        }
-    }
+    public int Scale => _curConfig?.Scale ?? 0;
 
     // in degrees; north is 0/360; stored as mod 360
-    public float Heading
-    {
-        get => _curConfig?.Heading ?? 0;
-
-        set
-        {
-            value = value % 360;
-
-            _curConfig = _curConfig == null
-                ? new MapFragmentsConfiguration( 0, 0, value, 0, 0, 0, MapFragmentsBuffer.Default )
-                : _curConfig with { Heading = value };
-
-            RaiseChangedEvent();
-        }
-    }
-
+    public float Heading => _curConfig?.Heading ?? 0;
     public float Rotation => 360 - Heading;
 
     public ReadOnlyCollection<int> XRange => _xRange.AsReadOnly();
@@ -160,7 +101,7 @@ public class MapFragments
             if( xTile < XRange.First() || xTile > XRange.Last() || yTile < YRange.First() || yTile > YRange.Last() )
                 return null;
 
-            return _fragments.First( f => f.XTile == xTile && f.YTile == yTile );
+            return _fragments.FirstOrDefault( f => f.XTile == xTile && f.YTile == yTile );
         }
     }
 
@@ -221,6 +162,11 @@ public class MapFragments
         }
     }
 
+    public void Update()
+    {
+        UpdateAsync().Wait();
+    }
+
     public async Task UpdateAsync( CancellationToken ctx = default )
     {
         if( !UpdateNeeded )
@@ -228,7 +174,7 @@ public class MapFragments
 
         _fragments.Clear();
 
-        var viewportRect = new Rectangle2D(_curConfig!.RequestedHeight, _curConfig.RequestedWidth, _curConfig.Rotation);
+        var viewportRect = CreateRectangle( _curConfig! );
 
         await foreach ( var fragment in RetrieveImagesAsync( ctx ) )
         {
@@ -241,7 +187,7 @@ public class MapFragments
                 var tiledFragment = (ITiledFragment) fragment;
 
                 // see if this fragment is totally inside the viewport or extends beyond it
-                var tileCenter = new Vector3( tiledFragment.XTile * tiledFragment.HeightWidth - _curConfig.RequestedWidth / 2,
+                var tileCenter = new Vector3( tiledFragment.XTile * tiledFragment.HeightWidth - _curConfig!.RequestedWidth / 2,
                                               tiledFragment.YTile * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
                                               0 );
 
@@ -277,20 +223,15 @@ public class MapFragments
         _yRange.AddRange( Enumerable.Range( min, max - min + 1 ) );
     }
 
-    private void RaiseChangedEvent()
-    {
-        OnConfigurationChanged();
-
-        Changed?.Invoke( this, EventArgs.Empty );
-    }
-
-    protected virtual void OnConfigurationChanged()
-    {
-    }
-
     private Rectangle2D CreateRectangle( MapFragmentsConfiguration config )
     {
-        var retVal = new Rectangle2D( config.RequestedHeight, config.RequestedWidth, config.Rotation );
+        var centerPoint = new StaticPoint( _projection ) { Scale = config.Scale };
+        centerPoint.SetLatLong( config.Latitude, config.Longitude );
+
+        var retVal = new Rectangle2D( config.RequestedHeight,
+                                      config.RequestedWidth,
+                                      config.Rotation,
+                                      new Vector3( centerPoint.X, centerPoint.Y, 0 ) );
 
         // apply buffer
         var bufferTransform = Matrix4x4.CreateScale( 1 + config.FragmentBuffer.WidthPercent,
@@ -304,15 +245,31 @@ public class MapFragments
             : retVal.BoundingBox;
     }
 
-    private IAsyncEnumerable<IMapFragment> RetrieveImagesAsync( CancellationToken ctx )
+    private async IAsyncEnumerable<IMapFragment> RetrieveImagesAsync( [ EnumeratorCancellation ] CancellationToken ctx )
     {
-        return ProjectionType switch
+        switch( ProjectionType )
         {
-            ProjectionType.Static => RetrieveStaticImagesAsync( ctx ),
-            ProjectionType.Tiled => RetrieveTiledImagesAsync( ctx ),
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {nameof( ProjectionType )} value '{ProjectionType}'" )
-        };
+            case ProjectionType.Static:
+                await foreach( var staticFrag in RetrieveStaticImagesAsync( ctx ) )
+                {
+                    yield return staticFrag;
+                }
+
+                break;
+
+            case ProjectionType.Tiled:
+                await foreach (var tiledFrag in RetrieveTiledImagesAsync(ctx))
+                {
+                    yield return tiledFrag;
+                }
+
+                break;
+
+            default:
+                throw new InvalidEnumArgumentException(
+                    $"Unsupported {nameof( ProjectionType )} value '{ProjectionType}'" );
+
+        }
     }
 
     private async IAsyncEnumerable<IMapFragment> RetrieveStaticImagesAsync(
