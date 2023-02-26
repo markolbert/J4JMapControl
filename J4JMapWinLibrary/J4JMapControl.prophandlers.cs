@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using ABI.Windows.ApplicationModel.UserDataTasks;
 using CommunityToolkit.WinUI;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
@@ -36,7 +37,17 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        mapControl.UpdateChildControls();
+        mapControl.UpdateNeeded = true;
+
+        var viewport = mapControl.GetViewport();
+        mapControl.IsValid = viewport != null;
+
+        if( mapControl.IsValid )
+            mapControl.ViewportChanged?.Invoke( mapControl,
+                                                new ControlViewport( mapControl.Center,
+                                                                     mapControl.MapScale,
+                                                                     mapControl.Heading,
+                                                                     viewport ) );
     }
 
 }

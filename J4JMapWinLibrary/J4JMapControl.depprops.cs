@@ -57,18 +57,20 @@ public sealed partial class J4JMapControl
     public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
                                                                             typeof( string ),
                                                                             typeof( J4JMapControl ),
-                                                                            new PropertyMetadata( "0,0",
-                                                                                OnViewportChanged ) );
+                                                                            new PropertyMetadata( null, OnViewportChanged ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( string ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( "0",
-                                                                                  OnViewportChanged ) );
+                                                                              new PropertyMetadata( null, OnViewportChanged ) );
 
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
                                                                              typeof( string ),
                                                                              typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( "0",
-                                                                                 OnViewportChanged ) );
+                                                                             new PropertyMetadata( null, OnViewportChanged ) );
+
+    public DependencyProperty IsValidProperty = DependencyProperty.Register( nameof( IsValid ),
+                                                                             typeof( bool ),
+                                                                             typeof( J4JMapControl ),
+                                                                             new PropertyMetadata( false ) );
 }

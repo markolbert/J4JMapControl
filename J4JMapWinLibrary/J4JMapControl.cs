@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -15,7 +16,9 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using J4JSoftware.DependencyInjection;
+using Microsoft.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -46,6 +49,8 @@ public sealed partial class J4JMapControl : Panel
         J4JDeusEx.OutputFatalMessage( "Could not retrieve instance of IJ4JHost", J4JDeusEx.GetLogger() );
         throw new NullReferenceException("Could not retrieve instance of IJ4JHost");
     }
+
+    public event EventHandler<ControlViewport>? ViewportChanged;
 
     private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
     private readonly ProjectionFactory _projFactory;
@@ -185,6 +190,13 @@ public sealed partial class J4JMapControl : Panel
 
         _projection = projResult.Projection!;
         _fragments = new MapFragments(_projection, _logger);
+
+        var mapScale = int.TryParse( MapScale, out var tempScale ) ? tempScale : _projection.MinScale;
+        MapScale = mapScale.ToString();
+
+        var heading = float.TryParse( Heading, out var tempHeading ) ? tempHeading : 0F;
+        Heading = heading.ToString( CultureInfo.CurrentCulture );
+
         InvalidateMeasure();
     }
 
@@ -206,29 +218,68 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue( HeadingProperty, value );
     }
 
-    private void UpdateChildControls()
+    public bool IsValid
+    {
+        get => (bool) GetValue( IsValidProperty );
+        set => SetValue( IsValidProperty, value );
+    }
+
+    private Viewport? GetViewport()
+    {
+        if (_projection == null )
+        {
+            _logger.Error("Projection not defined or initialized");
+            return null;
+        }
+
+        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
+        {
+            _logger.Error<string>("Could not parse Center ({0})", Center);
+            return null;
+        }
+
+        if (!int.TryParse(MapScale, out var mapScale))
+        {
+            _logger.Error<string>("Could not parse MapScale ({0})", MapScale);
+            return null;
+        }
+
+        if( float.TryParse( Heading, out var heading ) )
+        {
+            return new Viewport( _projection )
+            {
+                CenterLatitude = latitude,
+                CenterLongitude = longitude,
+                Heading = heading,
+                RequestedHeight = (float) Height,
+                RequestedWidth = (float) Width,
+                Scale = mapScale
+            };
+        }
+
+        _logger.Error<string>("Could not parse Heading ({0})", Heading);
+        return null;
+    }
+
+    public bool UpdateNeeded { get; private set; }
+
+    public bool Update()
     {
         if( _fragments == null )
-            return;
+        {
+            _logger.Error("Projection not fully initialized");
+            return false;
+        }
 
-        if( !ConverterExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            return;
+        var viewport = GetViewport();
+        if( viewport == null )
+        {
+            _logger.Error("Control not fully configured");
+            return false;
+        }
 
-        _fragments.SetCenter( latitude, longitude );
-
-        if( !int.TryParse(MapScale, out var mapScale))
-            return;
-
-        _fragments.Scale = mapScale;
-
-        if( !float.TryParse( Heading, out var heading ) )
-            return;
-
-        _fragments.Heading = heading;
-
-        _fragments.SetRequestedHeightWidth(Height, Width);
-        
-        Task.Run(async () => await _fragments.UpdateAsync()).Wait();
+        _fragments.SetViewport( viewport );
+        _fragments.Update();
 
         _suppressLayout = true;
 
@@ -237,56 +288,63 @@ public sealed partial class J4JMapControl : Panel
         var tilePosition = new Vector3(0, 0, 0);
         var retVal = new Size();
 
-        foreach( var xTile in _fragments.XRange )
+        foreach (var xTile in _fragments.XRange)
         {
             tilePosition.Y = 0;
             var maxTileWidth = 0F;
 
-            foreach( var yTile in _fragments.YRange )
+            foreach (var yTile in _fragments.YRange)
             {
-                var fragment = _fragments[ xTile, yTile ];
-                AddImageTile( fragment, xTile, yTile, tilePosition );
+                var fragment = _fragments[xTile, yTile];
+                AddImageTile(fragment, xTile, yTile, tilePosition);
 
                 tilePosition.Y += fragment?.ImageHeight ?? 0;
 
-                if( fragment?.ImageWidth > maxTileWidth )
+                if (fragment?.ImageWidth > maxTileWidth)
                     maxTileWidth = fragment.ImageWidth;
             }
 
             tilePosition.X += maxTileWidth;
 
-            if( tilePosition.Y > retVal.Height )
+            if (tilePosition.Y > retVal.Height)
                 retVal.Height = tilePosition.Y;
 
             retVal.Width += maxTileWidth;
         }
 
-        //// determine the clipping rectangle so we can figure out whether we
-        //// need to repeat tiles on the left or right
-        //Clip = new RectangleGeometry()
-        //{
-        //    Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2,
-        //                              _fragments.CenterPoint.Y - Height / 2),
-        //                    new Size(Width, Height))
-        //};
+        // determine the clipping rectangle so we can figure out whether we
+        // need to repeat tiles on the left or right
+        var clip = new RectangleGeometry()
+        {
+            Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2, _fragments.CenterPoint.Y - Height / 2),
+                            new Size(Width, Height))
+        };
 
-        //// handling tiled projection viewport edge issues...
-        //if (_projection is ITiledProjection tiledProjection)
-        //{
-        //    // if the left edge of the clipping rectangle is < 0 we need to insert
-        //    // tiles from the right edge of the map in each row of images
-        //    if (Clip.Rect.Left < 0)
-        //        InsertTiles(tiledProjection, InsertedTileSide.Left);
-        //    else
-        //    {
-        //        if (Clip.Rect.Right > _fragments.ImageWidth)
-        //            InsertTiles(tiledProjection, InsertedTileSide.Right);
-        //    }
-        //}
+        // handling tiled projection viewport edge issues...
+        if (_projection is ITiledProjection tiledProjection)
+        {
+            // if the left edge of the clipping rectangle is < 0 we need to insert
+            // tiles from the right edge of the map in each row of images
+            if (clip.Rect.Left  < 0)
+                InsertTiles(tiledProjection, InsertedTileSide.Left);
+            else
+            {
+                if (clip.Rect.Right > _fragments.ActualWidth)
+                    InsertTiles(tiledProjection, InsertedTileSide.Right);
+            }
+        }
+
+        Clip = new RectangleGeometry()
+        {
+            Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2, _fragments.CenterPoint.Y - Height / 2),
+                            new Size(Width, Height))
+        };
 
         _suppressLayout = false;
 
         InvalidateMeasure();
+
+        return true;
     }
 
     private void AddImageTile( IMapFragment? fragment, int xTile, int yTile, Vector3 tilePosition )
@@ -327,8 +385,8 @@ public sealed partial class J4JMapControl : Panel
 
         var xTile = side switch
         {
-            InsertedTileSide.Left => _fragments.XRange.Last(),
-            InsertedTileSide.Right => _fragments.XRange.First(),
+            InsertedTileSide.Left => _projection!.GetTileXRange(_fragments.Scale).Maximum,
+            InsertedTileSide.Right => _projection!.GetTileXRange(_fragments.Scale).Minimum,
             _ => throw new InvalidEnumArgumentException($"Unsupported {typeof(InsertedTileSide)} value '{side}'")
         };
 
