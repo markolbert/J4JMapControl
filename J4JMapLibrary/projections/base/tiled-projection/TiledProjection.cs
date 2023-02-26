@@ -59,7 +59,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         return !string.IsNullOrEmpty( Name );
     }
 
-    public override async IAsyncEnumerable<TiledFragment> GetExtractAsync(
+    public override async IAsyncEnumerable<TiledFragment> GetViewportAsync(
         IViewport viewportData,
         [ EnumeratorCancellation ] CancellationToken ctx = default
     )
@@ -102,8 +102,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         // not up the screen. So the first adjustment is to subject the raw Y values from
         // the height of the projection to reverse the direction. 
         var heightWidth = GetHeightWidth( scale );
-        var minTileY = CartesianToTile( corners.Min( y => heightWidth - y.Y ) );
-        var maxTileY = CartesianToTile( corners.Max( y => heightWidth - y.Y ) );
+        var minTileY = CartesianToTile( corners.Min( y => y.Y ) );
+        var maxTileY = CartesianToTile( corners.Max( y => y.Y ) );
 
         minTileX = minTileX < 0 ? 0 : minTileX;
         minTileY = minTileY < 0 ? 0 : minTileY;
