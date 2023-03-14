@@ -16,21 +16,21 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class CacheBase : ITileCache
 {
     protected CacheBase(
-        IJ4JLogger logger
+        ILogger logger
     )
     {
         Logger = logger;
-        Logger.SetLoggedType( GetType() );
+        Logger.ForContext( GetType() );
     }
 
-    protected IJ4JLogger Logger { get; }
+    protected ILogger Logger { get; }
 
     public CacheStats Stats { get; } = new();
 

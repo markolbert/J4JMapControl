@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -29,12 +29,12 @@ public abstract class MapFragment : IMapFragment
     )
     {
         Logger = J4JDeusEx.GetLogger();
-        Logger?.SetLoggedType( GetType() );
+        Logger?.ForContext( GetType() );
 
         Projection = projection;
     }
 
-    protected IJ4JLogger? Logger { get; }
+    protected ILogger? Logger { get; }
 
     public IProjection Projection { get; }
     

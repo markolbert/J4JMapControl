@@ -17,19 +17,19 @@
 
 using System.Numerics;
 using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
+using Serilog;
 using System.Text;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 internal static class InternalExtensions
 {
-    private static readonly IJ4JLogger? Logger;
+    private static readonly ILogger? Logger;
 
     static InternalExtensions()
     {
         Logger = J4JDeusEx.GetLogger();
-        Logger?.SetLoggedType( typeof( InternalExtensions ) );
+        Logger?.ForContext( typeof( InternalExtensions ) );
     }
 
     // thanx to 3dGrabber for this

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -23,7 +23,7 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials>
 {
     public OpenTopoMapsProjection(
-        IJ4JLogger logger,
+        ILogger logger,
         ITileCache? tileCache = null
     )
         : base(logger )

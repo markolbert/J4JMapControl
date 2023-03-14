@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -20,12 +15,12 @@ internal static class ConverterExtensions
     }
 
     private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
-    private static readonly IJ4JLogger? Logger;
+    private static readonly ILogger? Logger;
 
     static ConverterExtensions()
     {
         Logger = J4JDeusEx.GetLogger();
-        Logger?.SetLoggedType( typeof( ConverterExtensions ) );
+        Logger?.ForContext( typeof( ConverterExtensions ) );
     }
 
     public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
@@ -36,7 +31,7 @@ internal static class ConverterExtensions
         if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var parts = text.Split( new char[] { ',' } );
+        var parts = text.Split( new [] { ',' } );
         if( parts.Length != 2 )
         {
             Logger?.Error("Could not parse location text, missing ','"  );
@@ -110,14 +105,14 @@ internal static class ConverterExtensions
 
         if( latitude is < -90 or > 90 )
         {
-            Logger?.Error<string>("Invalid latitude value ({0})", text  );
+            Logger?.Error("Invalid latitude value ({0})", text  );
             return false;
         }
 
         if( longitude >= -180 && longitude <= 180 )
             return true;
 
-        Logger?.Error<string>("Invalid longitude value ({0})", text);
+        Logger?.Error("Invalid longitude value ({0})", text);
         return false;
     }
 
@@ -170,7 +165,7 @@ internal static class ConverterExtensions
             return true;
         }
 
-        Logger?.Error<string>("Could not parse direction string '{0}'", text  );
+        Logger?.Error("Could not parse direction string '{0}'", text  );
         return false;
     }
 

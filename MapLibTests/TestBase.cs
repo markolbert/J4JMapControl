@@ -1,10 +1,9 @@
 ﻿using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace MapLibTests;
 
@@ -20,14 +19,14 @@ public class TestBase
         var deusEx = new DeusEx();
         deusEx.Initialize().Should().BeTrue();
 
-        var logger = J4JDeusEx.ServiceProvider.GetRequiredService<IJ4JLogger>();
+        var logger = J4JDeusEx.ServiceProvider.GetRequiredService<ILogger>();
         logger.Should().NotBeNull();
         Logger = logger;
 
         _config = J4JDeusEx.ServiceProvider.GetRequiredService<IConfiguration>();
     }
 
-    protected IJ4JLogger Logger { get; }
+    protected ILogger Logger { get; }
 
     protected async Task<IProjection?> CreateProjection(
         string projName,
@@ -58,11 +57,11 @@ public class TestBase
 
         if (retVal == null)
         {
-            Logger.Error<string>("Unknown projection {0}", projName);
+            Logger.Error("Unknown projection {0}", projName);
             return null;
         }
 
-        var authenticated = await retVal.AuthenticateAsync(credentials!);
+        var authenticated = await retVal.AuthenticateAsync(credentials);
         authenticated.Should().BeTrue();
 
         return retVal;
@@ -81,7 +80,7 @@ public class TestBase
 
         if( retVal == null )
         {
-            Logger.Error<string>("Unknown projection {0}", projName);
+            Logger.Error("Unknown projection {0}", projName);
             return null;
         }
 
@@ -108,7 +107,7 @@ public class TestBase
 
         if (retVal == null)
         {
-            Logger.Error<string>("Unknown credentials type {0}", credentialName);
+            Logger.Error("Unknown credentials type {0}", credentialName);
             return null;
         }
 

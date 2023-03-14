@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Runtime.CompilerServices;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -24,7 +24,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
     where TAuth : class, new()
 {
     protected StaticProjection(
-        IJ4JLogger logger
+        ILogger logger
     )
         : base( logger )
     {

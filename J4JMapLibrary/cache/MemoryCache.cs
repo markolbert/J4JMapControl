@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -24,7 +24,7 @@ public class MemoryCache : CacheBase
     private readonly Dictionary<string, CachedTile> _cached = new( StringComparer.OrdinalIgnoreCase );
 
     public MemoryCache(
-        IJ4JLogger logger
+        ILogger logger
     )
         : base( logger )
     {
@@ -109,7 +109,7 @@ public class MemoryCache : CacheBase
 
         if ( _cached.ContainsKey( key ) )
         {
-            Logger.Warning<string>( "Replacing map mapFragment with fragment '{0}'", cacheEntry.Tile.FragmentId );
+            Logger.Warning( "Replacing map mapFragment with fragment '{0}'", cacheEntry.Tile.FragmentId );
             _cached[ key ] = cacheEntry;
 
             Stats.Initialize( this );

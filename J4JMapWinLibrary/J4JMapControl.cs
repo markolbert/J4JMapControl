@@ -6,19 +6,16 @@ using System.ComponentModel;
 using System.Globalization;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
-using System.Threading.Tasks;
 using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using J4JSoftware.DependencyInjection;
 using Microsoft.UI.Xaml.Media;
+using Serilog;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -52,9 +49,8 @@ public sealed partial class J4JMapControl : Panel
 
     public event EventHandler<ControlViewport>? ViewportChanged;
 
-    private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
     private readonly ProjectionFactory _projFactory;
-    private readonly IJ4JLogger _logger;
+    private readonly ILogger _logger;
 
     private IProjection? _projection;
     private ITileCache? _tileMemCache;
@@ -66,7 +62,7 @@ public sealed partial class J4JMapControl : Panel
     public J4JMapControl()
     {
         _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain IJ4JLogger instance" );
-        _logger.SetLoggedType( GetType() );
+        _logger.ForContext( GetType() );
 
         _projFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>()
          ?? throw new NullReferenceException( "Could not create ProjectionFactory" );
@@ -234,13 +230,13 @@ public sealed partial class J4JMapControl : Panel
 
         if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
         {
-            _logger.Error<string>("Could not parse Center ({0})", Center);
+            _logger.Error("Could not parse Center ({0})", Center);
             return null;
         }
 
         if (!int.TryParse(MapScale, out var mapScale))
         {
-            _logger.Error<string>("Could not parse MapScale ({0})", MapScale);
+            _logger.Error("Could not parse MapScale ({0})", MapScale);
             return null;
         }
 
@@ -257,7 +253,7 @@ public sealed partial class J4JMapControl : Panel
             };
         }
 
-        _logger.Error<string>("Could not parse Heading ({0})", Heading);
+        _logger.Error("Could not parse Heading ({0})", Heading);
         return null;
     }
 

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -25,7 +25,7 @@ public class FileSystemCache : CacheBase
     private string? _cacheDir;
 
     public FileSystemCache(
-        IJ4JLogger logger
+        ILogger logger
     )
         : base( logger )
     {
@@ -52,7 +52,7 @@ public class FileSystemCache : CacheBase
             }
             catch
             {
-                Logger.Error<string>( "Cache path '{0}' is not accessible", value );
+                Logger.Error( "Cache path '{0}' is not accessible", value );
             }
         }
     }
@@ -184,7 +184,7 @@ public class FileSystemCache : CacheBase
         }
 
         if( File.Exists( filePath ) )
-            Logger.Warning<string>( "Replacing map mapFragment with fragment ID '{0}'", fragment.FragmentId );
+            Logger.Warning( "Replacing map mapFragment with fragment ID '{0}'", fragment.FragmentId );
 
         await using var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( retVal, ctx );
@@ -219,13 +219,13 @@ public class FileSystemCache : CacheBase
 
             if( parts.Length != 2 )
             {
-                Logger.Error<string>("Unable to parse cached filename '{0}'", fileName);
+                Logger.Error("Unable to parse cached filename '{0}'", fileName);
                 continue;
             }
 
             if( !MapExtensions.TryParseQuadKey( parts[ 1 ], out _ ) )
             {
-                Logger.Error<string>("Could not deconstruct quadkey for file '{0}'", fileName  );
+                Logger.Error("Could not deconstruct quadkey for file '{0}'", fileName  );
                 continue;
             }
 

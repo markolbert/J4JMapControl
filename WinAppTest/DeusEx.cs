@@ -2,7 +2,6 @@
 using Autofac;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.Logging;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -25,17 +24,17 @@ internal class DeusEx : J4JDeusExWinApp
         builder.AddUserSecrets<DeusEx>();
     }
 
-    private void SetupLogger(
+    private ILogger SetupLogger(
         IConfiguration config,
-        J4JHostConfiguration hostConfig,
-        J4JLoggerConfiguration loggerConfig
+        J4JHostConfiguration hostConfig
     )
     {
         var logFile = Path.Combine(hostConfig.ApplicationConfigurationFolder, "log.txt");
 
-        loggerConfig.SerilogConfiguration
-                    .WriteTo.Debug()
-                    .WriteTo.File(logFile, rollingInterval: RollingInterval.Minute);
+        return new LoggerConfiguration()
+            .WriteTo.Debug()
+            .WriteTo.File(logFile, rollingInterval: RollingInterval.Minute)
+            .CreateLogger();
     }
 
     private void SetupDependencyInjection(HostBuilderContext hbc, ContainerBuilder builder)
@@ -43,7 +42,7 @@ internal class DeusEx : J4JDeusExWinApp
         builder.Register(c =>
                 {
                     var retVal = new ProjectionFactory(c.Resolve<IConfiguration>(),
-                                                       c.Resolve<IJ4JLogger>());
+                                                       c.Resolve<ILogger>());
 
                     retVal.ScanAssemblies();
 

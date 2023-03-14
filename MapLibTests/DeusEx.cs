@@ -21,16 +21,16 @@ internal partial class DeusEx : J4JDeusExHosted
         builder.AddUserSecrets<DeusEx>();
     }
 
-    private void SetupLogger(
+    private ILogger SetupLogger(
         IConfiguration config,
-        J4JHostConfiguration hostConfig,
-        J4JLoggerConfiguration loggerConfig
+        J4JHostConfiguration hostConfig
     )
     {
         var logFile = Path.Combine( hostConfig.ApplicationConfigurationFolder, "log.txt" );
 
-        loggerConfig.SerilogConfiguration
-                    .WriteTo.Debug()
-                    .WriteTo.File( logFile, rollingInterval: RollingInterval.Minute );
+        return new LoggerConfiguration()
+            .WriteTo.Debug()
+            .WriteTo.File(logFile, rollingInterval: RollingInterval.Minute)
+            .CreateLogger();
     }
 }

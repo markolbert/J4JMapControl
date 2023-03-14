@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JSoftware.Logging;
+using Serilog;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -25,7 +25,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
     where TAuth : class, new()
 {
     protected TiledProjection(
-        IJ4JLogger logger
+        ILogger logger
     )
         : base( logger )
     {

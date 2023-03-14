@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JSoftware.Logging;
+using Serilog;
 using System.Net;
 using System.Text.Json;
 
@@ -31,7 +31,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     private string? _cultureCode;
 
     public BingMapsProjection(
-        IJ4JLogger logger,
+        ILogger logger,
         ITileCache? tileCache = null
     )
         : base( logger )

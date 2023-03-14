@@ -19,7 +19,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using J4JSoftware.Logging;
+using Serilog;
 using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -37,7 +37,7 @@ public class MapFragments
 
     public MapFragments(
         IProjection projection,
-        IJ4JLogger logger
+        ILogger logger
     )
     {
         _projection = projection;
@@ -51,10 +51,10 @@ public class MapFragments
         };
 
         Logger = logger;
-        Logger.SetLoggedType( GetType() );
+        Logger.ForContext( GetType() );
     }
 
-    protected IJ4JLogger Logger { get; }
+    protected ILogger Logger { get; }
 
     public ProjectionType ProjectionType { get; }
 

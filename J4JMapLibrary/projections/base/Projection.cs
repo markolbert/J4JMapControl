@@ -17,7 +17,7 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using J4JSoftware.Logging;
+using Serilog;
 #pragma warning disable CS8618
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -38,11 +38,11 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
     private float _maxLong = 180;
 
     protected Projection(
-        IJ4JLogger logger
+        ILogger logger
     )
     {
         Logger = logger;
-        Logger.SetLoggedType( GetType() );
+        Logger.ForContext( GetType() );
 
         var attribute = GetType().GetCustomAttribute<ProjectionAttribute>();
         if( attribute == null )
@@ -55,7 +55,7 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
         LongitudeRange = new MinMax<float>(-180, 180);
     }
 
-    protected IJ4JLogger Logger { get; }
+    protected ILogger Logger { get; }
 
     public string Name { get; } = string.Empty;
     public bool Initialized { get; protected set; }

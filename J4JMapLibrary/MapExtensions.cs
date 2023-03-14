@@ -18,19 +18,19 @@
 using System.Net;
 using System.Text;
 using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapExtensions
 {
-    private static readonly IJ4JLogger? Logger;
+    private static readonly ILogger? Logger;
     private static readonly char[] ValidQuadKeyCharacters = { '0', '1', '2', '3' };
 
     static MapExtensions()
     {
         Logger = J4JDeusEx.GetLogger();
-        Logger?.SetLoggedType( typeof( MapExtensions ) );
+        Logger?.ForContext( typeof( MapExtensions ) );
     }
 
     public static ProjectionType GetProjectionType( this IProjection projection ) =>

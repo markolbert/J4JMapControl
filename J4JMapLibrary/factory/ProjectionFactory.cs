@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
-using J4JSoftware.Logging;
+using Serilog;
 using Microsoft.Extensions.Configuration;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -8,21 +8,21 @@ namespace J4JSoftware.J4JMapLibrary;
 public class ProjectionFactory
 {
     private readonly IConfiguration _config;
-    private readonly IJ4JLogger _logger;
+    private readonly ILogger _logger;
     private readonly bool _includeDefaults;
     private readonly List<ProjectionTypeInfo> _projTypes = new();
     private readonly List<CredentialsTypeInfo> _credTypes = new();
 
     public ProjectionFactory(
         IConfiguration config,
-        IJ4JLogger logger,
+        ILogger logger,
         bool includeDefaults = true
     )
     {
         _config = config;
 
         _logger = logger;
-        _logger.SetLoggedType( GetType() );
+        _logger.ForContext( GetType() );
 
         _includeDefaults = includeDefaults;
     }
@@ -61,7 +61,7 @@ public class ProjectionFactory
 
                                                            return ctorParams.Any(
                                                                    p => p.ParameterType.IsAssignableTo(
-                                                                       typeof( IJ4JLogger ) ) );
+                                                                       typeof( ILogger ) ) );
                                                        } )
                                                   && t.GetInterface( typeof( IProjection ).FullName ?? string.Empty )
                                                   != null ) )

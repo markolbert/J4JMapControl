@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using J4JSoftware.DeusEx;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -8,14 +8,14 @@ internal record ProjectionCtorInfo( bool SupportsCaching, List<ProjectionCtorPar
 
 internal record ProjectionTypeInfo
 {
-    private readonly IJ4JLogger? _logger;
+    private readonly ILogger? _logger;
 
     public ProjectionTypeInfo(
         Type projType
         )
     {
         _logger = J4JDeusEx.GetLogger();
-        _logger?.SetLoggedType( GetType() );
+        _logger?.ForContext( GetType() );
 
         var attr = projType.GetCustomAttribute<ProjectionAttribute>( false )
          ?? throw new NullReferenceException( $"{projType} is not decorated with a {typeof( ProjectionAttribute )}" );
@@ -49,7 +49,7 @@ internal record ProjectionTypeInfo
 
             foreach (var ctorParameter in ctor.GetParameters())
             {
-                if (ctorParameter.ParameterType.IsAssignableTo(typeof(IJ4JLogger)))
+                if (ctorParameter.ParameterType.IsAssignableTo(typeof(ILogger)))
                 {
                     ctorParameters.Add(ProjectionCtorParameterType.Logger);
                     continue;

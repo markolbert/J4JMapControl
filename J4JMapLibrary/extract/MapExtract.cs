@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections;
-using J4JSoftware.Logging;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -24,16 +24,16 @@ public abstract class MapExtract : IMapExtract
 {
     protected MapExtract(
         IProjection projection,
-        IJ4JLogger logger
+        ILogger logger
     )
     {
         Projection = projection;
 
         Logger = logger;
-        Logger.SetLoggedType( GetType() );
+        Logger.ForContext( GetType() );
     }
 
-    protected IJ4JLogger Logger { get; }
+    protected ILogger Logger { get; }
     protected IProjection Projection { get; }
     protected List<IMapFragment> Tiles { get; } = new();
 

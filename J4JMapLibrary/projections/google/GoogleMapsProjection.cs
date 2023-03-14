@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using J4JSoftware.Logging;
+using Serilog;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -25,7 +25,7 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 {
     public GoogleMapsProjection(
-        IJ4JLogger logger
+        ILogger logger
 
     )
         : base( logger )
