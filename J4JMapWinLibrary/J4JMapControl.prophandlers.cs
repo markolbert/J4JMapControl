@@ -1,8 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using ABI.Windows.ApplicationModel.UserDataTasks;
-using CommunityToolkit.WinUI;
-using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;

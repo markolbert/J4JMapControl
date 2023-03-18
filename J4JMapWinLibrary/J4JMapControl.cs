@@ -3,7 +3,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Globalization;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using Windows.Foundation;
@@ -247,8 +246,7 @@ public sealed partial class J4JMapControl : Panel
         };
 
         _fragments.SetViewport( viewport );
-        _throttleFragmentsUpdate.Throttle( 250, x=> _fragments.Update() );
-        //_fragments.Update();
+        _throttleFragmentsUpdate.Throttle( 250, _=> _fragments.Update() );
     }
 
     private void OnFragmentsUpdated()
