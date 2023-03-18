@@ -14,6 +14,8 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
 using J4JSoftware.DependencyInjection;
+using J4JSoftware.WindowsAppUtilities;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
 
@@ -47,21 +49,24 @@ public sealed partial class J4JMapControl : Panel
         throw new NullReferenceException("Could not retrieve instance of IJ4JHost");
     }
 
-    public event EventHandler<ControlViewport>? ViewportChanged;
-
     private readonly ProjectionFactory _projFactory;
     private readonly ILogger _logger;
+    private readonly DispatcherQueue _dispatcherQueue;
+    private readonly ThrottleDispatcher _throttleFragmentsUpdate = new();
 
     private IProjection? _projection;
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
     private MapFragments? _fragments;
     private bool _suppressLayout;
+    private bool _ignoreChange;
     private bool _cacheIsValid;
 
     public J4JMapControl()
     {
-        _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain IJ4JLogger instance" );
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain ILogger instance" );
         _logger.ForContext( GetType() );
 
         _projFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>()
@@ -185,13 +190,9 @@ public sealed partial class J4JMapControl : Panel
         }
 
         _projection = projResult.Projection!;
+
         _fragments = new MapFragments(_projection, _logger);
-
-        var mapScale = int.TryParse( MapScale, out var tempScale ) ? tempScale : _projection.MinScale;
-        MapScale = mapScale.ToString();
-
-        var heading = float.TryParse( Heading, out var tempHeading ) ? tempHeading : 0F;
-        Heading = heading.ToString( CultureInfo.CurrentCulture );
+        _fragments.RetrievalComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( ()=>OnFragmentsUpdated() );
 
         InvalidateMeasure();
     }
@@ -202,11 +203,16 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue( CenterProperty, value );
     }
 
+    public float CenterLatitude { get; private set; }
+    public float CenterLongitude { get; private set; }
+
     public string MapScale
     {
         get => (string) GetValue( MapScaleProperty );
         set => SetValue( MapScaleProperty, value );
     }
+
+    public int MapNumericScale { get; private set; }
 
     public string Heading
     {
@@ -214,68 +220,41 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue( HeadingProperty, value );
     }
 
+    public float NumericHeading { get; private set; }
+
     public bool IsValid
     {
         get => (bool) GetValue( IsValidProperty );
         set => SetValue( IsValidProperty, value );
     }
 
-    private Viewport? GetViewport()
+    private void UpdateFragments()
     {
-        if (_projection == null )
-        {
-            _logger.Error("Projection not defined or initialized");
-            return null;
-        }
-
-        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
-        {
-            _logger.Error("Could not parse Center ({0})", Center);
-            return null;
-        }
-
-        if (!int.TryParse(MapScale, out var mapScale))
-        {
-            _logger.Error("Could not parse MapScale ({0})", MapScale);
-            return null;
-        }
-
-        if( float.TryParse( Heading, out var heading ) )
-        {
-            return new Viewport( _projection )
-            {
-                CenterLatitude = latitude,
-                CenterLongitude = longitude,
-                Heading = heading,
-                RequestedHeight = (float) Height,
-                RequestedWidth = (float) Width,
-                Scale = mapScale
-            };
-        }
-
-        _logger.Error("Could not parse Heading ({0})", Heading);
-        return null;
-    }
-
-    public bool UpdateNeeded { get; private set; }
-
-    public bool Update()
-    {
-        if( _fragments == null )
+        if(_projection == null || _fragments == null )
         {
             _logger.Error("Projection not fully initialized");
-            return false;
+            return;
         }
 
-        var viewport = GetViewport();
-        if( viewport == null )
+        var viewport =  new Viewport(_projection)
         {
-            _logger.Error("Control not fully configured");
-            return false;
-        }
+            CenterLatitude = CenterLatitude,
+            CenterLongitude = CenterLongitude,
+            Heading = NumericHeading,
+            RequestedHeight = (float)Height,
+            RequestedWidth = (float)Width,
+            Scale = MapNumericScale
+        };
 
         _fragments.SetViewport( viewport );
-        _fragments.Update();
+        _throttleFragmentsUpdate.Throttle( 250, x=> _fragments.Update() );
+        //_fragments.Update();
+    }
+
+    private void OnFragmentsUpdated()
+    {
+        if( _fragments == null )
+            return;
 
         _suppressLayout = true;
 
@@ -321,7 +300,7 @@ public sealed partial class J4JMapControl : Panel
         {
             // if the left edge of the clipping rectangle is < 0 we need to insert
             // tiles from the right edge of the map in each row of images
-            if (clip.Rect.Left  < 0)
+            if (clip.Rect.Left < 0)
                 InsertTiles(tiledProjection, InsertedTileSide.Left);
             else
             {
@@ -339,8 +318,6 @@ public sealed partial class J4JMapControl : Panel
         _suppressLayout = false;
 
         InvalidateMeasure();
-
-        return true;
     }
 
     private void AddImageTile( IMapFragment? fragment, int xTile, int yTile, Vector3 tilePosition )

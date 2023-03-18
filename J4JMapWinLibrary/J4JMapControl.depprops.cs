@@ -57,17 +57,17 @@ public sealed partial class J4JMapControl
     public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
                                                                             typeof( string ),
                                                                             typeof( J4JMapControl ),
-                                                                            new PropertyMetadata( null, OnViewportChanged ) );
+                                                                            new PropertyMetadata(null, OnCenterChanged ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( string ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( null, OnViewportChanged ) );
+                                                                              new PropertyMetadata( null, OnMapScaleChanged ) );
 
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
                                                                              typeof( string ),
                                                                              typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( null, OnViewportChanged ) );
+                                                                             new PropertyMetadata( null, OnHeadingChanged ) );
 
     public DependencyProperty IsValidProperty = DependencyProperty.Register( nameof( IsValid ),
                                                                              typeof( bool ),

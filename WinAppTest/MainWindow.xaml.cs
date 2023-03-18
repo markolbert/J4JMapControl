@@ -34,12 +34,4 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
     }
-
-    private void J4JMapControl_OnViewportChanged( object sender, ControlViewport e )
-    {
-        if( !e.IsValid || sender is not J4JMapControl mapControl )
-            return;
-
-        mapControl.Update();
-    }
 }

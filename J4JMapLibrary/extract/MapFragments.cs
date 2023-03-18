@@ -26,6 +26,8 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class MapFragments
 {
+    public event EventHandler? RetrievalComplete;
+
     private readonly IProjection _projection;
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
     private readonly List<IMapFragment> _fragments = new();
@@ -164,7 +166,11 @@ public class MapFragments
 
     public void Update()
     {
-        UpdateAsync().Wait();
+        Task.Run( async () =>
+        {
+            await UpdateAsync();
+            RetrievalComplete?.Invoke(this, EventArgs.Empty);
+        } );
     }
 
     public async Task UpdateAsync( CancellationToken ctx = default )
