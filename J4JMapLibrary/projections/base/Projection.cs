@@ -273,15 +273,6 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
         return false;
     }
 
-    //bool IProjection.Authenticate()
-    //{
-    //    if (Credentials != null)
-    //        return Authenticate();
-
-    //    Logger.Error("Authenticating before setting credentials");
-    //    return false;
-    //}
-
     async Task<bool> IProjection.SetCredentialsAsync( object credentials, CancellationToken ctx )
     {
         if( credentials is TAuth castCredentials )
@@ -293,15 +284,6 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
         Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
         return false;
     }
-
-    //async Task<bool> IProjection.AuthenticateAsync(CancellationToken ctx)
-    //{
-    //    if (Credentials != null)
-    //        return await AuthenticateAsync(ctx);
-
-    //    Logger.Error("Authenticating before setting credentials");
-    //    return false;
-    //}
 
     HttpRequestMessage? IProjection.CreateMessage( object requestInfo )
     {

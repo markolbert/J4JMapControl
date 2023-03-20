@@ -57,10 +57,7 @@ public interface IProjection : IEquatable<IProjection>
     HttpRequestMessage? CreateMessage(object requestInfo );
 
     bool SetCredentials( object credentials );
-    //bool Authenticate();
-
     Task<bool> SetCredentialsAsync(object credentials, CancellationToken ctx = default );
-    //Task<bool> AuthenticateAsync( CancellationToken ctx = default );
 
     IMapFragment? GetFragment( int xTile, int yTile, int scale );
     Task<IMapFragment?> GetFragmentAsync( int xTile, int yTile, int scale, CancellationToken ctx = default );

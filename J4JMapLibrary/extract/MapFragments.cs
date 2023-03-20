@@ -226,10 +226,6 @@ public class MapFragments
             }
 
             _fragments.Add( fragment );
-
-            //// determine which of the tiles holds the center point
-            //if (fragment.Contains(CenterPoint))
-            //    CenterTile = fragment;
         }
 
         _lastConfig = _curConfig;

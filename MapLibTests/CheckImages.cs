@@ -85,8 +85,6 @@ public class CheckImages : TestBase
     {
         imageData.Should().NotBeNull();
 
-        //await File.WriteAllBytesAsync( "c:/users/mark/desktop/google.png", imageData! );
-
         var imageBytes = await File.ReadAllBytesAsync( filePath );
         var checkBytes = imageData!.ToArray();
 
