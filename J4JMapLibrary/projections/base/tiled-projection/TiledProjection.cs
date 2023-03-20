@@ -107,26 +107,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         // because in display space, increasing y values take you >>down<< the screen,
         // not up the screen. So the first adjustment is to subject the raw Y values from
         // the height of the projection to reverse the direction. 
-        //var heightWidth = GetHeightWidth( scale );
         var upperTileY = CartesianToTile( corners.Min( y => y.Y ) );
         var lowerTileY = CartesianToTile( corners.Max( y => y.Y ) );
-
-        // define x range of tile coordinates so as to support wrapping around the
-        // map/globe (this doesn't work for the y range because the upper and lower
-        // edges of the map don't, and can't, correspond to the poles)
-        //leftTileX = leftTileX < 0 ? 0 : leftTileX;
-        //var maxTiles = HeightWidthInTiles( scale ) - 1;
-
-        //var xTiles = Enumerable.Range( leftTileX, rightTileX - leftTileX + 1 ).ToList();
-        //xTiles = xTiles.Select( x => x < 0 ? x + maxTiles + 1 : x > maxTiles ? x - maxTiles : x ).ToList();
-
-        //var yTiles = Enumerable.Range( upperTileY, lowerTileY - upperTileY + 1 ).ToList();
-        //yTiles = yTiles.Select( y => y < 0 ? 0 : y > maxTiles ? maxTiles : y ).ToList();
-
-        //upperTileY = upperTileY < 0 ? 0 : upperTileY;
-
-        //rightTileX = rightTileX > maxTiles ? maxTiles : rightTileX;
-        //lowerTileY = lowerTileY > maxTiles ? maxTiles : lowerTileY;
 
         // as we iterate over tiles, keep track of which ones are "off the map",
         // and allow for rollover horizontally (we can't rollover vertically because
