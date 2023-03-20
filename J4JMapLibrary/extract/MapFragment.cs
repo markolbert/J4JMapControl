@@ -20,7 +20,7 @@ using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class MapFragment : IMapFragment
+public class MapFragment : IMapFragment
 {
     public event EventHandler? ImageChanged;
 
@@ -40,12 +40,20 @@ public abstract class MapFragment : IMapFragment
     
     public float ImageHeight { get; set; }
     public float ImageWidth { get; set; }
+
     public bool InViewport { get; set; }
 
     public string FragmentId { get; init; } = string.Empty;
 
+    // XTile and YTile can be any integer values
     public int XTile { get; init; }
     public int YTile { get; init; }
+
+    // MapXTile and MapYTile, in tiled projections, must be constrained to 
+    // the range 0..(number of tiles at Scale) - 1
+    public int MapXTile { get; init; }
+    public int MapYTile { get; init; }
+
     public int Scale { get; protected set; }
 
     public byte[]? ImageData { get; set; }

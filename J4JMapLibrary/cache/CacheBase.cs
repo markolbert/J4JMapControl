@@ -60,8 +60,8 @@ public abstract class CacheBase : ITileCache
 
         Logger.Error("Failed to create {0} cache entry for mapFragment ({1}, {2})",
                      fragment.Projection.Name,
-                     fragment.XTile,
-                     fragment.YTile);
+                     fragment.MapXTile,
+                     fragment.MapYTile);
 
         return null;
     }

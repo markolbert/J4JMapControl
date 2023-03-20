@@ -27,9 +27,13 @@ public interface IMapFragment
 
     int XTile { get; }
     int YTile { get; }
+    int MapXTile { get; }
+    int MapYTile { get; }
     int Scale { get; }
+
     float ImageHeight { get; set; }
     float ImageWidth { get; set; }
+    
     bool InViewport { get; set; }
 
     public byte[]? ImageData { get; set; }

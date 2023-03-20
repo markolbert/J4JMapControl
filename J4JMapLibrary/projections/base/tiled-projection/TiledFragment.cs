@@ -32,13 +32,29 @@ public class TiledFragment : MapFragment, ITiledFragment
         ImageHeight = HeightWidth;
         ImageWidth = HeightWidth;
 
-        XTile = xTile < 0 ? 0 : xTile;
-        YTile = yTile < 0 ? 0 : yTile;
+        XTile = xTile;
+        YTile = yTile;
+
+        // constrain to the range 0..(number of tiles at Scale) - 1
+        var numTiles = projection.HeightWidthInTiles( Scale );
+
+        MapXTile = xTile < 0
+            ? xTile + numTiles * ( -xTile / numTiles + 1 )
+            : xTile > numTiles
+                ? xTile % numTiles
+                : xTile;
+
+        MapYTile = yTile < 0 ? 0 : yTile > numTiles ? numTiles : yTile;
+
+        InProjection = yTile >= 0 && yTile < numTiles;
+
         QuadKey = this.GetQuadKey( Scale );
         FragmentId = QuadKey;
     }
 
     public int HeightWidth { get; }
+
+    public bool InProjection { get; }
 
     public string QuadKey { get; }
 }

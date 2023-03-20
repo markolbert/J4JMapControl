@@ -21,6 +21,8 @@ public interface ITiledProjection : IProjection
 {
     ITileCache? TileCache { get; }
 
+    public int HeightWidthInTiles( int scale );
+
     float GroundResolution( float latitude, int scale );
     string ScaleDescription( float latitude, int scale, float dotsPerInch );
 }

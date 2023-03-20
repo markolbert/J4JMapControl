@@ -24,6 +24,8 @@ using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
 
+public record ViewpointOffset(float X, float Y);
+
 public class MapFragments
 {
     public event EventHandler? RetrievalComplete;
@@ -44,13 +46,6 @@ public class MapFragments
     {
         _projection = projection;
         ProjectionType = _projection.GetProjectionType();
-
-        CenterPoint = ProjectionType switch
-        {
-            ProjectionType.Static => new StaticPoint( _projection ),
-            ProjectionType.Tiled => new TiledPoint( (ITiledProjection) _projection ),
-            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( ProjectionType )} '{ProjectionType}'" )
-        };
 
         Logger = logger;
         Logger.ForContext( GetType() );
@@ -75,11 +70,35 @@ public class MapFragments
         var heading = viewport.Heading % 360;
 
         _curConfig =new MapFragmentsConfiguration(latitude, longitude, heading, scale, height, width, buffer);
-
-        CenterPoint.SetLatLong(latitude, longitude);
     }
 
-    public StaticPoint CenterPoint { get; }
+    public Vector3 ViewpointOffset
+    {
+        get
+        {
+            if( ProjectionType == ProjectionType.Static || _curConfig == null || !_fragments.Any() )
+                return new Vector3();
+
+            var tileHeightWidth = ( (ITiledProjection) _projection ).TileHeightWidth;
+
+            var tiledPoint = new TiledPoint( (ITiledProjection) _projection ) { Scale = _curConfig.Scale };
+            tiledPoint.SetLatLong( _curConfig.Latitude, _curConfig.Longitude );
+
+            var upperLeftRelativeX = tiledPoint.X - _curConfig.RequestedWidth / 2;
+            var upperLeftCollectionX = ModuloFloat( upperLeftRelativeX, tileHeightWidth );
+
+            var upperLeftRelativeY = tiledPoint.Y - _curConfig.RequestedHeight / 2;
+            var upperLeftCollectionY = ModuloFloat( upperLeftRelativeY, tileHeightWidth );
+
+            return new Vector3( -upperLeftCollectionX, -upperLeftCollectionY, 0 );
+        }
+    }
+
+    private float ModuloFloat( float value, float modulus )
+    {
+        return value < 0 ? modulus - (-value % modulus) : value % modulus;
+    }
+
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
     public float HeightBufferPercent => _curConfig?.FragmentBuffer.HeightPercent ?? 0;
@@ -118,7 +137,7 @@ public class MapFragments
 
             return ProjectionType == ProjectionType.Static
                 ? _fragments[ 0 ].ImageHeight
-                : _fragments.GroupBy( f => f.XTile ).First().Sum( g => g.ImageHeight );
+                : _fragments.GroupBy( f => f.MapXTile ).First().Sum( g => g.ImageHeight );
         }
     }
 
@@ -131,7 +150,7 @@ public class MapFragments
 
             return ProjectionType == ProjectionType.Static
                 ? _fragments[ 0 ].ImageWidth
-                : _fragments.GroupBy( f => f.YTile ).First().Sum( g => g.ImageWidth );
+                : _fragments.GroupBy( f => f.MapYTile ).First().Sum( g => g.ImageWidth );
         }
     }
 
@@ -193,8 +212,8 @@ public class MapFragments
                 var tiledFragment = (ITiledFragment) fragment;
 
                 // see if this fragment is totally inside the viewport or extends beyond it
-                var tileCenter = new Vector3( tiledFragment.XTile * tiledFragment.HeightWidth - _curConfig!.RequestedWidth / 2,
-                                              tiledFragment.YTile * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
+                var tileCenter = new Vector3( tiledFragment.MapXTile * tiledFragment.HeightWidth - _curConfig!.RequestedWidth / 2,
+                                              tiledFragment.MapYTile * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
                                               0 );
 
                 var fragmentRect = new Rectangle2D( tiledFragment.HeightWidth,
@@ -207,6 +226,10 @@ public class MapFragments
             }
 
             _fragments.Add( fragment );
+
+            //// determine which of the tiles holds the center point
+            //if (fragment.Contains(CenterPoint))
+            //    CenterTile = fragment;
         }
 
         _lastConfig = _curConfig;

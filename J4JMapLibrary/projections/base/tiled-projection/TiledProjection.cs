@@ -33,6 +33,12 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
 
     public ITileCache? TileCache { get; protected set; }
 
+    public int HeightWidthInTiles( int scale )
+    {
+        scale = ScaleRange.ConformValueToRange( scale, "HeightWidthInTiles scale factor" );
+        return InternalExtensions.Pow( 2, scale );
+    }
+
     public float GroundResolution( float latitude, int scale )
     {
         if( !Initialized )
@@ -94,35 +100,51 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         }
 
         // find the range of tiles covering the mapped rectangle
-        var minTileX = CartesianToTile( corners.Min( x => x.X ) );
-        var maxTileX = CartesianToTile( corners.Max( x => x.X ) );
+        var leftTileX = CartesianToTile( corners.Min( x => x.X ) );
+        var rightTileX = CartesianToTile( corners.Max( x => x.X ) );
 
         // figuring out the min/max of y coordinates is a royal pain in the ass...
         // because in display space, increasing y values take you >>down<< the screen,
         // not up the screen. So the first adjustment is to subject the raw Y values from
         // the height of the projection to reverse the direction. 
-        var heightWidth = GetHeightWidth( scale );
-        var minTileY = CartesianToTile( corners.Min( y => y.Y ) );
-        var maxTileY = CartesianToTile( corners.Max( y => y.Y ) );
+        //var heightWidth = GetHeightWidth( scale );
+        var upperTileY = CartesianToTile( corners.Min( y => y.Y ) );
+        var lowerTileY = CartesianToTile( corners.Max( y => y.Y ) );
 
-        minTileX = minTileX < 0 ? 0 : minTileX;
-        minTileY = minTileY < 0 ? 0 : minTileY;
+        // define x range of tile coordinates so as to support wrapping around the
+        // map/globe (this doesn't work for the y range because the upper and lower
+        // edges of the map don't, and can't, correspond to the poles)
+        //leftTileX = leftTileX < 0 ? 0 : leftTileX;
+        //var maxTiles = HeightWidthInTiles( scale ) - 1;
 
-        var maxTiles = heightWidth / TileHeightWidth - 1;
-        maxTileX = maxTileX > maxTiles ? maxTiles : maxTileX;
-        maxTileY = maxTileY > maxTiles ? maxTiles : maxTileY;
+        //var xTiles = Enumerable.Range( leftTileX, rightTileX - leftTileX + 1 ).ToList();
+        //xTiles = xTiles.Select( x => x < 0 ? x + maxTiles + 1 : x > maxTiles ? x - maxTiles : x ).ToList();
 
-        for( var xTile = minTileX; xTile <= maxTileX; xTile++ )
+        //var yTiles = Enumerable.Range( upperTileY, lowerTileY - upperTileY + 1 ).ToList();
+        //yTiles = yTiles.Select( y => y < 0 ? 0 : y > maxTiles ? maxTiles : y ).ToList();
+
+        //upperTileY = upperTileY < 0 ? 0 : upperTileY;
+
+        //rightTileX = rightTileX > maxTiles ? maxTiles : rightTileX;
+        //lowerTileY = lowerTileY > maxTiles ? maxTiles : lowerTileY;
+
+        // as we iterate over tiles, keep track of which ones are "off the map",
+        // and allow for rollover horizontally (we can't rollover vertically because
+        // the upper and lower limits of the map don't include the poles)
+        for( var xTile = leftTileX; xTile <= rightTileX; xTile++)
         {
-            for( var yTile = minTileY; yTile <= maxTileY; yTile++ )
+            for( var yTile = upperTileY; yTile <= lowerTileY; yTile++ )
             {
                 var mapTile = new TiledFragment( this, xTile, yTile, scale );
 
-                if( TileCache != null )
-                    mapTile.ImageData = await TileCache.GetImageDataAsync( mapTile, ctx );
+                if( mapTile.InProjection )
+                {
+                    if( TileCache != null )
+                        mapTile.ImageData = await TileCache.GetImageDataAsync( mapTile, ctx );
 
-                if( mapTile.ImageBytes <= 0 )
-                    mapTile.ImageData = await mapTile.GetImageAsync( ctx );
+                    if( mapTile.ImageBytes <= 0 )
+                        mapTile.ImageData = await mapTile.GetImageAsync( ctx );
+                }
 
                 yield return mapTile;
             }
