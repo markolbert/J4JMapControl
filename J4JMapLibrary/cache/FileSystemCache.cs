@@ -153,12 +153,7 @@ public class FileSystemCache : CacheBase
         if( !File.Exists( filePath ) )
             return null;
 
-        var retVal = File.ReadAllBytes(filePath);
-
-        // this next call will mysteriously fail if you call it on a UI thread
-        //var retVal = await File.ReadAllBytesAsync(filePath, ctx);
-
-        return retVal;
+        return await File.ReadAllBytesAsync(filePath, ctx);
     }
 
     protected override async Task<byte[]?> AddEntryAsync(
