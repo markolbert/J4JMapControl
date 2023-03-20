@@ -44,6 +44,11 @@ public sealed partial class J4JMapControl
         typeof(J4JMapControl),
         new PropertyMetadata(DefaultFileSystemCacheRetention.ToString(), OnCachingChanged));
 
+    public DependencyProperty UpdateEventIntervalProperty = DependencyProperty.Register( nameof( UpdateEventInterval ),
+        typeof( int ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 100 ) );
+
     public DependencyProperty MapNameProperty = DependencyProperty.Register( nameof( MapName ),
                                                                              typeof( string ),
                                                                              typeof( J4JMapControl ),

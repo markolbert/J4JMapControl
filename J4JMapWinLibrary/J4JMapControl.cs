@@ -31,6 +31,7 @@ public sealed partial class J4JMapControl : Panel
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
+    private static int DefaultUpdateEventInterval = 100;
 
     private enum InsertedTileSide
     {
@@ -122,6 +123,12 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue(FileSystemCacheRetentionProperty, value);
     }
 
+    public int UpdateEventInterval
+    {
+        get => (int) GetValue(UpdateEventIntervalProperty);
+        set => SetValue( UpdateEventIntervalProperty, value );
+    }
+
     private void UpdateCaching()
     {
         if( _cacheIsValid )
@@ -191,7 +198,7 @@ public sealed partial class J4JMapControl : Panel
         _projection = projResult.Projection!;
 
         _fragments = new MapFragments(_projection, _logger);
-        _fragments.RetrievalComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( ()=>OnFragmentsUpdated() );
+        _fragments.RetrievalComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnFragmentsUpdated );
 
         InvalidateMeasure();
     }
@@ -246,7 +253,8 @@ public sealed partial class J4JMapControl : Panel
         };
 
         _fragments.SetViewport( viewport );
-        _throttleFragmentsUpdate.Throttle( 250, _=> _fragments.Update() );
+        _throttleFragmentsUpdate.Throttle( UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
+                                           _ => _fragments.Update() );
     }
 
     private void OnFragmentsUpdated()
@@ -258,12 +266,14 @@ public sealed partial class J4JMapControl : Panel
 
         Children.Clear();
 
-        var tilePosition = new Vector3(0, 0, 0);
+        var offset = _fragments.ViewpointOffset;
+        var tilePosition = new Vector3(offset.X, offset.Y, 0);
+
         var retVal = new Size();
 
         foreach (var xTile in _fragments.XRange)
         {
-            tilePosition.Y = 0;
+            tilePosition.Y = offset.Y;
             var maxTileWidth = 0F;
 
             foreach (var yTile in _fragments.YRange)
@@ -285,32 +295,9 @@ public sealed partial class J4JMapControl : Panel
             retVal.Width += maxTileWidth;
         }
 
-        // determine the clipping rectangle so we can figure out whether we
-        // need to repeat tiles on the left or right
-        var clip = new RectangleGeometry()
+        Clip = new RectangleGeometry
         {
-            Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2, _fragments.CenterPoint.Y - Height / 2),
-                            new Size(Width, Height))
-        };
-
-        // handling tiled projection viewport edge issues...
-        if (_projection is ITiledProjection tiledProjection)
-        {
-            // if the left edge of the clipping rectangle is < 0 we need to insert
-            // tiles from the right edge of the map in each row of images
-            if (clip.Rect.Left < 0)
-                InsertTiles(tiledProjection, InsertedTileSide.Left);
-            else
-            {
-                if (clip.Rect.Right > _fragments.ActualWidth)
-                    InsertTiles(tiledProjection, InsertedTileSide.Right);
-            }
-        }
-
-        Clip = new RectangleGeometry()
-        {
-            Rect = new Rect(new Point(_fragments.CenterPoint.X - Width / 2, _fragments.CenterPoint.Y - Height / 2),
-                            new Size(Width, Height))
+            Rect = new Rect(new Point(), new Size(Width, Height))
         };
 
         _suppressLayout = false;
@@ -341,49 +328,12 @@ public sealed partial class J4JMapControl : Panel
         Children.Add( new Image { Source = bitmapImage, Translation = tilePosition } );
     }
 
-    private void InsertTiles( ITiledProjection projection, InsertedTileSide side )
-    {
-        // should never happen, but...
-        if( _fragments == null )
-            return;
-
-        var x = side switch
-        {
-            InsertedTileSide.Left => -projection.TileHeightWidth,
-            InsertedTileSide.Right => projection.GetHeightWidth( _fragments.Scale ),
-            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( InsertedTileSide )} value '{side}'" )
-        };
-
-        var xTile = side switch
-        {
-            InsertedTileSide.Left => _projection!.GetTileXRange(_fragments.Scale).Maximum,
-            InsertedTileSide.Right => _projection!.GetTileXRange(_fragments.Scale).Minimum,
-            _ => throw new InvalidEnumArgumentException($"Unsupported {typeof(InsertedTileSide)} value '{side}'")
-        };
-
-        var tilePosition = new Vector3(x , 0, 0 );
-
-        for( var yTile = _fragments.YRange.First(); yTile <= _fragments.YRange.Last(); yTile++ )
-        {
-            var fragment = projection.GetFragment( xTile, yTile, _fragments.Scale );
-            AddImageTile( fragment, xTile, yTile, tilePosition );
-
-            tilePosition.Y += fragment?.ImageHeight ?? 0;
-        }
-    }
-
     protected override Size MeasureOverride( Size availableSize )
     {
         if( _fragments == null || _suppressLayout )
             return Size.Empty;
 
         return availableSize;
-        //return new Size( _fragments.ImageWidth > availableSize.Width 
-        //                     ? availableSize.Width 
-        //                     : _fragments.ImageWidth,
-        //                 _fragments.ImageHeight > availableSize.Height
-        //                     ? availableSize.Height
-        //                     : _fragments.ImageHeight );
     }
 
     protected override Size ArrangeOverride( Size finalSize )
