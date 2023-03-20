@@ -59,10 +59,10 @@ public class TileTests : TestBase
         var tiles = rawTiles.Cast<ITiledFragment>().ToList();
         tiles.Count.Should().BeGreaterThan( 0 );
 
-        tiles.Min( t => t.XTile ).Should().Be( minTileX );
-        tiles.Min(t => t.YTile).Should().Be(minTileY);
-        tiles.Max(t => t.XTile).Should().Be(maxTileX);
-        tiles.Max(t => t.YTile).Should().Be(maxTileY);
+        tiles.Min( t => t.MapXTile ).Should().Be( minTileX );
+        tiles.Min(t => t.MapYTile).Should().Be(minTileY);
+        tiles.Max(t => t.MapXTile).Should().Be(maxTileX);
+        tiles.Max(t => t.MapYTile).Should().Be(maxTileY);
 
         foreach ( var tile in tiles)
         {

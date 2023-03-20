@@ -68,8 +68,8 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
         var replacements = new Dictionary<string, string>
         {
             { "{zoom}", mapFragment.Scale.ToString() },
-            { "{x}", mapFragment.XTile.ToString() },
-            { "{y}", mapFragment.YTile.ToString() }
+            { "{x}", mapFragment.MapXTile.ToString() },
+            { "{y}", mapFragment.MapYTile.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

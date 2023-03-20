@@ -47,10 +47,10 @@ public static class MapExtensions
             var digit = '0';
             var mask = 1 << ( i - 1 );
 
-            if( ( mapFragment.XTile & mask ) != 0 )
+            if( ( mapFragment.MapXTile & mask ) != 0 )
                 digit++;
 
-            if( ( mapFragment.YTile & mask ) != 0 )
+            if( ( mapFragment.MapYTile & mask ) != 0 )
             {
                 digit++;
                 digit++;
