@@ -59,7 +59,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth, IViewport, ITil
         $"1 : {GroundResolution( latitude, scale ) * dotsPerInch / MapConstants.MetersPerInch}";
 
 #pragma warning disable CS1998
-    public override async Task<bool> AuthenticateAsync( TAuth credentials, CancellationToken ctx = default )
+    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
         return !string.IsNullOrEmpty( Name );

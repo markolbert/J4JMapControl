@@ -36,6 +36,7 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
     private float _maxLat = MapConstants.Wgs84MaxLatitude;
     private float _minLong = -180;
     private float _maxLong = 180;
+    private string _mapStyle = string.Empty;
 
     protected Projection(
         ILogger logger
@@ -206,9 +207,52 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
     public string Copyright { get; protected set; } = string.Empty;
     public Uri? CopyrightUri { get; protected set; }
 
-    public bool Authenticate( TAuth credentials ) =>
-        Task.Run( async () => await AuthenticateAsync( credentials ) ).Result;
-    public abstract Task<bool> AuthenticateAsync( TAuth credentials, CancellationToken ctx = default );
+    public string MapStyle
+    {
+        get => _mapStyle;
+
+        set
+        {
+            var changed = !value.Equals( _mapStyle, StringComparison.OrdinalIgnoreCase );
+
+            _mapStyle = value;
+
+            if( changed )
+                OnMapStyleChanged( value );
+        }
+    }
+
+    protected virtual void OnMapStyleChanged( string value )
+    {
+    }
+
+    protected TAuth? Credentials { get; private set; }
+
+    public bool SetCredentials( TAuth credentials )
+    {
+        Credentials = credentials;
+        return Authenticate();
+    }
+
+    public async Task<bool> SetCredentialsAsync( TAuth credentials, CancellationToken ctx = default )
+    {
+        Credentials = credentials;
+        return await AuthenticateAsync( ctx );
+    }
+
+    protected bool Authenticate() =>
+        Task.Run( async () => await AuthenticateAsync() ).Result;
+
+#pragma warning disable CS1998
+    protected virtual async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+#pragma warning restore CS1998
+    {
+        if( Credentials != null )
+            return true;
+
+        Logger.Error("Attempting to authenticate before setting credentials");
+        return false;
+    }
 
     public abstract HttpRequestMessage? CreateMessage(TFrag fragment);
 
@@ -220,31 +264,44 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
         CancellationToken ctx = default
     );
 
-    async Task<bool> IProjection.AuthenticateAsync( object credentials, CancellationToken ctx )
+    bool IProjection.SetCredentials( object credentials )
     {
-        switch( credentials )
-        {
-            case TAuth castCredentials:
-                return await AuthenticateAsync( castCredentials, ctx );
+        if( credentials is TAuth castCredentials )
+            return SetCredentials( castCredentials );
 
-            default:
-                Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
-                return false;
-        }
+        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        return false;
     }
 
-    bool IProjection.Authenticate(object credentials)
-    {
-        switch (credentials)
-        {
-            case TAuth castCredentials:
-                return Authenticate(castCredentials);
+    //bool IProjection.Authenticate()
+    //{
+    //    if (Credentials != null)
+    //        return Authenticate();
 
-            default:
-                Logger.Error("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
-                return false;
+    //    Logger.Error("Authenticating before setting credentials");
+    //    return false;
+    //}
+
+    async Task<bool> IProjection.SetCredentialsAsync( object credentials, CancellationToken ctx )
+    {
+        if( credentials is TAuth castCredentials )
+        {
+            await SetCredentialsAsync( castCredentials, ctx );
+            return true;
         }
+
+        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        return false;
     }
+
+    //async Task<bool> IProjection.AuthenticateAsync(CancellationToken ctx)
+    //{
+    //    if (Credentials != null)
+    //        return await AuthenticateAsync(ctx);
+
+    //    Logger.Error("Authenticating before setting credentials");
+    //    return false;
+    //}
 
     HttpRequestMessage? IProjection.CreateMessage( object requestInfo )
     {

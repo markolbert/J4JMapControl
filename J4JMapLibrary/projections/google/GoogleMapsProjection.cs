@@ -47,19 +47,36 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     public string ApiKey { get; private set; } = string.Empty;
     public string Signature { get; private set; } = string.Empty;
 
-    public GoogleMapType MapType { get; set; } = GoogleMapType.RoadMap;
+    public GoogleMapStyle GoogleMapStyle { get; set; } = GoogleMapStyle.RoadMap;
+
+    protected override void OnMapStyleChanged( string value )
+    {
+        base.OnMapStyleChanged( value );
+
+        if (!Enum.TryParse<GoogleMapStyle>(value, true, out var result))
+            return;
+
+        GoogleMapStyle = result;
+
+        if (Credentials != null && !Initialized)
+            Authenticate();
+    }
+
     public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
     public string RetrievalUrl { get; }
     public string RetrievalQueryString { get; }
 
 #pragma warning disable CS1998
-    public override async Task<bool> AuthenticateAsync( GoogleCredentials credentials, CancellationToken ctx = default )
+    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
+        if (!await base.AuthenticateAsync(ctx))
+            return false;
+
         Initialized = false;
 
-        ApiKey = credentials.ApiKey;
-        Signature = credentials.SignatureSecret;
+        ApiKey = Credentials!.ApiKey;
+        Signature = Credentials.SignatureSecret;
 
         Initialized = true;
 

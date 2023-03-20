@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net;
+
 namespace J4JSoftware.J4JMapLibrary;
 
 public interface IProjection : IEquatable<IProjection>
@@ -50,9 +52,15 @@ public interface IProjection : IEquatable<IProjection>
     string Copyright { get; }
     Uri? CopyrightUri { get; }
 
+    string MapStyle { get; set; }
+
     HttpRequestMessage? CreateMessage(object requestInfo );
-    Task<bool> AuthenticateAsync( object credentials, CancellationToken ctx = default );
-    bool Authenticate( object credentials );
+
+    bool SetCredentials( object credentials );
+    //bool Authenticate();
+
+    Task<bool> SetCredentialsAsync(object credentials, CancellationToken ctx = default );
+    //Task<bool> AuthenticateAsync( CancellationToken ctx = default );
 
     IMapFragment? GetFragment( int xTile, int yTile, int scale );
     Task<IMapFragment?> GetFragmentAsync( int xTile, int yTile, int scale, CancellationToken ctx = default );

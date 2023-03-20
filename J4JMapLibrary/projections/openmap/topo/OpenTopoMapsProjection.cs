@@ -43,12 +43,15 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
     public string UserAgent { get; private set; } = string.Empty;
 
 #pragma warning disable CS1998
-    public override async Task<bool> AuthenticateAsync(OpenTopoCredentials credentials, CancellationToken ctx = default)
+    protected override async Task<bool> AuthenticateAsync(CancellationToken ctx = default)
 #pragma warning restore CS1998
     {
+        if (!await base.AuthenticateAsync(ctx))
+            return false;
+
         Initialized = false;
 
-        UserAgent = credentials.UserAgent;
+        UserAgent = Credentials!.UserAgent;
 
         Initialized = true;
         return Initialized;

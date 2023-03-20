@@ -18,7 +18,7 @@
 namespace J4JSoftware.J4JMapLibrary;
 
 [MapCredentials("BingMaps", typeof(BingMapsProjection))]
-public record BingCredentials( string ApiKey, BingMapType MapType = BingMapType.Aerial )
+public record BingCredentials( string ApiKey )
 {
     public BingCredentials()
         : this( string.Empty )

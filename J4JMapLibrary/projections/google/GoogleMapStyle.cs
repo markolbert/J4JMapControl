@@ -19,7 +19,7 @@ using System.ComponentModel;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public enum GoogleMapType
+public enum GoogleMapStyle
 {
     [ Description( "Google (Roadmap)" ) ]
     RoadMap,

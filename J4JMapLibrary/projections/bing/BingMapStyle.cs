@@ -19,7 +19,7 @@ using System.ComponentModel;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public enum BingMapType
+public enum BingMapStyle
 {
     [ Description( "Bing (Aerial)" ) ]
     Aerial,
