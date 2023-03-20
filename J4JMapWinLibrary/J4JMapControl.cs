@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using System.Numerics;
 using Windows.Foundation;
@@ -11,7 +10,6 @@ using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
-using System.Linq;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Dispatching;
@@ -31,13 +29,7 @@ public sealed partial class J4JMapControl : Panel
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
-    private static int DefaultUpdateEventInterval = 100;
-
-    private enum InsertedTileSide
-    {
-        Left,
-        Right
-    }
+    private const int DefaultUpdateEventInterval = 100;
 
     private static string GetDefaultFileSystemCachePath()
     {
