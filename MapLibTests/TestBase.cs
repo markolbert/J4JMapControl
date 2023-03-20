@@ -61,7 +61,7 @@ public class TestBase
             return null;
         }
 
-        var authenticated = await retVal.AuthenticateAsync(credentials);
+        var authenticated = await retVal.SetCredentialsAsync(credentials);
         authenticated.Should().BeTrue();
 
         return retVal;
@@ -88,7 +88,7 @@ public class TestBase
         if( credentials == null )
             return null;
 
-        var authenticated = await retVal.AuthenticateAsync( credentials );
+        var authenticated = await retVal.SetCredentialsAsync( credentials );
         authenticated.Should().BeTrue();
 
         return retVal;

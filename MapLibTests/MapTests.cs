@@ -40,11 +40,11 @@ public class MapTests : TestBase
 
         if( maxLatency is > 0 and < 10 )
         {
-            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.AuthenticateAsync( credentials! ) );
+            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.SetCredentialsAsync( credentials! ) );
         }
         else
         {
-            var initialized = await projection.AuthenticateAsync( credentials! );
+            var initialized = await projection.SetCredentialsAsync( credentials! );
             initialized.Should().Be( testResult );
         }
     }
