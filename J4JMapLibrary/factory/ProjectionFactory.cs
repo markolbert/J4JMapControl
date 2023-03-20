@@ -133,7 +133,7 @@ public class ProjectionFactory
         if (credentials == null)
             return retVal;
 
-        return retVal with { Authenticated = await retVal.Projection!.AuthenticateAsync(credentials) };
+        return retVal with { Authenticated = await retVal.Projection!.SetCredentialsAsync(credentials) };
     }
 
     public ProjectionFactoryResult CreateProjection<TProj>(
@@ -199,7 +199,7 @@ public class ProjectionFactory
         if (credentials == null)
             return retVal;
 
-        return retVal with { Authenticated = await retVal.Projection!.AuthenticateAsync(credentials) };
+        return retVal with { Authenticated = await retVal.Projection!.SetCredentialsAsync(credentials) };
     }
 
     private ProjectionFactoryResult CreateProjectionInternal(
@@ -211,7 +211,24 @@ public class ProjectionFactory
         IProjection? projection;
 
         // figure out the sequence of ctor parameters
-        var ctorInfo = projInfo.ConstructorInfo.FirstOrDefault( x => cache == null || x.SupportsCaching );
+        ProjectionCtorInfo? ctorInfo = null;
+
+        switch( projInfo.ConstructorInfo.Count )
+        {
+            case 0:
+                // no op
+                break;
+
+            case 1:
+                ctorInfo = projInfo.ConstructorInfo.First();
+                break;
+
+            default:
+                ctorInfo = projInfo.ConstructorInfo.FirstOrDefault( x => cache == null || x.SupportsCaching )
+                 ?? projInfo.ConstructorInfo.First();
+                break;
+        }
+
         if( ctorInfo == null )
         {
             _logger.Error("Could not find supported constructor for {0}", projInfo.ProjectionType  );
