@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Numerics;
+using J4JSoftware.VisualUtilities;
+
 namespace J4JSoftware.J4JMapLibrary;
 
 internal record MapFragmentsConfiguration(
@@ -50,4 +53,24 @@ internal record MapFragmentsConfiguration(
         RequestedHeight > 0 && RequestedWidth > 0 && Scale >= projection.MinScale && Scale <= projection.MaxScale;
 
     public float Rotation => 360 - Heading;
+
+    public Rectangle2D BoundingBox( IProjection projection )
+    {
+            var centerPoint = new StaticPoint(projection) { Scale = Scale };
+            centerPoint.SetLatLong(Latitude, Longitude);
+
+            var retVal = new Rectangle2D(RequestedHeight,
+                                         RequestedWidth,
+                                         Rotation,
+                                         new Vector3(centerPoint.X, centerPoint.Y, 0));
+
+            // apply buffer
+            var bufferTransform = Matrix4x4.CreateScale(1 + FragmentBuffer.WidthPercent,
+                                                        1 + FragmentBuffer.HeightPercent,
+                                                        1);
+
+            retVal = retVal.ApplyTransform(bufferTransform);
+
+            return projection is ITiledProjection ? retVal : retVal.BoundingBox;
+    }
 }
