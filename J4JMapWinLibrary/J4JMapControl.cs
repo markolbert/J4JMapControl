@@ -3,18 +3,20 @@
 
 using System;
 using Microsoft.UI.Xaml.Controls;
-using System.Numerics;
 using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
+using System.Linq;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
+using Path = System.IO.Path;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -256,74 +258,94 @@ public sealed partial class J4JMapControl : Panel
 
         _suppressLayout = true;
 
-        Children.Clear();
-
-        var offset = _fragments.ViewpointOffset;
-        var tilePosition = new Vector3(offset.X, offset.Y, 0);
-
-        var retVal = new Size();
-
-        foreach (var xTile in _fragments.XRange)
+        // find or create the grid that contains the map images
+        var imagePanel = (Grid?) Children.FirstOrDefault( x => x is Grid );
+        if( imagePanel == null )
         {
-            tilePosition.Y = offset.Y;
-            var maxTileWidth = 0F;
+            imagePanel = new Grid();
+            Children.Add( imagePanel );
+        }
+        else imagePanel.Children.Clear();
 
-            foreach (var yTile in _fragments.YRange)
-            {
-                var fragment = _fragments[xTile, yTile];
-                AddImageTile(fragment, xTile, yTile, tilePosition);
+        // define the required rows and columns
+        imagePanel.RowDefinitions.Clear();
+        imagePanel.ColumnDefinitions.Clear();
 
-                tilePosition.Y += fragment?.ImageHeight ?? 0;
-
-                if (fragment?.ImageWidth > maxTileWidth)
-                    maxTileWidth = fragment.ImageWidth;
-            }
-
-            tilePosition.X += maxTileWidth;
-
-            if (tilePosition.Y > retVal.Height)
-                retVal.Height = tilePosition.Y;
-
-            retVal.Width += maxTileWidth;
+        for (var col = 0; col < _fragments.XRange.Count; col++)
+        {
+            imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = GridLength.Auto } );
         }
 
-        Clip = new RectangleGeometry
+        for (var row = 0; row < _fragments.YRange.Count; row++)
         {
-            Rect = new Rect(new Point(), new Size(Width, Height))
-        };
+            imagePanel.RowDefinitions.Add( new RowDefinition() { Height = GridLength.Auto } );
+        }
+
+        var offset = _fragments.ViewpointOffset;
+
+        // define the transform to move and rotate the grid
+        var transforms = new TransformGroup();
+        transforms.Children.Add(new TranslateTransform() { X = offset.X, Y = offset.Y });
+        transforms.Children.Add(new RotateTransform() { Angle = 360 - NumericHeading, CenterX = Width/2, CenterY = Height/2 });
+        imagePanel.RenderTransform = transforms;
+
+        // add the individual images to the grid
+        var firstXTile = _fragments.XRange.Min();
+        var firstYTile = _fragments.YRange.Min();
+
+        foreach( var xTile in _fragments.XRange )
+        {
+            foreach( var yTile in _fragments.YRange )
+            {
+                var fragment = _fragments[ xTile, yTile ];
+
+                if( fragment == null )
+                {
+                    _logger.Error( "Could not retrieve tile ({0}, {1})", xTile, yTile );
+                    continue;
+                }
+
+                var imageBytes = fragment.GetImage();
+                if( imageBytes == null )
+                {
+                    _logger.Error( "Could not get image data for tile ({0}, {1})", xTile, yTile );
+                    continue;
+                }
+
+                var memStream = new MemoryStream( imageBytes );
+
+                var bitmapImage = new BitmapImage();
+                bitmapImage.SetSource( memStream.AsRandomAccessStream() );
+
+                var image = new Image
+                {
+                    Source = bitmapImage, Height = fragment.ImageHeight, Width = fragment.ImageWidth,
+                };
+
+                imagePanel.Children.Add( image );
+
+                // assign the image to the correct grid cell
+                Grid.SetColumn( image, xTile - firstXTile );
+                Grid.SetRow( image, yTile - firstYTile );
+            }
+        }
 
         _suppressLayout = false;
 
         InvalidateMeasure();
     }
 
-    private void AddImageTile( IMapFragment? fragment, int xTile, int yTile, Vector3 tilePosition )
-    {
-        if (fragment == null)
-        {
-            _logger.Error("Could not retrieve tile ({0}, {1})", xTile, yTile);
-            return;
-        }
-
-        var imageBytes = fragment.GetImage();
-        if( imageBytes == null )
-        {
-            _logger.Error("Could not get image data for tile ({0}, {1})", xTile, yTile);
-            return;
-        }
-
-        var memStream = new MemoryStream( imageBytes );
-        
-        var bitmapImage = new BitmapImage();
-        bitmapImage.SetSource( memStream.AsRandomAccessStream() );
-
-        Children.Add( new Image { Source = bitmapImage, Translation = tilePosition } );
-    }
-
     protected override Size MeasureOverride( Size availableSize )
     {
         if( _fragments == null || _suppressLayout )
             return Size.Empty;
+
+        // don't forget to let each child control (e.g., the image panel)
+        // participate!
+        foreach( var child in Children )
+        {
+            child.Measure(availableSize);
+        }
 
         return availableSize;
     }
@@ -332,6 +354,15 @@ public sealed partial class J4JMapControl : Panel
     {
         if( _fragments == null || _suppressLayout )
             return Size.Empty;
+
+        // don't forget to let each child control (e.g., the image panel)
+        // participate!
+        var rect = new Rect( new Point(), finalSize );
+
+        foreach (var child in Children)
+        {
+            child.Arrange( rect );
+        }
 
         return finalSize;
     }
