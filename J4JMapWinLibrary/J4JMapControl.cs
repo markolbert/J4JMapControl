@@ -286,7 +286,7 @@ public sealed partial class J4JMapControl : Panel
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
         transforms.Children.Add(new TranslateTransform() { X = offset.X, Y = offset.Y });
-        transforms.Children.Add(new RotateTransform() { Angle = 360 - NumericHeading, CenterX = Width/2, CenterY = Height/2 });
+        transforms.Children.Add(new RotateTransform() { Angle = _fragments.Rotation, CenterX = Width/2, CenterY = Height/2 });
         imagePanel.RenderTransform = transforms;
 
         // add the individual images to the grid

@@ -16,9 +16,9 @@
                 VerticalAlignment="Top">
 
         <map:J4JMapControl Height="400" Width="400"
-                           MapName="GoogleMaps"
+                           MapName="BingMaps"
                            MapScale="18"
-                           Heading="45"
+                           Heading="30"
                            Center="37.5072N,122.2605W"/>
 
     </StackPanel>
