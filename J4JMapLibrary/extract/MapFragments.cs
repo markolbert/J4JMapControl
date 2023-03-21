@@ -17,6 +17,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Serilog;
@@ -62,42 +63,19 @@ public class MapFragments
     {
         buffer ??= MapFragmentsBuffer.Default;
 
-        var latitude = _projection.LatitudeRange.ConformValueToRange(viewport.CenterLatitude, "MapFragments Latitude");
-        var longitude = _projection.LongitudeRange.ConformValueToRange(viewport.CenterLongitude, "MapFragments Longitude");
-        var height = _heightWidthRange.ConformValueToRange(viewport.RequestedHeight, "MapFragments RequestedHeight");
-        var width = _heightWidthRange.ConformValueToRange(viewport.RequestedWidth, "MapFragments RequestedWidth");
-        var scale  = _projection.ScaleRange.ConformValueToRange(viewport.Scale, "MapFragments Scale");
+        var latitude =
+            _projection.LatitudeRange.ConformValueToRange( viewport.CenterLatitude, "MapFragments Latitude" );
+        var longitude =
+            _projection.LongitudeRange.ConformValueToRange( viewport.CenterLongitude, "MapFragments Longitude" );
+        var height = _heightWidthRange.ConformValueToRange( viewport.RequestedHeight, "MapFragments RequestedHeight" );
+        var width = _heightWidthRange.ConformValueToRange( viewport.RequestedWidth, "MapFragments RequestedWidth" );
+        var scale = _projection.ScaleRange.ConformValueToRange( viewport.Scale, "MapFragments Scale" );
         var heading = viewport.Heading % 360;
 
-        _curConfig =new MapFragmentsConfiguration(latitude, longitude, heading, scale, height, width, buffer);
+        _curConfig = new MapFragmentsConfiguration( latitude, longitude, heading, scale, height, width, buffer );
     }
 
-    public Vector3 ViewpointOffset
-    {
-        get
-        {
-            if( ProjectionType == ProjectionType.Static || _curConfig == null || !_fragments.Any() )
-                return new Vector3();
-
-            var tileHeightWidth = ( (ITiledProjection) _projection ).TileHeightWidth;
-
-            var tiledPoint = new TiledPoint( (ITiledProjection) _projection ) { Scale = _curConfig.Scale };
-            tiledPoint.SetLatLong( _curConfig.Latitude, _curConfig.Longitude );
-
-            var upperLeftRelativeX = tiledPoint.X - _curConfig.RequestedWidth / 2;
-            var upperLeftCollectionX = ModuloFloat( upperLeftRelativeX, tileHeightWidth );
-
-            var upperLeftRelativeY = tiledPoint.Y - _curConfig.RequestedHeight / 2;
-            var upperLeftCollectionY = ModuloFloat( upperLeftRelativeY, tileHeightWidth );
-
-            return new Vector3( -upperLeftCollectionX, -upperLeftCollectionY, 0 );
-        }
-    }
-
-    private float ModuloFloat( float value, float modulus )
-    {
-        return value < 0 ? modulus - (-value % modulus) : value % modulus;
-    }
+    public Vector3 ViewpointOffset { get; private set; } = new Vector3();
 
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
@@ -128,31 +106,8 @@ public class MapFragments
 
     public ReadOnlyCollection<IMapFragment> Fragments => _fragments.AsReadOnly();
 
-    public float ActualHeight
-    {
-        get
-        {
-            if( !_fragments.Any() )
-                return 0;
-
-            return ProjectionType == ProjectionType.Static
-                ? _fragments[ 0 ].ImageHeight
-                : _fragments.GroupBy( f => f.MapXTile ).First().Sum( g => g.ImageHeight );
-        }
-    }
-
-    public float ActualWidth
-    {
-        get
-        {
-            if (!_fragments.Any())
-                return 0;
-
-            return ProjectionType == ProjectionType.Static
-                ? _fragments[ 0 ].ImageWidth
-                : _fragments.GroupBy( f => f.MapYTile ).First().Sum( g => g.ImageWidth );
-        }
-    }
+    public float ActualHeight { get; private set; }
+    public float ActualWidth { get; private set; }
 
     public bool UpdateNeeded
     {
@@ -176,8 +131,8 @@ public class MapFragments
 
             // if we've already retrieved something, check to see if the new configuration
             // requires retrieving stuff from outside the previous configuration's scope
-            var curRectangle = CreateRectangle( _curConfig );
-            var lastRectangle = CreateRectangle( _lastConfig! );
+            var curRectangle = _curConfig.BoundingBox( _projection );
+            var lastRectangle = _lastConfig!.BoundingBox( _projection );
 
             return lastRectangle.Contains( curRectangle ) == RelativePosition2D.Outside;
         }
@@ -188,7 +143,7 @@ public class MapFragments
         Task.Run( async () =>
         {
             await UpdateAsync();
-            RetrievalComplete?.Invoke(this, EventArgs.Empty);
+            RetrievalComplete?.Invoke( this, EventArgs.Empty );
         } );
     }
 
@@ -199,9 +154,9 @@ public class MapFragments
 
         _fragments.Clear();
 
-        var viewportRect = CreateRectangle( _curConfig! );
+        var viewportRect = _curConfig!.BoundingBox( _projection );
 
-        await foreach ( var fragment in RetrieveImagesAsync( ctx ) )
+        await foreach( var fragment in RetrieveImagesAsync( ctx ) )
         {
             // a static projection fragment is always in the viewport,
             // although it may extend beyond the viewport
@@ -212,9 +167,10 @@ public class MapFragments
                 var tiledFragment = (ITiledFragment) fragment;
 
                 // see if this fragment is totally inside the viewport or extends beyond it
-                var tileCenter = new Vector3( tiledFragment.MapXTile * tiledFragment.HeightWidth - _curConfig!.RequestedWidth / 2,
-                                              tiledFragment.MapYTile * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
-                                              0 );
+                var tileCenter = new Vector3(
+                    tiledFragment.MapXTile * tiledFragment.HeightWidth - _curConfig!.RequestedWidth / 2,
+                    tiledFragment.MapYTile * tiledFragment.HeightWidth - _curConfig.RequestedHeight / 2,
+                    0 );
 
                 var fragmentRect = new Rectangle2D( tiledFragment.HeightWidth,
                                                     tiledFragment.HeightWidth,
@@ -230,10 +186,10 @@ public class MapFragments
 
         _lastConfig = _curConfig;
 
-        UpdateRanges();
+        OnSuccessfulRetrieval();
     }
 
-    private void UpdateRanges()
+    private void OnSuccessfulRetrieval()
     {
         var min = _fragments.Min( f => f.XTile );
         var max = _fragments.Max( f => f.XTile );
@@ -246,28 +202,58 @@ public class MapFragments
 
         _yRange.Clear();
         _yRange.AddRange( Enumerable.Range( min, max - min + 1 ) );
+
+        ViewpointOffset = ProjectionType switch
+        {
+            ProjectionType.Static => GetStaticOffset(),
+            ProjectionType.Tiled => GetTiledOffset(),
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof( ProjectionType )} value '{ProjectionType}'" )
+        };
+
+        ActualHeight = ProjectionType == ProjectionType.Static
+            ? _fragments[ 0 ].ImageHeight
+            : _fragments.GroupBy( f => f.MapXTile ).First().Sum( g => g.ImageHeight );
+
+        ActualWidth = ProjectionType == ProjectionType.Static
+            ? _fragments[ 0 ].ImageWidth
+            : _fragments.GroupBy( f => f.MapYTile ).First().Sum( g => g.ImageWidth );
     }
 
-    private Rectangle2D CreateRectangle( MapFragmentsConfiguration config )
+    private Vector3 GetStaticOffset()
     {
-        var centerPoint = new StaticPoint( _projection ) { Scale = config.Scale };
-        centerPoint.SetLatLong( config.Latitude, config.Longitude );
+        if( _curConfig == null || !_fragments.Any() )
+            return new Vector3();
 
-        var retVal = new Rectangle2D( config.RequestedHeight,
-                                      config.RequestedWidth,
-                                      config.Rotation,
-                                      new Vector3( centerPoint.X, centerPoint.Y, 0 ) );
+        var boundingBox = _curConfig.BoundingBox( _projection );
 
-        // apply buffer
-        var bufferTransform = Matrix4x4.CreateScale( 1 + config.FragmentBuffer.WidthPercent,
-                                                     1 + config.FragmentBuffer.HeightPercent,
-                                                     1 );
+        return new Vector3( -( boundingBox.Width - _curConfig.RequestedWidth ) / 2,
+                            -( boundingBox.Height - _curConfig.RequestedHeight ) / 2,
+                            0 );
+    }
 
-        retVal = retVal.ApplyTransform( bufferTransform );
+    private Vector3 GetTiledOffset()
+    {
+        if( _curConfig == null || !_fragments.Any() )
+            return new Vector3();
 
-        return ProjectionType == ProjectionType.Tiled
-            ? retVal
-            : retVal.BoundingBox;
+        var tileHeightWidth = ( (ITiledProjection) _projection ).TileHeightWidth;
+
+        var tiledPoint = new TiledPoint( (ITiledProjection) _projection ) { Scale = _curConfig.Scale };
+        tiledPoint.SetLatLong( _curConfig.Latitude, _curConfig.Longitude );
+
+        var upperLeftRelativeX = tiledPoint.X - _curConfig.RequestedWidth / 2;
+        var upperLeftCollectionX = ModuloFloat( upperLeftRelativeX, tileHeightWidth );
+
+        var upperLeftRelativeY = tiledPoint.Y - _curConfig.RequestedHeight / 2;
+        var upperLeftCollectionY = ModuloFloat( upperLeftRelativeY, tileHeightWidth );
+
+        return new Vector3( -upperLeftCollectionX, -upperLeftCollectionY, 0 );
+    }
+
+    private float ModuloFloat( float value, float modulus )
+    {
+        return value < 0 ? modulus - ( -value % modulus ) : value % modulus;
     }
 
     private async IAsyncEnumerable<IMapFragment> RetrieveImagesAsync( [ EnumeratorCancellation ] CancellationToken ctx )
@@ -283,7 +269,7 @@ public class MapFragments
                 break;
 
             case ProjectionType.Tiled:
-                await foreach (var tiledFrag in RetrieveTiledImagesAsync(ctx))
+                await foreach( var tiledFrag in RetrieveTiledImagesAsync( ctx ) )
                 {
                     yield return tiledFrag;
                 }
@@ -301,14 +287,19 @@ public class MapFragments
         [ EnumeratorCancellation ] CancellationToken ctx
     )
     {
+        if( _curConfig == null )
+            yield break;
+
+        var boundingBox = _curConfig.BoundingBox( _projection );
+
         // the property values being pulled will always be from _revisedConfig
         var viewportData = new NormalizedViewport( _projection )
         {
             Scale = Scale,
-            CenterLatitude = CenterLatitude,
-            CenterLongitude = CenterLongitude,
-            RequestedHeight = (int) Math.Ceiling(RequestedHeight),
-            RequestedWidth = (int) Math.Ceiling(RequestedWidth)
+            CenterLatitude = _curConfig.Latitude,
+            CenterLongitude = _curConfig.Longitude,
+            RequestedHeight = (int) Math.Ceiling( boundingBox.Height ),
+            RequestedWidth = (int) Math.Ceiling( boundingBox.Width )
         };
 
         await foreach( var fragment in _projection.GetViewportAsync( viewportData, ctx: ctx ) )
@@ -321,14 +312,19 @@ public class MapFragments
         [ EnumeratorCancellation ] CancellationToken ctx
     )
     {
+        if( _curConfig == null )
+            yield break;
+
+        var boundingBox = _curConfig.BoundingBox( _projection );
+
         // the property values being pulled will always be from _revisedConfig
         var viewportData = new Viewport( _projection )
         {
             Scale = Scale,
-            CenterLatitude = CenterLatitude,
-            CenterLongitude = CenterLongitude,
-            RequestedHeight = (int) Math.Ceiling( RequestedHeight ),
-            RequestedWidth = (int) Math.Ceiling( RequestedWidth ),
+            CenterLatitude = _curConfig.Latitude,
+            CenterLongitude = _curConfig.Longitude,
+            RequestedHeight = (int) Math.Ceiling( boundingBox.Height ),
+            RequestedWidth = (int) Math.Ceiling( boundingBox.Width ),
             Heading = Heading
         };
 
