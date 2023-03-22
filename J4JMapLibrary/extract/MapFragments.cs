@@ -58,6 +58,7 @@ public class MapFragments
 
     public float CenterLatitude => _curConfig?.Latitude ?? 0;
     public float CenterLongitude => _curConfig?.Longitude ?? 0;
+    public Vector3 Center { get; private set; } = new Vector3();
 
     public void SetViewport( Viewport viewport, MapFragmentsBuffer? buffer = null )
     {
@@ -75,6 +76,14 @@ public class MapFragments
         _curConfig = new MapFragmentsConfiguration( latitude, longitude, heading, scale, height, width, buffer );
     }
 
+    // The ViewpointOffset is the vector that describes how the origin
+    // of the display elements -- which defaults to 0,0 -- needs to be
+    // offset/translated so that the requested center point is, in fact,
+    // in the center of the display elements. This doesn't happen
+    // automatically for tiled projections because the images come
+    // in fixed sizes, so the upper left image may well include data
+    // that should be outside the display area (which is centered on the
+    // requested center point)
     public Vector3 ViewpointOffset { get; private set; } = new Vector3();
 
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
@@ -131,8 +140,8 @@ public class MapFragments
 
             // if we've already retrieved something, check to see if the new configuration
             // requires retrieving stuff from outside the previous configuration's scope
-            var curRectangle = _curConfig.BoundingBox( _projection );
-            var lastRectangle = _lastConfig!.BoundingBox( _projection );
+            var curRectangle = _curConfig.GetBoundingBox( _projection );
+            var lastRectangle = _lastConfig!.GetBoundingBox( _projection );
 
             return lastRectangle.Contains( curRectangle ) == RelativePosition2D.Outside;
         }
@@ -154,7 +163,7 @@ public class MapFragments
 
         _fragments.Clear();
 
-        var viewportRect = _curConfig!.BoundingBox( _projection );
+        var viewportRect = _curConfig!.GetBoundingBox( _projection );
 
         await foreach( var fragment in RetrieveImagesAsync( ctx ) )
         {
@@ -211,6 +220,8 @@ public class MapFragments
                 $"Unsupported {typeof( ProjectionType )} value '{ProjectionType}'" )
         };
 
+        Center = _curConfig!.GetBoundingBox( _projection ).Center;
+
         ActualHeight = ProjectionType == ProjectionType.Static
             ? _fragments[ 0 ].ImageHeight
             : _fragments.GroupBy( f => f.MapXTile ).First().Sum( g => g.ImageHeight );
@@ -225,7 +236,7 @@ public class MapFragments
         if( _curConfig == null || !_fragments.Any() )
             return new Vector3();
 
-        var boundingBox = _curConfig.BoundingBox( _projection );
+        var boundingBox = _curConfig.GetBoundingBox( _projection );
 
         return new Vector3( -( boundingBox.Width - _curConfig.RequestedWidth ) / 2,
                             -( boundingBox.Height - _curConfig.RequestedHeight ) / 2,
@@ -239,16 +250,15 @@ public class MapFragments
 
         var tileHeightWidth = ( (ITiledProjection) _projection ).TileHeightWidth;
 
+        var upperLeftTile = _fragments[ 0 ];
+
         var tiledPoint = new TiledPoint( (ITiledProjection) _projection ) { Scale = _curConfig.Scale };
         tiledPoint.SetLatLong( _curConfig.Latitude, _curConfig.Longitude );
 
-        var upperLeftRelativeX = tiledPoint.X - _curConfig.RequestedWidth / 2;
-        var upperLeftCollectionX = ModuloFloat( upperLeftRelativeX, tileHeightWidth );
+        var xOffset = tiledPoint.X - _curConfig.RequestedWidth / 2 - upperLeftTile.XTile * tileHeightWidth;
+        var yOffset = tiledPoint.Y - _curConfig.RequestedHeight / 2 - upperLeftTile.YTile * tileHeightWidth;
 
-        var upperLeftRelativeY = tiledPoint.Y - _curConfig.RequestedHeight / 2;
-        var upperLeftCollectionY = ModuloFloat( upperLeftRelativeY, tileHeightWidth );
-
-        return new Vector3( -upperLeftCollectionX, -upperLeftCollectionY, 0 );
+        return new Vector3(-xOffset, -yOffset, 0);
     }
 
     private float ModuloFloat( float value, float modulus )
@@ -290,7 +300,7 @@ public class MapFragments
         if( _curConfig == null )
             yield break;
 
-        var boundingBox = _curConfig.BoundingBox( _projection );
+        var boundingBox = _curConfig.GetBoundingBox( _projection );
 
         // the property values being pulled will always be from _revisedConfig
         var viewportData = new NormalizedViewport( _projection )
@@ -315,7 +325,7 @@ public class MapFragments
         if( _curConfig == null )
             yield break;
 
-        var boundingBox = _curConfig.BoundingBox( _projection );
+        var boundingBox = _curConfig.GetBoundingBox( _projection );
 
         // the property values being pulled will always be from _revisedConfig
         var viewportData = new Viewport( _projection )
