@@ -54,7 +54,7 @@ internal record MapFragmentsConfiguration(
 
     public float Rotation => 360 - Heading;
 
-    public Rectangle2D BoundingBox( IProjection projection )
+    public Rectangle2D GetBoundingBox( IProjection projection )
     {
             var centerPoint = new StaticPoint(projection) { Scale = Scale };
             centerPoint.SetLatLong(Latitude, Longitude);
