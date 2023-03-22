@@ -37,7 +37,6 @@ public class MapFragments
     private readonly List<int> _yRange = new();
 
     private MapFragmentsConfiguration? _curConfig;
-    private MapFragmentsConfiguration? _lastConfig;
 
     public MapFragments(
         IProjection projection,
@@ -59,10 +58,8 @@ public class MapFragments
     public float CenterLongitude => _curConfig?.Longitude ?? 0;
     public Vector3 Center { get; private set; }
 
-    public void SetViewport( Viewport viewport, MapFragmentsBuffer? buffer = null )
+    public void SetViewport( Viewport viewport )
     {
-        buffer ??= MapFragmentsBuffer.Default;
-
         var latitude =
             _projection.LatitudeRange.ConformValueToRange( viewport.CenterLatitude, "MapFragments Latitude" );
         var longitude =
@@ -72,7 +69,7 @@ public class MapFragments
         var scale = _projection.ScaleRange.ConformValueToRange( viewport.Scale, "MapFragments Scale" );
         var heading = viewport.Heading % 360;
 
-        _curConfig = new MapFragmentsConfiguration( latitude, longitude, heading, scale, height, width, buffer );
+        _curConfig = new MapFragmentsConfiguration( latitude, longitude, heading, scale, height, width );
     }
 
     // The ViewpointOffset is the vector that describes how the origin
@@ -87,8 +84,6 @@ public class MapFragments
 
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
-    public float HeightBufferPercent => _curConfig?.FragmentBuffer.HeightPercent ?? 0;
-    public float WidthBufferPercent => _curConfig?.FragmentBuffer.WidthPercent ?? 0;
     public int Scale => _curConfig?.Scale ?? 0;
 
     // in degrees; north is 0/360; stored as mod 360
@@ -159,8 +154,6 @@ public class MapFragments
 
             _fragments.Add( fragment );
         }
-
-        _lastConfig = _curConfig;
 
         OnSuccessfulRetrieval();
     }

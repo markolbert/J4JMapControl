@@ -26,8 +26,7 @@ internal record MapFragmentsConfiguration(
     float Heading,
     int Scale,
     float RequestedHeight,
-    float RequestedWidth,
-    MapFragmentsBuffer FragmentBuffer
+    float RequestedWidth
 )
 {
     public virtual bool Equals( MapFragmentsConfiguration? other )
@@ -42,12 +41,11 @@ internal record MapFragmentsConfiguration(
          && Heading.Equals( other.Heading )
          && Scale == other.Scale
          && RequestedHeight.Equals( other.RequestedHeight )
-         && RequestedWidth.Equals( other.RequestedWidth )
-         && FragmentBuffer.Equals( other.FragmentBuffer );
+         && RequestedWidth.Equals( other.RequestedWidth );
     }
 
     public override int GetHashCode() =>
-        HashCode.Combine( Latitude, Longitude, Heading, Scale, RequestedHeight, RequestedWidth, FragmentBuffer );
+        HashCode.Combine( Latitude, Longitude, Heading, Scale, RequestedHeight, RequestedWidth );
 
     public bool IsValid( IProjection projection ) =>
         RequestedHeight > 0 && RequestedWidth > 0 && Scale >= projection.MinScale && Scale <= projection.MaxScale;
@@ -56,21 +54,14 @@ internal record MapFragmentsConfiguration(
 
     public Rectangle2D GetBoundingBox( IProjection projection )
     {
-            var centerPoint = new StaticPoint(projection) { Scale = Scale };
-            centerPoint.SetLatLong(Latitude, Longitude);
+        var centerPoint = new StaticPoint( projection ) { Scale = Scale };
+        centerPoint.SetLatLong( Latitude, Longitude );
 
-            var retVal = new Rectangle2D(RequestedHeight,
-                                         RequestedWidth,
-                                         Rotation,
-                                         new Vector3(centerPoint.X, centerPoint.Y, 0));
+        var retVal = new Rectangle2D( RequestedHeight,
+                                      RequestedWidth,
+                                      Rotation,
+                                      new Vector3( centerPoint.X, centerPoint.Y, 0 ) );
 
-            // apply buffer
-            var bufferTransform = Matrix4x4.CreateScale(1 + FragmentBuffer.WidthPercent,
-                                                        1 + FragmentBuffer.HeightPercent,
-                                                        1);
-
-            retVal = retVal.ApplyTransform(bufferTransform);
-
-            return projection is ITiledProjection ? retVal : retVal.BoundingBox;
+        return projection is ITiledProjection ? retVal : retVal.BoundingBox;
     }
 }
