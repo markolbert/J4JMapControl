@@ -17,7 +17,6 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Serilog;
@@ -58,7 +57,7 @@ public class MapFragments
 
     public float CenterLatitude => _curConfig?.Latitude ?? 0;
     public float CenterLongitude => _curConfig?.Longitude ?? 0;
-    public Vector3 Center { get; private set; } = new Vector3();
+    public Vector3 Center { get; private set; }
 
     public void SetViewport( Viewport viewport, MapFragmentsBuffer? buffer = null )
     {
@@ -84,7 +83,7 @@ public class MapFragments
     // in fixed sizes, so the upper left image may well include data
     // that should be outside the display area (which is centered on the
     // requested center point)
-    public Vector3 ViewpointOffset { get; private set; } = new Vector3();
+    public Vector3 ViewpointOffset { get; private set; }
 
     public float RequestedHeight => _curConfig?.RequestedHeight ?? 0;
     public float RequestedWidth => _curConfig?.RequestedWidth ?? 0;
@@ -118,35 +117,6 @@ public class MapFragments
     public float ActualHeight { get; private set; }
     public float ActualWidth { get; private set; }
 
-    public bool UpdateNeeded
-    {
-        get
-        {
-            if( _curConfig == null )
-            {
-                Logger.Error( "MapFragments is not configured, map fragments cannot be retrieved" );
-                return false;
-            }
-
-            if( !_curConfig.IsValid( _projection ) )
-            {
-                Logger.Error( "MapFragments is not validly configured, map fragments cannot be retrieved" );
-                return false;
-            }
-
-            // force retrieval if we've never done a retrieval before
-            if( _lastConfig == null )
-                return true;
-
-            // if we've already retrieved something, check to see if the new configuration
-            // requires retrieving stuff from outside the previous configuration's scope
-            var curRectangle = _curConfig.GetBoundingBox( _projection );
-            var lastRectangle = _lastConfig!.GetBoundingBox( _projection );
-
-            return lastRectangle.Contains( curRectangle ) == RelativePosition2D.Outside;
-        }
-    }
-
     public void Update()
     {
         Task.Run( async () =>
@@ -158,9 +128,6 @@ public class MapFragments
 
     public async Task UpdateAsync( CancellationToken ctx = default )
     {
-        if( !UpdateNeeded )
-            return;
-
         _fragments.Clear();
 
         var viewportRect = _curConfig!.GetBoundingBox( _projection );
@@ -259,11 +226,6 @@ public class MapFragments
         var yOffset = tiledPoint.Y - _curConfig.RequestedHeight / 2 - upperLeftTile.YTile * tileHeightWidth;
 
         return new Vector3(-xOffset, -yOffset, 0);
-    }
-
-    private float ModuloFloat( float value, float modulus )
-    {
-        return value < 0 ? modulus - ( -value % modulus ) : value % modulus;
     }
 
     private async IAsyncEnumerable<IMapFragment> RetrieveImagesAsync( [ EnumeratorCancellation ] CancellationToken ctx )
