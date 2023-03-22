@@ -13,13 +13,18 @@
 
     <StackPanel Orientation="Vertical" 
                 HorizontalAlignment="Center" 
-                VerticalAlignment="Top">
+                VerticalAlignment="Center">
 
         <map:J4JMapControl Height="400" Width="400"
                            MapName="BingMaps"
-                           MapScale="18"
-                           Heading="30"
+                           MapScale="{Binding ElementName=sliderScale, Path=Value, Mode=TwoWay}"
+                           Heading="0"
                            Center="37.5072N,122.2605W"/>
+
+        <Slider x:Name="sliderScale"
+            Minimum="0" 
+            Value="13"
+            Maximum="20"/>
 
     </StackPanel>
 </Window>
