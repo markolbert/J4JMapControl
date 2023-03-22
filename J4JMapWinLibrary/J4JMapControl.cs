@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Dispatching;
@@ -31,7 +32,7 @@ public sealed partial class J4JMapControl : Panel
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
-    private const int DefaultUpdateEventInterval = 100;
+    private const int DefaultUpdateEventInterval = 250;
 
     private static string GetDefaultFileSystemCachePath()
     {
@@ -206,13 +207,11 @@ public sealed partial class J4JMapControl : Panel
     public float CenterLatitude { get; private set; }
     public float CenterLongitude { get; private set; }
 
-    public string MapScale
+    public double MapScale
     {
-        get => (string) GetValue( MapScaleProperty );
+        get => (double) GetValue( MapScaleProperty );
         set => SetValue( MapScaleProperty, value );
     }
-
-    public int MapNumericScale { get; private set; }
 
     public string Heading
     {
@@ -243,7 +242,7 @@ public sealed partial class J4JMapControl : Panel
             Heading = NumericHeading,
             RequestedHeight = (float)Height,
             RequestedWidth = (float)Width,
-            Scale = MapNumericScale
+            Scale = (int) MapScale
         };
 
         _fragments.SetViewport( viewport );
@@ -285,8 +284,14 @@ public sealed partial class J4JMapControl : Panel
 
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
+        
         transforms.Children.Add(new TranslateTransform() { X = offset.X, Y = offset.Y });
-        transforms.Children.Add(new RotateTransform() { Angle = _fragments.Rotation, CenterX = Width/2, CenterY = Height/2 });
+
+        transforms.Children.Add( new RotateTransform()
+        {
+            Angle = _fragments.Rotation, CenterX = Width / 2, CenterY = Height / 2
+        } );
+
         imagePanel.RenderTransform = transforms;
 
         // add the individual images to the grid

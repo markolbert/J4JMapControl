@@ -47,7 +47,7 @@ public sealed partial class J4JMapControl
     public DependencyProperty UpdateEventIntervalProperty = DependencyProperty.Register( nameof( UpdateEventInterval ),
         typeof( int ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( 100 ) );
+        new PropertyMetadata( J4JMapControl.DefaultUpdateEventInterval ) );
 
     public DependencyProperty MapNameProperty = DependencyProperty.Register( nameof( MapName ),
                                                                              typeof( string ),
@@ -65,9 +65,9 @@ public sealed partial class J4JMapControl
                                                                             new PropertyMetadata(null, OnCenterChanged ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
-                                                                              typeof( string ),
+                                                                              typeof( double ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( null, OnMapScaleChanged ) );
+                                                                              new PropertyMetadata( 0.0, OnMapScaleChanged ) );
 
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
                                                                              typeof( string ),

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
@@ -66,24 +67,6 @@ public sealed partial class J4JMapControl
         {
             mapControl._ignoreChange = false;
             return;
-        }
-
-        if (e.NewValue is not string scaleText)
-        {
-            mapControl._logger.Error("OnMapScaleChanged did not receive a string value");
-            return;
-        }
-
-        if (int.TryParse(scaleText, out var scale))
-            mapControl.MapNumericScale = scale;
-        else
-        {
-            mapControl._logger.Error("Could not parse MapScale ({0}), defaulting to 0", scaleText);
-
-            mapControl.MapNumericScale = 0;
-
-            mapControl._ignoreChange = true;
-            mapControl.MapScale = "0";
         }
 
         mapControl.UpdateFragments();
