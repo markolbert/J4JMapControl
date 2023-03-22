@@ -72,6 +72,25 @@ public sealed partial class J4JMapControl
         mapControl.UpdateFragments();
     }
 
+    private static void OnMinMaxScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not J4JMapControl mapControl)
+            return;
+
+        if (mapControl._ignoreChange)
+        {
+            mapControl._ignoreChange = false;
+            return;
+        }
+
+        if( mapControl.MapScale >= mapControl.MinScale && mapControl.MapScale <= mapControl.MaxScale )
+            return;
+
+        mapControl.MapScale = mapControl.MapScale < mapControl.MinScale
+            ? mapControl.MinScale
+            : mapControl.MaxScale;
+    }
+
     private static void OnHeadingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not J4JMapControl mapControl)

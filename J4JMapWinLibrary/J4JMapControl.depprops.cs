@@ -69,6 +69,16 @@ public sealed partial class J4JMapControl
                                                                               typeof( J4JMapControl ),
                                                                               new PropertyMetadata( 0.0, OnMapScaleChanged ) );
 
+    public DependencyProperty MinScaleProperty = DependencyProperty.Register(nameof(MinScale),
+                                                                             typeof(double),
+                                                                             typeof(J4JMapControl),
+                                                                             new PropertyMetadata(0.0, OnMinMaxScaleChanged));
+
+    public DependencyProperty MaxScaleProperty = DependencyProperty.Register(nameof(MaxScale),
+                                                                             typeof(double),
+                                                                             typeof(J4JMapControl),
+                                                                             new PropertyMetadata(0.0, OnMinMaxScaleChanged));
+
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
                                                                              typeof( string ),
                                                                              typeof( J4JMapControl ),

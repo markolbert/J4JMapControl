@@ -195,6 +195,9 @@ public sealed partial class J4JMapControl : Panel
         _fragments = new MapFragments(_projection, _logger);
         _fragments.RetrievalComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnFragmentsUpdated );
 
+        MinScale = _projection.MinScale;
+        MaxScale = _projection.MaxScale;
+
         InvalidateMeasure();
     }
 
@@ -211,6 +214,18 @@ public sealed partial class J4JMapControl : Panel
     {
         get => (double) GetValue( MapScaleProperty );
         set => SetValue( MapScaleProperty, value );
+    }
+
+    public double MinScale 
+    { 
+        get => (double ) GetValue( MinScaleProperty );
+        private set => SetValue( MinScaleProperty, value );
+    }
+
+    public double MaxScale
+    {
+        get => (double) GetValue( MaxScaleProperty );
+        private set => SetValue( MaxScaleProperty, value );
     }
 
     public string Heading
