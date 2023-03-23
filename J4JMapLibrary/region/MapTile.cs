@@ -47,6 +47,7 @@ public class MapTile
         X = x;
         Y = y;
 
+        SetSize();
         NormalizeXY();
 
         QuadKey = this.GetQuadKey();
@@ -93,6 +94,25 @@ public class MapTile
         }
     }
 
+    private void SetSize()
+    {
+        if( Region.Projection is ITiledProjection tiledProjection )
+        {
+            // for tiled projections, a MapTile's size equals
+            // the underlying projection's tile size
+            Height = tiledProjection.TileHeightWidth;
+            Width = tiledProjection.TileHeightWidth;
+        }
+        else
+        {
+            // for static projections, there's only ever one
+            // MapTile in the MapRegion, and its size
+            // is that of the region's bounding box
+            Height = Region.BoundingBox.Height;
+            Width = Region.BoundingBox.Width;
+        }
+    }
+
     public MapRegion Region { get; }
     public int X { get; }
     public int Y { get; }
@@ -118,8 +138,8 @@ public class MapTile
     public int RetrievedX { get; private set; }
     public int RetrievedY { get; private set; }
 
-    public float ImageHeight { get; set; }
-    public float ImageWidth { get; set; }
+    public float Height { get; set; }
+    public float Width { get; set; }
 
     public string FragmentId { get; }
     public string QuadKey { get; }
