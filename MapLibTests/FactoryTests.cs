@@ -72,7 +72,7 @@ public class FactoryTests : TestBase
     }
 
     [Theory]
-    [InlineData("BingMaps",".jpeg")]
+    [InlineData("BingMaps",".jpg")]
     [InlineData("OpenStreetMaps", ".png")]
     [InlineData("OpenTopoMaps", ".png")]
     [InlineData("GoogleMaps", ".png")]

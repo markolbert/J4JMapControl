@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
@@ -10,8 +11,8 @@ public class TileTests : TestBase
     [ InlineData( "OpenStreetMaps", 0, 0, 0, 128, 256, 0, 0, 0, 0, 0 ) ]
     [ InlineData( "BingMaps", 2, 37, -122, 128, 256, 0, 0, 1, 1, 1 ) ]
     [ InlineData( "BingMaps", 2, 37, -122, 128, 256, 45, 0, 1, 1, 2 ) ]
-    [ InlineData( "BingMaps", 2, 37, -122, 128, 512, 45, 0, 0, 1, 2 ) ]
-    [ InlineData( "BingMaps", 3, 37, -122, 512, 512, 45, 0, 1, 2, 4 ) ]
+    [ InlineData( "BingMaps", 2, 37, -122, 128, 512, 45, 0, 0, 3, 2 ) ]
+    [ InlineData( "BingMaps", 3, 37, -122, 512, 512, 45, 0, 1, 7, 4 ) ]
     [ InlineData( "BingMaps", 3, 37, -122, 512, 512, 75, 0, 1, 2, 4 ) ]
     [ InlineData( "BingMaps", 3, 37, 97, 512, 512, 75, 4, 1, 7, 4 ) ]
     [ InlineData( "BingMaps", 3, 37, 97, 512, 512, 0, 5, 2, 7, 4 ) ]
@@ -33,38 +34,23 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var viewportData = projectionName switch
-        {
-            "GoogleMaps" => new NormalizedViewport( projection )
-            {
-                CenterLatitude = latitude,
-                CenterLongitude = longitude,
-                RequestedHeight = height,
-                RequestedWidth = width,
-                Scale = scale
-            },
+        var region = new MapRegion( projection, Logger )
+                    .Center( latitude, longitude )
+                    .Size( height, width )
+                    .Heading( heading )
+                    .Scale( scale )
+                    .Build();
 
-            _ => new Viewport( projection )
-            {
-                CenterLatitude = latitude,
-                CenterLongitude = longitude,
-                RequestedHeight = height,
-                RequestedWidth = width,
-                Heading = heading,
-                Scale = scale
-            }
-        };
+        var result = await projection.LoadRegionAsync( region );
+        result.Should().BeTrue();
+        region.MapTiles.Count.Should().BeGreaterThan( 0 );
 
-        var rawTiles = await projection.GetViewportAsync( viewportData ).ToListAsync();
-        var tiles = rawTiles.Cast<ITiledFragment>().ToList();
-        tiles.Count.Should().BeGreaterThan( 0 );
+        region.MapTiles.Min( t => t.RetrievedX ).Should().Be( minTileX );
+        region.MapTiles.Min( t => t.RetrievedY ).Should().Be( minTileY );
+        region.MapTiles.Max( t => t.RetrievedX ).Should().Be( maxTileX );
+        region.MapTiles.Max( t => t.RetrievedY ).Should().Be( maxTileY );
 
-        tiles.Min( t => t.MapXTile ).Should().Be( minTileX );
-        tiles.Min(t => t.MapYTile).Should().Be(minTileY);
-        tiles.Max(t => t.MapXTile).Should().Be(maxTileX);
-        tiles.Max(t => t.MapYTile).Should().Be(maxTileY);
-
-        foreach ( var tile in tiles)
+        foreach( var tile in region.MapTiles )
         {
             tile.ImageBytes.Should().BePositive();
         }

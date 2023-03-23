@@ -16,6 +16,7 @@
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -26,17 +27,20 @@
         </Grid.RowDefinitions>
 
         <map:J4JMapControl x:Name="mapControl" 
-                           Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+                           Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"
                            Height="400" Width="400"
                            MapName="BingMaps"
                            MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
                            Center="37.5072N,122.2605W"/>
 
-        <TextBlock Grid.Column="0" Grid.Row="1">Map Scale</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="1"
+                   Margin="0,0,5,0"
+                   VerticalAlignment="Center">Map Scale</TextBlock>
 
         <NumberBox x:Name="numberBoxScale"
                    Grid.Column="1" Grid.Row="1"
+                   HorizontalAlignment="Left"
                    Minimum="{Binding ElementName=mapControl, Path=MinScale}" 
                    Maximum="{Binding ElementName=mapControl, Path=MaxScale}"
                    SpinButtonPlacementMode="Inline"
@@ -44,11 +48,13 @@
                    LargeChange="5"
                    Value="0"/>
 
-
-        <TextBlock Grid.Column="0" Grid.Row="2">Heading (0 == North)</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="2"
+                   Margin="0,0,5,0"
+                   VerticalAlignment="Center">Heading (0 == North)</TextBlock>
 
         <NumberBox x:Name="numberBoxHeading"
                    Grid.Column="1" Grid.Row="2"
+                   HorizontalAlignment="Left"
                    Minimum="0" 
                    Maximum="360"
                    SpinButtonPlacementMode="Inline"

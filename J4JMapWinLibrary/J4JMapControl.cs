@@ -10,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using J4JSoftware.DependencyInjection;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -52,7 +52,6 @@ public sealed partial class J4JMapControl : Panel
     private IProjection? _projection;
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
-    private MapFragments? _fragments;
     private bool _suppressLayout;
     private bool _ignoreChange;
     private bool _cacheIsValid;
@@ -191,9 +190,9 @@ public sealed partial class J4JMapControl : Panel
         }
 
         _projection = projResult.Projection!;
+        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnMapRegionUpdated );
 
-        _fragments = new MapFragments(_projection, _logger);
-        _fragments.RetrievalComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnFragmentsUpdated );
+        MapRegion = new MapRegion(_projection, _logger);
 
         MinScale = _projection.MinScale;
         MaxScale = _projection.MaxScale;
@@ -201,14 +200,13 @@ public sealed partial class J4JMapControl : Panel
         InvalidateMeasure();
     }
 
+    public MapRegion? MapRegion { get; private set; }
+
     public string Center
     {
         get => (string) GetValue( CenterProperty );
         set => SetValue( CenterProperty, value );
     }
-
-    public float CenterLatitude { get; private set; }
-    public float CenterLongitude { get; private set; }
 
     public double MapScale
     {
@@ -242,32 +240,23 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue( IsValidProperty, value );
     }
 
-    private void UpdateFragments()
+    private void UpdateMapRegion()
     {
-        if(_projection == null || _fragments == null )
+        if(_projection == null || MapRegion == null )
         {
             _logger.Error("Projection not fully initialized");
             return;
         }
 
-        var viewport =  new Viewport(_projection)
-        {
-            CenterLatitude = CenterLatitude,
-            CenterLongitude = CenterLongitude,
-            Heading = NumericHeading,
-            RequestedHeight = (float)Height,
-            RequestedWidth = (float)Width,
-            Scale = (int) MapScale
-        };
+        MapRegion.Size( (float) Height, (float) Width );
 
-        _fragments.SetViewport( viewport );
         _throttleFragmentsUpdate.Throttle( UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
-                                           _ => _fragments.Update() );
+                                           _ => _projection.LoadRegionAsync( MapRegion ) );
     }
 
-    private void OnFragmentsUpdated()
+    private void OnMapRegionUpdated()
     {
-        if( _fragments == null )
+        if( MapRegion == null )
             return;
 
         _suppressLayout = true;
@@ -285,17 +274,17 @@ public sealed partial class J4JMapControl : Panel
         imagePanel.RowDefinitions.Clear();
         imagePanel.ColumnDefinitions.Clear();
 
-        for (var col = 0; col < _fragments.XRange.Count; col++)
+        for (var col = 0; col <MapRegion.NumColumns; col++)
         {
             imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = GridLength.Auto } );
         }
 
-        for (var row = 0; row < _fragments.YRange.Count; row++)
+        for (var row = 0; row < MapRegion.NumRows; row++)
         {
             imagePanel.RowDefinitions.Add( new RowDefinition() { Height = GridLength.Auto } );
         }
 
-        var offset = _fragments.ViewpointOffset;
+        var offset = MapRegion.ViewpointOffset;
 
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
@@ -304,50 +293,34 @@ public sealed partial class J4JMapControl : Panel
 
         transforms.Children.Add( new RotateTransform()
         {
-            Angle = _fragments.Rotation, CenterX = Width / 2, CenterY = Height / 2
+            Angle = MapRegion.Rotation, CenterX = Width / 2, CenterY = Height / 2
         } );
 
         imagePanel.RenderTransform = transforms;
 
         // add the individual images to the grid
-        var firstXTile = _fragments.XRange.Min();
-        var firstYTile = _fragments.YRange.Min();
-
-        foreach( var xTile in _fragments.XRange )
+        foreach( var mapTile in MapRegion )
         {
-            foreach( var yTile in _fragments.YRange )
+            var relativeCoords = mapTile.GetRelativeTileCoordinates();
+
+            if( mapTile.ImageBytes < 0 )
             {
-                var fragment = _fragments[ xTile, yTile ];
-
-                if( fragment == null )
-                {
-                    _logger.Error( "Could not retrieve tile ({0}, {1})", xTile, yTile );
-                    continue;
-                }
-
-                var imageBytes = fragment.GetImage();
-                if( imageBytes == null )
-                {
-                    _logger.Error( "Could not get image data for tile ({0}, {1})", xTile, yTile );
-                    continue;
-                }
-
-                var memStream = new MemoryStream( imageBytes );
-
-                var bitmapImage = new BitmapImage();
-                bitmapImage.SetSource( memStream.AsRandomAccessStream() );
-
-                var image = new Image
-                {
-                    Source = bitmapImage, Height = fragment.ImageHeight, Width = fragment.ImageWidth,
-                };
-
-                imagePanel.Children.Add( image );
-
-                // assign the image to the correct grid cell
-                Grid.SetColumn( image, xTile - firstXTile );
-                Grid.SetRow( image, yTile - firstYTile );
+                _logger.Verbose( "Blank tile ({0}, {1})", relativeCoords.X, relativeCoords.Y );
+                continue;
             }
+
+            var memStream = new MemoryStream( mapTile.ImageData! );
+
+            var bitmapImage = new BitmapImage();
+            bitmapImage.SetSource( memStream.AsRandomAccessStream() );
+
+            var image = new Image { Source = bitmapImage, Height = mapTile.ImageHeight, Width = mapTile.ImageWidth, };
+
+            imagePanel.Children.Add( image );
+
+            // assign the image to the correct grid cell
+            Grid.SetColumn( image, relativeCoords.X );
+            Grid.SetRow( image, relativeCoords.Y );
         }
 
         _suppressLayout = false;
@@ -357,7 +330,7 @@ public sealed partial class J4JMapControl : Panel
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        if( _fragments == null || _suppressLayout )
+        if( MapRegion == null || _suppressLayout )
             return Size.Empty;
 
         // don't forget to let each child control (e.g., the image panel)
@@ -372,7 +345,7 @@ public sealed partial class J4JMapControl : Panel
 
     protected override Size ArrangeOverride( Size finalSize )
     {
-        if( _fragments == null || _suppressLayout )
+        if( MapRegion == null || _suppressLayout )
             return Size.Empty;
 
         // don't forget to let each child control (e.g., the image panel)

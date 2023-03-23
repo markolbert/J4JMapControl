@@ -1,5 +1,6 @@
 using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
@@ -81,8 +82,11 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = new TiledFragment( projection, xTile, yTile, scale );
-        mapTile.Should().NotBeNull();
+        var region = new MapRegion( projection, Logger )
+                    .Scale( scale )
+                    .Build();
+
+        var mapTile = new MapTile( region, xTile, yTile );
         mapTile.QuadKey.Should().Be( quadKey );
     }
 
@@ -118,8 +122,11 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = new TiledFragment(projection, xTile, yTile, scale);
-        mapTile.Should().NotBeNull();
+        var region = new MapRegion(projection, Logger)
+                    .Scale(scale)
+                    .Build();
+
+        var mapTile = new MapTile(region, xTile, yTile);
         mapTile.QuadKey.Should().Be(quadKey);
     }
 
@@ -155,8 +162,11 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = new TiledFragment(projection, xTile, yTile, scale);
-        mapTile.Should().NotBeNull();
+        var region = new MapRegion(projection, Logger)
+                    .Scale(scale)
+                    .Build();
+
+        var mapTile = new MapTile(region, xTile, yTile);
         mapTile.QuadKey.Should().Be(quadKey);
     }
 }

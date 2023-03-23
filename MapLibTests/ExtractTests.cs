@@ -1,31 +1,32 @@
 ﻿using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
 public class ExtractTests : TestBase
 {
     [ Theory ]
-    [InlineData("BingMaps", 0, 0, 0, 256, 256, 0, 1, 4)]
-    [InlineData("BingMaps", 37, -122, 0, 20, 20, 0, 1, 1)]
-    [InlineData("BingMaps", 37, -122, 0, 40, 80, 0, 4, 1)]
-    [InlineData("BingMaps", 40, -122, 315, 40, 200, 0, 4, 2)]
-    [InlineData("BingMaps", 40, -112, 315, 100, 200, 0, 4, 4)]
-    [InlineData("OpenStreetMaps", 0, 0, 0, 256, 256, 0, 1, 4)]
-    [InlineData("OpenStreetMaps", 37, -122, 0, 20, 20, 0, 1, 1)]
-    [InlineData("OpenStreetMaps", 37, -122, 0, 40, 80, 0, 4, 1)]
-    [InlineData("OpenStreetMaps", 40, -122, 315, 40, 200, 0, 4, 2)]
-    [InlineData("OpenStreetMaps", 40, -112, 315, 100, 200, 0, 4, 4)]
-    [InlineData("OpenTopoMaps", 0, 0, 0, 256, 256, 0, 1, 4)]
-    [InlineData("OpenTopoMaps", 37, -122, 0, 20, 20, 0, 1, 1)]
-    [InlineData("OpenTopoMaps", 37, -122, 0, 40, 80, 0, 4, 1)]
-    [InlineData("OpenTopoMaps", 40, -122, 315, 40, 200, 0, 4, 2)]
-    [InlineData("OpenTopoMaps", 40, -112, 315, 100, 200, 0, 4, 4)]
-    [InlineData("GoogleMaps", 0, 0, 0, 256, 256, 0, 1, 1)]
-    [InlineData("GoogleMaps", 37, -122, 0, 20, 20, 0, 1, 1)]
-    [InlineData("GoogleMaps", 37, -122, 0, 40, 80, 0, 4, 1)]
-    [InlineData("GoogleMaps", 40, -122, 315, 40, 200, 0, 4, 1)]
-    [InlineData("GoogleMaps", 40, -112, 315, 100, 200, 0, 4, 1)]
+    [InlineData("BingMaps", 0, 0, 0, 256, 256, 1, 4)]
+    [InlineData("BingMaps", 37, -122, 0, 20, 20, 1, 1)]
+    [InlineData("BingMaps", 37, -122, 0, 40, 80, 4, 1)]
+    [InlineData("BingMaps", 40, -122, 315, 40, 200, 4, 2)]
+    [InlineData("BingMaps", 40, -112, 315, 100, 200, 4, 4)]
+    [InlineData("OpenStreetMaps", 0, 0, 0, 256, 256, 1, 4)]
+    [InlineData("OpenStreetMaps", 37, -122, 0, 20, 20, 1, 1)]
+    [InlineData("OpenStreetMaps", 37, -122, 0, 40, 80, 4, 1)]
+    [InlineData("OpenStreetMaps", 40, -122, 315, 40, 200, 4, 2)]
+    [InlineData("OpenStreetMaps", 40, -112, 315, 100, 200, 4, 4)]
+    [InlineData("OpenTopoMaps", 0, 0, 0, 256, 256, 1, 4)]
+    [InlineData("OpenTopoMaps", 37, -122, 0, 20, 20, 1, 1)]
+    [InlineData("OpenTopoMaps", 37, -122, 0, 40, 80, 4, 1)]
+    [InlineData("OpenTopoMaps", 40, -122, 315, 40, 200, 4, 2)]
+    [InlineData("OpenTopoMaps", 40, -112, 315, 100, 200, 4, 4)]
+    [InlineData("GoogleMaps", 0, 0, 0, 256, 256, 1, 1)]
+    [InlineData("GoogleMaps", 37, -122, 0, 20, 20, 1, 1)]
+    [InlineData("GoogleMaps", 37, -122, 0, 40, 80, 4, 1)]
+    [InlineData("GoogleMaps", 40, -122, 315, 40, 200, 4, 1)]
+    [InlineData("GoogleMaps", 40, -112, 315, 100, 200, 4, 1)]
     public async Task BasicExtract(
         string projectionName,
         float latitude,
@@ -33,7 +34,6 @@ public class ExtractTests : TestBase
         float heading,
         float height,
         float width,
-        float buffer,
         int scale,
         int numFragments
     )
@@ -43,20 +43,15 @@ public class ExtractTests : TestBase
         projection!.Initialized.Should().BeTrue();
         projection.MaxRequestLatency = 0;
 
-        var viewport = new Viewport(projection)
-        {
-            CenterLatitude = latitude,
-            CenterLongitude = longitude,
-            Heading = heading,
-            RequestedHeight = height,
-            RequestedWidth = width,
-            Scale = scale
-        };
+        var region = new MapRegion( projection, Logger )
+                    .Center( latitude, longitude )
+                    .Heading( heading )
+                    .Size( height, width )
+                    .Scale( scale )
+                    .Build();
 
-        var extractor = new MapFragments( projection, Logger );
-        extractor.SetViewport( viewport) ;
-
-        await extractor.UpdateAsync();
-        extractor.Fragments.Count.Should().Be( numFragments );
+        var result = await projection.LoadRegionAsync( region );
+        result.Should().BeTrue();
+        region.MapTiles.Count.Should().Be( numFragments );
     }
 }

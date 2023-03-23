@@ -1,5 +1,6 @@
 ﻿using J4JSoftware.J4JMapLibrary;
 using FluentAssertions;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
@@ -13,12 +14,18 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetFragmentAsync( data.TileX, data.TileY, data.Scale ) as ITiledFragment;
-        mapTile.Should().NotBeNull();
-        mapTile!.ImageBytes.Should().BePositive();
+        var mapRegion = new MapRegion( projection, Logger )
+                       .Scale( data.Scale )
+                       .Build();
+
+        var mapTile = new MapTile( mapRegion, data.TileX, data.TileY );
+
+        var loaded = await mapTile.LoadImageAsync();
+        loaded.Should().BeTrue();
+        mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
 
-        await WriteTiledImageFileAsync( projection, mapTile );
+        await WriteImageFileAsync( projection, mapTile );
     }
 
     [Theory]
@@ -29,12 +36,18 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as ITiledFragment;
-        mapTile.Should().NotBeNull();
-        mapTile!.ImageBytes.Should().BePositive();
+        var mapRegion = new MapRegion(projection, Logger)
+                       .Scale(data.Scale)
+                       .Build();
+
+        var mapTile = new MapTile(mapRegion, data.TileX, data.TileY);
+
+        var loaded = await mapTile.LoadImageAsync();
+        loaded.Should().BeTrue();
+        mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
 
-        await WriteTiledImageFileAsync(projection, mapTile);
+        await WriteImageFileAsync(projection, mapTile);
     }
 
     [Theory]
@@ -45,12 +58,18 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as ITiledFragment;
-        mapTile.Should().NotBeNull();
-        mapTile!.ImageBytes.Should().BePositive();
+        var mapRegion = new MapRegion(projection, Logger)
+                       .Scale(data.Scale)
+                       .Build();
+
+        var mapTile = new MapTile(mapRegion, data.TileX, data.TileY);
+
+        var loaded = await mapTile.LoadImageAsync();
+        loaded.Should().BeTrue();
+        mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
 
-        await WriteTiledImageFileAsync(projection, mapTile);
+        await WriteImageFileAsync(projection, mapTile);
     }
 
     [ Theory ]
@@ -61,33 +80,24 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetFragmentAsync(data.TileX, data.TileY, data.Scale) as IStaticFragment;
-        mapTile.Should().NotBeNull();
-        mapTile!.ImageBytes.Should().BePositive();
+        var mapTile = MapTile.CreateMapTile( projection, data.TileX, data.TileY, data.Scale, Logger );
+        
+        var loaded = await mapTile.LoadImageAsync();
+        loaded.Should().BeTrue();
+        mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
 
-        await WriteStaticImageFileAsync( projection, mapTile );
+        await WriteImageFileAsync( projection, mapTile );
     }
 
-    private async Task WriteTiledImageFileAsync(
-        ITiledProjection projection,
-        ITiledFragment mapFragment
-    )
-    {
-        var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapFragment.FragmentId}{projection.ImageFileExtension}" );
-
-        await File.WriteAllBytesAsync( filePath, mapFragment.ImageData! );
-    }
-
-    private async Task WriteStaticImageFileAsync(
+    private async Task WriteImageFileAsync(
         IProjection projection,
-        IStaticFragment mapFragment
+        MapTile mapTile
     )
     {
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapFragment.FragmentId}{projection.ImageFileExtension}" );
+                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
-        await File.WriteAllBytesAsync( filePath, mapFragment.ImageData! );
+        await File.WriteAllBytesAsync( filePath, mapTile.ImageData! );
     }
 }

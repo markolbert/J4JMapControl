@@ -20,11 +20,13 @@ public class CacheTests : TestBase
         var projection = await CreateProjection( "BingMaps", cache ) as BingMapsProjection;
         projection.Should().NotBeNull();
 
-        for( var xTile = 0; xTile <= projection!.GetTileXRange( scale ).Maximum; xTile++ )
+        var maxTile = projection!.GetTileRange( scale ).Maximum;
+
+        for( var xTile = 0; xTile <= maxTile; xTile++ )
         {
-            for( var yTile = 0; yTile <= projection.GetTileYRange( scale ).Maximum; yTile++ )
+            for( var yTile = 0; yTile <= maxTile; yTile++ )
             {
-                await projection.GetFragmentAsync( xTile, yTile, scale );
+                await projection.GetMapTileAsync( xTile, yTile, scale );
 
                 if (maxCached > 0)
                     cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);
@@ -56,11 +58,13 @@ public class CacheTests : TestBase
         var projection = await CreateProjection("BingMaps", cache) as BingMapsProjection;
         projection.Should().NotBeNull();
 
-        for (var xTile = 0; xTile <= projection!.GetTileXRange(scale).Maximum; xTile++)
+        var maxTile = projection!.GetTileRange( scale ).Maximum;
+
+        for (var xTile = 0; xTile <= maxTile; xTile++)
         {
-            for (var yTile = 0; yTile <= projection.GetTileYRange(scale).Maximum; yTile++)
+            for (var yTile = 0; yTile <= maxTile; yTile++)
             {
-                await projection.GetFragmentAsync(xTile, yTile, scale);
+                await projection.GetMapTileAsync(xTile, yTile, scale);
 
                 if( maxCached > 0 )
                     cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);

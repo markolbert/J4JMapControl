@@ -27,8 +27,5 @@ internal partial class DeusEx
 
         builder.RegisterType<FileSystemCache>()
                .AsSelf();
-
-        builder.RegisterType<NormalizedViewport>()
-               .AsSelf();
     }
 }
