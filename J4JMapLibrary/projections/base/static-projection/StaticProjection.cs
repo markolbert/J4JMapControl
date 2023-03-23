@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Runtime.CompilerServices;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedViewport, IStaticFragment>
+public abstract class StaticProjection<TAuth> : Projection<TAuth>
     where TAuth : class, new()
 {
     protected StaticProjection(
@@ -30,51 +30,30 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth, INormalizedVie
     {
     }
 
-    public override async IAsyncEnumerable<StaticFragment> GetViewportAsync(
-        INormalizedViewport viewportData,
-        [ EnumeratorCancellation ] CancellationToken ctx = default
-    )
+    public override async Task<MapTile> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default )
     {
-        if( !Initialized )
-        {
-            Logger.Error( "Projection not initialized" );
-            yield break;
-        }
+        //var region = new MapRegion( this, Logger ) { Scale = scale };
 
-        var mapTile = new StaticFragment( this, viewportData );
-        mapTile.ImageData = await mapTile.GetImageAsync(ctx);
+        //// determine the center point of the tile
+        //var upperLeftX = x * TileHeightWidth;
+        //var upperLeftY = y * TileHeightWidth;
+        //var centerPoint = new StaticPoint( this ) { Scale = scale };
+        //centerPoint.SetCartesian( upperLeftX + TileHeightWidth / 2, upperLeftY + TileHeightWidth / 2 );
 
-        yield return mapTile;
-    }
+        //region.CenterLatitude = centerPoint.Latitude;
+        //region.CenterLongitude = centerPoint.Longitude;
+        //region.RequestedHeight = (float) TileHeightWidth / 2;
+        //region.RequestedWidth = (float) TileHeightWidth / 2;
 
-    public override IMapFragment? GetFragment( int xTile, int yTile, int scale ) =>
-        Task.Run( async () => await GetFragmentAsync( xTile, yTile, scale ) ).Result;
+        //var retVal = new MapTile( region, x, y );
 
-    public override async Task<IMapFragment?> GetFragmentAsync(
-        int xTile,
-        int yTile,
-        int scale,
-        CancellationToken ctx = default
-    )
-    {
-        xTile = GetTileXRange( scale ).ConformValueToRange( xTile, "GetFragmentAsync xTile" );
-        yTile = GetTileYRange( scale ).ConformValueToRange( yTile, "GetFragmentAsync yTile" );
-
-        var centerX = (int) Math.Round( ( xTile + 0.5F ) * TileHeightWidth );
-        var centerY = (int) Math.Round( ( yTile + 0.5F ) * TileHeightWidth );
-
-        var centerPoint = new StaticPoint( this );
-        centerPoint.SetCartesian( centerX, centerY );
-
-        var retVal = new StaticFragment( this,
-                                         centerPoint.Latitude,
-                                         centerPoint.Longitude,
-                                         scale,
-                                         TileHeightWidth,
-                                         TileHeightWidth );
-
-        retVal.ImageData = await retVal.GetImageAsync( ctx );
-
+        var retVal = MapTile.CreateMapTile( this, x, y, scale, Logger );
+        
+        await retVal!.LoadImageAsync( ctx );
+    
         return retVal;
     }
+
+    protected override async Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default ) =>
+        await region.MapTiles.First().LoadImageAsync( ctx );
 }

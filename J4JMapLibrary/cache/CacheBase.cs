@@ -16,6 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -43,38 +44,24 @@ public abstract class CacheBase : ITileCache
     public abstract void Clear();
     public abstract void PurgeExpired();
 
-    public async Task<byte[]?> GetImageDataAsync( ITiledFragment fragment, CancellationToken ctx = default )
+    public async Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default )
     {
-        var retVal = await GetImageDataInternalAsync( fragment, ctx );
-        if( retVal != null )
-            return retVal;
+        if( await LoadImageDataInternalAsync( mapTile, ctx ) )
+            return true;
 
-        retVal = ParentCache == null
-            ? null
-            : await ParentCache.GetImageDataAsync(fragment, ctx);
-
-        retVal ??= await AddEntryAsync(fragment, ctx);
-
-        if( retVal != null )
-            return retVal;
+        if( ParentCache != null )
+            return await ParentCache.LoadImageAsync( mapTile, ctx );
 
         Logger.Error("Failed to create {0} cache entry for mapFragment ({1}, {2})",
-                     fragment.Projection.Name,
-                     fragment.MapXTile,
-                     fragment.MapYTile);
+                     mapTile.Region.Projection.Name,
+                     mapTile.RetrievedX,
+                     mapTile.RetrievedY);
 
-        return null;
+        return false;
     }
 
-    protected abstract Task<byte[]?> GetImageDataInternalAsync(
-        ITiledFragment fragment,
-        CancellationToken ctx = default
-    );
-
-    protected abstract Task<byte[]?> AddEntryAsync(
-        ITiledFragment fragment,
-        CancellationToken ctx = default
-    );
+    protected abstract Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default );
+    protected abstract Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default );
 
     public abstract IEnumerator<CachedEntry> GetEnumerator();
 

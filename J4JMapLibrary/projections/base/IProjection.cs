@@ -15,12 +15,14 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public interface IProjection : IEquatable<IProjection>
 {
+    event EventHandler<bool>? LoadComplete;
+
     string Name { get; }
 
     bool Initialized { get; }
@@ -42,8 +44,8 @@ public interface IProjection : IEquatable<IProjection>
     MinMax<int> GetXRange( int scale );
     MinMax<int> GetYRange( int scale );
 
-    MinMax<int> GetTileXRange(int scale);
-    MinMax<int> GetTileYRange(int scale);
+    MinMax<int> GetTileRange( int scale );
+    int GetNumTiles( int scale );
 
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }
@@ -54,22 +56,15 @@ public interface IProjection : IEquatable<IProjection>
 
     string MapStyle { get; set; }
 
-    HttpRequestMessage? CreateMessage(object requestInfo );
+    HttpRequestMessage? CreateMessage( MapTile mapTile );
 
     bool SetCredentials( object credentials );
-    Task<bool> SetCredentialsAsync(object credentials, CancellationToken ctx = default );
+    Task<bool> SetCredentialsAsync( object credentials, CancellationToken ctx = default );
 
-    IMapFragment? GetFragment( int xTile, int yTile, int scale );
-    Task<IMapFragment?> GetFragmentAsync( int xTile, int yTile, int scale, CancellationToken ctx = default );
+    public Task<MapTile> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default );
 
-    IAsyncEnumerable<IMapFragment> GetViewportAsync(
-        INormalizedViewport viewportData,
+    Task<bool> LoadRegionAsync(
+        MapRegion.MapRegion region,
         CancellationToken ctx = default
     );
-}
-
-public interface IProjection<in TFrag> : IProjection
-    where TFrag : class, IMapFragment
-{
-    HttpRequestMessage? CreateMessage( TFrag fragment );
 }

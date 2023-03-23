@@ -15,9 +15,11 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using J4JSoftware.J4JMapLibrary.MapRegion;
+
 namespace J4JSoftware.J4JMapLibrary;
 
 public record CachedEntry( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc );
 
-public record CachedTile( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc, ITiledFragment Tile )
+public record CachedTile( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc, MapTile Tile )
     : CachedEntry( ImageBytes, CreatedUtc, LastAccessedUtc );

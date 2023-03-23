@@ -18,6 +18,7 @@
 using System.Net;
 using System.Text;
 using J4JSoftware.DeusEx;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -38,34 +39,11 @@ public static class MapExtensions
             ? ProjectionType.Static
             : ProjectionType.Tiled;
 
-    public static string GetQuadKey( this TiledFragment mapFragment, int scale )
-    {
-        var retVal = new StringBuilder();
-
-        for( var i = scale; i > mapFragment.Projection.ScaleRange.Minimum - 1; i-- )
-        {
-            var digit = '0';
-            var mask = 1 << ( i - 1 );
-
-            if( ( mapFragment.MapXTile & mask ) != 0 )
-                digit++;
-
-            if( ( mapFragment.MapYTile & mask ) != 0 )
-            {
-                digit++;
-                digit++;
-            }
-
-            retVal.Append( digit );
-        }
-
-        return retVal.ToString();
-    }
-
     public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale )
     {
-        var x = projection.GetTileXRange( scale ).ConformValueToRange( xTile, "GetQuadKey X Tile" );
-        var y = projection.GetTileYRange( scale ).ConformValueToRange( yTile, "GetQuadKey Y Tile" );
+        var tileRange = projection.GetTileRange( scale );
+        var x = tileRange.ConformValueToRange( xTile, "GetQuadKey X Tile" );
+        var y = tileRange.ConformValueToRange( yTile, "GetQuadKey Y Tile" );
 
         if( x != xTile || y != yTile )
         {
@@ -194,66 +172,67 @@ public static class MapExtensions
         return ( whole, fraction[ ( decLog + 1 ).. ] );
     }
 
-    public static byte[]? GetImage( this IMapFragment fragment )
+    public static byte[]? GetImage( this MapTile mapTile )
     {
-        return Task.Run( async () => await GetImageAsync( fragment ) ).Result;
+        return Task.Run( async () => await GetImageAsync( mapTile ) ).Result;
     }
 
-    public static async Task<byte[]?> GetImageAsync( this IMapFragment fragment, CancellationToken ctx = default )
+    public static async Task<byte[]?> GetImageAsync( this MapTile mapTile, CancellationToken ctx = default )
     {
         Logger?.Verbose( "Beginning image retrieval from web" );
 
-        var request = fragment.Projection.CreateMessage( fragment );
+        var request = mapTile.Region.Projection.CreateMessage( mapTile );
         if( request == null )
         {
-            Logger?.Error<string>( "Could not create HttpRequestMessage for mapFragment ({0})", fragment.FragmentId );
+            Logger?.Error( "Could not create HttpRequestMessage for mapTile ({0})", mapTile.FragmentId );
             return null;
         }
 
         var uriText = request.RequestUri!.AbsoluteUri;
         var httpClient = new HttpClient();
 
-        Logger?.Verbose<string>( "Querying {0}", uriText );
+        Logger?.Verbose( "Querying {0}", uriText );
 
         HttpResponseMessage? response;
 
         try
         {
-            response = fragment.Projection.MaxRequestLatency <= 0
+            response = mapTile.Region.Projection.MaxRequestLatency <= 0
                 ? await httpClient.SendAsync( request, ctx )
                 : await httpClient.SendAsync( request, ctx )
-                                  .WaitAsync( TimeSpan.FromMilliseconds( fragment.Projection.MaxRequestLatency ), ctx );
+                                  .WaitAsync( TimeSpan.FromMilliseconds( mapTile.Region.Projection.MaxRequestLatency ),
+                                              ctx );
 
-            Logger?.Verbose<string>( "Got response from {0}", uriText );
+            Logger?.Verbose( "Got response from {0}", uriText );
         }
         catch( Exception ex )
         {
-            Logger?.Error<Uri, string>( "Image request from {0} failed, message was '{1}'",
-                                        request.RequestUri,
-                                        ex.Message );
+            Logger?.Error( "Image request from {0} failed, message was '{1}'",
+                           request.RequestUri,
+                           ex.Message );
             return null;
         }
 
         if( response.StatusCode != HttpStatusCode.OK )
         {
-            Logger?.Error<string, HttpStatusCode, string>(
-                "Image request from {0} failed with response code {1}, message was '{2}'",
-                uriText,
-                response.StatusCode,
-                await response.Content.ReadAsStringAsync( ctx ) );
+            Logger?.Error( "Image request from {0} failed with response code {1}, message was '{2}'",
+                           uriText,
+                           response.StatusCode,
+                           await response.Content.ReadAsStringAsync( ctx ) );
 
             return null;
         }
 
-        Logger?.Verbose<string>( "Reading response from {0}", uriText );
+        Logger?.Verbose( "Reading response from {0}", uriText );
 
         // extract image data from response
         try
         {
-            await using var responseStream = fragment.Projection.MaxRequestLatency < 0
+            await using var responseStream = mapTile.Region.Projection.MaxRequestLatency < 0
                 ? await response.Content.ReadAsStreamAsync( ctx )
                 : await response.Content.ReadAsStreamAsync( ctx )
-                                .WaitAsync( TimeSpan.FromMilliseconds( fragment.Projection.MaxRequestLatency ), ctx );
+                                .WaitAsync( TimeSpan.FromMilliseconds( mapTile.Region.Projection.MaxRequestLatency ),
+                                            ctx );
 
             var memStream = new MemoryStream();
             await responseStream.CopyToAsync( memStream, ctx );
@@ -262,9 +241,9 @@ public static class MapExtensions
         }
         catch( Exception ex )
         {
-            Logger?.Error<Uri, string>( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
-                                        response.RequestMessage!.RequestUri!,
-                                        ex.Message );
+            Logger?.Error( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
+                           response.RequestMessage!.RequestUri!,
+                           ex.Message );
 
             return null;
         }

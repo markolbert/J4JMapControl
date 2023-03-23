@@ -18,6 +18,7 @@
 using Serilog;
 using System.Net;
 using System.Text.Json;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -171,19 +172,20 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         MaxScale = Metadata.PrimaryResource.ZoomMax;
         TileHeightWidth = Metadata.PrimaryResource.ImageHeight;
 
-        var urlText = Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
-                                   .Replace("{quadkey}", "0")
-                                   .Replace("{culture}", null);
+        // this used to be required...
+        //var urlText = Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
+        //                           .Replace("{quadkey}", "0")
+        //                           .Replace("{culture}", null);
 
-        var extUri = new Uri(urlText);
-        ImageFileExtension = Path.GetExtension(extUri.LocalPath);
+        //var extUri = new Uri(urlText);
+        ImageFileExtension = ".jpg"; // Path.GetExtension(extUri.LocalPath);
 
         Initialized = true;
 
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( ITiledFragment mapFragment )
+    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
         if( !Initialized )
         {
@@ -196,10 +198,11 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
                                                                    .PrimaryResource!
                                                                    .ImageUrlSubdomains
                                                                    .Length ) ];
+
         var replacements = new Dictionary<string, string>
         {
             { "{subdomain}", subDomain },
-            { "{quadkey}", mapFragment.QuadKey },
+            { "{quadkey}", mapTile.GetQuadKey() },
             { "{culture}", _cultureCode ?? string.Empty }
         };
 

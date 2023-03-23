@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -56,12 +57,12 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( ITiledFragment mapFragment )
+    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
         if( !Initialized )
             return null;
 
-        if( string.IsNullOrEmpty( UserAgent ) )
+        if ( string.IsNullOrEmpty( UserAgent ) )
         {
             Logger.Error( "Undefined or empty User-Agent" );
             return null;
@@ -69,9 +70,9 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", mapFragment.Scale.ToString() },
-            { "{x}", mapFragment.MapXTile.ToString() },
-            { "{y}", mapFragment.MapYTile.ToString() }
+            { "{zoom}", mapTile.Region.Scale.ToString() },
+            { "{x}", mapTile.RetrievedX.ToString() },
+            { "{y}", mapTile.RetrievedY.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

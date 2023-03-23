@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.ObjectModel;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -27,5 +27,5 @@ public interface ITileCache : IEnumerable<CachedEntry>
     void Clear();
     void PurgeExpired();
 
-    Task<byte[]?> GetImageDataAsync( ITiledFragment fragment, CancellationToken ctx = default );
+    Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default );
 }

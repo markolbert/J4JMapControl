@@ -16,18 +16,18 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 #pragma warning disable CS8618
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
+public abstract class Projection<TAuth> : IProjection
     where TAuth : class, new()
-    where TFrag : class, IMapFragment
-    where TViewport : INormalizedViewport
 {
     public const int DefaultMaxRequestLatency = 500;
+
+    public event EventHandler<bool>? LoadComplete;
 
     private int _minScale;
     private int _maxScale;
@@ -170,25 +170,19 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
 
     #endregion
 
-    #region Tile range
-
-    public MinMax<int> GetTileXRange(int scale)
+    public MinMax<int> GetTileRange(int scale)
     {
-        scale = ScaleRange.ConformValueToRange(scale, "TileXRange Scale");
+        scale = ScaleRange.ConformValueToRange(scale, "GetTileRange() Scale");
         var pow = InternalExtensions.Pow(2, scale);
 
         return new MinMax<int>(0, pow - 1);
     }
 
-    public MinMax<int> GetTileYRange(int scale)
+    public int GetNumTiles( int scale )
     {
-        scale = ScaleRange.ConformValueToRange(scale, "TileXRange Scale");
-        var pow = InternalExtensions.Pow(2, scale);
-
-        return new MinMax<int>(0, pow - 1);
+        scale = ScaleRange.ConformValueToRange( scale, "GetNumTiles() Scale" );
+        return InternalExtensions.Pow( 2, scale );
     }
-
-    #endregion
 
     public int TileHeightWidth { get; protected set; }
 
@@ -254,15 +248,25 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
         return false;
     }
 
-    public abstract HttpRequestMessage? CreateMessage(TFrag fragment);
+    public abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
 
-    public abstract IMapFragment? GetFragment( int xTile, int yTile, int scale );
-    public abstract Task<IMapFragment?> GetFragmentAsync(int xTile, int yTile, int scale, CancellationToken ctx = default );
+    public abstract Task<MapTile> GetMapTileAsync(int x, int y, int scale, CancellationToken ctx = default);
 
-    public abstract IAsyncEnumerable<TFrag> GetViewportAsync(
-        TViewport viewportData,
-        CancellationToken ctx = default
-    );
+    public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
+    {
+        if (!Initialized)
+        {
+            Logger.Error("Projection not initialized");
+            return false;
+        }
+
+        var retVal = await LoadRegionInternalAsync( region, ctx );
+        LoadComplete?.Invoke(this, retVal  );
+
+        return retVal;
+    }
+
+    protected abstract Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default );
 
     bool IProjection.SetCredentials( object credentials )
     {
@@ -285,38 +289,11 @@ public abstract class Projection<TAuth, TViewport, TFrag> : IProjection<TFrag>
         return false;
     }
 
-    HttpRequestMessage? IProjection.CreateMessage( object requestInfo )
-    {
-        if( requestInfo is TFrag castInfo )
-            return CreateMessage( castInfo );
-
-        Logger.Error( "Expected a {0} but was passed a {1}", typeof( TFrag ), requestInfo.GetType() );
-        return null;
-    }
-
-    async IAsyncEnumerable<IMapFragment> IProjection.GetViewportAsync(
-        INormalizedViewport viewportData,
-        [ EnumeratorCancellation ] CancellationToken ctx
-    )
-    {
-        if( viewportData.GetType().IsAssignableTo( typeof( TViewport ) ) )
-        {
-            await foreach( var fragment in GetViewportAsync( (TViewport) viewportData, ctx ) )
-            {
-                yield return fragment;
-            }
-        }
-        else
-            Logger.Error( "Expected viewport data to be an {0}, got a {1} instead",
-                          typeof( TViewport ),
-                          viewportData.GetType() );
-    }
-
     #region IEquatable
 
-    public static bool operator==( Projection<TAuth, TViewport, TFrag>? left, Projection<TAuth, TViewport, TFrag>? right ) => Equals( left, right );
+    public static bool operator==( Projection<TAuth>? left, Projection<TAuth>? right ) => Equals( left, right );
 
-    public static bool operator!=( Projection<TAuth, TViewport, TFrag>? left, Projection<TAuth, TViewport, TFrag>? right ) => !Equals( left, right );
+    public static bool operator!=(Projection<TAuth>? left, Projection<TAuth>? right) => !Equals( left, right );
 
     public bool Equals( IProjection? other ) =>
         other != null

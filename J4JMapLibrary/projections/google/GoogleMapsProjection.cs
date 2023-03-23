@@ -18,6 +18,7 @@
 using Serilog;
 using System.Security.Cryptography;
 using System.Text;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -83,7 +84,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage(IStaticFragment mapFragment )
+    public override HttpRequestMessage? CreateMessage(MapTile mapTile )
     {
         if (!Initialized)
         {
@@ -91,12 +92,15 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
             return null;
         }
 
+        var height = (int) Math.Round( mapTile.Region.BoundingBox.Height );
+        var width = (int) Math.Round( mapTile.Region.BoundingBox.Height );
+
         var replacements = new Dictionary<string, string>
         {
-            { "{center}", $"{mapFragment.CenterLatitude}, {mapFragment.CenterLongitude}" },
+            { "{center}", $"{mapTile.Region.CenterLatitude}, {mapTile.Region.CenterLongitude}" },
             { "{format}", ImageFormat.ToString() },
-            { "{zoom}", mapFragment.Scale.ToString() },
-            { "{size}", $"{mapFragment.ImageWidth}x{mapFragment.ImageHeight}" },
+            { "{zoom}", mapTile.Region.Scale.ToString() },
+            { "{size}", $"{width}x{height}" },
             { "{apikey}", ApiKey }
         };
 

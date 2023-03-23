@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -138,59 +139,56 @@ public class FileSystemCache : CacheBase
     }
 
 #pragma warning disable CS1998
-    protected override async Task<byte[]?> GetImageDataInternalAsync( ITiledFragment fragment, CancellationToken ctx = default )
+    protected override async Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
         if (string.IsNullOrEmpty(_cacheDir))
         {
             Logger.Error("Caching directory is undefined");
-            return null;
+            return false;
         }
 
-        var key = $"{fragment.Projection.Name}-{fragment.QuadKey}";
-        var filePath = Path.Combine(_cacheDir, $"{key}{fragment.Projection.ImageFileExtension}");
+        var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
+        var filePath = Path.Combine(_cacheDir, $"{key}{mapTile.Region.Projection.ImageFileExtension}");
 
         if( !File.Exists( filePath ) )
-            return null;
+            return false;
 
-        return await File.ReadAllBytesAsync(filePath, ctx);
+        mapTile.ImageData = await File.ReadAllBytesAsync( filePath, ctx );
+
+        return mapTile.ImageBytes > 0;
     }
 
-    protected override async Task<byte[]?> AddEntryAsync(
-        ITiledFragment fragment,
-        CancellationToken ctx = default
-    )
+    protected override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
             Logger.Error( "Caching directory is undefined" );
-            return null;
+            return false;
         }
 
-        var fileName = $"{fragment.Projection.Name}-{fragment.QuadKey}{fragment.Projection.ImageFileExtension}";
+        var fileName = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}{mapTile.Region.Projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
-        var retVal = await fragment.GetImageAsync( ctx: ctx );
-
-        if( retVal == null )
+        if( !await mapTile.LoadImageAsync(ctx))
         {
             Logger.Error( "Failed to retrieve image data" );
-            return null;
+            return false;
         }
 
         if( File.Exists( filePath ) )
-            Logger.Warning( "Replacing map mapFragment with fragment ID '{0}'", fragment.FragmentId );
+            Logger.Warning( "Replacing map mapFragment with mapTile ID '{0}'", mapTile.FragmentId );
 
         await using var imgFile = File.Create( filePath );
-        await imgFile.WriteAsync( retVal, ctx );
+        await imgFile.WriteAsync( mapTile.ImageData, ctx );
         imgFile.Close();
 
-        Stats.RecordEntry(retVal);
+        Stats.RecordEntry(mapTile.ImageData);
 
         if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
 
-        return retVal;
+        return true;
     }
 
     public override IEnumerator<CachedEntry> GetEnumerator()

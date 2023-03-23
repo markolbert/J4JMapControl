@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -76,40 +77,40 @@ public class MemoryCache : CacheBase
     }
 
 #pragma warning disable CS1998
-    protected override async Task<byte[]?> GetImageDataInternalAsync(
+    protected override async Task<bool> LoadImageDataInternalAsync(
 #pragma warning restore CS1998
-        ITiledFragment fragment,
+        MapTile mapTile,
         CancellationToken ctx = default
     )
     {
-        if( string.IsNullOrEmpty( fragment.QuadKey ) )
-            return null;
+        // shouldn't ever happen, but...
+        if( string.IsNullOrEmpty( mapTile.QuadKey ) )
+            return false;
 
-        var key = $"{fragment.Projection.Name}-{fragment.QuadKey}";
+        var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
 
-        var retVal = _cached.ContainsKey( key ) ? _cached[ key ] : null;
-        return retVal?.Tile.ImageData;
+        var cachedTile = _cached.ContainsKey( key ) ? _cached[ key ] : null;
+
+        mapTile.ImageData = cachedTile?.Tile.ImageData;
+        
+        return mapTile.ImageData != null;
     }
 
-    protected override async Task<byte[]?> AddEntryAsync(
-        ITiledFragment fragment,
-        CancellationToken ctx = default
-    )
+    protected override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
     {
-        var retVal = await fragment.GetImageAsync( ctx: ctx ) ?? Array.Empty<byte>();
-        if( retVal.Length == 0 )
+        if( !await mapTile.LoadImageAsync( ctx ) )
         {
-            Logger.Error( "Failed to retrieve image data" );
-            return null;
+            Logger.Error("Failed to retrieve image data");
+            return false;
         }
 
-        var key = $"{fragment.Projection.Name}-{fragment.QuadKey}";
+        var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
 
-        var cacheEntry = new CachedTile( retVal.Length, DateTime.UtcNow, DateTime.UtcNow, fragment );
+        var cacheEntry = new CachedTile( mapTile.ImageBytes, DateTime.UtcNow, DateTime.UtcNow, mapTile );
 
         if ( _cached.ContainsKey( key ) )
         {
-            Logger.Warning( "Replacing map mapFragment with fragment '{0}'", cacheEntry.Tile.FragmentId );
+            Logger.Warning( "Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId );
             _cached[ key ] = cacheEntry;
 
             Stats.Initialize( this );
@@ -118,13 +119,13 @@ public class MemoryCache : CacheBase
         {
             _cached.Add( key, cacheEntry );
 
-            Stats.RecordEntry(retVal);
+            Stats.RecordEntry( mapTile.ImageData );
         }
 
         if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
 
-        return retVal;
+        return true;
     }
 
     public override IEnumerator<CachedEntry> GetEnumerator()
