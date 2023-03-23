@@ -83,9 +83,4 @@ public sealed partial class J4JMapControl
                                                                              typeof( string ),
                                                                              typeof( J4JMapControl ),
                                                                              new PropertyMetadata( null, OnHeadingChanged ) );
-
-    public DependencyProperty IsValidProperty = DependencyProperty.Register( nameof( IsValid ),
-                                                                             typeof( bool ),
-                                                                             typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( false ) );
 }
