@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 using J4JSoftware.DeusEx;
@@ -14,7 +15,9 @@ using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
 using Path = System.IO.Path;
@@ -55,6 +58,7 @@ public sealed partial class J4JMapControl : Panel
     private bool _suppressLayout;
     private bool _ignoreChange;
     private bool _cacheIsValid;
+    private PointerPoint? _dragStart;
 
     public J4JMapControl()
     {
@@ -67,7 +71,47 @@ public sealed partial class J4JMapControl : Panel
          ?? throw new NullReferenceException( "Could not create ProjectionFactory" );
 
         _projFactory.ScanAssemblies();
+
+        PointerPressed += OnPointerPressed;
+        PointerMoved += OnPointerMoved;
+        PointerReleased += OnPointerReleased;
     }
+
+    private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
+    {
+        CapturePointer( e.Pointer );
+        _dragStart = e.GetCurrentPoint( this );
+    }
+
+    private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if( PointerCaptures?.Any( p => p.PointerId == e.Pointer.PointerId ) ?? false )
+            OnMapDragged( e.GetIntermediatePoints( this ) );
+    }
+
+    private void OnMapDragged( IList<PointerPoint> points )
+    {
+        // shouldn't be necessary, but...
+        if( _dragStart == null )
+            return;
+
+        foreach( var point in points )
+        {
+            _logger.Warning( "Pointer captured: {0}, {1} (offset from start {2}, {3})",
+                             point.Position.X,
+                             point.Position.Y,
+                             point.Position.X - _dragStart.Position.X,
+                             point.Position.Y - _dragStart.Position.Y );
+        }
+    }
+
+    private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        ReleasePointerCapture( e.Pointer );
+        _dragStart = null;
+    }
+
+    #region caching
 
     public bool UseMemoryCache
     {
@@ -117,12 +161,6 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue(FileSystemCacheRetentionProperty, value);
     }
 
-    public int UpdateEventInterval
-    {
-        get => (int) GetValue(UpdateEventIntervalProperty);
-        set => SetValue( UpdateEventIntervalProperty, value );
-    }
-
     private void UpdateCaching()
     {
         if( _cacheIsValid )
@@ -156,6 +194,16 @@ public sealed partial class J4JMapControl : Panel
 
         _cacheIsValid = true;
     }
+
+    #endregion
+
+    public int UpdateEventInterval
+    {
+        get => (int)GetValue(UpdateEventIntervalProperty);
+        set => SetValue(UpdateEventIntervalProperty, value);
+    }
+
+    #region projection
 
     public string MapProjection
     {
@@ -200,6 +248,10 @@ public sealed partial class J4JMapControl : Panel
         InvalidateMeasure();
     }
 
+    #endregion
+
+    #region map region
+
     public MapRegion? MapRegion { get; private set; }
 
     public string Center
@@ -232,12 +284,6 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue( HeadingProperty, value );
     }
 
-    public bool IsValid
-    {
-        get => (bool) GetValue( IsValidProperty );
-        set => SetValue( IsValidProperty, value );
-    }
-
     private void UpdateMapRegion()
     {
         if(_projection == null || MapRegion == null )
@@ -255,6 +301,8 @@ public sealed partial class J4JMapControl : Panel
                                                _projection.LoadRegionAsync( MapRegion );
                                            } );
     }
+
+    #endregion
 
     private void OnMapRegionUpdated()
     {
