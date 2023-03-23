@@ -49,7 +49,7 @@ public sealed partial class J4JMapControl
         typeof( J4JMapControl ),
         new PropertyMetadata( J4JMapControl.DefaultUpdateEventInterval ) );
 
-    public DependencyProperty MapNameProperty = DependencyProperty.Register( nameof( MapName ),
+    public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
                                                                              typeof( string ),
                                                                              typeof( J4JMapControl ),
                                                                              new PropertyMetadata( null, OnMapProjectionChanged ) );

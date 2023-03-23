@@ -157,10 +157,10 @@ public sealed partial class J4JMapControl : Panel
         _cacheIsValid = true;
     }
 
-    public string MapName
+    public string MapProjection
     {
-        get => (string) GetValue( MapNameProperty );
-        set => SetValue( MapNameProperty, value );
+        get => (string) GetValue( MapProjectionProperty );
+        set => SetValue( MapProjectionProperty, value );
     }
 
     public string MapStyle
@@ -176,17 +176,17 @@ public sealed partial class J4JMapControl : Panel
 
         var cache = _tileMemCache ?? _tileFileCache;
 
-        var projResult = _projFactory.CreateProjection( MapName, cache );
+        var projResult = _projFactory.CreateProjection( MapProjection, cache );
         if( !projResult.ProjectionTypeFound )
         {
-            J4JDeusEx.OutputFatalMessage($"Could not create projection '{MapName}'", _logger);
-            throw new InvalidOperationException( $"Could not create projection '{MapName}'" );
+            J4JDeusEx.OutputFatalMessage($"Could not create projection '{MapProjection}'", _logger);
+            throw new InvalidOperationException( $"Could not create projection '{MapProjection}'" );
         }
 
         if( !projResult.Authenticated )
         {
-            J4JDeusEx.OutputFatalMessage($"Could not authenticate projection '{MapName}'", _logger);
-            throw new InvalidOperationException($"Could not authenticate projection '{MapName}'");
+            J4JDeusEx.OutputFatalMessage($"Could not authenticate projection '{MapProjection}'", _logger);
+            throw new InvalidOperationException($"Could not authenticate projection '{MapProjection}'");
         }
 
         _projection = projResult.Projection!;
@@ -231,8 +231,6 @@ public sealed partial class J4JMapControl : Panel
         get => (string) GetValue( HeadingProperty );
         set => SetValue( HeadingProperty, value );
     }
-
-    public float NumericHeading { get; private set; }
 
     public bool IsValid
     {
