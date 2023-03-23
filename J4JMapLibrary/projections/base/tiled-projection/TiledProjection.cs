@@ -76,8 +76,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     {
         foreach( var mapTile in region )
         {
-            if( mapTile.InProjection )
-                await mapTile.LoadFromCacheAsync( TileCache, ctx );
+            await mapTile.LoadFromCacheAsync( TileCache, ctx );
         }
 
         return true;
