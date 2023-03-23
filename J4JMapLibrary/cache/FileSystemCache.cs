@@ -138,9 +138,7 @@ public class FileSystemCache : CacheBase
         Stats.Initialize( files );
     }
 
-#pragma warning disable CS1998
     protected override async Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default )
-#pragma warning restore CS1998
     {
         if (string.IsNullOrEmpty(_cacheDir))
         {
@@ -159,7 +157,7 @@ public class FileSystemCache : CacheBase
         return mapTile.ImageBytes > 0;
     }
 
-    protected override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
+    public override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {

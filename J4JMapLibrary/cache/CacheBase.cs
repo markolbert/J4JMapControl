@@ -52,16 +52,17 @@ public abstract class CacheBase : ITileCache
         if( ParentCache != null )
             return await ParentCache.LoadImageAsync( mapTile, ctx );
 
-        Logger.Error("Failed to create {0} cache entry for mapFragment ({1}, {2})",
-                     mapTile.Region.Projection.Name,
-                     mapTile.RetrievedX,
-                     mapTile.RetrievedY);
+        Logger.Verbose( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
+                        this.GetType(),
+                        mapTile.Region.Projection.Name,
+                        mapTile.RetrievedX,
+                        mapTile.RetrievedY );
 
         return false;
     }
 
     protected abstract Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default );
-    protected abstract Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default );
+    public abstract Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default );
 
     public abstract IEnumerator<CachedEntry> GetEnumerator();
 

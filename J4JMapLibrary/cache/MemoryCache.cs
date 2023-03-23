@@ -89,14 +89,15 @@ public class MemoryCache : CacheBase
 
         var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
 
-        var cachedTile = _cached.ContainsKey( key ) ? _cached[ key ] : null;
+        if( !_cached.TryGetValue( key, out var cachedTile ) )
+            return false;
 
-        mapTile.ImageData = cachedTile?.Tile.ImageData;
+        mapTile.ImageData = cachedTile.Tile.ImageData;
         
         return mapTile.ImageData != null;
     }
 
-    protected override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
+    public override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
     {
         if( !await mapTile.LoadImageAsync( ctx ) )
         {
@@ -124,6 +125,9 @@ public class MemoryCache : CacheBase
 
         if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
+
+        if( ParentCache != null )
+            return await ParentCache.AddEntryAsync( mapTile, ctx );
 
         return true;
     }

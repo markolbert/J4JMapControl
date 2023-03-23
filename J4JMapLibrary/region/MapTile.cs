@@ -231,6 +231,12 @@ public class MapTile
         if( retVal )
             return true;
 
-        return await LoadImageAsync( ctx );
+        // load the image from the web, and then cache it if possible
+        retVal = await LoadImageAsync( ctx );
+
+        if ( retVal && cache != null )
+            await cache.AddEntryAsync( this, ctx );
+
+        return retVal;
     }
 }
