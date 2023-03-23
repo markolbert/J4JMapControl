@@ -251,7 +251,11 @@ public sealed partial class J4JMapControl : Panel
         MapRegion.Size( (float) Height, (float) Width );
 
         _throttleFragmentsUpdate.Throttle( UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
-                                           _ => _projection.LoadRegionAsync( MapRegion ) );
+                                           _ =>
+                                           {
+                                               MapRegion.Build();
+                                               _projection.LoadRegionAsync( MapRegion );
+                                           } );
     }
 
     private void OnMapRegionUpdated()
@@ -314,7 +318,7 @@ public sealed partial class J4JMapControl : Panel
             var bitmapImage = new BitmapImage();
             bitmapImage.SetSource( memStream.AsRandomAccessStream() );
 
-            var image = new Image { Source = bitmapImage, Height = mapTile.ImageHeight, Width = mapTile.ImageWidth, };
+            var image = new Image { Source = bitmapImage, Height = mapTile.Height, Width = mapTile.Width, };
 
             imagePanel.Children.Add( image );
 
