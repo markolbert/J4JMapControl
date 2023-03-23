@@ -170,13 +170,13 @@ public class MapRegion : IEnumerable<MapTile>
 
     private void UpdateTiledDimensions()
     {
-        var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
-        var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) );
-        var minYTile = RoundTile( BoundingBox.Min( c => c.Y ) );
-        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y ) );
+        var minXTile = RoundTile(BoundingBox.Min(c => c.X));
+        var maxXTile = RoundTile(BoundingBox.Max(c => c.X));
+        var minYTile = RoundTile(BoundingBox.Min(c => c.Y));
+        var maxYTile = RoundTile(BoundingBox.Max(c => c.Y));
 
-        UpperLeft = new MapTile( this, minXTile, minYTile );
-        LowerRight = new MapTile( this, maxXTile, maxYTile );
+        UpperLeft = new MapTile(this, minXTile, minYTile);
+        LowerRight = new MapTile(this, maxXTile, maxYTile);
 
         var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
 
@@ -185,8 +185,8 @@ public class MapRegion : IEnumerable<MapTile>
 
         // this may need to look for the first tile above and to the left
         // of the tile containing the center point
-        var xOffset = tiledPoint.X - RequestedWidth / 2 - UpperLeft.X * tileHeightWidth;
-        var yOffset = tiledPoint.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
+        var xOffset = tiledPoint.X - RequestedWidth / 2 - UpperLeft.RetrievedX * tileHeightWidth;
+        var yOffset = tiledPoint.Y - RequestedHeight / 2 - UpperLeft.RetrievedY * tileHeightWidth;
 
         ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
 
