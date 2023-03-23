@@ -185,8 +185,8 @@ public class MapRegion : IEnumerable<MapTile>
 
         // this may need to look for the first tile above and to the left
         // of the tile containing the center point
-        var xOffset = tiledPoint.X - RequestedWidth / 2 - UpperLeft.RetrievedX * tileHeightWidth;
-        var yOffset = tiledPoint.Y - RequestedHeight / 2 - UpperLeft.RetrievedY * tileHeightWidth;
+        var xOffset = tiledPoint.X - RequestedWidth / 2 - UpperLeft.X * tileHeightWidth;
+        var yOffset = tiledPoint.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
 
         ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
 
