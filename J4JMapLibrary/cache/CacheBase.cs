@@ -46,6 +46,9 @@ public abstract class CacheBase : ITileCache
 
     public async Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default )
     {
+        if( !mapTile.InProjection )
+            return false;
+
         if( await LoadImageDataInternalAsync( mapTile, ctx ) )
             return true;
 
@@ -55,8 +58,8 @@ public abstract class CacheBase : ITileCache
         Logger.Verbose( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
                         this.GetType(),
                         mapTile.Region.Projection.Name,
-                        mapTile.RetrievedX,
-                        mapTile.RetrievedY );
+                        mapTile.X,
+                        mapTile.Y );
 
         return false;
     }

@@ -60,8 +60,17 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
 
     public override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
-        if( !Initialized )
+        if (!Initialized)
+        {
+            Logger.Error("Projection not initialized");
             return null;
+        }
+
+        if (!mapTile.InProjection)
+        {
+            Logger.Error("MapTile not in the projection");
+            return null;
+        }
 
         if ( string.IsNullOrEmpty( UserAgent ) )
         {
@@ -69,11 +78,13 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
             return null;
         }
 
+        var absolute = mapTile.AbsoluteTileCoordinates;
+
         var replacements = new Dictionary<string, string>
         {
             { "{zoom}", mapTile.Region.Scale.ToString() },
-            { "{x}", mapTile.RetrievedX.ToString() },
-            { "{y}", mapTile.RetrievedY.ToString() }
+            { "{x}", absolute.X.ToString() },
+            { "{y}", absolute.Y.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

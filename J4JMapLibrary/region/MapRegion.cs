@@ -17,6 +17,7 @@
 
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Numerics;
 using J4JSoftware.VisualUtilities;
 using Serilog;
@@ -25,7 +26,6 @@ namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
 public class MapRegion : IEnumerable<MapTile>
 {
-    private readonly List<MapTile> _mapTiles = new();
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
 
     private float _latitude;
@@ -35,7 +35,9 @@ public class MapRegion : IEnumerable<MapTile>
     private int _scale;
     private float _heading;
 
+#pragma warning disable CS8618
     public MapRegion(
+#pragma warning restore CS8618
         IProjection projection,
         ILogger logger
     )
@@ -45,8 +47,10 @@ public class MapRegion : IEnumerable<MapTile>
         Projection = projection;
         ProjectionType = Projection.GetProjectionType();
 
-        UpperLeft = new MapTile( this, 0, 0 );
-        LowerRight = new MapTile( this, 0, 0 );
+        Scale = projection.MinScale;
+        NumTiles = projection.GetNumTiles( Scale );
+
+        UpdateEmpty();
     }
 
     protected internal ILogger Logger { get; }
@@ -105,32 +109,37 @@ public class MapRegion : IEnumerable<MapTile>
 
     public float Rotation => 360 - Heading;
 
-    public Rectangle2D BoundingBox { get; private set; } = Rectangle2D.Empty;
-    public MapTile UpperLeft { get; private set; }
-    public MapTile LowerRight { get; private set; }
+    public Rectangle2D BoundingBox { get; private set; }
+    public int NumTiles { get; private set; }
+    public Tile UpperLeft { get; private set; }
+    public int TilesWide { get; private set; }
+    public int TilesHigh { get; private set; }
 
-    public ReadOnlyCollection<MapTile> MapTiles => _mapTiles.AsReadOnly();
-    public int NumColumns { get; private set; }
-    public int NumRows { get; private set; }
+    public MapTile[,] MapTiles { get; private set; } = new MapTile[0, 0];
 
-    public MapTile? this[ int xTile, int yTile ]
+    public MapTile? this[ int xRelative, int yRelative ]
     {
         get
         {
-            if( !_mapTiles.Any()
-            || xTile < UpperLeft.X
-            || xTile > LowerRight.X
-            || yTile < UpperLeft.Y
-            || yTile > LowerRight.Y )
+            if( xRelative < 0 || yRelative < 0 || xRelative >= TilesWide || yRelative >= TilesHigh )
                 return null;
 
-            return _mapTiles.First( t => t.X == xTile && t.Y == yTile );
+            return MapTiles[ xRelative, yRelative ];
         }
     }
 
+    public bool IsDefined { get; private set; }
+    public bool ChangedOnBuild { get; private set; }
+
     public MapRegion Build()
     {
-        _mapTiles.Clear();
+        ChangedOnBuild = false;
+        IsDefined = false;
+
+        var oldBoundingBox = BoundingBox.Copy();
+        var oldUpperLeft = UpperLeft;
+        var oldWide = TilesWide;
+        var oldHigh = TilesHigh;
 
         var centerPoint = new StaticPoint( Projection ) { Scale = Scale };
         centerPoint.SetLatLong( CenterLatitude, CenterLongitude );
@@ -152,31 +161,38 @@ public class MapRegion : IEnumerable<MapTile>
                 UpdateTiledDimensions();
             else UpdateStaticDimensions();
 
-            NumColumns = LowerRight.X - UpperLeft.X + 1;
-            NumRows = LowerRight.Y - UpperLeft.Y + 1;
+            IsDefined = true;
         }
+
+        ChangedOnBuild = ProjectionType switch
+        {
+            ProjectionType.Static => !BoundingBox.Equals( oldBoundingBox ),
+            ProjectionType.Tiled => UpperLeft != oldUpperLeft || TilesWide != oldWide || TilesHigh != oldHigh,
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof( ProjectionType )} value '{ProjectionType}'" )
+        };
 
         return this;
     }
 
     private void UpdateEmpty()
     {
-        UpperLeft = new MapTile(this, 0, 0);
-        LowerRight = new MapTile(this, 0, 0);
+        UpperLeft = new Tile(this, int.MinValue, int.MinValue);
+        TilesWide = 0;
+        TilesHigh = 0;
         BoundingBox = Rectangle2D.Empty;
-        NumColumns = 0;
-        NumRows = 0;
     }
 
     private void UpdateTiledDimensions()
     {
-        var minXTile = RoundTile(BoundingBox.Min(c => c.X));
-        var maxXTile = RoundTile(BoundingBox.Max(c => c.X));
-        var minYTile = RoundTile(BoundingBox.Min(c => c.Y));
-        var maxYTile = RoundTile(BoundingBox.Max(c => c.Y));
+        var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
+        var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) );
+        var minYTile = RoundTile( BoundingBox.Min( c => c.Y ) );
+        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y ) );
 
-        UpperLeft = new MapTile(this, minXTile, minYTile);
-        LowerRight = new MapTile(this, maxXTile, maxYTile);
+        UpperLeft = new Tile( this, minXTile, minYTile );
+        TilesWide = maxXTile - minXTile + 1;
+        TilesHigh = maxYTile - minYTile + 1;
 
         var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
 
@@ -190,22 +206,46 @@ public class MapRegion : IEnumerable<MapTile>
 
         ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
 
-        for( var xTile = UpperLeft.X; xTile <= LowerRight.X; xTile++ )
+        MapTiles = new MapTile[ TilesWide, TilesHigh ];
+
+        for( var yTileOffset = 0; yTileOffset < TilesHigh; yTileOffset++ )
         {
-            for( var yTile = UpperLeft.Y; yTile <= LowerRight.Y; yTile++ )
+            for( var xTileOffset = 0; xTileOffset < TilesWide; xTileOffset++ )
             {
-                _mapTiles.Add( new MapTile( this, xTile, yTile ) );
+                var xTile = 0;
+
+                if( xTileOffset >= NumTiles )
+                    xTile = -1;
+                else
+                {
+                    xTile = UpperLeft.X + xTileOffset;
+
+                    if( xTile < 0 )
+                        xTile += NumTiles;
+
+                    if( xTile < 0 )
+                        xTile = -1;
+
+                    if( xOffset >= NumTiles )
+                        xTile = -1;
+                }
+
+                MapTiles[ xTileOffset, yTileOffset ] = new MapTile( this, xTile, UpperLeft.Y + yTileOffset );
             }
         }
     }
 
     private void UpdateStaticDimensions()
     {
+        UpperLeft = new Tile(this, 0,0);
+        TilesWide = 1;
+        TilesHigh = 1;
+
         ViewpointOffset = new Vector3( -( BoundingBox.Width - RequestedWidth ) / 2,
                                        -( BoundingBox.Height - RequestedHeight ) / 2,
                                        0 );
 
-        _mapTiles.Add( new MapTile( this, 0, 0) );
+        MapTiles.Add( new MapTile( this, 0, 0) );
     }
 
     private int RoundTile( float value )
@@ -217,15 +257,12 @@ public class MapRegion : IEnumerable<MapTile>
 
     public IEnumerator<MapTile> GetEnumerator()
     {
-        if( !_mapTiles.Any() )
+        if( !MapTiles.Any() || !IsDefined )
             yield break;
 
-        for (var xTile = UpperLeft.X; xTile <= LowerRight.X; xTile++)
+        foreach( var tile in MapTiles )
         {
-            for (var yTile = UpperLeft.Y; yTile <= LowerRight.Y; yTile++)
-            {
-                yield return this[ xTile, yTile ]!;
-            }
+            yield return tile;
         }
     }
 
