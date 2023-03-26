@@ -62,12 +62,12 @@ public sealed partial class J4JMapControl
     public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
                                                                             typeof( string ),
                                                                             typeof( J4JMapControl ),
-                                                                            new PropertyMetadata(null, OnCenterChanged ) );
+                                                                            new PropertyMetadata(null, OnMapConfigurationChanged ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( double ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( 0.0, OnMapScaleChanged ) );
+                                                                              new PropertyMetadata( 0.0, OnMapConfigurationChanged ) );
 
     public DependencyProperty MinScaleProperty = DependencyProperty.Register(nameof(MinScale),
                                                                              typeof(double),
@@ -80,7 +80,7 @@ public sealed partial class J4JMapControl
                                                                              new PropertyMetadata(0.0, OnMinMaxScaleChanged));
 
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
-                                                                             typeof( string ),
+                                                                             typeof( double ),
                                                                              typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( null, OnHeadingChanged ) );
+                                                                             new PropertyMetadata( 0D, OnMapConfigurationChanged ) );
 }

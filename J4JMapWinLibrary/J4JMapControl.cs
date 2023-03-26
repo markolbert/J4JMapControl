@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 using J4JSoftware.DeusEx;
@@ -56,7 +57,6 @@ public sealed partial class J4JMapControl : Panel
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
     private bool _suppressLayout;
-    private bool _ignoreChange;
     private bool _cacheIsValid;
     private PointerPoint? _dragStart;
 
@@ -238,7 +238,10 @@ public sealed partial class J4JMapControl : Panel
         }
 
         _projection = projResult.Projection!;
-        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnMapRegionUpdated );
+        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue(()=>
+        {
+            OnMapRegionUpdated();
+        } );
 
         MapRegion = new MapRegion(_projection, _logger);
 
@@ -278,13 +281,13 @@ public sealed partial class J4JMapControl : Panel
         private set => SetValue( MaxScaleProperty, value );
     }
 
-    public string Heading
+    public double Heading
     {
-        get => (string) GetValue( HeadingProperty );
+        get => (double) GetValue( HeadingProperty );
         set => SetValue( HeadingProperty, value );
     }
 
-    private void UpdateMapRegion()
+    private void MapConfigurationChanged()
     {
         if(_projection == null || MapRegion == null )
         {
@@ -292,24 +295,21 @@ public sealed partial class J4JMapControl : Panel
             return;
         }
 
-        MapRegion.Size( (float) Height, (float) Width );
-
-        _throttleFragmentsUpdate.Throttle( UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
-                                           _ =>
-                                           {
-                                               MapRegion.Build();
-                                               _projection.LoadRegionAsync( MapRegion );
-                                           } );
+        _throttleFragmentsUpdate.Throttle(UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
+                                           _ => { InvalidateMeasure(); });
     }
 
     #endregion
 
     private void OnMapRegionUpdated()
     {
-        if( MapRegion == null )
+        if( _projection == null || MapRegion == null || _suppressLayout )
             return;
 
-        _suppressLayout = true;
+        // make sure we block the measure/arrange cycle
+        // we're going to trigger by modifying the Children
+        // collection
+        //_suppressLayout = true;
 
         // find or create the grid that contains the map images
         var imagePanel = (Grid?) Children.FirstOrDefault( x => x is Grid );
@@ -324,14 +324,22 @@ public sealed partial class J4JMapControl : Panel
         imagePanel.RowDefinitions.Clear();
         imagePanel.ColumnDefinitions.Clear();
 
+        var cellHeightWidth = MapRegion.ProjectionType switch
+        {
+            ProjectionType.Static => GridLength.Auto,
+            ProjectionType.Tiled => new GridLength( _projection.TileHeightWidth ),
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
+        };
+
         for (var col = 0; col <MapRegion.NumColumns; col++)
         {
-            imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = GridLength.Auto } );
+            imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = cellHeightWidth } );
         }
 
         for (var row = 0; row < MapRegion.NumRows; row++)
         {
-            imagePanel.RowDefinitions.Add( new RowDefinition() { Height = GridLength.Auto } );
+            imagePanel.RowDefinitions.Add( new RowDefinition() { Height = cellHeightWidth } );
         }
 
         var offset = MapRegion.ViewpointOffset;
@@ -351,13 +359,10 @@ public sealed partial class J4JMapControl : Panel
         // add the individual images to the grid
         foreach( var mapTile in MapRegion )
         {
-            var relativeCoords = mapTile.GetRelativeTileCoordinates();
-
-            if( mapTile.ImageBytes < 0 )
-            {
-                _logger.Verbose( "Blank tile ({0}, {1})", relativeCoords.X, relativeCoords.Y );
+            if( !mapTile.InProjection )
                 continue;
-            }
+
+            var relativeCoords = mapTile.GetRelativeTileCoordinates();
 
             var memStream = new MemoryStream( mapTile.ImageData! );
 
@@ -372,31 +377,50 @@ public sealed partial class J4JMapControl : Panel
             Grid.SetColumn( image, relativeCoords.X );
             Grid.SetRow( image, relativeCoords.Y );
         }
-
-        _suppressLayout = false;
-
-        InvalidateMeasure();
     }
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        if( MapRegion == null || _suppressLayout )
+        if( MapRegion == null || _projection == null )
             return Size.Empty;
 
-        // don't forget to let each child control (e.g., the image panel)
-        // participate!
-        foreach( var child in Children )
+        //if( _suppressLayout )
+        //{
+        //    _suppressLayout = false;
+        //    return availableSize;
+        //}
+
+        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
         {
-            child.Measure(availableSize);
+            _logger.Error("Could not parse Center ({0})", Center);
+            return Size.Empty;
         }
 
-        return availableSize;
+        var height = Height < availableSize.Height ? Height : availableSize.Height;
+        var width = Width < availableSize.Width ? Width : availableSize.Width;
+
+        MapRegion
+           .Center( latitude, longitude )
+           .Scale( (int) MapScale )
+           .Heading( (float) Heading )
+           .Size( (float) height, (float) width )
+           .Build();
+
+        if( MapRegion.ChangedOnBuild )
+            _throttleFragmentsUpdate.Throttle(
+                UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
+                _ =>
+                {
+                    _projection.LoadRegionAsync( MapRegion );
+                } );
+
+        return new Size( width, height );
     }
 
     protected override Size ArrangeOverride( Size finalSize )
     {
         if( MapRegion == null || _suppressLayout )
-            return Size.Empty;
+            return finalSize;
 
         // don't forget to let each child control (e.g., the image panel)
         // participate!
