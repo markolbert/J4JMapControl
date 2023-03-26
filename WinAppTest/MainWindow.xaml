@@ -28,7 +28,6 @@
 
         <map:J4JMapControl x:Name="mapControl" 
                            Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"
-                           Height="400" Width="400"
                            MapProjection="BingMaps"
                            MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
