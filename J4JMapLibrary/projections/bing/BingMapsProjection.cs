@@ -189,7 +189,13 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     {
         if( !Initialized )
         {
-            Logger.Error( "Trying to create image retrieval HttpRequestMessage when uninitialized" );
+            Logger.Error( "Projection not initialized" );
+            return null;
+        }
+
+        if( !mapTile.InProjection )
+        {
+            Logger.Error( "MapTile not in the projection" );
             return null;
         }
 
@@ -202,7 +208,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         var replacements = new Dictionary<string, string>
         {
             { "{subdomain}", subDomain },
-            { "{quadkey}", mapTile.GetQuadKey() },
+            { "{quadkey}", mapTile.QuadKey },
             { "{culture}", _cultureCode ?? string.Empty }
         };
 

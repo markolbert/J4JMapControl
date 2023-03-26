@@ -5,34 +5,6 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapRegionFluentExtensions
 {
-    public static string GetQuadKey(this MapTile mapTile)
-    {
-        // static projections only have a single quadkey, defaulting to "0"
-        if (mapTile.Region.Projection is not ITiledProjection)
-            return "0";
-
-        var retVal = new StringBuilder();
-
-        for (var i = mapTile.Region.Scale; i > mapTile.Region.Projection.ScaleRange.Minimum - 1; i--)
-        {
-            var digit = '0';
-            var mask = 1 << (i - 1);
-
-            if ((mapTile.RetrievedX & mask) != 0)
-                digit++;
-
-            if ((mapTile.RetrievedY & mask) != 0)
-            {
-                digit++;
-                digit++;
-            }
-
-            retVal.Append(digit);
-        }
-
-        return retVal.ToString();
-    }
-
     public static MapRegion.MapRegion CenterLatitude( this MapRegion.MapRegion region, float value )
     {
         region.CenterLatitude = value;
