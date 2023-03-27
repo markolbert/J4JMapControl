@@ -128,9 +128,9 @@ public class MapRegion : IEnumerable<MapTile>
         }
     }
 
-    public int ConvertRelativeXToAbsolute( int relativeX )
+    public int WrapXOffsetWithinProjection( int offsetX )
     {
-        var retVal = UpperLeft.X + relativeX;
+        var retVal = UpperLeft.X + offsetX;
 
         if (retVal < 0)
             retVal += MaximumTiles;
