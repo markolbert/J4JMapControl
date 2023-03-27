@@ -116,6 +116,28 @@ public partial class MapTile : Tile
         return this;
     }
 
+    public int Row { get; private set; } = -1;
+    public int Column { get; private set; } = -1;
+
+    public MapTile SetRowColumn( int row, int column )
+    {
+        Row = row < 0
+            ? throw new ArgumentOutOfRangeException($"Row row ({row}) less than 0")
+            : row < Region.TilesHigh
+                ? row
+                : throw new ArgumentOutOfRangeException(
+                    $"Row row ({row}) equals or exceeds region height ({Region.TilesHigh})");
+
+        Column = column < 0
+            ? throw new ArgumentOutOfRangeException($"Column column ({column}) less than 0")
+            : column < Region.TilesWide
+                ? column
+                : throw new ArgumentOutOfRangeException(
+                    $"Column column ({column}) equals or exceeds region width ({Region.TilesWide})");
+
+        return this;
+    }
+
     public (int X, int Y) GetRelativeTileCoordinates() =>
         Region.IsDefined ? ( X - Region.UpperLeft.X, Y - Region.UpperLeft.Y ) : ( -1, -1 );
 
