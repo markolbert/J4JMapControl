@@ -5,12 +5,11 @@ namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
 public partial class MapTile : Tile
 {
-    private MapTile(
+    public MapTile(
         MapRegion region,
-        int absoluteX,
         int absoluteY
     )
-        : base( region, absoluteX, absoluteY )
+        : base( region, -1, absoluteY )
     {
         SetSize();
         
@@ -90,8 +89,32 @@ public partial class MapTile : Tile
     public float Height { get; set; }
     public float Width { get; set; }
 
-    public string FragmentId { get; }
-    public string QuadKey { get; }
+    public string FragmentId { get; private set; }
+    public string QuadKey { get; private set; }
+
+    public MapTile SetXRelative( int relativeX )
+    {
+        X = Region.ConvertRelativeXToAbsolute( relativeX );
+        QuadKey = InProjection ? GetQuadKey() : string.Empty;
+
+        FragmentId = Region.Projection is ITiledProjection
+            ? QuadKey
+            : $"{MapExtensions.LatitudeToText( Region.CenterLatitude )}-{MapExtensions.LongitudeToText( Region.CenterLongitude )}-{Region.Scale}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
+
+        return this;
+    }
+
+    public MapTile SetXAbsolute(int absoluteX)
+    {
+        X = absoluteX;
+        QuadKey = InProjection ? GetQuadKey() : string.Empty;
+
+        FragmentId = Region.Projection is ITiledProjection
+            ? QuadKey
+            : $"{MapExtensions.LatitudeToText(Region.CenterLatitude)}-{MapExtensions.LongitudeToText(Region.CenterLongitude)}-{Region.Scale}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
+
+        return this;
+    }
 
     public (int X, int Y) GetRelativeTileCoordinates() =>
         Region.IsDefined ? ( X - Region.UpperLeft.X, Y - Region.UpperLeft.Y ) : ( -1, -1 );

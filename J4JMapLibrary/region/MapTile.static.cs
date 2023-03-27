@@ -29,14 +29,6 @@ public partial class MapTile
         region.RequestedHeight = (float) projection.TileHeightWidth / 2;
         region.RequestedWidth = (float) projection.TileHeightWidth / 2;
 
-        return new MapTile( region, xTile, yTile );
+        return new MapTile( region, yTile ).SetXAbsolute( 0 );
     }
-
-    public static MapTile CreateMapTileFromRelativeX( MapRegion region, int x, int y )
-    {
-        x = region.ConvertRelativeXToAbsolute( x );
-        return new MapTile( region, x, y );
-    }
-
-    public static MapTile CreateMapTileFromAbsoluteX( MapRegion region, int x, int y ) => new( region, x, y );
 }

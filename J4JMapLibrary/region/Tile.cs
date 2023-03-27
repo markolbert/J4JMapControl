@@ -37,6 +37,6 @@ public class Tile
     // Wrapping is limited to including at most all the tiles
     // in the current horizontal range -- wrapping beyond that limits implies
     // the horizontal tile coordinate is outside the MapRegion.
-    public int X { get; init; }
+    public int X { get; protected set; }
     public int Y { get; }
 }
