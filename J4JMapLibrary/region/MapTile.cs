@@ -1,45 +1,16 @@
 ﻿using System.Net;
 using System.Text;
-using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
-public class MapTile : Tile
+public partial class MapTile : Tile
 {
-    public static MapTile CreateMapTile(
-        IProjection projection,
-        int xTile,
-        int yTile,
-        int scale,
-        ILogger logger
-    )
-    {
-        var region = new MapRegion( projection, logger )
-                    .Scale( scale )
-                    .Size( projection.TileHeightWidth, projection.TileHeightWidth )
-                    .Build();
-
-        // determine the center point of the tile
-        var upperLeftX = xTile * projection.TileHeightWidth;
-        var upperLeftY = yTile * projection.TileHeightWidth;
-        var centerPoint = new StaticPoint(projection) { Scale = scale };
-        centerPoint.SetCartesian(upperLeftX + projection.TileHeightWidth / 2,
-                                 upperLeftY + projection.TileHeightWidth / 2);
-
-        region.CenterLatitude = centerPoint.Latitude;
-        region.CenterLongitude = centerPoint.Longitude;
-        region.RequestedHeight = (float)projection.TileHeightWidth / 2;
-        region.RequestedWidth = (float)projection.TileHeightWidth / 2;
-
-        return new MapTile(region, xTile, yTile);
-    }
-
-    public MapTile(
+    private MapTile(
         MapRegion region,
-        int x,
-        int y
+        int absoluteX,
+        int absoluteY
     )
-        : base( region, x, y )
+        : base( region, absoluteX, absoluteY )
     {
         SetSize();
         
@@ -122,53 +93,8 @@ public class MapTile : Tile
     public string FragmentId { get; }
     public string QuadKey { get; }
 
-    public (int X, int Y) GetRelativeTileCoordinates()
-    {
-        if (!Region.IsDefined)
-            return (-1, -1);
-
-        return (X - Region.UpperLeft.X, Y - Region.UpperLeft.Y);
-    }
-
-    //public (int X, int Y) AbsoluteTileCoordinates
-    //{
-    //    get
-    //    {
-    //        if (Region.ProjectionType == ProjectionType.Static)
-    //            return (X, Y);
-
-    //        var numTiles = Region.Projection.GetNumTiles(Region.Scale);
-
-    //        var leftMostIncluded = Region.UpperLeft.X <= 0
-    //            ? 0
-    //            : Region.UpperLeft.X > numTiles - 1
-    //                ? -1
-    //                : Region.UpperLeft.X;
-
-    //        var rightMostIncluded = Region.LowerRight.X >= numTiles - 1
-    //            ? numTiles - 1
-    //            : Region.LowerRight.X < 0
-    //                ? -1
-    //                : Region.LowerRight.X;
-
-    //        var normalizedX = NormalizedX(X, numTiles);
-
-    //        if (normalizedX < 0 || normalizedX > numTiles - 1)
-    //            return (-1, Y);
-
-    //        if (normalizedX > rightMostIncluded || normalizedX <= leftMostIncluded)
-    //            return (normalizedX, Y);
-
-    //        return (-1, Y);
-    //    }
-    //}
-
-    //private int NormalizedX(int value, int numTiles) =>
-    //    value < 0
-    //        ? value + numTiles
-    //        : value > numTiles - 1
-    //            ? value - numTiles
-    //            : value;
+    public (int X, int Y) GetRelativeTileCoordinates() =>
+        Region.IsDefined ? ( X - Region.UpperLeft.X, Y - Region.UpperLeft.Y ) : ( -1, -1 );
 
     public byte[]? ImageData { get; set; }
     public long ImageBytes => ImageData?.Length <= 0 ? -1 : ImageData?.Length ?? -1;
