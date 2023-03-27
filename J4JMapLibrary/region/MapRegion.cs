@@ -16,7 +16,6 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
 using J4JSoftware.VisualUtilities;
@@ -48,7 +47,7 @@ public class MapRegion : IEnumerable<MapTile>
         ProjectionType = Projection.GetProjectionType();
 
         Scale = projection.MinScale;
-        NumTiles = projection.GetNumTiles( Scale );
+        MaximumTiles = projection.GetNumTiles( Scale );
 
         UpdateEmpty();
     }
@@ -110,7 +109,7 @@ public class MapRegion : IEnumerable<MapTile>
     public float Rotation => 360 - Heading;
 
     public Rectangle2D BoundingBox { get; private set; }
-    public int NumTiles { get; private set; }
+    public int MaximumTiles { get; private set; }
     public Tile UpperLeft { get; private set; }
     public int TilesWide { get; private set; }
     public int TilesHigh { get; private set; }
@@ -128,6 +127,22 @@ public class MapRegion : IEnumerable<MapTile>
         }
     }
 
+    public int ConvertRelativeXToAbsolute( int relativeX )
+    {
+        var retVal = UpperLeft.X + relativeX;
+
+        if (retVal < 0)
+            retVal += MaximumTiles;
+
+        if (retVal < 0)
+            retVal = -1;
+
+        if (retVal >= MaximumTiles)
+            retVal = -1;
+
+        return retVal;
+    }
+
     public bool IsDefined { get; private set; }
     public bool ChangedOnBuild { get; private set; }
 
@@ -135,6 +150,8 @@ public class MapRegion : IEnumerable<MapTile>
     {
         ChangedOnBuild = false;
         IsDefined = false;
+
+        MaximumTiles = Projection.GetNumTiles(Scale);
 
         var oldBoundingBox = BoundingBox.Copy();
         var oldUpperLeft = UpperLeft;
@@ -186,9 +203,9 @@ public class MapRegion : IEnumerable<MapTile>
     private void UpdateTiledDimensions()
     {
         var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
-        var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) );
+        var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) - 1 );
         var minYTile = RoundTile( BoundingBox.Min( c => c.Y ) );
-        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y ) );
+        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y )-1 );
 
         UpperLeft = new Tile( this, minXTile, minYTile );
         TilesWide = maxXTile - minXTile + 1;
@@ -212,25 +229,9 @@ public class MapRegion : IEnumerable<MapTile>
         {
             for( var xTileOffset = 0; xTileOffset < TilesWide; xTileOffset++ )
             {
-                var xTile = 0;
-
-                if( xTileOffset >= NumTiles )
-                    xTile = -1;
-                else
-                {
-                    xTile = UpperLeft.X + xTileOffset;
-
-                    if( xTile < 0 )
-                        xTile += NumTiles;
-
-                    if( xTile < 0 )
-                        xTile = -1;
-
-                    if( xOffset >= NumTiles )
-                        xTile = -1;
-                }
-
-                MapTiles[ xTileOffset, yTileOffset ] = new MapTile( this, xTile, UpperLeft.Y + yTileOffset );
+                MapTiles[ xTileOffset, yTileOffset ] = MapTile.CreateMapTileFromRelativeX( this,
+                    xTileOffset,
+                    UpperLeft.Y + yTileOffset );
             }
         }
     }
@@ -245,24 +246,28 @@ public class MapRegion : IEnumerable<MapTile>
                                        -( BoundingBox.Height - RequestedHeight ) / 2,
                                        0 );
 
-        MapTiles.Add( new MapTile( this, 0, 0) );
+        MapTiles = new MapTile[ 1, 1 ];
+        MapTiles[ 0, 0 ] = MapTile.CreateMapTileFromAbsoluteX( this, 0, 0);
     }
 
     private int RoundTile( float value )
     {
-        var tile = value / Projection.TileHeightWidth;
+        var tile = Math.Round(value) / Projection.TileHeightWidth;
         return (int)Math.Floor(tile);
         //return tile < 0 ? (int) Math.Floor( tile ) : (int) Math.Ceiling( tile );
     }
 
     public IEnumerator<MapTile> GetEnumerator()
     {
-        if( !MapTiles.Any() || !IsDefined )
+        if( !IsDefined )
             yield break;
 
-        foreach( var tile in MapTiles )
+        for( var y = 0; y < TilesHigh; y++ )
         {
-            yield return tile;
+            for( var x = 0; x < TilesWide; x++ )
+            {
+                yield return MapTiles[ x, y ];
+            }
         }
     }
 
