@@ -138,9 +138,6 @@ public partial class MapTile : Tile
         return this;
     }
 
-    public (int X, int Y) GetRelativeTileCoordinates() =>
-        Region.IsDefined ? ( X - Region.UpperLeft.X, Y - Region.UpperLeft.Y ) : ( -1, -1 );
-
     public byte[]? ImageData { get; set; }
     public long ImageBytes => ImageData?.Length <= 0 ? -1 : ImageData?.Length ?? -1;
 
