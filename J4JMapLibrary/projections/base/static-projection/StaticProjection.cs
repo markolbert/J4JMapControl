@@ -30,30 +30,28 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     {
     }
 
-    public override async Task<MapTile> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default )
+    // xIsRelative is ignored because there's only ever one valid
+    // tile in a static projection (0,0)
+    public override async Task<MapTile> GetMapTileAsync(
+        int x,
+        int y,
+        int scale,
+        bool xIsRelative = false,
+        CancellationToken ctx = default
+    )
     {
-        //var region = new MapRegion( this, Logger ) { Scale = scale };
+        var retVal = MapTile.CreateStaticMapTile( this, x, y, scale, Logger );
+        await retVal.LoadImageAsync( ctx );
 
-        //// determine the center point of the tile
-        //var upperLeftX = x * TileHeightWidth;
-        //var upperLeftY = y * TileHeightWidth;
-        //var centerPoint = new StaticPoint( this ) { Scale = scale };
-        //centerPoint.SetCartesian( upperLeftX + TileHeightWidth / 2, upperLeftY + TileHeightWidth / 2 );
-
-        //region.CenterLatitude = centerPoint.Latitude;
-        //region.CenterLongitude = centerPoint.Longitude;
-        //region.RequestedHeight = (float) TileHeightWidth / 2;
-        //region.RequestedWidth = (float) TileHeightWidth / 2;
-
-        //var retVal = new MapTile( region, x, y );
-
-        var retVal = MapTile.CreateMapTile( this, x, y, scale, Logger );
-        
-        await retVal!.LoadImageAsync( ctx );
-    
         return retVal;
     }
 
-    protected override async Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default ) =>
-        await region.MapTiles.First().LoadImageAsync( ctx );
+    protected override async Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
+    {
+        if( region.IsDefined)
+            return await region.MapTiles[0,0].LoadImageAsync( ctx );
+
+        Logger.Error("Undefined static MapRegion");
+        return false;
+    }
 }
