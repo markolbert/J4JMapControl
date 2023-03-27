@@ -17,6 +17,7 @@
 
 using System.Collections;
 using System.ComponentModel;
+using System.Data;
 using System.Numerics;
 using J4JSoftware.VisualUtilities;
 using Serilog;
@@ -223,14 +224,15 @@ public class MapRegion : IEnumerable<MapTile>
 
         ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
 
-        MapTiles = new MapTile[ TilesWide, TilesHigh ];
+        MapTiles = new MapTile[ TilesHigh, TilesWide ];
 
-        for( var yTileOffset = 0; yTileOffset < TilesHigh; yTileOffset++ )
+        for( var row = 0; row < TilesHigh; row++ )
         {
-            for( var xTileOffset = 0; xTileOffset < TilesWide; xTileOffset++ )
+            for( var column = 0; column < TilesWide; column++ )
             {
-                MapTiles[ xTileOffset, yTileOffset ] = new MapTile( this, UpperLeft.Y + yTileOffset )
-                   .SetXRelative( xTileOffset );
+                MapTiles[ row, column ] = new MapTile( this, UpperLeft.Y + row )
+                                                      .SetXRelative( column )
+                                                      .SetRowColumn( row, column );
             }
         }
     }
@@ -246,7 +248,9 @@ public class MapRegion : IEnumerable<MapTile>
                                        0 );
 
         MapTiles = new MapTile[ 1, 1 ];
-        MapTiles[ 0, 0 ] = new MapTile( this, 0 ).SetXAbsolute( 0 );
+        MapTiles[ 0, 0 ] = new MapTile( this, 0 )
+                          .SetXAbsolute( 0 )
+                          .SetRowColumn( 0, 0 );
     }
 
     private int RoundTile( float value )
@@ -261,11 +265,11 @@ public class MapRegion : IEnumerable<MapTile>
         if( !IsDefined )
             yield break;
 
-        for( var y = 0; y < TilesHigh; y++ )
+        for( var row = 0; row < TilesHigh; row++ )
         {
-            for( var x = 0; x < TilesWide; x++ )
+            for( var column = 0; column < TilesWide; column++ )
             {
-                yield return MapTiles[ x, y ];
+                yield return MapTiles[ row, column ];
             }
         }
     }
