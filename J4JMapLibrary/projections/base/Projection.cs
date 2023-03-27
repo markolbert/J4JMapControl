@@ -250,7 +250,13 @@ public abstract class Projection<TAuth> : IProjection
 
     public abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
 
-    public abstract Task<MapTile> GetMapTileAsync(int x, int y, int scale, CancellationToken ctx = default);
+    public abstract Task<MapTile> GetMapTileAsync(
+        int x,
+        int y,
+        int scale,
+        bool xIsRelative = false,
+        CancellationToken ctx = default
+    );
 
     public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
     {

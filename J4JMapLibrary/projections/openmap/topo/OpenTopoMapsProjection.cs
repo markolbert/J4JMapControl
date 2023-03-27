@@ -78,13 +78,11 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
             return null;
         }
 
-        var absolute = mapTile.AbsoluteTileCoordinates;
-
         var replacements = new Dictionary<string, string>
         {
             { "{zoom}", mapTile.Region.Scale.ToString() },
-            { "{x}", absolute.X.ToString() },
-            { "{y}", absolute.Y.ToString() }
+            { "{x}", mapTile.X.ToString() },
+            { "{y}", mapTile.Y.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

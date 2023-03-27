@@ -61,7 +61,7 @@ public interface IProjection : IEquatable<IProjection>
     bool SetCredentials( object credentials );
     Task<bool> SetCredentialsAsync( object credentials, CancellationToken ctx = default );
 
-    public Task<MapTile> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default );
+    public Task<MapTile> GetMapTileAsync( int x, int y, int scale, bool xIsRelative = false, CancellationToken ctx = default );
 
     Task<bool> LoadRegionAsync(
         MapRegion.MapRegion region,
