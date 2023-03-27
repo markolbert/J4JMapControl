@@ -30,13 +30,12 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     {
     }
 
-    // xIsRelative is ignored because there's only ever one valid
-    // tile in a static projection (0,0)
-    public override async Task<MapTile> GetMapTileAsync(
+    // there's only ever one valid tile in a static projection (0,0)
+    // so these next two methods are the same for static projections
+    public override async Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
         int x,
         int y,
         int scale,
-        bool xIsRelative = false,
         CancellationToken ctx = default
     )
     {
@@ -45,6 +44,14 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
 
         return retVal;
     }
+
+    public override async Task<MapTile> GetMapTileByRegionCoordinatesAsync(
+        int x,
+        int y,
+        int scale,
+        CancellationToken ctx = default
+    ) =>
+        await GetMapTileByProjectionCoordinatesAsync( x, y, scale, ctx );
 
     protected override async Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
     {

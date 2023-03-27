@@ -64,23 +64,32 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         return !string.IsNullOrEmpty( Name );
     }
 
-    public override async Task<MapTile> GetMapTileAsync(
+    public override async Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
         int x,
         int y,
         int scale,
-        bool xIsRelative = false,
         CancellationToken ctx = default
     )
     {
         var region = new MapRegion.MapRegion( this, Logger ) { Scale = scale };
 
-        var retVal = xIsRelative switch
-        {
-            true => new MapTile( region, y ).SetXRelative(x),
-            false => new MapTile(region, y).SetXAbsolute(x)
-        };
-
+        var retVal = new MapTile( region, y ).SetXRelative(x);
         await retVal.LoadFromCacheAsync( TileCache, ctx );
+
+        return retVal;
+    }
+
+    public override async Task<MapTile> GetMapTileByRegionCoordinatesAsync(
+        int x,
+        int y,
+        int scale,
+        CancellationToken ctx = default
+    )
+    {
+        var region = new MapRegion.MapRegion(this, Logger) { Scale = scale };
+
+        var retVal = new MapTile(region, y).SetXAbsolute(x);
+        await retVal.LoadFromCacheAsync(TileCache, ctx);
 
         return retVal;
     }
