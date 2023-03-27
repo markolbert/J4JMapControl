@@ -332,12 +332,12 @@ public sealed partial class J4JMapControl : Panel
                 $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
         };
 
-        for (var col = 0; col <MapRegion.NumColumns; col++)
+        for (var col = 0; col <MapRegion.TilesHigh; col++)
         {
             imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = cellHeightWidth } );
         }
 
-        for (var row = 0; row < MapRegion.NumRows; row++)
+        for (var row = 0; row < MapRegion.TilesWide; row++)
         {
             imagePanel.RowDefinitions.Add( new RowDefinition() { Height = cellHeightWidth } );
         }
