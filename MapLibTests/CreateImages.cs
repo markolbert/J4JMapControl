@@ -18,7 +18,7 @@ public class CreateImages : TestBase
                        .Scale( data.Scale )
                        .Build();
 
-        var mapTile = new MapTile( mapRegion, data.TileX, data.TileY );
+        var mapTile = MapTile.CreateMapTileFromAbsoluteX( mapRegion, data.TileX, data.TileY );
 
         var loaded = await mapTile.LoadImageAsync();
         loaded.Should().BeTrue();
@@ -40,7 +40,7 @@ public class CreateImages : TestBase
                        .Scale(data.Scale)
                        .Build();
 
-        var mapTile = new MapTile(mapRegion, data.TileX, data.TileY);
+        var mapTile = MapTile.CreateMapTileFromAbsoluteX(mapRegion, data.TileX, data.TileY);
 
         var loaded = await mapTile.LoadImageAsync();
         loaded.Should().BeTrue();
@@ -62,7 +62,7 @@ public class CreateImages : TestBase
                        .Scale(data.Scale)
                        .Build();
 
-        var mapTile = new MapTile(mapRegion, data.TileX, data.TileY);
+        var mapTile = MapTile.CreateMapTileFromAbsoluteX(mapRegion, data.TileX, data.TileY);
 
         var loaded = await mapTile.LoadImageAsync();
         loaded.Should().BeTrue();
@@ -80,7 +80,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = MapTile.CreateMapTile( projection, data.TileX, data.TileY, data.Scale, Logger );
+        var mapTile = MapTile.CreateStaticMapTile( projection, data.TileX, data.TileY, data.Scale, Logger );
         
         var loaded = await mapTile.LoadImageAsync();
         loaded.Should().BeTrue();

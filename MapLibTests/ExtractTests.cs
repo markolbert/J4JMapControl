@@ -52,6 +52,8 @@ public class ExtractTests : TestBase
 
         var result = await projection.LoadRegionAsync( region );
         result.Should().BeTrue();
-        region.MapTiles.Count.Should().Be( numFragments );
+
+        var numTiles = region.TilesHigh * region.TilesWide;
+        numTiles.Should().Be( numFragments );
     }
 }

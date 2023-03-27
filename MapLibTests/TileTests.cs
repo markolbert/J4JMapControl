@@ -8,11 +8,11 @@ public class TileTests : TestBase
 {
     [ Theory ]
     [ InlineData( "BingMaps", 1, 0, 0, 128, 256, 0, 0, 0, 1, 1 ) ]
-    [ InlineData( "OpenStreetMaps", 0, 0, 0, 128, 256, 0, -1, 0, 1, 0 ) ]
+    [ InlineData( "OpenStreetMaps", 0, 0, 0, 128, 256, 0, 0, 0, 0, 0 ) ]
     [ InlineData( "BingMaps", 2, 37, -122, 128, 256, 0, 0, 1, 1, 1 ) ]
     [ InlineData( "BingMaps", 2, 37, -122, 128, 256, 45, 0, 1, 1, 2 ) ]
-    [ InlineData( "BingMaps", 2, 37, -122, 128, 512, 45, -1, 0, 1, 2 ) ]
-    [ InlineData( "BingMaps", 3, 37, -122, 512, 512, 45, -1, 1, 2, 4 ) ]
+    [ InlineData( "BingMaps", 2, 37, -122, 128, 512, 45, 0, 0, 3, 2 ) ]
+    [ InlineData( "BingMaps", 3, 37, -122, 512, 512, 45, 0, 1, 7, 4 ) ]
     [ InlineData( "BingMaps", 3, 37, -122, 512, 512, 75, 0, 1, 2, 4 ) ]
     [ InlineData( "BingMaps", 3, 37, 97, 512, 512, 75, 4, 1, 7, 4 ) ]
     [ InlineData( "BingMaps", 3, 37, 97, 512, 512, 0, 5, 2, 7, 4 ) ]
@@ -43,14 +43,16 @@ public class TileTests : TestBase
 
         var result = await projection.LoadRegionAsync( region );
         result.Should().BeTrue();
-        region.MapTiles.Count.Should().BeGreaterThan( 0 );
 
-        region.MapTiles.Min( t => t.X ).Should().Be( minTileX );
-        region.MapTiles.Min( t => t.Y ).Should().Be( minTileY );
-        region.MapTiles.Max( t => t.X ).Should().Be( maxTileX );
-        region.MapTiles.Max( t => t.Y ).Should().Be( maxTileY );
+        var numTiles = region.TilesHigh * region.TilesWide;
+        numTiles.Should().BeGreaterThan( 0 );
 
-        foreach( var tile in region.MapTiles.Where( t => t.InProjection ) )
+        region.Min( t => t.X ).Should().Be( minTileX );
+        region.Min( t => t.Y ).Should().Be( minTileY );
+        region.Max( t => t.X ).Should().Be( maxTileX );
+        region.Max( t => t.Y ).Should().Be( maxTileY );
+
+        foreach( var tile in region.Where( t => t.InProjection ) )
         {
             tile.ImageBytes.Should().BePositive();
         }
@@ -59,13 +61,13 @@ public class TileTests : TestBase
     [ Theory ]
     [ InlineData( 0, 4, 2, 0, 0 ) ]
     [ InlineData( 0, 4, 2, -1, 3 ) ]
-    [ InlineData( 0, 4, 2, -2, -1 ) ]
-    [ InlineData( 0, 3, 2, -2, -1 ) ]
+    [ InlineData( 0, 4, 2, -2, 2 ) ]
+    [ InlineData( 0, 3, 2, -2, 2 ) ]
     [ InlineData( 0, 3, 2, -1, 3 ) ]
     [ InlineData( 0, 4, 2, 15, -1 ) ]
     [ InlineData( 0, 3, 2, 15, -1 ) ]
     [ InlineData( 1, 2, 2, -15, -1 ) ]
-    public async Task AbsoluteTile( int regionStart, int regionWidth, int scale, int x, int absX )
+    public async Task AbsoluteTile( int regionStart, int regionWidth, int scale, int relativeX, int absoluteX )
     {
         var projection = await CreateProjection( "BingMaps" );
         projection.Should().NotBeNull();
@@ -73,7 +75,9 @@ public class TileTests : TestBase
 
         var width = regionWidth * projection.TileHeightWidth;
         var center = new StaticPoint( projection ) { Scale = scale };
-        center.SetCartesian( regionStart * projection.TileHeightWidth + projection.TileHeightWidth / 2, null );
+
+        // since y tile is always 0, center is halfway down the first row
+        center.SetCartesian( regionStart * projection.TileHeightWidth + width / 2, projection.TileHeightWidth / 2 );
 
         var region = new MapRegion( projection, Logger )
                     .Center( center.Latitude, center.Longitude )
@@ -81,10 +85,9 @@ public class TileTests : TestBase
                     .Scale( scale )
                     .Build();
 
-        var mapTile = new MapTile( region, x, 0 );
+        var mapTile = MapTile.CreateMapTileFromRelativeX(region, relativeX, 0);
 
-        var absolute = mapTile.AbsoluteTileCoordinates;
-        absolute.X.Should().Be( absX );
-        absolute.Y.Should().Be( 0 );
+        mapTile.X.Should().Be( absoluteX );
+        mapTile.Y.Should().Be( 0 );
     }
 }
