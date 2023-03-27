@@ -359,8 +359,6 @@ public sealed partial class J4JMapControl : Panel
             if( !mapTile.InProjection )
                 continue;
 
-            var relativeCoords = mapTile.GetRelativeTileCoordinates();
-
             var memStream = new MemoryStream( mapTile.ImageData! );
 
             var bitmapImage = new BitmapImage();
@@ -371,8 +369,8 @@ public sealed partial class J4JMapControl : Panel
             imagePanel.Children.Add( image );
 
             // assign the image to the correct grid cell
-            Grid.SetColumn( image, relativeCoords.X );
-            Grid.SetRow( image, relativeCoords.Y );
+            Grid.SetColumn( image, mapTile.Column );
+            Grid.SetRow( image, mapTile.Row );
         }
     }
 
