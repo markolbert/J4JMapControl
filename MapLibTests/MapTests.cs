@@ -86,7 +86,7 @@ public class MapTests : TestBase
                     .Scale( scale )
                     .Build();
 
-        var mapTile = MapTile.CreateMapTileFromAbsoluteX(region, xTile, yTile);
+        var mapTile = new MapTile(region, yTile).SetXAbsolute(xTile);
         mapTile.QuadKey.Should().Be( quadKey );
     }
 
@@ -126,7 +126,7 @@ public class MapTests : TestBase
                     .Scale(scale)
                     .Build();
 
-        var mapTile = MapTile.CreateMapTileFromAbsoluteX(region, xTile, yTile);
+        var mapTile = new MapTile(region, yTile).SetXAbsolute(xTile);
         mapTile.QuadKey.Should().Be(quadKey);
     }
 
@@ -166,7 +166,7 @@ public class MapTests : TestBase
                     .Scale(scale)
                     .Build();
 
-        var mapTile = MapTile.CreateMapTileFromAbsoluteX(region, xTile, yTile);
+        var mapTile = new MapTile(region, yTile).SetXAbsolute(xTile);
         mapTile.QuadKey.Should().Be(quadKey);
     }
 }

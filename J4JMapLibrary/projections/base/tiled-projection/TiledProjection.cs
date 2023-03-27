@@ -76,8 +76,8 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
 
         var retVal = xIsRelative switch
         {
-            true => MapTile.CreateMapTileFromRelativeX( region, x, y ),
-            false => MapTile.CreateMapTileFromAbsoluteX( region, x, y )
+            true => new MapTile( region, y ).SetXRelative(x),
+            false => new MapTile(region, y).SetXAbsolute(x)
         };
 
         await retVal.LoadFromCacheAsync( TileCache, ctx );

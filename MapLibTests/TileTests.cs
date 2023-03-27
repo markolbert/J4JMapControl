@@ -85,7 +85,7 @@ public class TileTests : TestBase
                     .Scale( scale )
                     .Build();
 
-        var mapTile = MapTile.CreateMapTileFromRelativeX(region, relativeX, 0);
+        var mapTile = new MapTile( region, 0 ).SetXRelative( relativeX );
 
         mapTile.X.Should().Be( absoluteX );
         mapTile.Y.Should().Be( 0 );

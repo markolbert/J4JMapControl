@@ -229,9 +229,8 @@ public class MapRegion : IEnumerable<MapTile>
         {
             for( var xTileOffset = 0; xTileOffset < TilesWide; xTileOffset++ )
             {
-                MapTiles[ xTileOffset, yTileOffset ] = MapTile.CreateMapTileFromRelativeX( this,
-                    xTileOffset,
-                    UpperLeft.Y + yTileOffset );
+                MapTiles[ xTileOffset, yTileOffset ] = new MapTile( this, UpperLeft.Y + yTileOffset )
+                   .SetXRelative( xTileOffset );
             }
         }
     }
@@ -247,7 +246,7 @@ public class MapRegion : IEnumerable<MapTile>
                                        0 );
 
         MapTiles = new MapTile[ 1, 1 ];
-        MapTiles[ 0, 0 ] = MapTile.CreateMapTileFromAbsoluteX( this, 0, 0);
+        MapTiles[ 0, 0 ] = new MapTile( this, 0 ).SetXAbsolute( 0 );
     }
 
     private int RoundTile( float value )
