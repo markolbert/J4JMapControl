@@ -92,26 +92,16 @@ public partial class MapTile : Tile
     public string FragmentId { get; private set; }
     public string QuadKey { get; private set; }
 
-    public MapTile SetXRelative( int relativeX )
-    {
-        X = Region.ConvertRelativeXToAbsolute( relativeX );
-        QuadKey = InProjection ? GetQuadKey() : string.Empty;
+    public MapTile SetXRelative( int relativeX ) => SetXAbsolute( Region.WrapXOffsetWithinProjection( relativeX ) );
 
-        FragmentId = Region.Projection is ITiledProjection
-            ? QuadKey
-            : $"{MapExtensions.LatitudeToText( Region.CenterLatitude )}-{MapExtensions.LongitudeToText( Region.CenterLongitude )}-{Region.Scale}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
-
-        return this;
-    }
-
-    public MapTile SetXAbsolute(int absoluteX)
+    public MapTile SetXAbsolute( int absoluteX )
     {
         X = absoluteX;
         QuadKey = InProjection ? GetQuadKey() : string.Empty;
 
         FragmentId = Region.Projection is ITiledProjection
             ? QuadKey
-            : $"{MapExtensions.LatitudeToText(Region.CenterLatitude)}-{MapExtensions.LongitudeToText(Region.CenterLongitude)}-{Region.Scale}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
+            : $"{MapExtensions.LatitudeToText( Region.CenterLatitude )}-{MapExtensions.LongitudeToText( Region.CenterLongitude )}-{Region.Scale}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
 
         return this;
     }
