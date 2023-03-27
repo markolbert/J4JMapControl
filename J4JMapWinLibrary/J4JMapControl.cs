@@ -238,10 +238,7 @@ public sealed partial class J4JMapControl : Panel
         }
 
         _projection = projResult.Projection!;
-        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue(()=>
-        {
-            OnMapRegionUpdated();
-        } );
+        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnMapRegionUpdated );
 
         MapRegion = new MapRegion(_projection, _logger);
 
