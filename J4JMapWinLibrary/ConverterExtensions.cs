@@ -25,8 +25,8 @@ internal static class ConverterExtensions
 
     public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
     {
-        latitude = float.MinValue;
-        longitude = float.MinValue;
+        latitude = 0;
+        longitude = 0;
 
         if( string.IsNullOrEmpty( text ) )
             return false;
