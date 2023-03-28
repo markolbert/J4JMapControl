@@ -47,7 +47,7 @@ public sealed partial class J4JMapControl
     public DependencyProperty UpdateEventIntervalProperty = DependencyProperty.Register( nameof( UpdateEventInterval ),
         typeof( int ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( J4JMapControl.DefaultUpdateEventInterval ) );
+        new PropertyMetadata( J4JMapControl.DefaultUpdateEventInterval, OnUpdateIntervalChanged ) );
 
     public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
                                                                              typeof( string ),
@@ -62,12 +62,12 @@ public sealed partial class J4JMapControl
     public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
                                                                             typeof( string ),
                                                                             typeof( J4JMapControl ),
-                                                                            new PropertyMetadata(null, OnMapConfigurationChanged ) );
+                                                                            new PropertyMetadata(null, OnCenterChanged ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( double ),
                                                                               typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( 0.0, OnMapConfigurationChanged ) );
+                                                                              new PropertyMetadata( 0.0, OnMapScaleChanged ) );
 
     public DependencyProperty MinScaleProperty = DependencyProperty.Register(nameof(MinScale),
                                                                              typeof(double),
@@ -82,5 +82,5 @@ public sealed partial class J4JMapControl
     public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
                                                                              typeof( double ),
                                                                              typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( 0D, OnMapConfigurationChanged ) );
+                                                                             new PropertyMetadata( 0D, OnHeadingChanged ) );
 }
