@@ -74,15 +74,16 @@ public class TileTests : TestBase
         projection!.Initialized.Should().BeTrue();
 
         var width = regionWidth * projection.TileHeightWidth;
-        var center = new StaticPoint( projection ) { Scale = scale };
+
+        var region = new MapRegion(projection, Logger)
+                    .Size(projection.TileHeightWidth, width)
+                    .Scale(scale);
 
         // since y tile is always 0, center is halfway down the first row
+        var center = new MapPoint(region);
         center.SetCartesian( regionStart * projection.TileHeightWidth + width / 2, projection.TileHeightWidth / 2 );
 
-        var region = new MapRegion( projection, Logger )
-                    .Center( center.Latitude, center.Longitude )
-                    .Size( projection.TileHeightWidth, width )
-                    .Scale( scale )
+        region.Center( center.Latitude, center.Longitude )
                     .Build();
 
         var mapTile = new MapTile( region, 0 ).SetXRelative( relativeX );

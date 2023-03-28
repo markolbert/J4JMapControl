@@ -20,7 +20,7 @@ public partial class MapTile
         // determine the center point of the tile
         var upperLeftX = xTile * projection.TileHeightWidth;
         var upperLeftY = yTile * projection.TileHeightWidth;
-        var centerPoint = new StaticPoint( projection ) { Scale = scale };
+        var centerPoint = new MapPoint( region );
         centerPoint.SetCartesian( upperLeftX + projection.TileHeightWidth / 2,
                                   upperLeftY + projection.TileHeightWidth / 2 );
 
