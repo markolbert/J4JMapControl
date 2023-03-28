@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
@@ -51,14 +52,15 @@ public sealed partial class J4JMapControl : Panel
     private readonly ProjectionFactory _projFactory;
     private readonly ILogger _logger;
     private readonly DispatcherQueue _dispatcherQueue;
-    private readonly ThrottleDispatcher _throttleFragmentsUpdate = new();
+    private readonly ThrottleDispatcher _throttleRegionChanges = new();
+    private readonly ThrottleDispatcher _throttleUpdates = new();
+    private readonly ThrottleDispatcher _throttleMoves = new();
 
     private IProjection? _projection;
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
-    private bool _suppressLayout;
     private bool _cacheIsValid;
-    private PointerPoint? _dragStart;
+    private PointerPoint? _lastDragPoint;
 
     public J4JMapControl()
     {
@@ -80,7 +82,7 @@ public sealed partial class J4JMapControl : Panel
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
     {
         CapturePointer( e.Pointer );
-        _dragStart = e.GetCurrentPoint( this );
+        _lastDragPoint = e.GetCurrentPoint( this );
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
@@ -92,110 +94,40 @@ public sealed partial class J4JMapControl : Panel
     private void OnMapDragged( IList<PointerPoint> points )
     {
         // shouldn't be necessary, but...
-        if( _dragStart == null )
+        if( _lastDragPoint == null || MapRegion == null )
             return;
 
         foreach( var point in points )
         {
-            _logger.Warning( "Pointer captured: {0}, {1} (offset from start {2}, {3})",
-                             point.Position.X,
-                             point.Position.Y,
-                             point.Position.X - _dragStart.Position.X,
-                             point.Position.Y - _dragStart.Position.Y );
+            _throttleMoves.Throttle(5,
+                                    _ =>
+                                    {
+                                        if( _lastDragPoint == null )
+                                            return;
+
+                                        var xDelta = point.Position.X - _lastDragPoint.Position.X;
+                                        var yDelta = point.Position.Y - _lastDragPoint.Position.Y;
+
+                                        _lastDragPoint = point;
+
+                                        if (Math.Abs(xDelta) == 0 && Math.Abs(yDelta) == 0)
+                                            return;
+
+                                        _logger.Warning("Pointer moved {0}, {1}", xDelta, yDelta);
+
+                                        MapRegion.Offset( (float) xDelta, (float) yDelta );
+                                        MapRegion.Build();
+                                        
+                                        InvalidateMeasure();
+                                    });
         }
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         ReleasePointerCapture( e.Pointer );
-        _dragStart = null;
+        _lastDragPoint = null;
     }
-
-    #region caching
-
-    public bool UseMemoryCache
-    {
-        get => (bool) GetValue( UseMemoryCacheProperty );
-        set => SetValue( UseMemoryCacheProperty, value );
-    }
-
-    public int MemoryCacheSize
-    {
-        get => (int)GetValue(MemoryCacheSizeProperty);
-        set => SetValue(MemoryCacheSizeProperty, value);
-    }
-
-    public int MemoryCacheEntries
-    {
-        get => (int)GetValue(MemoryCacheEntriesProperty);
-        set => SetValue(MemoryCacheEntriesProperty, value);
-    }
-
-    public string MemoryCacheRetention
-    {
-        get => (string) GetValue( MemoryCacheRetentionProperty );
-        set => SetValue( MemoryCacheRetentionProperty, value );
-    }
-
-    public string FileSystemCachePath
-    {
-        get => (string)GetValue(FileSystemCachePathProperty);
-        set => SetValue(FileSystemCachePathProperty, value);
-    }
-
-    public int FileSystemCacheSize
-    {
-        get => (int)GetValue(FileSystemCacheSizeProperty);
-        set => SetValue(FileSystemCacheSizeProperty, value);
-    }
-
-    public int FileSystemCacheEntries
-    {
-        get => (int)GetValue(FileSystemCacheEntriesProperty);
-        set => SetValue(FileSystemCacheEntriesProperty, value);
-    }
-
-    public string FileSystemCacheRetention
-    {
-        get => (string)GetValue(FileSystemCacheRetentionProperty);
-        set => SetValue(FileSystemCacheRetentionProperty, value);
-    }
-
-    private void UpdateCaching()
-    {
-        if( _cacheIsValid )
-            return;
-
-        if( !TimeSpan.TryParse( FileSystemCacheRetention, out var fileRetention ) )
-            fileRetention = TimeSpan.FromDays( 1 );
-
-        _tileFileCache = string.IsNullOrEmpty( FileSystemCachePath )
-            ? null
-            : new FileSystemCache( _logger )
-            {
-                CacheDirectory = FileSystemCachePath,
-                MaxBytes = FileSystemCacheSize <= 0 ? DefaultFileSystemCacheSize : FileSystemCacheSize,
-                MaxEntries = FileSystemCacheEntries <= 0 ? DefaultFileSystemCacheEntries : FileSystemCacheEntries,
-                RetentionPeriod = fileRetention
-            };
-
-        if (!TimeSpan.TryParse(MemoryCacheRetention, out var memRetention))
-            memRetention = TimeSpan.FromHours(1);
-
-        _tileMemCache = UseMemoryCache
-            ? new MemoryCache( _logger )
-            {
-                MaxBytes = MemoryCacheSize <= 0 ? DefaultMemoryCacheSize : MemoryCacheSize, 
-                MaxEntries = MemoryCacheEntries <= 0 ?DefaultMemoryCacheEntries : MemoryCacheEntries, 
-                ParentCache = _tileFileCache,
-                RetentionPeriod = memRetention
-            }
-            : null;
-
-        _cacheIsValid = true;
-    }
-
-    #endregion
 
     public int UpdateEventInterval
     {
@@ -203,111 +135,32 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue(UpdateEventIntervalProperty, value);
     }
 
-    #region projection
-
-    public string MapProjection
+    private void SetImagePanelTransforms( BuildUpdatedArgument update, Grid? imagePanel = null )
     {
-        get => (string) GetValue( MapProjectionProperty );
-        set => SetValue( MapProjectionProperty, value );
-    }
-
-    public string MapStyle
-    {
-        get => (string)GetValue(MapStyleProperty);
-        set => SetValue(MapStyleProperty, value);
-    }
-
-    private void UpdateProjection()
-    {
-        if( !_cacheIsValid )
-            UpdateCaching();
-
-        var cache = _tileMemCache ?? _tileFileCache;
-
-        var projResult = _projFactory.CreateProjection( MapProjection, cache );
-        if( !projResult.ProjectionTypeFound )
+        imagePanel ??= (Grid?)Children.FirstOrDefault(x => x is Grid);
+        if( imagePanel == null )
         {
-            J4JDeusEx.OutputFatalMessage($"Could not create projection '{MapProjection}'", _logger);
-            throw new InvalidOperationException( $"Could not create projection '{MapProjection}'" );
-        }
-
-        if( !projResult.Authenticated )
-        {
-            J4JDeusEx.OutputFatalMessage($"Could not authenticate projection '{MapProjection}'", _logger);
-            throw new InvalidOperationException($"Could not authenticate projection '{MapProjection}'");
-        }
-
-        _projection = projResult.Projection!;
-        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( OnMapRegionUpdated );
-
-        MapRegion = new MapRegion(_projection, _logger);
-
-        MinScale = _projection.MinScale;
-        MaxScale = _projection.MaxScale;
-
-        InvalidateMeasure();
-    }
-
-    #endregion
-
-    #region map region
-
-    public MapRegion? MapRegion { get; private set; }
-
-    public string Center
-    {
-        get => (string) GetValue( CenterProperty );
-        set => SetValue( CenterProperty, value );
-    }
-
-    public double MapScale
-    {
-        get => (double) GetValue( MapScaleProperty );
-        set => SetValue( MapScaleProperty, value );
-    }
-
-    public double MinScale 
-    { 
-        get => (double ) GetValue( MinScaleProperty );
-        private set => SetValue( MinScaleProperty, value );
-    }
-
-    public double MaxScale
-    {
-        get => (double) GetValue( MaxScaleProperty );
-        private set => SetValue( MaxScaleProperty, value );
-    }
-
-    public double Heading
-    {
-        get => (double) GetValue( HeadingProperty );
-        set => SetValue( HeadingProperty, value );
-    }
-
-    private void MapConfigurationChanged()
-    {
-        if(_projection == null || MapRegion == null )
-        {
-            _logger.Error("Projection not fully initialized");
+            _logger.Error("Could not find image panel");
             return;
         }
 
-        _throttleFragmentsUpdate.Throttle(UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
-                                           _ => { InvalidateMeasure(); });
+        // define the transform to move and rotate the grid
+        var transforms = new TransformGroup();
+
+        transforms.Children.Add( new TranslateTransform() { X = update.Translation.X, Y = update.Translation.Y } );
+
+        transforms.Children.Add(new RotateTransform()
+        {
+            Angle = update.Rotation,
+            CenterX = Width / 2,
+            CenterY = Height / 2
+        });
+
+        imagePanel.RenderTransform = transforms;
     }
 
-    #endregion
-
-    private void OnMapRegionUpdated()
+    private void OnMapRegionLoaded( BuildUpdatedArgument update )
     {
-        if( _projection == null || MapRegion == null || _suppressLayout )
-            return;
-
-        // make sure we block the measure/arrange cycle
-        // we're going to trigger by modifying the Children
-        // collection
-        //_suppressLayout = true;
-
         // find or create the grid that contains the map images
         var imagePanel = (Grid?) Children.FirstOrDefault( x => x is Grid );
         if( imagePanel == null )
@@ -321,10 +174,10 @@ public sealed partial class J4JMapControl : Panel
         imagePanel.RowDefinitions.Clear();
         imagePanel.ColumnDefinitions.Clear();
 
-        var cellHeightWidth = MapRegion.ProjectionType switch
+        var cellHeightWidth = MapRegion!.ProjectionType switch
         {
             ProjectionType.Static => GridLength.Auto,
-            ProjectionType.Tiled => new GridLength( _projection.TileHeightWidth ),
+            ProjectionType.Tiled => new GridLength( _projection!.TileHeightWidth ),
             _ => throw new InvalidEnumArgumentException(
                 $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
         };
@@ -339,38 +192,37 @@ public sealed partial class J4JMapControl : Panel
             imagePanel.RowDefinitions.Add( new RowDefinition() { Height = cellHeightWidth } );
         }
 
-        var offset = MapRegion.ViewpointOffset;
+        SetImagePanelTransforms( update, imagePanel );
 
-        // define the transform to move and rotate the grid
-        var transforms = new TransformGroup();
-        
-        transforms.Children.Add(new TranslateTransform() { X = offset.X, Y = offset.Y });
+        _projection!.LoadRegionAsync( MapRegion );
+    }
 
-        transforms.Children.Add( new RotateTransform()
+    private void LoadMapImages()
+    {
+        var imagePanel = (Grid?)Children.FirstOrDefault(x => x is Grid);
+        if (imagePanel == null)
         {
-            Angle = MapRegion.Rotation, CenterX = Width / 2, CenterY = Height / 2
-        } );
+            _logger.Error("Could not find image panel");
+            return;
+        }
 
-        imagePanel.RenderTransform = transforms;
-
-        // add the individual images to the grid
-        foreach( var mapTile in MapRegion )
+        foreach (var mapTile in MapRegion!)
         {
-            if( !mapTile.InProjection )
+            if (!mapTile.InProjection)
                 continue;
 
-            var memStream = new MemoryStream( mapTile.ImageData! );
+            var memStream = new MemoryStream(mapTile.ImageData!);
 
             var bitmapImage = new BitmapImage();
-            bitmapImage.SetSource( memStream.AsRandomAccessStream() );
+            bitmapImage.SetSource(memStream.AsRandomAccessStream());
 
             var image = new Image { Source = bitmapImage, Height = mapTile.Height, Width = mapTile.Width, };
 
-            imagePanel.Children.Add( image );
+            imagePanel.Children.Add(image);
 
             // assign the image to the correct grid cell
-            Grid.SetColumn( image, mapTile.Column );
-            Grid.SetRow( image, mapTile.Row );
+            Grid.SetColumn(image, mapTile.Column);
+            Grid.SetRow(image, mapTile.Row);
         }
     }
 
@@ -379,51 +231,26 @@ public sealed partial class J4JMapControl : Panel
         if( MapRegion == null || _projection == null )
             return Size.Empty;
 
-        //if( _suppressLayout )
-        //{
-        //    _suppressLayout = false;
-        //    return availableSize;
-        //}
-
-        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
-        {
-            _logger.Error("Could not parse Center ({0})", Center);
-            return Size.Empty;
-        }
-
         var height = Height < availableSize.Height ? Height : availableSize.Height;
         var width = Width < availableSize.Width ? Width : availableSize.Width;
 
-        MapRegion
-           .Center( latitude, longitude )
-           .Scale( (int) MapScale )
-           .Heading( (float) Heading )
-           .Size( (float) height, (float) width )
-           .Build();
-
-        if( MapRegion.ChangedOnBuild )
-            _throttleFragmentsUpdate.Throttle(
-                UpdateEventInterval < 0 ? DefaultUpdateEventInterval : UpdateEventInterval,
-                _ =>
-                {
-                    _projection.LoadRegionAsync( MapRegion );
-                } );
+        MapRegion.Size( (float) height, (float) width );
 
         return new Size( width, height );
     }
 
     protected override Size ArrangeOverride( Size finalSize )
     {
-        if( MapRegion == null || _suppressLayout )
+        if (MapRegion == null)
             return finalSize;
 
         // don't forget to let each child control (e.g., the image panel)
         // participate!
-        var rect = new Rect( new Point(), finalSize );
+        var rect = new Rect(new Point(), finalSize);
 
         foreach (var child in Children)
         {
-            child.Arrange( rect );
+            child.Arrange(rect);
         }
 
         return finalSize;
