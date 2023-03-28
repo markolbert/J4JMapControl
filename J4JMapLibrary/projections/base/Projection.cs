@@ -150,25 +150,13 @@ public abstract class Projection<TAuth> : IProjection
 
     #endregion
 
-    #region Cartesian X,Y
-
-    public MinMax<int> GetXRange( int scale )
+    public MinMax<float> GetXYRange( int scale )
     {
         scale = ScaleRange.ConformValueToRange( scale, "Scale" );
 
         var pow2 = InternalExtensions.Pow( 2, scale );
-        return new MinMax<int>( 0, TileHeightWidth * pow2 - 1 );
+        return new MinMax<float>( 0, TileHeightWidth * pow2 - 1 );
     }
-
-    public MinMax<int> GetYRange( int scale )
-    {
-        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
-
-        var pow2 = InternalExtensions.Pow( 2, scale );
-        return new MinMax<int>( 0, TileHeightWidth * pow2 - 1 );
-    }
-
-    #endregion
 
     public MinMax<int> GetTileRange(int scale)
     {
@@ -266,14 +254,16 @@ public abstract class Projection<TAuth> : IProjection
 
     public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
     {
-        if (!Initialized)
+        if( !Initialized )
         {
-            Logger.Error("Projection not initialized");
+            Logger.Error( "Projection not initialized" );
             return false;
         }
 
-        var retVal = await LoadRegionInternalAsync( region, ctx );
-        LoadComplete?.Invoke(this, retVal  );
+        // only reload if we have to
+        var retVal = region.RegionChange != MapRegionChange.LoadRequired || await LoadRegionInternalAsync( region, ctx );
+
+        LoadComplete?.Invoke( this, retVal );
 
         return retVal;
     }

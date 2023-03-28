@@ -41,9 +41,7 @@ public interface IProjection : IEquatable<IProjection>
     float MinLongitude { get; }
     MinMax<float> LongitudeRange { get; }
 
-    MinMax<int> GetXRange( int scale );
-    MinMax<int> GetYRange( int scale );
-
+    MinMax<float> GetXYRange( int scale );
     MinMax<int> GetTileRange( int scale );
     int GetNumTiles( int scale );
 
