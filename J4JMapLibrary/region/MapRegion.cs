@@ -17,7 +17,6 @@
 
 using System.Collections;
 using System.ComponentModel;
-using System.Data;
 using System.Numerics;
 using J4JSoftware.VisualUtilities;
 using Serilog;
@@ -26,13 +25,20 @@ namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
 public class MapRegion : IEnumerable<MapTile>
 {
+    public event EventHandler? ConfigurationChanged;
+    public event EventHandler<BuildUpdatedArgument>? BuildUpdated;
+
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
 
     private float _latitude;
     private float _longitude;
+    private float _xOffset;
+    private float _yOffset;
     private float _requestedHeight;
     private float _requestedWidth;
     private int _scale;
+    private int _oldScale;
+    private float _oldRotation = 360;
     private float _heading;
 
 #pragma warning disable CS8618
@@ -58,19 +64,57 @@ public class MapRegion : IEnumerable<MapTile>
     public IProjection Projection { get; }
     public ProjectionType ProjectionType { get; }
 
+    public bool Changed { get; private set; }
+
+    private void SetField( ref int field, int newValue )
+    {
+        if( newValue == field )
+            return;
+
+        field = newValue;
+        Changed = true;
+        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
+    }
+
+    private void SetField(ref float field, float newValue)
+    {
+        if (Math.Abs( newValue - field ) < MapConstants.FloatTolerance)
+            return;
+
+        field = newValue;
+        Changed = true;
+        ConfigurationChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public float CenterLatitude
     {
         get => _latitude;
-        internal set => _latitude = Projection.LatitudeRange.ConformValueToRange( value, "MapRegion Latitude" );
+
+        internal set =>
+            SetField( ref _latitude, Projection.LatitudeRange.ConformValueToRange( value, "MapRegion Latitude" ) );
     }
 
     public float CenterLongitude
     {
         get => _longitude;
-        internal set => _longitude = Projection.LongitudeRange.ConformValueToRange( value, "MapRegion Longitude" );
+
+        internal set =>
+            SetField( ref _longitude, Projection.LongitudeRange.ConformValueToRange( value, "MapRegion Longitude" ) );
     }
 
-    public Vector3 Center { get; private set; }
+    public float CenterXOffset
+    {
+        get => _xOffset;
+        internal set => SetField( ref _xOffset, value );
+    }
+
+    public float CenterYOffset
+    {
+        get => _yOffset;
+        internal set => SetField(ref _yOffset, value);
+    }
+
+    public MapPoint Center { get; private set; }
 
     // The ViewpointOffset is the vector that describes how the origin
     // of the display elements -- which defaults to 0,0 -- needs to be
@@ -85,26 +129,32 @@ public class MapRegion : IEnumerable<MapTile>
     public float RequestedHeight
     {
         get => _requestedHeight;
-        internal set => _requestedHeight = _heightWidthRange.ConformValueToRange( value, "MapRegion Requested Height" );
+
+        internal set =>
+            SetField( ref _requestedHeight,
+                      _heightWidthRange.ConformValueToRange( value, "MapRegion Requested Height" ) );
     }
 
     public float RequestedWidth
     {
         get => _requestedWidth;
-        internal set => _requestedWidth = _heightWidthRange.ConformValueToRange(value, "MapRegion Requested Width");
+
+        internal set =>
+            SetField( ref _requestedWidth,
+                      _heightWidthRange.ConformValueToRange( value, "MapRegion Requested Width" ) );
     }
 
     public int Scale
     {
         get => _scale;
-        internal set => _scale = Projection.ScaleRange.ConformValueToRange(value, "MapRegion Scale");
+        internal set => SetField( ref _scale, Projection.ScaleRange.ConformValueToRange( value, "MapRegion Scale" ) );
     }
 
     // in degrees; north is 0/360; stored as mod 360
     public float Heading
     {
         get => _heading;
-        internal set => _heading = value % 360;
+        internal set => SetField( ref _heading, value % 360 );
     }
 
     public float Rotation => 360 - Heading;
@@ -145,50 +195,79 @@ public class MapRegion : IEnumerable<MapTile>
     }
 
     public bool IsDefined { get; private set; }
-    public bool ChangedOnBuild { get; private set; }
+    public MapRegionChange RegionChange { get; private set; }
 
     public MapRegion Build()
     {
-        ChangedOnBuild = false;
+        RegionChange = MapRegionChange.NoChange;
         IsDefined = false;
 
-        MaximumTiles = Projection.GetNumTiles(Scale);
+        MaximumTiles = Projection.GetNumTiles( Scale );
 
         var oldBoundingBox = BoundingBox.Copy();
         var oldUpperLeft = UpperLeft;
         var oldWide = TilesWide;
         var oldHigh = TilesHigh;
+        var oldOffset = ViewpointOffset;
 
-        var centerPoint = new StaticPoint( Projection ) { Scale = Scale };
-        centerPoint.SetLatLong( CenterLatitude, CenterLongitude );
+        Center = new MapPoint( this );
+        Center.SetLatLong( CenterLatitude, CenterLongitude );
 
-        Center = new Vector3( centerPoint.X, centerPoint.Y, 0 );
+        // apply the x/y offsets, if any, and adjust properties accordingly
+        if( CenterXOffset != 0 || CenterYOffset != 0 )
+        {
+            var xOffset = CenterXOffset == 0 ? (float?) null : CenterXOffset;
+            var yOffset = CenterYOffset == 0 ? (float?) null : CenterYOffset;
+            Center.OffsetCartesian( xOffset, yOffset );
+
+            CenterLatitude = Center.Latitude;
+            CenterLongitude = Center.Longitude;
+
+            CenterXOffset = 0;
+            CenterYOffset = 0;
+        }
 
         if( RequestedHeight <= 0 || RequestedWidth <= 0 )
             UpdateEmpty();
         else
         {
-            var box = new Rectangle2D(RequestedHeight,
-                                      RequestedWidth,
-                                      Rotation,
-                                      new Vector3(centerPoint.X, centerPoint.Y, 0));
+            var box = new Rectangle2D( RequestedHeight,
+                                       RequestedWidth,
+                                       Rotation,
+                                       new Vector3( Center.X, Center.Y, 0 ) );
 
             BoundingBox = box.BoundingBox;
 
-            if (Projection is ITiledProjection)
+            if( Projection is ITiledProjection )
                 UpdateTiledDimensions();
             else UpdateStaticDimensions();
 
             IsDefined = true;
         }
 
-        ChangedOnBuild = ProjectionType switch
+        RegionChange = ProjectionType switch
         {
-            ProjectionType.Static => !BoundingBox.Equals( oldBoundingBox ),
-            ProjectionType.Tiled => UpperLeft != oldUpperLeft || TilesWide != oldWide || TilesHigh != oldHigh,
+            ProjectionType.Static => BoundingBox.Equals( oldBoundingBox )
+                ? MapRegionChange.OffsetChanged
+                : MapRegionChange.LoadRequired,
+
+            ProjectionType.Tiled => UpperLeft == oldUpperLeft
+             && Scale == _oldScale
+             && TilesWide == oldWide
+             && TilesHigh == oldHigh
+                    ? MapRegionChange.OffsetChanged
+                    : MapRegionChange.LoadRequired,
+
             _ => throw new InvalidEnumArgumentException(
                 $"Unsupported {typeof( ProjectionType )} value '{ProjectionType}'" )
         };
+
+        Changed = false;
+        _oldScale = Scale;
+        _oldRotation = Rotation;
+
+        var eventArg = new BuildUpdatedArgument( RegionChange, ViewpointOffset - oldOffset, Rotation - _oldRotation );
+        BuildUpdated?.Invoke( this, eventArg );
 
         return this;
     }
@@ -214,13 +293,10 @@ public class MapRegion : IEnumerable<MapTile>
 
         var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
 
-        var tiledPoint = new TiledPoint( (ITiledProjection) Projection ) { Scale = Scale };
-        tiledPoint.SetLatLong( CenterLatitude, CenterLongitude );
-
         // this may need to look for the first tile above and to the left
         // of the tile containing the center point
-        var xOffset = tiledPoint.X - RequestedWidth / 2 - UpperLeft.X * tileHeightWidth;
-        var yOffset = tiledPoint.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
+        var xOffset = Center.X - RequestedWidth / 2 - UpperLeft.X * tileHeightWidth;
+        var yOffset = Center.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
 
         ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
 

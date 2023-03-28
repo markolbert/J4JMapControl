@@ -1,5 +1,4 @@
-﻿using J4JSoftware.J4JMapLibrary.MapRegion;
-using System.Text;
+﻿using Math = System.Math;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -11,13 +10,13 @@ public static class MapRegionFluentExtensions
         return region;
     }
 
-    public static MapRegion.MapRegion CenterLongitude(this MapRegion.MapRegion region, float value)
+    public static MapRegion.MapRegion CenterLongitude( this MapRegion.MapRegion region, float value )
     {
         region.CenterLongitude = value;
         return region;
     }
 
-    public static MapRegion.MapRegion Center(this MapRegion.MapRegion region, float latitude, float longitude)
+    public static MapRegion.MapRegion Center( this MapRegion.MapRegion region, float latitude, float longitude )
     {
         region.CenterLatitude = latitude;
         region.CenterLongitude = longitude;
@@ -25,23 +24,33 @@ public static class MapRegionFluentExtensions
         return region;
     }
 
-    public static MapRegion.MapRegion Scale(this MapRegion.MapRegion region, int value)
+    public static MapRegion.MapRegion Offset( this MapRegion.MapRegion region, float xOffset, float yOffset )
     {
-        region.Scale= value;
+        region.CenterXOffset = xOffset;
+        region.CenterYOffset = yOffset;
+
         return region;
     }
-    public static MapRegion.MapRegion RequestedHeight(this MapRegion.MapRegion region, float value)
+
+    public static MapRegion.MapRegion Scale( this MapRegion.MapRegion region, int value )
+    {
+        region.Scale = value;
+        return region;
+    }
+
+    public static MapRegion.MapRegion RequestedHeight( this MapRegion.MapRegion region, float value )
     {
         region.RequestedHeight = value;
         return region;
     }
-    public static MapRegion.MapRegion RequestedWidth(this MapRegion.MapRegion region, float value)
+
+    public static MapRegion.MapRegion RequestedWidth( this MapRegion.MapRegion region, float value )
     {
         region.RequestedWidth = value;
         return region;
     }
 
-    public static MapRegion.MapRegion Size(this MapRegion.MapRegion region, float height, float width)
+    public static MapRegion.MapRegion Size( this MapRegion.MapRegion region, float height, float width )
     {
         region.RequestedHeight = height;
         region.RequestedWidth = width;
@@ -49,7 +58,7 @@ public static class MapRegionFluentExtensions
         return region;
     }
 
-    public static MapRegion.MapRegion Heading(this MapRegion.MapRegion region, float value)
+    public static MapRegion.MapRegion Heading( this MapRegion.MapRegion region, float value )
     {
         region.Heading = value;
         return region;
