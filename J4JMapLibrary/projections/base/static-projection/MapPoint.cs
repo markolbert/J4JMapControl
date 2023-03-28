@@ -1,54 +1,61 @@
 ﻿namespace J4JSoftware.J4JMapLibrary;
 
-public class StaticPoint
+public class MapPoint
 {
     public EventHandler? Changed;
 
     private bool _suppressUpdate;
-    private int _scale;
 
-    public StaticPoint(
-        IProjection projection
+    public MapPoint(
+        MapRegion.MapRegion region
     )
     {
-        Projection = projection;
+        Region = region;
     }
 
-    public IProjection Projection { get; }
-
-    public int Scale
+    public MapPoint Copy()
     {
-        get => _scale;
+        var retVal = (MapPoint) MemberwiseClone();
+        retVal.Changed = null;
+        retVal.Region = Region;
 
-        set
-        {
-            _scale = Projection.ScaleRange.ConformValueToRange( value, $"{GetType().Name} Scale" );
-
-            UpdateCartesian();
-        }
+        return retVal;
     }
 
-    public int X { get; private set; }
-    public int Y { get; private set; }
+    public MapRegion.MapRegion Region { get; private set; }
 
-    public void SetCartesian( int? x, int? y )
+    public float X { get; private set; }
+    public float Y { get; private set; }
+
+    public void SetCartesian( float? x, float? y )
     {
         if( x == null && y == null )
             return;
 
         if( x.HasValue )
         {
-            var xRange = Projection.GetXRange( Scale );
+            var xRange = Region.Projection.GetXYRange( Region.Scale );
             X = xRange.ConformValueToRange( x.Value, $"{GetType().Name} X" );
         }
 
         if( y.HasValue )
         {
-            var yRange = Projection.GetYRange( Scale );
-            Y = yRange.ConformValueToRange( y.Value, $"{GetType().Name} X" );
+            var yRange = Region.Projection.GetXYRange( Region.Scale );
+            Y = yRange.ConformValueToRange( y.Value, $"{GetType().Name} Y" );
         }
 
         UpdateLatLong();
+    }
+
+    public void OffsetCartesian( float? xOffset, float? yOffset )
+    {
+        if( xOffset == null && yOffset == null )
+            return;
+
+        var x = X + xOffset;
+        var y = Y + yOffset;
+
+        SetCartesian( x, y );
     }
 
     private void UpdateLatLong()
@@ -58,7 +65,7 @@ public class StaticPoint
 
         _suppressUpdate = true;
 
-        var heightWidth = (double) Projection.GetHeightWidth( Scale );
+        var heightWidth = (double) Region.Projection.GetHeightWidth( Region.Scale );
 
         var scaledX = X / heightWidth - 0.5;
         var scaledY = 0.5 - Y / heightWidth;
@@ -80,10 +87,10 @@ public class StaticPoint
             return;
 
         if( latitude.HasValue )
-            Latitude = Projection.LatitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
+            Latitude = Region.Projection.LatitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
 
         if( longitude.HasValue )
-            Longitude = Projection.LongitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
+            Longitude = Region.Projection.LongitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
 
         UpdateCartesian();
     }
@@ -95,7 +102,7 @@ public class StaticPoint
 
         _suppressUpdate = true;
 
-        var heightWidth = Projection.GetHeightWidth(Scale);
+        var heightWidth = Region.Projection.GetHeightWidth(Region.Scale);
 
         // x == 0 is the left hand edge of the projection (the x/y origin is in
         // the upper left corner)
