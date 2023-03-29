@@ -4,10 +4,7 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-
 		<IsPackable>false</IsPackable>
-
 		<UserSecretsId>f93194a2-bba3-4134-bca7-38510ddd4315</UserSecretsId>
 	</PropertyGroup>
 

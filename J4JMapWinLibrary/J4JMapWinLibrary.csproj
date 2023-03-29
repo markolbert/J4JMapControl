@@ -5,7 +5,6 @@
 		<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
 		<UseWinUI>true</UseWinUI>
 		<Nullable>enable</Nullable>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<AssemblyName>J4JSoftware.J4JMapWinLibrary</AssemblyName>
 		<RootNamespace>J4JSoftware.J4JMapWinLibrary</RootNamespace>
 		<Authors>Mark A. Olbert</Authors>

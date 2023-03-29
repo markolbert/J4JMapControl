@@ -10,7 +10,6 @@
 		<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
 		<UseWinUI>true</UseWinUI>
 		<EnableMsixTooling>true</EnableMsixTooling>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<UserSecretsId>f18644a1-7400-40d6-b320-406bbacd1b13</UserSecretsId>
 	</PropertyGroup>
 
