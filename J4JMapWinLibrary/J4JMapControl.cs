@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
@@ -49,6 +48,7 @@ public sealed partial class J4JMapControl : Panel
         throw new NullReferenceException("Could not retrieve instance of IJ4JHost");
     }
 
+    private readonly Grid _imageGrid = new();
     private readonly ProjectionFactory _projFactory;
     private readonly ILogger _logger;
     private readonly DispatcherQueue _dispatcherQueue;
@@ -73,6 +73,8 @@ public sealed partial class J4JMapControl : Panel
          ?? throw new NullReferenceException( "Could not create ProjectionFactory" );
 
         _projFactory.ScanAssemblies();
+
+        Children.Add( _imageGrid );
 
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
@@ -135,15 +137,8 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue(UpdateEventIntervalProperty, value);
     }
 
-    private void SetImagePanelTransforms( BuildUpdatedArgument update, Grid? imagePanel = null )
+    private void SetImagePanelTransforms( BuildUpdatedArgument update )
     {
-        imagePanel ??= (Grid?)Children.FirstOrDefault(x => x is Grid);
-        if( imagePanel == null )
-        {
-            _logger.Error("Could not find image panel");
-            return;
-        }
-
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
@@ -156,23 +151,16 @@ public sealed partial class J4JMapControl : Panel
             CenterY = Height / 2
         });
 
-        imagePanel.RenderTransform = transforms;
+        _imageGrid.RenderTransform = transforms;
     }
 
     private void OnMapRegionLoaded( BuildUpdatedArgument update )
     {
-        // find or create the grid that contains the map images
-        var imagePanel = (Grid?) Children.FirstOrDefault( x => x is Grid );
-        if( imagePanel == null )
-        {
-            imagePanel = new Grid();
-            Children.Add( imagePanel );
-        }
-        else imagePanel.Children.Clear();
+        _imageGrid.Children.Clear();
 
         // define the required rows and columns
-        imagePanel.RowDefinitions.Clear();
-        imagePanel.ColumnDefinitions.Clear();
+        _imageGrid.RowDefinitions.Clear();
+        _imageGrid.ColumnDefinitions.Clear();
 
         var cellHeightWidth = MapRegion!.ProjectionType switch
         {
@@ -184,28 +172,21 @@ public sealed partial class J4JMapControl : Panel
 
         for (var col = 0; col <MapRegion.TilesHigh; col++)
         {
-            imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = cellHeightWidth } );
+            _imageGrid.ColumnDefinitions.Add( new ColumnDefinition() { Width = cellHeightWidth } );
         }
 
         for (var row = 0; row < MapRegion.TilesWide; row++)
         {
-            imagePanel.RowDefinitions.Add( new RowDefinition() { Height = cellHeightWidth } );
+            _imageGrid.RowDefinitions.Add( new RowDefinition() { Height = cellHeightWidth } );
         }
 
-        SetImagePanelTransforms( update, imagePanel );
+        SetImagePanelTransforms( update );
 
         _projection!.LoadRegionAsync( MapRegion );
     }
 
     private void LoadMapImages()
     {
-        var imagePanel = (Grid?)Children.FirstOrDefault(x => x is Grid);
-        if (imagePanel == null)
-        {
-            _logger.Error("Could not find image panel");
-            return;
-        }
-
         foreach (var mapTile in MapRegion!)
         {
             if (!mapTile.InProjection)
@@ -218,12 +199,14 @@ public sealed partial class J4JMapControl : Panel
 
             var image = new Image { Source = bitmapImage, Height = mapTile.Height, Width = mapTile.Width, };
 
-            imagePanel.Children.Add(image);
+            _imageGrid.Children.Add(image);
 
             // assign the image to the correct grid cell
             Grid.SetColumn(image, mapTile.Column);
             Grid.SetRow(image, mapTile.Row);
         }
+
+        _imageGrid.InvalidateMeasure();
     }
 
     protected override Size MeasureOverride( Size availableSize )
@@ -243,6 +226,35 @@ public sealed partial class J4JMapControl : Panel
     {
         if (MapRegion == null)
             return finalSize;
+
+        if( MapRegion.TilesHigh <= 0 || MapRegion.TilesWide <= 0 )
+        {
+            _logger.Debug( "MapRegion is empty" );
+            _logger.Debug( "ImageGrid has {0} children", _imageGrid.Children.Count );
+        }
+        else
+        {
+            _logger.Debug( "MapRegion tile dimensions are {0} x {1}", MapRegion.TilesWide, MapRegion.TilesHigh );
+            _logger.Debug("ImageGrid has {0} children", _imageGrid.Children.Count);
+
+            foreach( var childControl in _imageGrid.Children.Cast<FrameworkElement>() )
+            {
+                var column = Grid.GetColumn( childControl );
+                var row = Grid.GetRow( childControl );
+
+                _logger.Debug( "Child grid control ({0}, {1}) is a {2}",
+                               column,
+                               row,
+                               childControl.GetType() );
+
+                if( childControl is Image { Source: BitmapImage bitmapImage } imageControl )
+                    _logger.Debug( "Child grid control ({0}, {1}) is a {2} x {3} BitmapImage-based Image control",
+                                   column,
+                                   row,
+                                   bitmapImage.PixelWidth,
+                                   bitmapImage.PixelHeight );
+            }
+        }
 
         // don't forget to let each child control (e.g., the image panel)
         // participate!
