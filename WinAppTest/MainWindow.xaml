@@ -29,8 +29,8 @@
         <map:J4JMapControl x:Name="mapControl" 
                            Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"
                            MapProjection="BingMaps"
-                           MapScale="0"
-                           Heading="0"
+                           MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
+                           Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
                            Center="37.5072N,122.2605W"/>
 
         <!--<map:J4JMapControl x:Name="mapControl" 
@@ -52,7 +52,7 @@
                    SpinButtonPlacementMode="Inline"
                    SmallChange="1"
                    LargeChange="5"
-                   Value="0"/>
+                   Value="16"/>
 
         <TextBlock Grid.Column="0" Grid.Row="2"
                    Margin="0,0,5,0"
