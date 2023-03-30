@@ -2,6 +2,7 @@
 
 public enum MapRegionChange
 {
+    Empty,
     NoChange,
     OffsetChanged,
     LoadRequired

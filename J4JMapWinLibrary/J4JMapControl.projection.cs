@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -40,12 +41,25 @@ public sealed partial class J4JMapControl
         }
 
         _projection = projResult.Projection!;
-        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
+        _projection.LoadComplete += (_, _) => _dispatcherQueue.TryEnqueue(LoadMapImages);
 
-        if( !ConverterExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            _logger.Error( "Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center );
+        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
+            _logger.Error("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
 
-        MapRegion = new MapRegion( _projection, _logger );
+        if (MapRegion != null)
+        {
+            MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
+            MapRegion.BuildUpdated -= MapRegionBuildUpdated;
+        }
+
+        MapRegion = new MapRegion( _projection, _logger )
+                   .Center( latitude, longitude )
+                   .Scale( (int) MapScale )
+                   .Heading( (float) Heading )
+                   .Size( (float) Height, (float) Width );
+
+        _movementProcessor = new MovementProcessor( MapRegion, _logger );
+
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
 
@@ -55,27 +69,30 @@ public sealed partial class J4JMapControl
         MapRegion.Build();
     }
 
-    private void MapRegionBuildUpdated( object? sender, BuildUpdatedArgument e )
+    private void MapRegionBuildUpdated(object? sender, RegionBuildResults e)
     {
-        switch( e.Change )
+        switch (e.Change)
         {
+            case MapRegionChange.Empty:
             case MapRegionChange.NoChange:
                 break;
 
             case MapRegionChange.OffsetChanged:
                 SetImagePanelTransforms(e);
-                InvalidateArrange();
+                break;
+
+            case MapRegionChange.LoadRequired:
+                _projection!.LoadRegionAsync(MapRegion!);
+                SetImagePanelTransforms(e);
                 break;
 
             default:
-                OnMapRegionLoaded(e);
-                InvalidateMeasure();
-                break;
+                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{e.Change}'" );
         }
     }
 
-    private void MapRegionConfigurationChanged( object? sender, EventArgs e )
+    private void MapRegionConfigurationChanged(object? sender, EventArgs e)
     {
-        _throttleRegionChanges.Throttle( UpdateEventInterval, _ => MapRegion!.Build() );
+        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Build());
     }
 }

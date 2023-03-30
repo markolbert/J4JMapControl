@@ -35,7 +35,7 @@ public sealed partial class J4JMapControl
 
     private static void OnMapProjectionChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
-        if( d is not J4JMapControl mapControl )
+        if (d is not J4JMapControl mapControl)
             return;
 
         mapControl.UpdateProjection();
@@ -56,28 +56,28 @@ public sealed partial class J4JMapControl
 
     private static void OnCenterChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
-        if( d is not J4JMapControl mapControl )
+        if (d is not J4JMapControl mapControl)
             return;
 
-        if( e.NewValue is not string centerText )
+        if (e.NewValue is not string centerText)
             return;
 
-        if( !ConverterExtensions.TryParseToLatLong( centerText, out var latitude, out var longitude ) )
-            mapControl._logger.Error( "Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
-                                      centerText );
+        if (!ConverterExtensions.TryParseToLatLong(centerText, out var latitude, out var longitude))
+            mapControl._logger.Error("Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
+                                      centerText);
 
-        mapControl.MapRegion!.Center(latitude, longitude );
-   }
+        mapControl.MapRegion!.Center(latitude, longitude);
+    }
 
     private static void OnMapScaleChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if (d is not J4JMapControl mapControl)
             return;
 
-        if (e.NewValue is not double mapScale )
+        if (e.NewValue is not double mapScale)
             return;
 
-        mapControl.MapRegion!.Scale( (int) mapScale );
+        mapControl.MapRegion!.Scale((int)mapScale);
     }
 
     private static void OnHeadingChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
@@ -88,6 +88,6 @@ public sealed partial class J4JMapControl
         if (e.NewValue is not double heading)
             return;
 
-        mapControl.MapRegion!.Heading( (float) heading );
+        mapControl.MapRegion!.Heading((float)heading);
     }
 }
