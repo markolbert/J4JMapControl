@@ -32,9 +32,10 @@ internal class DeusEx : J4JDeusExWinApp
         var logFile = Path.Combine(hostConfig.ApplicationConfigurationFolder, "log.txt");
 
         return new LoggerConfiguration()
-            .WriteTo.Debug()
-            .WriteTo.File(logFile, rollingInterval: RollingInterval.Minute)
-            .CreateLogger();
+              .MinimumLevel.Verbose()
+              .WriteTo.Debug()
+              .WriteTo.File( logFile, rollingInterval: RollingInterval.Minute )
+              .CreateLogger();
     }
 
     private void SetupDependencyInjection(HostBuilderContext hbc, ContainerBuilder builder)
