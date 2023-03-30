@@ -5,7 +5,6 @@
 		<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
 		<UseWinUI>true</UseWinUI>
 		<Nullable>enable</Nullable>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<AssemblyName>J4JSoftware.J4JMapWinLibrary</AssemblyName>
 		<RootNamespace>J4JSoftware.J4JMapWinLibrary</RootNamespace>
 		<Authors>Mark A. Olbert</Authors>
@@ -30,8 +29,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230217.4" />
-		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" />
+		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Primitives" Version="7.1.2" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230313.1" />
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
 	</ItemGroup>
 
 	<ItemGroup>

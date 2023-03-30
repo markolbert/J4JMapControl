@@ -4,7 +4,6 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<AssemblyName>J4JSoftware.J4JMapLibrary</AssemblyName>
 		<RootNamespace>J4JSoftware.J4JMapLibrary</RootNamespace>
 		<Authors>Mark A. Olbert</Authors>
