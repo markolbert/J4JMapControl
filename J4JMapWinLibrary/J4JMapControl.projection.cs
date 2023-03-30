@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -57,6 +58,8 @@ public sealed partial class J4JMapControl
                    .Heading( (float) Heading )
                    .Size( (float) Height, (float) Width );
 
+        _movementProcessor = new MovementProcessor( MapRegion, _logger );
+
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
 
@@ -78,10 +81,13 @@ public sealed partial class J4JMapControl
                 SetImagePanelTransforms(e);
                 break;
 
-            default:
+            case MapRegionChange.LoadRequired:
                 _projection!.LoadRegionAsync(MapRegion!);
                 SetImagePanelTransforms(e);
                 break;
+
+            default:
+                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{e.Change}'" );
         }
     }
 

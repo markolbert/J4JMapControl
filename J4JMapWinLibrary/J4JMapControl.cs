@@ -59,11 +59,11 @@ public sealed partial class J4JMapControl : Control
     private readonly ThrottleDispatcher _throttleMoves = new();
 
     private IProjection? _projection;
+    private MovementProcessor? _movementProcessor;
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
     private bool _cacheIsValid;
     private Grid? _mapGrid;
-    private PointerPoint? _lastDragPoint;
 
     public J4JMapControl()
     {
@@ -79,12 +79,9 @@ public sealed partial class J4JMapControl : Control
 
         _projFactory.ScanAssemblies();
 
-        //PointerPressed += OnPointerPressed;
-        //PointerMoved += OnPointerMoved;
-        //PointerReleased += OnPointerReleased;
-
-        //var tileSource = new CollectionViewSource { Source = _tileRows };
-        //ItemsSource = tileSource.View;
+        PointerPressed += OnPointerPressed;
+        PointerMoved += OnPointerMoved;
+        PointerReleased += OnPointerReleased;
 
         this.SizeChanged += OnSizeChanged;
     }
