@@ -165,6 +165,22 @@ public class MapRegion : IEnumerable<MapTile>
     public int TilesWide { get; private set; }
     public int TilesHigh { get; private set; }
 
+    public float TileWidth =>
+        ProjectionType switch
+        {
+            ProjectionType.Static => RequestedWidth,
+            ProjectionType.Tiled => ( (ITiledProjection) Projection ).TileHeightWidth,
+            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( ProjectionType )} '{ProjectionType}'" )
+        };
+
+    public float TileHeight =>
+        ProjectionType switch
+        {
+            ProjectionType.Static => RequestedHeight,
+            ProjectionType.Tiled => ((ITiledProjection)Projection).TileHeightWidth,
+            _ => throw new InvalidEnumArgumentException($"Unsupported {typeof(ProjectionType)} '{ProjectionType}'")
+        };
+
     public MapTile[,] MapTiles { get; private set; } = new MapTile[0, 0];
 
     public MapTile? this[ int xRelative, int yRelative ]
