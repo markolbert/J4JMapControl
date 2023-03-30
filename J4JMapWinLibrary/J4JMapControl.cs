@@ -11,6 +11,7 @@ using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
+using System.Linq;
 using Windows.Foundation;
 using CommunityToolkit.WinUI.UI.Controls;
 using J4JSoftware.DependencyInjection;
@@ -20,6 +21,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
 using Path = System.IO.Path;
@@ -106,63 +108,13 @@ public sealed partial class J4JMapControl : Control
     private void OnSizeChanged(object sender, SizeChangedEventArgs e) =>
         MapRegion?.Size((float)e.NewSize.Height, (float)e.NewSize.Width);
 
-    //private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
-    //{
-    //    CapturePointer( e.Pointer );
-    //    _lastDragPoint = e.GetCurrentPoint( this );
-    //}
-
-    //private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
-    //{
-    //    if( PointerCaptures?.Any( p => p.PointerId == e.Pointer.PointerId ) ?? false )
-    //        OnMapDragged( e.GetIntermediatePoints( this ) );
-    //}
-
-    //private void OnMapDragged( IList<PointerPoint> points )
-    //{
-    //    // shouldn't be necessary, but...
-    //    if( _lastDragPoint == null || MapRegion == null )
-    //        return;
-
-    //    foreach( var point in points )
-    //    {
-    //        _throttleMoves.Throttle(5,
-    //                                _ =>
-    //                                {
-    //                                    if( _lastDragPoint == null )
-    //                                        return;
-
-    //                                    var xDelta = point.Position.X - _lastDragPoint.Position.X;
-    //                                    var yDelta = point.Position.Y - _lastDragPoint.Position.Y;
-
-    //                                    _lastDragPoint = point;
-
-    //                                    if (Math.Abs(xDelta) == 0 && Math.Abs(yDelta) == 0)
-    //                                        return;
-
-    //                                    _logger.Warning("Pointer moved {0}, {1}", xDelta, yDelta);
-
-    //                                    MapRegion.Offset( (float) xDelta, (float) yDelta );
-    //                                    MapRegion.Build();
-
-    //                                    InvalidateMeasure();
-    //                                });
-    //    }
-    //}
-
-    //private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
-    //{
-    //    ReleasePointerCapture( e.Pointer );
-    //    _lastDragPoint = null;
-    //}
-
     public int UpdateEventInterval
     {
         get => (int)GetValue(UpdateEventIntervalProperty);
         set => SetValue(UpdateEventIntervalProperty, value);
     }
 
-    private void SetImagePanelTransforms(BuildUpdatedArgument update)
+    private void SetImagePanelTransforms(RegionBuildResults update)
     {
         if (_mapGrid == null)
             return;
@@ -175,8 +127,8 @@ public sealed partial class J4JMapControl : Control
         transforms.Children.Add(new RotateTransform()
         {
             Angle = update.Rotation,
-            CenterX = Width / 2,
-            CenterY = Height / 2
+            CenterX = _mapGrid.ActualWidth / 2 + update.Translation.X,
+            CenterY = _mapGrid.ActualHeight / 2 + update.Translation.Y
         });
 
         _mapGrid.RenderTransform = transforms;
@@ -260,8 +212,6 @@ public sealed partial class J4JMapControl : Control
         var height = Height < availableSize.Height ? Height : availableSize.Height;
         var width = Width < availableSize.Width ? Width : availableSize.Width;
 
-        //MapRegion.Size((float)height, (float)width);
-
         return new Size(width, height);
     }
 
@@ -277,21 +227,4 @@ public sealed partial class J4JMapControl : Control
 
         return finalSize;
     }
-
-    //protected override Size ArrangeOverride( Size finalSize )
-    //{
-    //    if (MapRegion == null)
-    //        return finalSize;
-
-    //    // don't forget to let each child control (e.g., the image panel)
-    //    // participate!
-    //    var rect = new Rect(new Point(), finalSize);
-
-    //    foreach (var child in Children)
-    //    {
-    //        child.Arrange(rect);
-    //    }
-
-    //    return finalSize;
-    //}
 }
