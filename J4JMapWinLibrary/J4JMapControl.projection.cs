@@ -58,7 +58,7 @@ public sealed partial class J4JMapControl
                    .Heading( (float) Heading )
                    .Size( (float) Height, (float) Width );
 
-        _movementProcessor = new MovementProcessor( MapRegion, _logger );
+        _movementProcessor = new MovementProcessor( this, _logger );
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
