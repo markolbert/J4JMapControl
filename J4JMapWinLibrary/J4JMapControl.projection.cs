@@ -66,10 +66,11 @@ public sealed partial class J4JMapControl
         MapRegion.Build();
     }
 
-    private void MapRegionBuildUpdated(object? sender, BuildUpdatedArgument e)
+    private void MapRegionBuildUpdated(object? sender, RegionBuildResults e)
     {
         switch (e.Change)
         {
+            case MapRegionChange.Empty:
             case MapRegionChange.NoChange:
                 break;
 
@@ -78,8 +79,8 @@ public sealed partial class J4JMapControl
                 break;
 
             default:
-                SetImagePanelTransforms(e);
                 _projection!.LoadRegionAsync(MapRegion!);
+                SetImagePanelTransforms(e);
                 break;
         }
     }
