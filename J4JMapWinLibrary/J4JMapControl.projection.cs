@@ -40,12 +40,23 @@ public sealed partial class J4JMapControl
         }
 
         _projection = projResult.Projection!;
-        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
+        _projection.LoadComplete += (_, _) => _dispatcherQueue.TryEnqueue(LoadMapImages);
 
-        if( !ConverterExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            _logger.Error( "Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center );
+        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
+            _logger.Error("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
 
-        MapRegion = new MapRegion( _projection, _logger );
+        if (MapRegion != null)
+        {
+            MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
+            MapRegion.BuildUpdated -= MapRegionBuildUpdated;
+        }
+
+        MapRegion = new MapRegion( _projection, _logger )
+                   .Center( latitude, longitude )
+                   .Scale( (int) MapScale )
+                   .Heading( (float) Heading )
+                   .Size( (float) Height, (float) Width );
+
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
 
@@ -55,27 +66,26 @@ public sealed partial class J4JMapControl
         MapRegion.Build();
     }
 
-    private void MapRegionBuildUpdated( object? sender, BuildUpdatedArgument e )
+    private void MapRegionBuildUpdated(object? sender, BuildUpdatedArgument e)
     {
-        switch( e.Change )
+        switch (e.Change)
         {
             case MapRegionChange.NoChange:
                 break;
 
             case MapRegionChange.OffsetChanged:
                 SetImagePanelTransforms(e);
-                InvalidateArrange();
                 break;
 
             default:
-                OnMapRegionLoaded(e);
-                InvalidateMeasure();
+                SetImagePanelTransforms(e);
+                _projection!.LoadRegionAsync(MapRegion!);
                 break;
         }
     }
 
-    private void MapRegionConfigurationChanged( object? sender, EventArgs e )
+    private void MapRegionConfigurationChanged(object? sender, EventArgs e)
     {
-        _throttleRegionChanges.Throttle( UpdateEventInterval, _ => MapRegion!.Build() );
+        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Build());
     }
 }

@@ -3,23 +3,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
-using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
+using Windows.Foundation;
+using CommunityToolkit.WinUI.UI.Controls;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
 using Path = System.IO.Path;
@@ -29,7 +29,7 @@ using Path = System.IO.Path;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-public sealed partial class J4JMapControl : Panel
+public sealed partial class J4JMapControl : Control
 {
     private const int DefaultMemoryCacheSize = 1000000;
     private const int DefaultMemoryCacheEntries = 500;
@@ -60,10 +60,13 @@ public sealed partial class J4JMapControl : Panel
     private ITileCache? _tileMemCache;
     private ITileCache? _tileFileCache;
     private bool _cacheIsValid;
+    private Grid? _mapGrid;
     private PointerPoint? _lastDragPoint;
 
     public J4JMapControl()
     {
+        DefaultStyleKey = typeof(J4JMapControl);
+
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain ILogger instance" );
@@ -74,60 +77,84 @@ public sealed partial class J4JMapControl : Panel
 
         _projFactory.ScanAssemblies();
 
-        PointerPressed += OnPointerPressed;
-        PointerMoved += OnPointerMoved;
-        PointerReleased += OnPointerReleased;
+        //PointerPressed += OnPointerPressed;
+        //PointerMoved += OnPointerMoved;
+        //PointerReleased += OnPointerReleased;
+
+        //var tileSource = new CollectionViewSource { Source = _tileRows };
+        //ItemsSource = tileSource.View;
+
+        this.SizeChanged += OnSizeChanged;
     }
 
-    private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
+    protected override void OnApplyTemplate()
     {
-        CapturePointer( e.Pointer );
-        _lastDragPoint = e.GetCurrentPoint( this );
-    }
+        base.OnApplyTemplate();
 
-    private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
-    {
-        if( PointerCaptures?.Any( p => p.PointerId == e.Pointer.PointerId ) ?? false )
-            OnMapDragged( e.GetIntermediatePoints( this ) );
-    }
-
-    private void OnMapDragged( IList<PointerPoint> points )
-    {
-        // shouldn't be necessary, but...
-        if( _lastDragPoint == null || MapRegion == null )
-            return;
-
-        foreach( var point in points )
+        var dataGrid = GetTemplateChild("MapGrid");
+        if (dataGrid == null)
         {
-            _throttleMoves.Throttle(5,
-                                    _ =>
-                                    {
-                                        if( _lastDragPoint == null )
-                                            return;
-
-                                        var xDelta = point.Position.X - _lastDragPoint.Position.X;
-                                        var yDelta = point.Position.Y - _lastDragPoint.Position.Y;
-
-                                        _lastDragPoint = point;
-
-                                        if (Math.Abs(xDelta) == 0 && Math.Abs(yDelta) == 0)
-                                            return;
-
-                                        _logger.Warning("Pointer moved {0}, {1}", xDelta, yDelta);
-
-                                        MapRegion.Offset( (float) xDelta, (float) yDelta );
-                                        MapRegion.Build();
-                                        
-                                        InvalidateMeasure();
-                                    });
+            _logger.Error("Couldn't find MapGrid");
+            return;
         }
+
+        if (dataGrid is not Grid mapGrid)
+            _logger.Error("MapGrid is not a Grid");
+        else _mapGrid = mapGrid;
     }
 
-    private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
-    {
-        ReleasePointerCapture( e.Pointer );
-        _lastDragPoint = null;
-    }
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e) =>
+        MapRegion?.Size((float)e.NewSize.Height, (float)e.NewSize.Width);
+
+    //private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
+    //{
+    //    CapturePointer( e.Pointer );
+    //    _lastDragPoint = e.GetCurrentPoint( this );
+    //}
+
+    //private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
+    //{
+    //    if( PointerCaptures?.Any( p => p.PointerId == e.Pointer.PointerId ) ?? false )
+    //        OnMapDragged( e.GetIntermediatePoints( this ) );
+    //}
+
+    //private void OnMapDragged( IList<PointerPoint> points )
+    //{
+    //    // shouldn't be necessary, but...
+    //    if( _lastDragPoint == null || MapRegion == null )
+    //        return;
+
+    //    foreach( var point in points )
+    //    {
+    //        _throttleMoves.Throttle(5,
+    //                                _ =>
+    //                                {
+    //                                    if( _lastDragPoint == null )
+    //                                        return;
+
+    //                                    var xDelta = point.Position.X - _lastDragPoint.Position.X;
+    //                                    var yDelta = point.Position.Y - _lastDragPoint.Position.Y;
+
+    //                                    _lastDragPoint = point;
+
+    //                                    if (Math.Abs(xDelta) == 0 && Math.Abs(yDelta) == 0)
+    //                                        return;
+
+    //                                    _logger.Warning("Pointer moved {0}, {1}", xDelta, yDelta);
+
+    //                                    MapRegion.Offset( (float) xDelta, (float) yDelta );
+    //                                    MapRegion.Build();
+
+    //                                    InvalidateMeasure();
+    //                                });
+    //    }
+    //}
+
+    //private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
+    //{
+    //    ReleasePointerCapture( e.Pointer );
+    //    _lastDragPoint = null;
+    //}
 
     public int UpdateEventInterval
     {
@@ -135,19 +162,15 @@ public sealed partial class J4JMapControl : Panel
         set => SetValue(UpdateEventIntervalProperty, value);
     }
 
-    private void SetImagePanelTransforms( BuildUpdatedArgument update, Grid? imagePanel = null )
+    private void SetImagePanelTransforms(BuildUpdatedArgument update)
     {
-        imagePanel ??= (Grid?)Children.FirstOrDefault(x => x is Grid);
-        if( imagePanel == null )
-        {
-            _logger.Error("Could not find image panel");
+        if (_mapGrid == null)
             return;
-        }
 
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        transforms.Children.Add( new TranslateTransform() { X = update.Translation.X, Y = update.Translation.Y } );
+        transforms.Children.Add(new TranslateTransform() { X = update.Translation.X, Y = update.Translation.Y });
 
         transforms.Children.Add(new RotateTransform()
         {
@@ -156,103 +179,119 @@ public sealed partial class J4JMapControl : Panel
             CenterY = Height / 2
         });
 
-        imagePanel.RenderTransform = transforms;
-    }
-
-    private void OnMapRegionLoaded( BuildUpdatedArgument update )
-    {
-        // find or create the grid that contains the map images
-        var imagePanel = (Grid?) Children.FirstOrDefault( x => x is Grid );
-        if( imagePanel == null )
-        {
-            imagePanel = new Grid();
-            Children.Add( imagePanel );
-        }
-        else imagePanel.Children.Clear();
-
-        // define the required rows and columns
-        imagePanel.RowDefinitions.Clear();
-        imagePanel.ColumnDefinitions.Clear();
-
-        var cellHeightWidth = MapRegion!.ProjectionType switch
-        {
-            ProjectionType.Static => GridLength.Auto,
-            ProjectionType.Tiled => new GridLength( _projection!.TileHeightWidth ),
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
-        };
-
-        for (var col = 0; col <MapRegion.TilesHigh; col++)
-        {
-            imagePanel.ColumnDefinitions.Add( new ColumnDefinition() { Width = cellHeightWidth } );
-        }
-
-        for (var row = 0; row < MapRegion.TilesWide; row++)
-        {
-            imagePanel.RowDefinitions.Add( new RowDefinition() { Height = cellHeightWidth } );
-        }
-
-        SetImagePanelTransforms( update, imagePanel );
-
-        _projection!.LoadRegionAsync( MapRegion );
+        _mapGrid.RenderTransform = transforms;
     }
 
     private void LoadMapImages()
     {
-        var imagePanel = (Grid?)Children.FirstOrDefault(x => x is Grid);
-        if (imagePanel == null)
-        {
-            _logger.Error("Could not find image panel");
+        if (_mapGrid == null)
             return;
-        }
 
-        foreach (var mapTile in MapRegion!)
+        DefineColumns();
+        DefineRows();
+
+        _mapGrid.Children.Clear();
+
+        foreach( var mapTile in MapRegion! )
         {
-            if (!mapTile.InProjection)
-                continue;
+            var newImage = new Image { Height = mapTile.Height, Width = mapTile.Width };
+            Grid.SetColumn( newImage, mapTile.Column );
+            Grid.SetRow( newImage, mapTile.Row );
 
-            var memStream = new MemoryStream(mapTile.ImageData!);
+            if( mapTile is { InProjection: true, ImageData: not null } )
+            {
+                var memStream = new MemoryStream( mapTile.ImageData );
 
-            var bitmapImage = new BitmapImage();
-            bitmapImage.SetSource(memStream.AsRandomAccessStream());
+                var bitmapImage = new BitmapImage();
+                bitmapImage.SetSource( memStream.AsRandomAccessStream() );
 
-            var image = new Image { Source = bitmapImage, Height = mapTile.Height, Width = mapTile.Width, };
+                newImage.Source = bitmapImage;
+            }
 
-            imagePanel.Children.Add(image);
-
-            // assign the image to the correct grid cell
-            Grid.SetColumn(image, mapTile.Column);
-            Grid.SetRow(image, mapTile.Row);
+            _mapGrid.Children.Add( newImage );
         }
+
+        InvalidateArrange();
     }
 
-    protected override Size MeasureOverride( Size availableSize )
+    private void DefineColumns()
     {
-        if( MapRegion == null || _projection == null )
+        var cellWidth = MapRegion!.ProjectionType switch
+        {
+            ProjectionType.Static => GridLength.Auto,
+            ProjectionType.Tiled => new GridLength(MapRegion.TileWidth),
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof(ProjectionType)} value '{MapRegion.ProjectionType}'")
+        };
+
+        _mapGrid!.ColumnDefinitions.Clear();
+
+        for (var column = 0; column < MapRegion.TilesWide; column++)
+        {
+            _mapGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = cellWidth });
+        }
+
+    }
+
+    private void DefineRows()
+    {
+        var cellHeight = MapRegion!.ProjectionType switch
+        {
+            ProjectionType.Static => GridLength.Auto,
+            ProjectionType.Tiled => new GridLength(MapRegion.TileHeight),
+            _ => throw new InvalidEnumArgumentException(
+                $"Unsupported {typeof(ProjectionType)} value '{MapRegion.ProjectionType}'")
+        };
+
+        _mapGrid!.RowDefinitions.Clear();
+
+        for (var row = 0; row < MapRegion.TilesHigh; row++)
+        {
+            _mapGrid.RowDefinitions.Add( new RowDefinition() { Height = cellHeight } );
+        }
+
+    }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (MapRegion == null || _projection == null)
             return Size.Empty;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
         var width = Width < availableSize.Width ? Width : availableSize.Width;
 
-        MapRegion.Size( (float) height, (float) width );
+        //MapRegion.Size((float)height, (float)width);
 
-        return new Size( width, height );
+        return new Size(width, height);
     }
 
     protected override Size ArrangeOverride( Size finalSize )
     {
-        if (MapRegion == null)
+        base.ArrangeOverride( finalSize );
+
+        if( _mapGrid == null )
             return finalSize;
 
-        // don't forget to let each child control (e.g., the image panel)
-        // participate!
-        var rect = new Rect(new Point(), finalSize);
-
-        foreach (var child in Children)
-        {
-            child.Arrange(rect);
-        }
+        var rect = new Rect( new Point(), finalSize );
+        _mapGrid.Arrange( rect );
 
         return finalSize;
     }
+
+    //protected override Size ArrangeOverride( Size finalSize )
+    //{
+    //    if (MapRegion == null)
+    //        return finalSize;
+
+    //    // don't forget to let each child control (e.g., the image panel)
+    //    // participate!
+    //    var rect = new Rect(new Point(), finalSize);
+
+    //    foreach (var child in Children)
+    //    {
+    //        child.Arrange(rect);
+    //    }
+
+    //    return finalSize;
+    //}
 }
