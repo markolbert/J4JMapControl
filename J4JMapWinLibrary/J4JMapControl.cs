@@ -127,8 +127,8 @@ public sealed partial class J4JMapControl : Control
         transforms.Children.Add(new RotateTransform()
         {
             Angle = update.Rotation,
-            CenterX = _mapGrid.ActualWidth / 2 + update.Translation.X,
-            CenterY = _mapGrid.ActualHeight / 2 + update.Translation.Y
+            CenterX = ActualWidth / 2,
+            CenterY = ActualHeight / 2
         });
 
         _mapGrid.RenderTransform = transforms;
