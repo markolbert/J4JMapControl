@@ -26,7 +26,7 @@ namespace J4JSoftware.J4JMapLibrary.MapRegion;
 public class MapRegion : IEnumerable<MapTile>
 {
     public event EventHandler? ConfigurationChanged;
-    public event EventHandler<BuildUpdatedArgument>? BuildUpdated;
+    public event EventHandler<RegionBuildResults>? BuildUpdated;
 
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
 
@@ -224,7 +224,6 @@ public class MapRegion : IEnumerable<MapTile>
         var oldUpperLeft = UpperLeft;
         var oldWide = TilesWide;
         var oldHigh = TilesHigh;
-        var oldOffset = ViewpointOffset;
 
         Center = new MapPoint( this );
         Center.SetLatLong( CenterLatitude, CenterLongitude );
@@ -243,47 +242,34 @@ public class MapRegion : IEnumerable<MapTile>
             CenterYOffset = 0;
         }
 
+        // if we're not fully defined just invoke and return
         if( RequestedHeight <= 0 || RequestedWidth <= 0 )
-            UpdateEmpty();
-        else
         {
-            var box = new Rectangle2D( RequestedHeight,
-                                       RequestedWidth,
-                                       Rotation,
-                                       new Vector3( Center.X, Center.Y, 0 ) );
+            UpdateEmpty();
+            RegionChange = MapRegionChange.Empty;
 
-            BoundingBox = box.BoundingBox;
-
-            if( Projection is ITiledProjection )
-                UpdateTiledDimensions();
-            else UpdateStaticDimensions();
-
-            IsDefined = true;
+            BuildUpdated?.Invoke( this, new RegionBuildResults( MapRegionChange.Empty, Vector3.Zero, 0 ) );
+            return this;
         }
 
-        RegionChange = ProjectionType switch
-        {
-            ProjectionType.Static => BoundingBox.Equals( oldBoundingBox )
-                ? MapRegionChange.OffsetChanged
-                : MapRegionChange.LoadRequired,
+        var box = new Rectangle2D( RequestedHeight,
+                                   RequestedWidth,
+                                   Rotation,
+                                   new Vector3( Center.X, Center.Y, 0 ) );
 
-            ProjectionType.Tiled => UpperLeft == oldUpperLeft
-             && Scale == _oldScale
-             && TilesWide == oldWide
-             && TilesHigh == oldHigh
-                    ? MapRegionChange.OffsetChanged
-                    : MapRegionChange.LoadRequired,
+        BoundingBox = box.BoundingBox;
 
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( ProjectionType )} value '{ProjectionType}'" )
-        };
+        if( Projection is ITiledProjection )
+            UpdateTiledDimensions( oldUpperLeft, oldWide, oldHigh );
+        else UpdateStaticDimensions( oldBoundingBox );
+
+        IsDefined = true;
 
         Changed = false;
         _oldScale = Scale;
         _oldRotation = Rotation;
 
-        var eventArg = new BuildUpdatedArgument( RegionChange, ViewpointOffset - oldOffset, Rotation - _oldRotation );
-        BuildUpdated?.Invoke( this, eventArg );
+        BuildUpdated?.Invoke( this, new RegionBuildResults( RegionChange, ViewpointOffset, Rotation ) );
 
         return this;
     }
@@ -296,7 +282,27 @@ public class MapRegion : IEnumerable<MapTile>
         BoundingBox = Rectangle2D.Empty;
     }
 
-    private void UpdateTiledDimensions()
+    private void UpdateStaticDimensions(Rectangle2D oldBoundingBox)
+    {
+        UpperLeft = new Tile(this, 0, 0);
+        TilesWide = 1;
+        TilesHigh = 1;
+
+        ViewpointOffset = new Vector3(-(BoundingBox.Width - RequestedWidth) / 2,
+                                      -(BoundingBox.Height - RequestedHeight) / 2,
+                                      0);
+
+        MapTiles = new MapTile[1, 1];
+        MapTiles[0, 0] = new MapTile(this, 0)
+                        .SetXAbsolute(0)
+                        .SetRowColumn(0, 0);
+
+        RegionChange = BoundingBox.Equals(oldBoundingBox)
+            ? MapRegionChange.OffsetChanged
+            : MapRegionChange.LoadRequired;
+    }
+
+    private void UpdateTiledDimensions( Tile oldUpperLeft, int oldWide, int oldHigh )
     {
         var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
         var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) - 1 );
@@ -327,22 +333,13 @@ public class MapRegion : IEnumerable<MapTile>
                                                       .SetRowColumn( row, column );
             }
         }
-    }
 
-    private void UpdateStaticDimensions()
-    {
-        UpperLeft = new Tile(this, 0,0);
-        TilesWide = 1;
-        TilesHigh = 1;
-
-        ViewpointOffset = new Vector3( -( BoundingBox.Width - RequestedWidth ) / 2,
-                                       -( BoundingBox.Height - RequestedHeight ) / 2,
-                                       0 );
-
-        MapTiles = new MapTile[ 1, 1 ];
-        MapTiles[ 0, 0 ] = new MapTile( this, 0 )
-                          .SetXAbsolute( 0 )
-                          .SetRowColumn( 0, 0 );
+        RegionChange = UpperLeft == oldUpperLeft
+         && Scale == _oldScale
+         && TilesWide == oldWide
+         && TilesHigh == oldHigh
+                ? MapRegionChange.OffsetChanged
+                : MapRegionChange.LoadRequired;
     }
 
     private int RoundTile( float value )
