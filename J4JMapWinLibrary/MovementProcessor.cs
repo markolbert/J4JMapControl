@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
 using Windows.System;
@@ -15,6 +14,8 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public class MovementProcessor
 {
+    public event EventHandler<RotationInfo>? Rotated;
+    
     private record KeyedPoint( bool ControlPressed, PointerPoint Point );
 
     private readonly DispatcherTimer _timer = new();
@@ -25,6 +26,8 @@ public class MovementProcessor
     private PointerPoint? _lastProcessed;
     private bool _controlPressed;
     private float? _prevAngle;
+    private PointerPoint? _firstRotationTip;
+    private float? _firstRotationAngle;
     private ulong _lastProcessedTimestamp = ulong.MinValue;
 
     public MovementProcessor(
@@ -109,8 +112,11 @@ public class MovementProcessor
 
             // if the control key is still pressed, the user might
             // be planning on doing more rotations
-            if( !_controlPressed )
-                _prevAngle = null;
+            if( _controlPressed )
+                return;
+
+            _prevAngle = null;
+            _firstRotationTip = null;
 
             return;
         }
@@ -133,24 +139,10 @@ public class MovementProcessor
         else ProcessTranslation(toProcess);
     }
 
-    private float CalculateAngle( KeyedPoint toProcess )
-    {
-        var origin = new Vector3( (float) _mapControl.ActualWidth / 2,
-                                  (float) _mapControl.ActualHeight / 2,
-                                  0 );
-
-        var initialPoint = new Vector3( (float) toProcess.Point.Position.X, (float) toProcess.Point.Position.Y, 0 );
-
-        // thanx to JonasH for this!
-        //// https://stackoverflow.com/questions/58764702/calculating-angle-between-two-vectors
-        //var retVal = (float) Math.Acos( Vector3.Dot( origin, initialPoint )
-        //                        / ( origin.Length() * initialPoint.Length() ) )
-        //  * MapConstants.DegreesPerRadian;
-
-        return (float) Math.Atan2( _mapControl.ActualHeight / 2 - toProcess.Point.Position.Y,
-                                    toProcess.Point.Position.X - _mapControl.ActualWidth / 2 )
-          * MapConstants.DegreesPerRadian;
-    }
+    private float CalculateAngle( KeyedPoint toProcess ) =>
+        (float) Math.Atan2( _mapControl.ActualHeight / 2 - toProcess.Point.Position.Y,
+                            toProcess.Point.Position.X - _mapControl.ActualWidth / 2 )
+      * MapConstants.DegreesPerRadian;
 
     private void ProcessTranslation( KeyedPoint toProcess )
     {
@@ -170,6 +162,9 @@ public class MovementProcessor
 
     private void ProcessRotation( KeyedPoint toProcess )
     {
+        _firstRotationTip ??= toProcess.Point;
+        _firstRotationAngle ??= CalculateAngle( toProcess );
+
         if( _prevAngle == null )
         {
             _prevAngle = CalculateAngle( toProcess );
@@ -192,6 +187,9 @@ public class MovementProcessor
 
         _mapControl.MapRegion!.Heading( _mapControl.MapRegion!.Heading + rotation );
         _mapControl.MapRegion!.Build();
+
+        Rotated?.Invoke( this,
+                         new RotationInfo( _firstRotationTip, toProcess.Point, newAngle - _firstRotationAngle.Value ) );
 
         _prevAngle = newAngle;
     }
