@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using Windows.Foundation;
 using CommunityToolkit.WinUI.UI.Controls;
 using J4JSoftware.DependencyInjection;
@@ -23,6 +24,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Shapes;
 using Serilog;
 using Path = System.IO.Path;
 
@@ -64,6 +66,11 @@ public sealed partial class J4JMapControl : Control
     private ITileCache? _tileFileCache;
     private bool _cacheIsValid;
     private Grid? _mapGrid;
+    private Canvas? _rotationCanvas;
+    private TextBlock? _rotationText;
+    private Line? _rotationLine;
+    private Line? _baseLine;
+    private Canvas? _controlCanvas;
 
     public J4JMapControl()
     {
@@ -90,16 +97,24 @@ public sealed partial class J4JMapControl : Control
     {
         base.OnApplyTemplate();
 
-        var dataGrid = GetTemplateChild("MapGrid");
-        if (dataGrid == null)
-        {
-            _logger.Error("Couldn't find MapGrid");
-            return;
-        }
+        _mapGrid = FindUIElement<Grid>( "MapGrid" );
 
-        if (dataGrid is not Grid mapGrid)
-            _logger.Error("MapGrid is not a Grid");
-        else _mapGrid = mapGrid;
+        _rotationCanvas = FindUIElement<Canvas>("RotationCanvas");
+        _rotationText = FindUIElement<TextBlock>( "RotationText" );
+        _rotationLine = FindUIElement<Line>( "RotationLine" );
+        _baseLine = FindUIElement<Line>( "BaseLine" );
+
+        _controlCanvas = FindUIElement<Canvas>("ControlCanvas");
+    }
+
+    private T? FindUIElement<T>( string name )
+        where T : UIElement
+    {
+        var retVal = GetTemplateChild( name ) as T;
+        if( retVal == null )
+            _logger.Error("Couldn't find {0}", name);
+
+        return retVal;
     }
 
     private void OnSizeChanged(object sender, SizeChangedEventArgs e) =>
@@ -201,6 +216,32 @@ public sealed partial class J4JMapControl : Control
 
     }
 
+    private void OnRotation( object? sender, RotationInfo info )
+    {
+        if( _rotationText != null )
+        {
+            Canvas.SetLeft( _rotationText, info.CurrentTip.Position.X );
+            Canvas.SetTop( _rotationText, info.CurrentTip.Position.Y );
+            _rotationText.Text = info.Rotation.ToString( "F0" );
+        }
+
+        if( _baseLine != null )
+        {
+            _baseLine.X1 = ActualWidth / 2;
+            _baseLine.Y1 = ActualHeight / 2;
+            _baseLine.X2 = info.FirstTip.Position.X;
+            _baseLine.Y2 = info.FirstTip.Position.Y;
+        }
+
+        if( _rotationLine != null )
+        {
+            _rotationLine.X1 = ActualWidth / 2;
+            _rotationLine.Y1 = ActualHeight / 2;
+            _rotationLine.X2 = info.CurrentTip.Position.X;
+            _rotationLine.Y2 = info.CurrentTip.Position.Y;
+        }
+    }
+
     protected override Size MeasureOverride(Size availableSize)
     {
         if (MapRegion == null || _projection == null)
@@ -216,11 +257,11 @@ public sealed partial class J4JMapControl : Control
     {
         base.ArrangeOverride( finalSize );
 
-        if( _mapGrid == null )
-            return finalSize;
-
         var rect = new Rect( new Point(), finalSize );
-        _mapGrid.Arrange( rect );
+
+        _mapGrid?.Arrange( rect );
+        _rotationCanvas?.Arrange( rect );
+        _controlCanvas?.Arrange( rect );
 
         return finalSize;
     }
