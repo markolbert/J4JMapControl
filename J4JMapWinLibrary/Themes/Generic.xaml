@@ -8,7 +8,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:J4JMapControl">
-                    <Grid x:Name="MapGrid" />
+                    <Grid x:Name="MapContainer">
+                        <Grid x:Name="MapGrid" Canvas.ZIndex="0"/>
+
+                        <Canvas x:Name="RotationCanvas" Canvas.ZIndex="1">
+                            <TextBlock x:Name="RotationText" Foreground="Red" FontWeight="Bold"/>
+                            <Line x:Name="BaseLine" Stroke="Blue" StrokeThickness="2"/>
+                            <Line x:Name="RotationLine" Stroke="Red" StrokeThickness="2"/>
+                        </Canvas>
+
+                        <Canvas x:Name="ControlCanvas" Canvas.ZIndex="2"/>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
