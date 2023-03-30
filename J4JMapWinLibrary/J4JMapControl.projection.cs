@@ -58,7 +58,11 @@ public sealed partial class J4JMapControl
                    .Heading( (float) Heading )
                    .Size( (float) Height, (float) Width );
 
+        if( _movementProcessor != null )
+            _movementProcessor.Rotated -= OnRotation;
+
         _movementProcessor = new MovementProcessor( this, _logger );
+        _movementProcessor.Rotated += OnRotation;
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
