@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Windows.System;
 using Windows.UI.Core;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
 using Serilog;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public class MovementProcessor
 {
+    public event EventHandler? RotationsStarted;
+    public event EventHandler? RotationsEnded;
     public event EventHandler<RotationInfo>? Rotated;
     
     private record KeyedPoint( bool ControlPressed, PointerPoint Point );
@@ -24,11 +24,11 @@ public class MovementProcessor
     private readonly ILogger _logger;
 
     private PointerPoint? _lastProcessed;
-    private bool _controlPressed;
     private float? _prevAngle;
     private PointerPoint? _firstRotationTip;
     private float? _firstRotationAngle;
     private ulong _lastProcessedTimestamp = ulong.MinValue;
+    private bool _handlingRotations;
 
     public MovementProcessor(
         J4JMapControl mapControl,
@@ -36,8 +36,6 @@ public class MovementProcessor
     )
     {
         _mapControl = mapControl;
-        _mapControl.KeyDown += MapControlOnKeyDown;
-        _mapControl.KeyUp += MapControlOnKeyUp;
 
         _timer.Interval = TimeSpan.FromMilliseconds( 125 );
         _timer.Tick += TimerOnTick;
@@ -46,27 +44,7 @@ public class MovementProcessor
         _logger.ForContext<MovementProcessor>();
     }
 
-    private void MapControlOnKeyDown( object sender, KeyRoutedEventArgs e )
-    {
-        if( _controlPressed )
-            return;
-
-        _controlPressed = e.Key == VirtualKey.Control;
-    }
-
-    private void MapControlOnKeyUp(object sender, KeyRoutedEventArgs e)
-    {
-        if( !_controlPressed ) 
-            return;
-
-        if( e.Key != VirtualKey.Control )
-            return;
-
-        _controlPressed = false;
-        _points.Clear();
-    }
-
-    public void AddPoints( IList<PointerPoint> points )
+    public void AddPoints( IList<PointerPoint> points, bool controlPressed )
     {
         var lastTs = _points.LastOrDefault()?.Point.Timestamp ?? 0UL;
 
@@ -92,7 +70,7 @@ public class MovementProcessor
 
                 lastTs = curPoint.Timestamp;
 
-                _points.Enqueue( new KeyedPoint( _controlPressed, curPoint ) );
+                _points.Enqueue( new KeyedPoint( controlPressed, curPoint ) );
 
                 if( !_timer.IsEnabled )
                     _timer.Start();
@@ -105,19 +83,12 @@ public class MovementProcessor
         if( _mapControl.MapRegion == null )
             return;
 
-        if( !_points.Any() )
+        if( _handlingRotations && !InternalExtensions.IsControlPressed() )
+            _points.Clear();
+
+        if ( !_points.Any() )
         {
-            _timer.Stop();
-            _lastProcessed = null;
-
-            // if the control key is still pressed, the user might
-            // be planning on doing more rotations
-            if( _controlPressed )
-                return;
-
-            _prevAngle = null;
-            _firstRotationTip = null;
-
+            EndProcessing();
             return;
         }
 
@@ -137,6 +108,22 @@ public class MovementProcessor
         if( toProcess.ControlPressed )
             ProcessRotation(toProcess);
         else ProcessTranslation(toProcess);
+    }
+
+    private void EndProcessing()
+    {
+        _timer.Stop();
+        _lastProcessed = null;
+
+        _prevAngle = null;
+        _firstRotationTip = null;
+        _firstRotationAngle = null;
+
+        if (!_handlingRotations)
+            return;
+
+        _handlingRotations = false;
+        RotationsEnded?.Invoke(this, EventArgs.Empty);
     }
 
     private float CalculateAngle( KeyedPoint toProcess ) =>
@@ -162,8 +149,8 @@ public class MovementProcessor
 
     private void ProcessRotation( KeyedPoint toProcess )
     {
-        _firstRotationTip ??= toProcess.Point;
-        _firstRotationAngle ??= CalculateAngle( toProcess );
+        if( !_handlingRotations )
+            StartRotationHinting( toProcess );
 
         if( _prevAngle == null )
         {
@@ -189,8 +176,17 @@ public class MovementProcessor
         _mapControl.MapRegion!.Build();
 
         Rotated?.Invoke( this,
-                         new RotationInfo( _firstRotationTip, toProcess.Point, newAngle - _firstRotationAngle.Value ) );
+                         new RotationInfo( _firstRotationTip!, toProcess.Point, newAngle - _firstRotationAngle!.Value ) );
 
         _prevAngle = newAngle;
+    }
+
+    private void StartRotationHinting( KeyedPoint toProcess )
+    {
+        _handlingRotations = true;
+        _firstRotationTip = toProcess.Point;
+        _firstRotationAngle = CalculateAngle(toProcess);
+
+        RotationsStarted?.Invoke(this, EventArgs.Empty);
     }
 }

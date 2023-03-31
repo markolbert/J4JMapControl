@@ -66,6 +66,8 @@ public sealed partial class J4JMapControl : Control
     private ITileCache? _tileFileCache;
     private bool _cacheIsValid;
     private Grid? _mapGrid;
+    private bool _rotationHintsDefined;
+    private bool _rotationHintsEnabled;
     private Canvas? _rotationCanvas;
     private TextBlock? _rotationText;
     private Line? _rotationLine;
@@ -103,6 +105,11 @@ public sealed partial class J4JMapControl : Control
         _rotationText = FindUIElement<TextBlock>( "RotationText" );
         _rotationLine = FindUIElement<Line>( "RotationLine" );
         _baseLine = FindUIElement<Line>( "BaseLine" );
+
+        _rotationHintsDefined = _rotationCanvas != null
+         && _rotationText != null
+         && _rotationLine != null
+         && _baseLine != null;
 
         _controlCanvas = FindUIElement<Canvas>("ControlCanvas");
     }
@@ -214,32 +221,6 @@ public sealed partial class J4JMapControl : Control
             _mapGrid.RowDefinitions.Add( new RowDefinition() { Height = cellHeight } );
         }
 
-    }
-
-    private void OnRotation( object? sender, RotationInfo info )
-    {
-        if( _rotationText != null )
-        {
-            Canvas.SetLeft( _rotationText, info.CurrentTip.Position.X );
-            Canvas.SetTop( _rotationText, info.CurrentTip.Position.Y );
-            _rotationText.Text = info.Rotation.ToString( "F0" );
-        }
-
-        if( _baseLine != null )
-        {
-            _baseLine.X1 = ActualWidth / 2;
-            _baseLine.Y1 = ActualHeight / 2;
-            _baseLine.X2 = info.FirstTip.Position.X;
-            _baseLine.Y2 = info.FirstTip.Position.Y;
-        }
-
-        if( _rotationLine != null )
-        {
-            _rotationLine.X1 = ActualWidth / 2;
-            _rotationLine.Y1 = ActualHeight / 2;
-            _rotationLine.X2 = info.CurrentTip.Position.X;
-            _rotationLine.Y2 = info.CurrentTip.Position.Y;
-        }
     }
 
     protected override Size MeasureOverride(Size availableSize)

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
+using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -59,10 +60,16 @@ public sealed partial class J4JMapControl
                    .Size( (float) Height, (float) Width );
 
         if( _movementProcessor != null )
-            _movementProcessor.Rotated -= OnRotation;
+        {
+            _movementProcessor.Rotated -= OnRotationHint;
+            _movementProcessor.RotationsStarted -= OnRotationHintsStarted;
+            _movementProcessor.RotationsEnded -= OnRotationHintsEnded;
+        }
 
         _movementProcessor = new MovementProcessor( this, _logger );
-        _movementProcessor.Rotated += OnRotation;
+        _movementProcessor.Rotated += OnRotationHint;
+        _movementProcessor.RotationsStarted += OnRotationHintsStarted;
+        _movementProcessor.RotationsEnded += OnRotationHintsEnded;
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;

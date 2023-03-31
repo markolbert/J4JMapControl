@@ -99,4 +99,9 @@ public sealed partial class J4JMapControl
                                                                              new PropertyMetadata(
                                                                                  0D,
                                                                                  OnHeadingChanged ) );
+
+    public DependencyProperty ShowRotationHintsProperty = DependencyProperty.Register( nameof( ShowRotationHints ),
+        typeof( bool ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( true ) );
 }
