@@ -14,11 +14,12 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Windows.Foundation;
+using Windows.System;
+using Windows.UI.Core;
 using CommunityToolkit.WinUI.UI.Controls;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
@@ -26,6 +27,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Serilog;
+using DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue;
 using Path = System.IO.Path;
 
 // To learn more about WinUI, the WinUI project structure,
