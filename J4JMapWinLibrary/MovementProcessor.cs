@@ -44,12 +44,14 @@ public class MovementProcessor
         _logger.ForContext<MovementProcessor>();
     }
 
+    public bool Enabled { get; set; }
+
     public void AddPoints( IList<PointerPoint> points, bool controlPressed )
     {
-        var lastTs = _points.LastOrDefault()?.Point.Timestamp ?? 0UL;
+        if( !Enabled )
+            return;
 
-        if( !_points.Any() && _prevAngle != null )
-            _prevAngle = null;
+        var lastTs = _points.LastOrDefault()?.Point.Timestamp ?? 0UL;
 
         for( var idx = 0; idx < points.Count; idx++ )
         {
@@ -83,7 +85,7 @@ public class MovementProcessor
         if( _mapControl.MapRegion == null )
             return;
 
-        if( _handlingRotations && !InternalExtensions.IsControlPressed() )
+        if( !Enabled )
             _points.Clear();
 
         if ( !_points.Any() )
@@ -159,7 +161,6 @@ public class MovementProcessor
             _logger.Verbose( "Initial angle is {0:n1} degrees, timestamp {1}",
                              _prevAngle.Value,
                              toProcess.Point.Timestamp );
-            return;
         }
 
         var newAngle = CalculateAngle( toProcess );
@@ -184,6 +185,7 @@ public class MovementProcessor
     private void StartRotationHinting( KeyedPoint toProcess )
     {
         _handlingRotations = true;
+        _prevAngle = null;
         _firstRotationTip = toProcess.Point;
         _firstRotationAngle = CalculateAngle(toProcess);
 

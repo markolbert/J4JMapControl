@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using Windows.System;
+using Windows.UI.Core;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -16,39 +19,46 @@ public sealed partial class J4JMapControl
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
     {
+        if (_movementProcessor == null)
+            return;
+
         CapturePointer( e.Pointer );
+        _movementProcessor.Enabled = true;
     }
 
     private void OnPointerMoved( object sender, PointerRoutedEventArgs e )
     {
-        if( _movementProcessor == null )
+        if( _movementProcessor == null
+        || PointerCaptures == null
+        || PointerCaptures.All( p => p.PointerId != e.Pointer.PointerId ) )
             return;
 
-        if( PointerCaptures?.Any( p => p.PointerId == e.Pointer.PointerId ) ?? false )
-            _movementProcessor.AddPoints( e.GetIntermediatePoints( this ), InternalExtensions.IsControlPressed() );
+        var controlPressed = InputKeyboardSource
+                            .GetKeyStateForCurrentThread( VirtualKey.Control )
+                            .HasFlag( CoreVirtualKeyStates.Down );
+
+        _movementProcessor.AddPoints( e.GetIntermediatePoints( this ), controlPressed );
     }
 
     private void OnPointerReleased( object sender, PointerRoutedEventArgs e )
     {
+        if (_movementProcessor == null)
+            return;
+
+        _movementProcessor.Enabled = false;
+
         ReleasePointerCapture( e.Pointer );
     }
 
     private void OnRotationHintsStarted(object? sender, EventArgs e)
     {
         _rotationHintsEnabled = true;
-
-        if (_rotationCanvas != null)
-            _rotationCanvas.Visibility = Visibility.Visible;
     }
 
-    private void OnRotationHint(object? sender, RotationInfo info)
+    private void OnRotationHint( object? sender, RotationInfo info )
     {
-        if (!_rotationHintsDefined || !ShowRotationHints || !_rotationHintsEnabled)
+        if( !_rotationHintsDefined || !ShowRotationHints || !_rotationHintsEnabled )
             return;
-
-        Canvas.SetLeft(_rotationText, info.CurrentTip.Position.X + 5);
-        Canvas.SetTop(_rotationText, info.CurrentTip.Position.Y + 5);
-        _rotationText!.Text = info.Rotation.ToString("F0");
 
         _baseLine!.X1 = ActualWidth / 2;
         _baseLine.Y1 = ActualHeight / 2;
@@ -59,6 +69,13 @@ public sealed partial class J4JMapControl
         _rotationLine.Y1 = ActualHeight / 2;
         _rotationLine.X2 = info.CurrentTip.Position.X;
         _rotationLine.Y2 = info.CurrentTip.Position.Y;
+
+        Canvas.SetLeft( _rotationText, info.CurrentTip.Position.X + 5 );
+        Canvas.SetTop( _rotationText, info.CurrentTip.Position.Y + 5 );
+
+        _rotationText!.Text = info.Rotation.ToString( "F0" );
+
+        _rotationCanvas!.Visibility = Visibility.Visible;
     }
 
     private void OnRotationHintsEnded(object? sender, EventArgs e)
