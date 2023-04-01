@@ -23,6 +23,7 @@ using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -61,8 +62,7 @@ public sealed partial class J4JMapControl : Control
     private readonly ILogger _logger;
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
-    private readonly ThrottleDispatcher _throttleUpdates = new();
-    private readonly ThrottleDispatcher _throttleMoves = new();
+    private readonly ThrottleDispatcher _throttleScaleChanges = new();
 
     private IProjection? _projection;
     private MovementProcessor? _movementProcessor;
@@ -117,7 +117,6 @@ public sealed partial class J4JMapControl : Control
          && _baseLine != null;
 
         _compassRose = FindUIElement<Image>( "CompassRose" );
-        _scaleSlider = FindUIElement<Slider>( "ScaleSlider" );
 
         if( _compassRose != null )
         {
@@ -127,7 +126,17 @@ public sealed partial class J4JMapControl : Control
             _compassRose.Source = junk2;
         }
 
+        _scaleSlider = FindUIElement<Slider>("ScaleSlider");
+
+        if( _scaleSlider != null )
+            _scaleSlider.ValueChanged += ScaleSliderOnValueChanged;
+
         SetMapControlMargins( ControlVerticalMargin );
+    }
+
+    private void ScaleSliderOnValueChanged( object sender, RangeBaseValueChangedEventArgs e )
+    {
+        _throttleScaleChanges.Throttle(UpdateEventInterval, _ => MapScale = e.NewValue );
     }
 
     private T? FindUIElement<T>( string name )
