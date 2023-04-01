@@ -22,6 +22,7 @@
 		<PackageIcon>Diego nuspec.png</PackageIcon>
 		<PackageReleaseNotes>initial release</PackageReleaseNotes>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<AppDesignerFolder>dep-props</AppDesignerFolder>
 	</PropertyGroup>
 	
 	<ItemGroup>
