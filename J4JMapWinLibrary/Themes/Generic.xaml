@@ -4,24 +4,76 @@
     xmlns:tk="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:local="using:J4JSoftware.J4JMapWinLibrary">
 
+    <BitmapImage x:Key="DefaultCompassRoseImage" UriSource="/media/rose.png"/>
+
     <Style TargetType="local:J4JMapControl" >
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:J4JMapControl">
                     <Grid x:Name="MapContainer">
-                        <Grid x:Name="MapGrid" Canvas.ZIndex="0"/>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid x:Name="MapGrid" 
+                              Grid.Column="0" Grid.Row="0"
+                              Canvas.ZIndex="0"/>
+
+                        <Grid x:Name="ControlGrid" 
+                              Grid.Column="0" Grid.Row="0"
+                              Canvas.ZIndex="1"
+                              Height="300"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Right">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Image x:Name="CompassRose"
+                                   Grid.Column="0" Grid.Row="0"
+                                   Width="50"
+                                   Height="50"
+                                   Margin="0,10,0,5" />
+
+                            <Rectangle Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" 
+                                       Fill="LightGray" 
+                                       Canvas.ZIndex="-1" 
+                                       Opacity=".6"/>
+
+                            <Slider x:Name="ScaleSlider"
+                                    Grid.Column="0" Grid.Row="1"
+                                    Margin="0,5,0,10"
+                                    Orientation="Vertical"
+                                    HorizontalAlignment="Center"
+                                    Minimum="1"
+                                    Maximum="21"
+                                    TickFrequency="1"
+                                    TickPlacement="Inline"
+                                    SmallChange="1"
+                                    LargeChange="5"
+                                    Value="1" />
+                        </Grid>
 
                         <Canvas x:Name="RotationCanvas" 
-                                Canvas.ZIndex="1" 
+                                Grid.Column="0" Grid.Row="0"
+                                Canvas.ZIndex="2" 
                                 Visibility="Collapsed">
                             <TextBlock x:Name="RotationText" Foreground="Red" FontWeight="Bold"/>
                             <Line x:Name="BaseLine" Stroke="Blue" StrokeThickness="2"/>
                             <Line x:Name="RotationLine" Stroke="Red" StrokeThickness="2"/>
                         </Canvas>
 
-                        <Canvas x:Name="ControlCanvas" 
-                                Canvas.ZIndex="2" 
-                                Visibility="Collapsed"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

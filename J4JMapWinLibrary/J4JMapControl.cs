@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Windows.Foundation;
+using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core;
 using CommunityToolkit.WinUI.UI.Controls;
@@ -26,6 +27,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
+using Microsoft.Windows.ApplicationModel.Resources;
 using Serilog;
 using DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue;
 using Path = System.IO.Path;
@@ -74,7 +76,8 @@ public sealed partial class J4JMapControl : Control
     private TextBlock? _rotationText;
     private Line? _rotationLine;
     private Line? _baseLine;
-    private Canvas? _controlCanvas;
+    private Grid? _controlGrid;
+    private Image? _compassRose;
 
     public J4JMapControl()
     {
@@ -113,7 +116,18 @@ public sealed partial class J4JMapControl : Control
          && _rotationLine != null
          && _baseLine != null;
 
-        _controlCanvas = FindUIElement<Canvas>("ControlCanvas");
+        _controlGrid = FindUIElement<Grid>("ControlGrid");
+        _compassRose = FindUIElement<Image>( "CompassRose" );
+
+        if( _compassRose != null )
+        {
+            var uri = new System.Uri("ms-appx:///media/rose.png");
+            var junk2 = new BitmapImage( uri );
+
+            _compassRose.Source = junk2;
+            //_compassRose.Height = 100;
+            //_compassRose.Width = 100;
+        }
     }
 
     private T? FindUIElement<T>( string name )
@@ -126,8 +140,8 @@ public sealed partial class J4JMapControl : Control
         return retVal;
     }
 
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e) =>
-        MapRegion?.Size((float)e.NewSize.Height, (float)e.NewSize.Width);
+    private void OnSizeChanged( object sender, SizeChangedEventArgs e ) =>
+        MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width );
 
     public int UpdateEventInterval
     {
@@ -234,18 +248,5 @@ public sealed partial class J4JMapControl : Control
         var width = Width < availableSize.Width ? Width : availableSize.Width;
 
         return new Size(width, height);
-    }
-
-    protected override Size ArrangeOverride( Size finalSize )
-    {
-        base.ArrangeOverride( finalSize );
-
-        var rect = new Rect( new Point(), finalSize );
-
-        _mapGrid?.Arrange( rect );
-        _rotationCanvas?.Arrange( rect );
-        _controlCanvas?.Arrange( rect );
-
-        return finalSize;
     }
 }
