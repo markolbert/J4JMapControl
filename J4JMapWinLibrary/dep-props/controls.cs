@@ -45,7 +45,7 @@ public sealed partial class J4JMapControl
         nameof(CompassRoseHeightWidth),
         typeof(double),
         typeof(J4JMapControl),
-        new PropertyMetadata(100));
+        new PropertyMetadata(100D));
 
     public double CompassRoseHeightWidth
     {
