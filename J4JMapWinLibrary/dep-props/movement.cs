@@ -6,6 +6,7 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -76,6 +77,14 @@ public sealed partial class J4JMapControl
         _rotationText!.Text = info.Rotation.ToString( "F0" );
 
         _rotationCanvas!.Visibility = Visibility.Visible;
+
+        if( _compassRose != null )
+            _compassRose.RenderTransform = new RotateTransform
+            {
+                Angle = info.Rotation,
+                CenterX = _compassRose.ActualWidth / 2,
+                CenterY = _compassRose.ActualHeight / 2
+            };
     }
 
     private void OnRotationHintsEnded(object? sender, EventArgs e)
