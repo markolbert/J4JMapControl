@@ -23,6 +23,7 @@
 		<PackageReleaseNotes>initial release</PackageReleaseNotes>
 		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
+	
 	<ItemGroup>
 	  <Compile Remove="ControlViewport.cs" />
 	</ItemGroup>
@@ -54,6 +55,12 @@
 	  <ProjectReference Include="..\..\ProgrammingUtilities\VisualUtilities\VisualUtilities.csproj" />
 	  <ProjectReference Include="..\..\ProgrammingUtilities\WindowsAppUtilities\WindowsAppUtilities.csproj" />
 	  <ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="media\rose.png">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 </Project>
