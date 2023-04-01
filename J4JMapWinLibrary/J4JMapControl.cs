@@ -76,8 +76,8 @@ public sealed partial class J4JMapControl : Control
     private TextBlock? _rotationText;
     private Line? _rotationLine;
     private Line? _baseLine;
-    private Grid? _controlGrid;
     private Image? _compassRose;
+    private Slider? _scaleSlider;
 
     public J4JMapControl()
     {
@@ -116,8 +116,8 @@ public sealed partial class J4JMapControl : Control
          && _rotationLine != null
          && _baseLine != null;
 
-        _controlGrid = FindUIElement<Grid>("ControlGrid");
         _compassRose = FindUIElement<Image>( "CompassRose" );
+        _scaleSlider = FindUIElement<Slider>( "ScaleSlider" );
 
         if( _compassRose != null )
         {
@@ -126,6 +126,8 @@ public sealed partial class J4JMapControl : Control
 
             _compassRose.Source = junk2;
         }
+
+        SetMapControlMargins( ControlVerticalMargin );
     }
 
     private T? FindUIElement<T>( string name )

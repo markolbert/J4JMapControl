@@ -93,4 +93,30 @@ public sealed partial class J4JMapControl
             SetValue( LargeMapScaleChangeProperty, value );
         }
     }
+
+    public DependencyProperty ControlVerticalMarginProperty = DependencyProperty.Register(
+        nameof(ControlVerticalMargin),
+        typeof(double),
+        typeof(J4JMapControl),
+        new PropertyMetadata(5D));
+
+    public double ControlVerticalMargin
+    {
+        get => (double)GetValue(ControlVerticalMarginProperty);
+
+        set
+        {
+            SetValue( ControlVerticalMarginProperty, value );
+            SetMapControlMargins( value );
+        }
+    }
+
+    private void SetMapControlMargins(double value)
+    {
+        if (_compassRose != null)
+            _compassRose.Margin = new Thickness(0, 2 * value, 0, value);
+
+        if (_scaleSlider != null)
+            _scaleSlider.Margin = new Thickness(0, value, 0, 2 * value);
+    }
 }
