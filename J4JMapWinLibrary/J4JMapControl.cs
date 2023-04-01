@@ -125,8 +125,6 @@ public sealed partial class J4JMapControl : Control
             var junk2 = new BitmapImage( uri );
 
             _compassRose.Source = junk2;
-            //_compassRose.Height = 100;
-            //_compassRose.Width = 100;
         }
     }
 
@@ -142,12 +140,6 @@ public sealed partial class J4JMapControl : Control
 
     private void OnSizeChanged( object sender, SizeChangedEventArgs e ) =>
         MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width );
-
-    public int UpdateEventInterval
-    {
-        get => (int)GetValue(UpdateEventIntervalProperty);
-        set => SetValue(UpdateEventIntervalProperty, value);
-    }
 
     private void SetImagePanelTransforms(RegionBuildResults update)
     {
