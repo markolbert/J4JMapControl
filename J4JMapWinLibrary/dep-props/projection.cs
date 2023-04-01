@@ -9,16 +9,24 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public string MapProjection
-    {
-        get => (string) GetValue( MapProjectionProperty );
-        set => SetValue( MapProjectionProperty, value );
-    }
+    public DependencyProperty MapProjectionProperty = DependencyProperty.Register(nameof(MapProjection),
+        typeof(string),
+        typeof(J4JMapControl),
+        new PropertyMetadata(null, OnMapProjectionChanged));
 
-    public string MapStyle
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
+                                                                             typeof(string),
+                                                                             typeof(J4JMapControl),
+                                                                             new PropertyMetadata(
+                                                                                 null,
+                                                                                 OnMapProjectionChanged));
+
+    private static void OnMapProjectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        get => (string) GetValue( MapStyleProperty );
-        set => SetValue( MapStyleProperty, value );
+        if (d is not J4JMapControl mapControl)
+            return;
+
+        mapControl.UpdateProjection();
     }
 
     private void UpdateProjection()
@@ -74,8 +82,8 @@ public sealed partial class J4JMapControl
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
 
-        MinScale = _projection.MinScale;
-        MaxScale = _projection.MaxScale;
+        MinMapScale = _projection.MinScale;
+        MaxMapScale = _projection.MaxScale;
 
         MapRegion.Build();
     }
@@ -106,4 +114,17 @@ public sealed partial class J4JMapControl
     {
         _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Build());
     }
+
+    public string MapProjection
+    {
+        get => (string)GetValue(MapProjectionProperty);
+        set => SetValue(MapProjectionProperty, value);
+    }
+
+    public string MapStyle
+    {
+        get => (string)GetValue(MapStyleProperty);
+        set => SetValue(MapStyleProperty, value);
+    }
+
 }
