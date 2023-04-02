@@ -4,9 +4,11 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using System;
 using Windows.Graphics;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 using WinRT.Interop;
 
 namespace WinAppTest;
@@ -25,5 +27,14 @@ public sealed partial class MainWindow
         var appWindow = AppWindow.GetFromWindowId(windowId);
 
         appWindow.Resize( new SizeInt32( 800, 800 ) );
+    }
+
+    private void TextHeadingLostFocus( object sender, RoutedEventArgs e )
+    {
+        if( string.IsNullOrEmpty( headingText.Text ) )
+            return;
+
+        mapControl.SetHeadingByText( headingText.Text );
+        headingText.Text = string.Empty;
     }
 }

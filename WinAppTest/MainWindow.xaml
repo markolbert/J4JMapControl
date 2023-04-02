@@ -24,6 +24,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <map:J4JMapControl x:Name="mapControl" 
@@ -32,13 +33,6 @@
                            MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
                            Center="37.5072N,122.2605W"/>
-
-        <!--<map:J4JMapControl x:Name="mapControl" 
-                           Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"
-                           MapProjection="BingMaps"
-                           MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
-                           Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
-                           Center="37.5072N,122.2605W"/>-->
 
         <TextBlock Grid.Column="0" Grid.Row="1"
                    Margin="0,0,5,0"
@@ -67,5 +61,15 @@
                    SmallChange="1"
                    LargeChange="15"
                    Value="0"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="3"
+                   Margin="0,0,5,0"
+                   VerticalAlignment="Center">Set Heading by Text</TextBlock>
+
+        <TextBox x:Name="headingText" 
+                 Grid.Column="1" Grid.Row="3"
+                 Margin="0,0,5,0"
+                 LostFocus="TextHeadingLostFocus"/>
+
     </Grid>
 </Window>
