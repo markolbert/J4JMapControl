@@ -48,7 +48,7 @@ public class ExtractTests : TestBase
                     .Heading( heading )
                     .Size( height, width )
                     .Scale( scale )
-                    .Build();
+                    .Update();
 
         var result = await projection.LoadRegionAsync( region );
         result.Should().BeTrue();

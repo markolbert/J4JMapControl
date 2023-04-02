@@ -15,7 +15,7 @@ public partial class MapTile
         var region = new MapRegion( projection, logger )
                     .Scale( scale )
                     .Size( projection.TileHeightWidth, projection.TileHeightWidth )
-                    .Build();
+                    .Update();
 
         // determine the center point of the tile
         var upperLeftX = xTile * projection.TileHeightWidth;

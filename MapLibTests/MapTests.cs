@@ -84,7 +84,7 @@ public class MapTests : TestBase
 
         var region = new MapRegion( projection, Logger )
                     .Scale( scale )
-                    .Build();
+                    .Update();
 
         var mapTile = new MapTile(region, yTile).SetXAbsolute(xTile);
         mapTile.QuadKey.Should().Be( quadKey );
@@ -124,7 +124,7 @@ public class MapTests : TestBase
 
         var region = new MapRegion(projection, Logger)
                     .Scale(scale)
-                    .Build();
+                    .Update();
 
         var mapTile = new MapTile(region, yTile).SetXAbsolute(xTile);
         mapTile.QuadKey.Should().Be(quadKey);
@@ -164,7 +164,7 @@ public class MapTests : TestBase
 
         var region = new MapRegion(projection, Logger)
                     .Scale(scale)
-                    .Build();
+                    .Update();
 
         var mapTile = new MapTile(region, yTile).SetXAbsolute(xTile);
         mapTile.QuadKey.Should().Be(quadKey);

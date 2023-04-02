@@ -16,7 +16,7 @@ public class CreateImages : TestBase
 
         var mapRegion = new MapRegion( projection, Logger )
                        .Scale( data.Scale )
-                       .Build();
+                       .Update();
 
         var mapTile = new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
 
@@ -38,7 +38,7 @@ public class CreateImages : TestBase
 
         var mapRegion = new MapRegion(projection, Logger)
                        .Scale(data.Scale)
-                       .Build();
+                       .Update();
 
         var mapTile = new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
 
@@ -60,7 +60,7 @@ public class CreateImages : TestBase
 
         var mapRegion = new MapRegion(projection, Logger)
                        .Scale(data.Scale)
-                       .Build();
+                       .Update();
 
         var mapTile = new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
 

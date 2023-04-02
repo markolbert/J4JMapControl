@@ -81,7 +81,7 @@ public sealed partial class J4JMapControl
         MinMapScale = _projection.MinScale;
         MaxMapScale = _projection.MaxScale;
 
-        MapRegion.Build();
+        MapRegion.Update();
     }
 
     private void MapRegionBuildUpdated(object? sender, RegionBuildResults e)
@@ -108,7 +108,7 @@ public sealed partial class J4JMapControl
 
     private void MapRegionConfigurationChanged(object? sender, EventArgs e)
     {
-        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Build());
+        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Update());
     }
 
     public string MapProjection

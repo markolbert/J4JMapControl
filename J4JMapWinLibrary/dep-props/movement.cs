@@ -4,6 +4,7 @@ using System.Linq;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
+using System.Numerics;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -129,14 +130,14 @@ public sealed partial class J4JMapControl
     {
         _lastTranslationPoint ??= point;
 
-        var xDelta = _lastTranslationPoint.Value.X - point.X;
+        var xDelta = _lastTranslationPoint.Value.X- point.X;
         var yDelta = _lastTranslationPoint.Value.Y - point.Y;
 
         if( Math.Abs( xDelta ) < 5 && Math.Abs( yDelta ) < 5 )
             return;
 
-        MapRegion!.Offset( (float) xDelta, (float) yDelta );
-        MapRegion!.Build();
+        MapRegion!.Offset( (float)xDelta, (float) yDelta );
+        MapRegion!.Update();
     }
 
     public bool ShowRotationHints

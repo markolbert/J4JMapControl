@@ -39,7 +39,7 @@ public class TileTests : TestBase
                     .Size( height, width )
                     .Heading( heading )
                     .Scale( scale )
-                    .Build();
+                    .Update();
 
         var result = await projection.LoadRegionAsync( region );
         result.Should().BeTrue();
@@ -84,7 +84,7 @@ public class TileTests : TestBase
         center.SetCartesian( regionStart * projection.TileHeightWidth + width / 2, projection.TileHeightWidth / 2 );
 
         region.Center( center.Latitude, center.Longitude )
-                    .Build();
+                    .Update();
 
         var mapTile = new MapTile( region, 0 ).SetXRelative( relativeX );
 
