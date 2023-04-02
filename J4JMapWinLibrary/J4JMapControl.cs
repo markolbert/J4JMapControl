@@ -71,12 +71,7 @@ public sealed partial class J4JMapControl : Control
     {
         base.OnApplyTemplate();
 
-        _mapGrid = FindUIElement<Grid>( "MapGrid" );
-
-        if( _mapGrid != null )
-        {
-            _mapGrid.PointerWheelChanged += MapGridOnPointerWheelChanged;
-        }
+        _mapGrid = FindUIElement<Grid>( "MapGrid", x=>x.PointerWheelChanged += MapGridOnPointerWheelChanged );
 
         _rotationCanvas = FindUIElement<Canvas>("RotationCanvas");
         _rotationText = FindUIElement<TextBlock>( "RotationText" );
@@ -89,21 +84,27 @@ public sealed partial class J4JMapControl : Control
          && _baseLine != null;
 
         _compassRose = FindUIElement<Image>( "CompassRose" );
-
-        if( _compassRose != null )
-        {
-            var uri = new System.Uri("ms-appx:///media/rose.png");
-            var junk2 = new BitmapImage( uri );
-
-            _compassRose.Source = junk2;
-        }
-
-        _scaleSlider = FindUIElement<Slider>("ScaleSlider");
-
-        if( _scaleSlider != null )
-            _scaleSlider.ValueChanged += ScaleSliderOnValueChanged;
+        _scaleSlider = FindUIElement<Slider>("ScaleSlider", x=> x.ValueChanged += ScaleSliderOnValueChanged);
 
         SetMapControlMargins( ControlVerticalMargin );
+    }
+
+    public BitmapImage CompassRoseImage
+    {
+        get => (BitmapImage) GetValue( CompassRoseImageProperty );
+        set => SetValue( CompassRoseImageProperty, value );
+    }
+
+    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register(
+        nameof( CompassRoseImage ),
+        typeof( BitmapImage ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( GetDefaultCompassRoseImage() ) );
+
+    private static BitmapImage GetDefaultCompassRoseImage()
+    {
+        var uri = new Uri("ms-appx:///media/rose.png");
+        return new BitmapImage(uri);
     }
 
     private void ScaleSliderOnValueChanged( object sender, RangeBaseValueChangedEventArgs e )
@@ -111,12 +112,13 @@ public sealed partial class J4JMapControl : Control
         _throttleScaleChanges.Throttle(UpdateEventInterval, _ => MapScale = e.NewValue );
     }
 
-    private T? FindUIElement<T>( string name )
+    private T? FindUIElement<T>( string name, Action<T>? postProcessor = null )
         where T : UIElement
     {
         var retVal = GetTemplateChild( name ) as T;
         if( retVal == null )
             _logger.Error("Couldn't find {0}", name);
+        else postProcessor?.Invoke( retVal );
 
         return retVal;
     }
