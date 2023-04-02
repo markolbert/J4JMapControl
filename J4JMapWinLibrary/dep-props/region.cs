@@ -55,6 +55,8 @@ public sealed partial class J4JMapControl
             // we call SetValue after updating MapRegion so that
             // modulus 360 logic can be applied
             SetValue( HeadingProperty, MapRegion?.Heading ?? value );
+
+            PositionCompassRose();
         }
     }
 

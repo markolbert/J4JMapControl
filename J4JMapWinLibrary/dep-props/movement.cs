@@ -110,14 +110,19 @@ public sealed partial class J4JMapControl
 
         // this will trigger an update of the map display
         Heading += deltaRotation;
+    }
 
-        if (_compassRose != null)
-            _compassRose.RenderTransform = new RotateTransform
-            {
-                Angle = 360 - Heading,
-                CenterX = _compassRose.ActualWidth / 2,
-                CenterY = _compassRose.ActualHeight / 2
-            };
+    private void PositionCompassRose()
+    {
+        if( _compassRose == null )
+            return;
+
+        _compassRose.RenderTransform = new RotateTransform
+        {
+            Angle = 360 - Heading,
+            CenterX = _compassRose.ActualWidth / 2,
+            CenterY = _compassRose.ActualHeight / 2
+        };
     }
 
     private void ProcessTranslation( Point point )
