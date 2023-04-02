@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using J4JSoftware.DeusEx;
@@ -11,24 +9,14 @@ using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
-using System.Linq;
-using System.Numerics;
 using Windows.Foundation;
-using Windows.Storage;
-using Windows.System;
-using Windows.UI.Core;
-using CommunityToolkit.WinUI.UI.Controls;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
-using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using Microsoft.Windows.ApplicationModel.Resources;
 using Serilog;
 using DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue;
 using Path = System.IO.Path;
@@ -48,36 +36,10 @@ public sealed partial class J4JMapControl : Control
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
     private const int DefaultUpdateEventInterval = 250;
 
-    private static string GetDefaultFileSystemCachePath()
-    {
-        var hostConfig = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>();
-        if (hostConfig != null)
-            return Path.Combine(hostConfig.ApplicationConfigurationFolder, "map-cache");
-
-        J4JDeusEx.OutputFatalMessage( "Could not retrieve instance of IJ4JHost", J4JDeusEx.GetLogger() );
-        throw new NullReferenceException("Could not retrieve instance of IJ4JHost");
-    }
-
-    private readonly ProjectionFactory _projFactory;
     private readonly ILogger _logger;
-    private readonly DispatcherQueue _dispatcherQueue;
-    private readonly ThrottleDispatcher _throttleRegionChanges = new();
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
 
-    private IProjection? _projection;
-    private MovementProcessor? _movementProcessor;
-    private ITileCache? _tileMemCache;
-    private ITileCache? _tileFileCache;
-    private bool _cacheIsValid;
     private Grid? _mapGrid;
-    private bool _rotationHintsDefined;
-    private bool _rotationHintsEnabled;
-    private Canvas? _rotationCanvas;
-    private TextBlock? _rotationText;
-    private Line? _rotationLine;
-    private Line? _baseLine;
-    private Image? _compassRose;
-    private Slider? _scaleSlider;
 
     public J4JMapControl()
     {
@@ -92,6 +54,10 @@ public sealed partial class J4JMapControl : Control
          ?? throw new NullReferenceException( "Could not create ProjectionFactory" );
 
         _projFactory.ScanAssemblies();
+
+        _movementProcessor = new MovementProcessor();
+        _movementProcessor.Moved += MovementProcessorOnMoved;
+        _movementProcessor.MovementsEnded += MovementProcessorOnMovementsEnded;
 
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;

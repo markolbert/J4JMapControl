@@ -1,11 +1,19 @@
 using System;
+using System.IO;
+using J4JSoftware.DependencyInjection;
+using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    private ITileCache? _tileMemCache;
+    private ITileCache? _tileFileCache;
+    private bool _cacheIsValid;
+
     public DependencyProperty UseMemoryCacheProperty = DependencyProperty.Register(nameof(UseMemoryCache),
         typeof(bool),
         typeof(J4JMapControl),
@@ -48,6 +56,16 @@ public sealed partial class J4JMapControl
         typeof(string),
         typeof(J4JMapControl),
         new PropertyMetadata(DefaultFileSystemCacheRetention.ToString(), OnCachingChanged));
+
+    private static string GetDefaultFileSystemCachePath()
+    {
+        var hostConfig = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>();
+        if (hostConfig != null)
+            return Path.Combine(hostConfig.ApplicationConfigurationFolder, "map-cache");
+
+        J4JDeusEx.OutputFatalMessage("Could not retrieve instance of IJ4JHost", J4JDeusEx.GetLogger());
+        throw new NullReferenceException("Could not retrieve instance of IJ4JHost");
+    }
 
     private static void OnCachingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {

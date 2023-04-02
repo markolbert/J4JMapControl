@@ -11,17 +11,9 @@ public sealed partial class J4JMapControl
                                                                              typeof(J4JMapControl),
                                                                              new PropertyMetadata( 0.0d));
 
-    public MapRegion? MapRegion { get; private set; }
-
-    public string Center
-    {
-        get => (string) GetValue( CenterProperty );
-        set => SetValue( CenterProperty, value );
-    }
-
     public double MapScale
     {
-        get => (double) GetValue( MapScaleProperty );
+        get => (double)GetValue(MapScaleProperty);
 
         set
         {
@@ -31,28 +23,67 @@ public sealed partial class J4JMapControl
                     ? MaxMapScale
                     : value;
 
-            SetValue( MapScaleProperty, value );
+            SetValue(MapScaleProperty, value);
 
-            MapRegion?.Scale( (int) value );
+            MapRegion?.Scale((int)value);
         }
     }
 
+    public DependencyProperty HeadingProperty = DependencyProperty.Register(nameof(Heading),
+                                                                            typeof(double),
+                                                                            typeof(J4JMapControl),
+                                                                            new PropertyMetadata( 0D));
+
     public double Heading
     {
-        get => (double) GetValue( HeadingProperty );
-        set => SetValue( HeadingProperty, value );
+        get => (double)GetValue(HeadingProperty);
+
+        set
+        {
+            MapRegion?.Heading( (float) value );
+
+            // we call SetValue after updating MapRegion so that
+            // modulus 360 logic can be applied
+            SetValue( HeadingProperty, MapRegion?.Heading ?? value );
+        }
     }
 
-    public DependencyProperty MapRotationProperty = DependencyProperty.Register(
-        nameof(MapRotation),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(0));
+    public DependencyProperty CenterProperty = DependencyProperty.Register(nameof(Center),
+                                                                           typeof(string),
+                                                                           typeof(J4JMapControl),
+                                                                           new PropertyMetadata( "0N, 0W"));
 
-    public double MapRotation
+    public MapRegion? MapRegion { get; private set; }
+
+    public string Center
     {
-        get => (double)GetValue(MapRotationProperty);
-        set => SetValue(MapRotationProperty, value);
+        get => (string) GetValue( CenterProperty );
+
+        set
+        {
+            SetValue( CenterProperty, value );
+
+            if( !Extensions.TryParseToLatLong( value, out var latitude, out var longitude ) )
+                _logger.Error( "Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
+                               value );
+
+            MapRegion?.Center( latitude, longitude );
+        }
     }
 
+    //public DependencyProperty MapRotationProperty = DependencyProperty.Register(
+    //    nameof(MapRotation),
+    //    typeof(double),
+    //    typeof(J4JMapControl),
+    //    new PropertyMetadata(0));
+
+    //public double MapRotation
+    //{
+    //    get => (double)GetValue(MapRotationProperty);
+
+    //    set
+    //    {
+    //        SetValue( MapRotationProperty, value );
+    //    }
+    //}
 }

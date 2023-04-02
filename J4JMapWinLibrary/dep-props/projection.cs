@@ -3,12 +3,20 @@ using System.ComponentModel;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
+using J4JSoftware.WindowsAppUtilities;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    private readonly ProjectionFactory _projFactory;
+    private readonly DispatcherQueue _dispatcherQueue;
+    private readonly ThrottleDispatcher _throttleRegionChanges = new();
+
+    private IProjection? _projection;
+
     public DependencyProperty MapProjectionProperty = DependencyProperty.Register(nameof(MapProjection),
         typeof(string),
         typeof(J4JMapControl),
@@ -52,7 +60,7 @@ public sealed partial class J4JMapControl
         _projection = projResult.Projection!;
         _projection.LoadComplete += (_, _) => _dispatcherQueue.TryEnqueue(LoadMapImages);
 
-        if (!ConverterExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
+        if (!Extensions.TryParseToLatLong(Center, out var latitude, out var longitude))
             _logger.Error("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
 
         if (MapRegion != null)
@@ -66,18 +74,6 @@ public sealed partial class J4JMapControl
                    .Scale( (int) MapScale )
                    .Heading( (float) Heading )
                    .Size( (float) Height, (float) Width );
-
-        if( _movementProcessor != null )
-        {
-            _movementProcessor.Rotated -= OnRotationHint;
-            _movementProcessor.RotationsStarted -= OnRotationHintsStarted;
-            _movementProcessor.RotationsEnded -= OnRotationHintsEnded;
-        }
-
-        _movementProcessor = new MovementProcessor( this, _logger );
-        _movementProcessor.Rotated += OnRotationHint;
-        _movementProcessor.RotationsStarted += OnRotationHintsStarted;
-        _movementProcessor.RotationsEnded += OnRotationHintsEnded;
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
