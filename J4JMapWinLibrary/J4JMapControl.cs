@@ -74,12 +74,16 @@ public sealed partial class J4JMapControl : Control
         _mapGrid = FindUIElement<Grid>( "MapGrid", x=>x.PointerWheelChanged += MapGridOnPointerWheelChanged );
 
         _rotationCanvas = FindUIElement<Canvas>("RotationCanvas");
+        _rotationPanel = FindUIElement<StackPanel>( "RotationPanel" );
         _rotationText = FindUIElement<TextBlock>( "RotationText" );
+        _headingText = FindUIElement<TextBlock>( "HeadingText" );
         _rotationLine = FindUIElement<Line>( "RotationLine" );
         _baseLine = FindUIElement<Line>( "BaseLine" );
 
         _rotationHintsDefined = _rotationCanvas != null
+         && _rotationPanel != null
          && _rotationText != null
+         && _headingText != null
          && _rotationLine != null
          && _baseLine != null;
 

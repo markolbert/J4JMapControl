@@ -25,7 +25,9 @@ public sealed partial class J4JMapControl
     private Point? _firstRotationPoint;
     private float? _firstRotationAngle;
     private Point? _lastTranslationPoint;
+    private StackPanel? _rotationPanel;
     private TextBlock? _rotationText;
+    private TextBlock? _headingText;
     private Line? _rotationLine;
     private Line? _baseLine;
     private Image? _compassRose;
@@ -102,10 +104,11 @@ public sealed partial class J4JMapControl
         _rotationLine.X2 = point.X;
         _rotationLine.Y2 = point.Y;
 
-        Canvas.SetLeft(_rotationText, point.X + 5);
-        Canvas.SetTop(_rotationText, point.Y + 5);
+        Canvas.SetLeft(_rotationPanel, point.X + 5);
+        Canvas.SetTop(_rotationPanel, point.Y + 5);
+        _rotationText!.Text = $"Rotated {deltaRotation:F0}";
 
-        _rotationText!.Text = deltaRotation.ToString("F0");
+        _headingText!.Text = $"Heading {( Heading + deltaRotation ):F0}";
 
         _rotationCanvas!.Visibility = Visibility.Visible;
 

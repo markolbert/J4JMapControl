@@ -69,7 +69,21 @@
                                 Grid.Column="0" Grid.Row="0"
                                 Canvas.ZIndex="2" 
                                 Visibility="Collapsed">
-                            <TextBlock x:Name="RotationText" Foreground="Red" FontWeight="Bold"/>
+                            
+                            <StackPanel x:Name="RotationPanel" 
+                                        Orientation="Vertical">
+                            
+                                <TextBlock x:Name="RotationText" 
+                                           Margin="2"
+                                           Foreground="Red" 
+                                           FontWeight="Bold"/>
+                                
+                                <TextBlock x:Name="HeadingText" 
+                                           Margin="2"
+                                           Foreground="Blue" 
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+
                             <Line x:Name="BaseLine" Stroke="Blue" StrokeThickness="2"/>
                             <Line x:Name="RotationLine" Stroke="Red" StrokeThickness="2"/>
                         </Canvas>
