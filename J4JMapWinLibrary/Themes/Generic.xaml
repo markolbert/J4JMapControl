@@ -43,6 +43,7 @@
 
                             <Image x:Name="CompassRose"
                                    Grid.Column="0" Grid.Row="0"
+                                   Source="{TemplateBinding CompassRoseImage}"
                                    Width="{TemplateBinding CompassRoseHeightWidth}"
                                    Height="{TemplateBinding CompassRoseHeightWidth}"/>
 
