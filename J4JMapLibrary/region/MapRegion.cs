@@ -157,7 +157,7 @@ public class MapRegion : IEnumerable<MapTile>
         internal set => SetField( ref _heading, value % 360 );
     }
 
-    public float Rotation => 360 - Heading;
+    public float Rotation => (360 - Heading) % 360;
 
     public Rectangle2D BoundingBox { get; private set; }
     public int MaximumTiles { get; private set; }
@@ -213,7 +213,7 @@ public class MapRegion : IEnumerable<MapTile>
     public bool IsDefined { get; private set; }
     public MapRegionChange RegionChange { get; private set; }
 
-    public MapRegion Build()
+    public MapRegion Update()
     {
         RegionChange = MapRegionChange.NoChange;
         IsDefined = false;
@@ -231,8 +231,22 @@ public class MapRegion : IEnumerable<MapTile>
         // apply the x/y offsets, if any, and adjust properties accordingly
         if( CenterXOffset != 0 || CenterYOffset != 0 )
         {
-            var xOffset = CenterXOffset == 0 ? (float?) null : CenterXOffset;
-            var yOffset = CenterYOffset == 0 ? (float?) null : CenterYOffset;
+            var adjX = CenterXOffset;
+            var adjY = CenterYOffset;
+
+            if( Heading != 0 )
+            {
+                var offset = new Vector3(CenterXOffset, CenterYOffset, 0);
+                var transform = Matrix4x4.CreateRotationZ( -Rotation * MapConstants.RadiansPerDegree );
+                var rotated = Vector3.Transform( offset, transform );
+
+                adjX = rotated.X;
+                adjY = rotated.Y;
+            }
+
+
+            var xOffset = adjX == 0 ? (float?) null : adjX;
+            var yOffset = adjY == 0 ? (float?) null : adjY;
             Center.OffsetCartesian( xOffset, yOffset );
 
             CenterLatitude = Center.Latitude;
