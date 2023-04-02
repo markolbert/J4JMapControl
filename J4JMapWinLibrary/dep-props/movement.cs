@@ -142,6 +142,8 @@ public sealed partial class J4JMapControl
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
     {
+        e.Handled = true;
+
         CapturePointer( e.Pointer );
 
         _movementProcessor.Enabled = true;
@@ -149,8 +151,10 @@ public sealed partial class J4JMapControl
 
     private void OnPointerMoved( object sender, PointerRoutedEventArgs e )
     {
-        if( PointerCaptures == null
-        || PointerCaptures.All( p => p.PointerId != e.Pointer.PointerId ) )
+        e.Handled = true;
+
+        if ( PointerCaptures == null
+         || PointerCaptures.All( p => p.PointerId != e.Pointer.PointerId ) )
             return;
 
         var controlPressed = InputKeyboardSource
@@ -162,6 +166,7 @@ public sealed partial class J4JMapControl
 
     private void OnPointerReleased( object sender, PointerRoutedEventArgs e )
     {
+        e.Handled = true;
         _movementProcessor.Enabled = false;
 
         ReleasePointerCapture( e.Pointer );
