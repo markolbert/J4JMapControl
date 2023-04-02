@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Text;
+using Windows.Foundation;
 using J4JSoftware.DeusEx;
+using J4JSoftware.J4JMapLibrary;
+using Microsoft.UI.Xaml;
 using Serilog;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-internal static class ConverterExtensions
+public static class Extensions
 {
     private enum DirectionType
     {
@@ -17,10 +20,10 @@ internal static class ConverterExtensions
     private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
     private static readonly ILogger? Logger;
 
-    static ConverterExtensions()
+    static Extensions()
     {
         Logger = J4JDeusEx.GetLogger();
-        Logger?.ForContext( typeof( ConverterExtensions ) );
+        Logger?.ForContext( typeof( Extensions ) );
     }
 
     public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
@@ -179,4 +182,11 @@ internal static class ConverterExtensions
 
         return sb.ToString();
     }
+
+    public static double AngleFromCenter( this FrameworkElement control, Point point ) =>
+        AngleBetweenPoints( new Point( control.ActualWidth / 2, control.ActualHeight / 2 ), point );
+
+    public static double AngleBetweenPoints(Point origin, Point point) =>
+        Math.Atan2(origin.Y - point.Y, point.X - origin.X)
+      * MapConstants.DegreesPerRadian;
 }
