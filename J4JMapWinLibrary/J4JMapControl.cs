@@ -15,6 +15,7 @@ using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Serilog;
@@ -71,6 +72,11 @@ public sealed partial class J4JMapControl : Control
         base.OnApplyTemplate();
 
         _mapGrid = FindUIElement<Grid>( "MapGrid" );
+
+        if( _mapGrid != null )
+        {
+            _mapGrid.PointerWheelChanged += MapGridOnPointerWheelChanged;
+        }
 
         _rotationCanvas = FindUIElement<Canvas>("RotationCanvas");
         _rotationText = FindUIElement<TextBlock>( "RotationText" );

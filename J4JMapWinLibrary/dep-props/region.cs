@@ -1,6 +1,9 @@
+using Windows.Devices.Input;
+using CommunityToolkit.WinUI.Helpers;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -10,6 +13,13 @@ public sealed partial class J4JMapControl
                                                                              typeof(double),
                                                                              typeof(J4JMapControl),
                                                                              new PropertyMetadata( 0.0d));
+
+    private void MapGridOnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        e.Handled = true;
+        var point = e.GetCurrentPoint(this);
+        MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
+    }
 
     public double MapScale
     {
@@ -70,20 +80,4 @@ public sealed partial class J4JMapControl
             MapRegion?.Center( latitude, longitude );
         }
     }
-
-    //public DependencyProperty MapRotationProperty = DependencyProperty.Register(
-    //    nameof(MapRotation),
-    //    typeof(double),
-    //    typeof(J4JMapControl),
-    //    new PropertyMetadata(0));
-
-    //public double MapRotation
-    //{
-    //    get => (double)GetValue(MapRotationProperty);
-
-    //    set
-    //    {
-    //        SetValue( MapRotationProperty, value );
-    //    }
-    //}
 }
