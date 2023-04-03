@@ -9,7 +9,10 @@ using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.IO;
+using System.Linq;
+using System.Numerics;
 using Windows.Foundation;
+using Windows.UI;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
@@ -72,6 +75,7 @@ public sealed partial class J4JMapControl : Control
         base.OnApplyTemplate();
 
         _mapGrid = FindUIElement<Grid>( "MapGrid", x=>x.PointerWheelChanged += MapGridOnPointerWheelChanged );
+        _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas", _ => ValidateAnnotations() );
 
         _rotationCanvas = FindUIElement<Canvas>("RotationCanvas");
         _rotationPanel = FindUIElement<StackPanel>( "RotationPanel" );
@@ -91,24 +95,6 @@ public sealed partial class J4JMapControl : Control
         _scaleSlider = FindUIElement<Slider>("ScaleSlider", x=> x.ValueChanged += ScaleSliderOnValueChanged);
 
         SetMapControlMargins( ControlVerticalMargin );
-    }
-
-    public BitmapImage CompassRoseImage
-    {
-        get => (BitmapImage) GetValue( CompassRoseImageProperty );
-        set => SetValue( CompassRoseImageProperty, value );
-    }
-
-    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register(
-        nameof( CompassRoseImage ),
-        typeof( BitmapImage ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( GetDefaultCompassRoseImage() ) );
-
-    private static BitmapImage GetDefaultCompassRoseImage()
-    {
-        var uri = new Uri("ms-appx:///media/rose.png");
-        return new BitmapImage(uri);
     }
 
     private void ScaleSliderOnValueChanged( object sender, RangeBaseValueChangedEventArgs e )
@@ -180,6 +166,27 @@ public sealed partial class J4JMapControl : Control
         }
 
         InvalidateArrange();
+    }
+
+    private void DisplayAnnotations()
+    {
+        if( _annotationsCanvas == null || MapRegion == null )
+            return;
+
+        _annotationsCanvas.Children.Clear();
+
+        foreach( var element in Annotations )
+        {
+            if( !Location.InRegion( element, MapRegion, out var xOffset, out var yOffset ) )
+                continue;
+
+            Location.TryParseOffset( element, out var offset );
+
+            Canvas.SetLeft( element, xOffset );
+            Canvas.SetTop( element, yOffset);
+
+            _annotationsCanvas.Children.Add( element );
+        }
     }
 
     private void DefineColumns()
