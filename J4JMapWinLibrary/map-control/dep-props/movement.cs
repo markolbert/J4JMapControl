@@ -17,25 +17,31 @@ namespace J4JSoftware.J4JMapWinLibrary;
 public sealed partial class J4JMapControl
 {
     private readonly MovementProcessor _movementProcessor;
+    private Line? _baseLine;
+    private Image? _compassRose;
+    private float? _firstRotationAngle;
+    private Point? _firstRotationPoint;
+    private TextBlock? _headingText;
+    private Point? _lastTranslationPoint;
 
     private Canvas? _rotationCanvas;
     private bool _rotationHintsDefined;
     private bool _rotationHintsEnabled;
-    private Point? _firstRotationPoint;
-    private float? _firstRotationAngle;
-    private Point? _lastTranslationPoint;
+    private Line? _rotationLine;
     private StackPanel? _rotationPanel;
     private TextBlock? _rotationText;
-    private TextBlock? _headingText;
-    private Line? _rotationLine;
-    private Line? _baseLine;
-    private Image? _compassRose;
     private Slider? _scaleSlider;
 
     public DependencyProperty ShowRotationHintsProperty = DependencyProperty.Register( nameof( ShowRotationHints ),
         typeof( bool ),
         typeof( J4JMapControl ),
         new PropertyMetadata( true ) );
+
+    public bool ShowRotationHints
+    {
+        get => (bool) GetValue( ShowRotationHintsProperty );
+        set => SetValue( ShowRotationHintsProperty, value );
+    }
 
     private void MovementProcessorOnMoved( object? sender, Movement e )
     {
@@ -138,12 +144,6 @@ public sealed partial class J4JMapControl
 
         MapRegion!.Offset( (float) xDelta, (float) yDelta );
         MapRegion!.Update();
-    }
-
-    public bool ShowRotationHints
-    {
-        get => (bool) GetValue( ShowRotationHintsProperty );
-        set => SetValue( ShowRotationHintsProperty, value );
     }
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )

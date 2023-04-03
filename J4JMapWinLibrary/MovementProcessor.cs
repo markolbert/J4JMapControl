@@ -4,7 +4,6 @@ using System.Linq;
 using Windows.Foundation;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
-using System.Diagnostics;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -19,13 +18,9 @@ public record Movement( MovementType Type, Point Position );
 
 public class MovementProcessor
 {
-    public event EventHandler<Movement>? Moved;
-    public event EventHandler<MovementType>? MovementsEnded;
-
-    private record KeyedPoint( MovementType MovementType, PointerPoint Point );
+    private readonly Queue<KeyedPoint> _points = new();
 
     private readonly DispatcherTimer _timer = new();
-    private readonly Queue<KeyedPoint> _points = new();
 
     private PointerPoint? _lastProcessed;
     private ulong _lastProcessedTimestamp = ulong.MinValue;
@@ -38,6 +33,8 @@ public class MovementProcessor
 
     public bool Enabled { get; set; }
     public MovementType MovementType { get; private set; } = MovementType.Undefined;
+    public event EventHandler<Movement>? Moved;
+    public event EventHandler<MovementType>? MovementsEnded;
 
     public void AddPoints( IList<PointerPoint> points, bool controlPressed )
     {
@@ -144,4 +141,6 @@ public class MovementProcessor
         _lastProcessed = null;
         MovementType = MovementType.Undefined;
     }
+
+    private record KeyedPoint( MovementType MovementType, PointerPoint Point );
 }

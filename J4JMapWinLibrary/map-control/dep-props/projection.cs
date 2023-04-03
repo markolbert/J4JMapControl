@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -11,8 +10,8 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    private readonly ProjectionFactory _projFactory;
     private readonly DispatcherQueue _dispatcherQueue;
+    private readonly ProjectionFactory _projFactory;
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
 
     private IProjection? _projection;
@@ -21,6 +20,24 @@ public sealed partial class J4JMapControl
         typeof( string ),
         typeof( J4JMapControl ),
         new PropertyMetadata( null, OnMapProjectionChanged ) );
+
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
+                                                                              typeof( string ),
+                                                                              typeof( J4JMapControl ),
+                                                                              new PropertyMetadata( null,
+                                                                                  OnMapProjectionChanged ) );
+
+    public string MapProjection
+    {
+        get => (string) GetValue( MapProjectionProperty );
+        set => SetValue( MapProjectionProperty, value );
+    }
+
+    public string MapStyle
+    {
+        get => (string) GetValue( MapStyleProperty );
+        set => SetValue( MapStyleProperty, value );
+    }
 
     private static void OnMapProjectionChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
@@ -75,23 +92,5 @@ public sealed partial class J4JMapControl
         MaxMapScale = _projection.MaxScale;
 
         MapRegion.Update();
-    }
-
-    public string MapProjection
-    {
-        get => (string) GetValue( MapProjectionProperty );
-        set => SetValue( MapProjectionProperty, value );
-    }
-
-    public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
-                                                                              typeof( string ),
-                                                                              typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( null,
-                                                                                  OnMapProjectionChanged ) );
-
-    public string MapStyle
-    {
-        get => (string) GetValue( MapStyleProperty );
-        set => SetValue( MapStyleProperty, value );
     }
 }

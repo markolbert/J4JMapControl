@@ -9,6 +9,12 @@ public sealed partial class J4JMapControl
         typeof( J4JMapControl ),
         new PropertyMetadata( DefaultUpdateEventInterval, OnUpdateIntervalChanged ) );
 
+    public int UpdateEventInterval
+    {
+        get => (int) GetValue( UpdateEventIntervalProperty );
+        set => SetValue( UpdateEventIntervalProperty, value );
+    }
+
     private static void OnUpdateIntervalChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
         if( d is not J4JMapControl mapControl )
@@ -25,11 +31,5 @@ public sealed partial class J4JMapControl
         }
 
         mapControl.UpdateEventInterval = value;
-    }
-
-    public int UpdateEventInterval
-    {
-        get => (int) GetValue( UpdateEventIntervalProperty );
-        set => SetValue( UpdateEventIntervalProperty, value );
     }
 }

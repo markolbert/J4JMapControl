@@ -1,16 +1,15 @@
-using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public DependencyProperty MinMapScaleProperty = DependencyProperty.Register( nameof( MinMapScale ),
+    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register( nameof( MaxMapScale ),
         typeof( double ),
         typeof( J4JMapControl ),
         new PropertyMetadata( 0.0 ) );
 
-    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register( nameof( MaxMapScale ),
+    public DependencyProperty MinMapScaleProperty = DependencyProperty.Register( nameof( MinMapScale ),
         typeof( double ),
         typeof( J4JMapControl ),
         new PropertyMetadata( 0.0 ) );

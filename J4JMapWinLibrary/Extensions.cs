@@ -10,13 +10,6 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public static class Extensions
 {
-    private enum DirectionType
-    {
-        Latitude,
-        Longitude,
-        Unknown
-    }
-
     private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
     private static readonly ILogger? Logger;
 
@@ -189,7 +182,7 @@ public static class Extensions
         if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var parts = text.Split( new char[] { ',', ' ' } );
+        var parts = text.Split( ',', ' ' );
         if( parts.Length != 2 )
             return false;
 
@@ -209,4 +202,11 @@ public static class Extensions
     public static double AngleBetweenPoints( Point origin, Point point ) =>
         Math.Atan2( origin.Y - point.Y, point.X - origin.X )
       * MapConstants.DegreesPerRadian;
+
+    private enum DirectionType
+    {
+        Latitude,
+        Longitude,
+        Unknown
+    }
 }

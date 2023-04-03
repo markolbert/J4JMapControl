@@ -11,6 +11,28 @@ public sealed partial class MapPin
         typeof( MapPin ),
         new PropertyMetadata( 15D ) );
 
+    public static DependencyProperty TailLengthProperty =
+        DependencyProperty.Register( nameof( TailLength ),
+                                     typeof( double ),
+                                     typeof( MapPin ),
+                                     new PropertyMetadata( 30D ) );
+
+    public static DependencyProperty FillProperty = DependencyProperty.Register( nameof( Fill ),
+        typeof( Brush ),
+        typeof( MapPin ),
+        new PropertyMetadata( new SolidColorBrush( Color.FromArgb( 128, 255, 0, 0 ) ) ) );
+
+    public static DependencyProperty StrokeProperty = DependencyProperty.Register( nameof( Stroke ),
+        typeof( Brush ),
+        typeof( MapPin ),
+        new PropertyMetadata( new SolidColorBrush( Color.FromArgb( 0, 0, 0, 0 ) ) ) );
+
+    public static DependencyProperty StrokeThicknessProperty =
+        DependencyProperty.Register( nameof( StrokeThickness ),
+                                     typeof( double ),
+                                     typeof( MapPin ),
+                                     new PropertyMetadata( 0D ) );
+
     public double ArcRadius
     {
         get => (double) GetValue( ArcRadiusProperty );
@@ -23,12 +45,6 @@ public sealed partial class MapPin
             InitializePin();
         }
     }
-
-    public static DependencyProperty TailLengthProperty =
-        DependencyProperty.Register( nameof( TailLength ),
-                                     typeof( double ),
-                                     typeof( MapPin ),
-                                     new PropertyMetadata( 30D ) );
 
     public double TailLength
     {
@@ -43,33 +59,17 @@ public sealed partial class MapPin
         }
     }
 
-    public static DependencyProperty FillProperty = DependencyProperty.Register( nameof( Fill ),
-        typeof( Brush ),
-        typeof( MapPin ),
-        new PropertyMetadata( new SolidColorBrush( Color.FromArgb( 128, 255, 0, 0 ) ) ) );
-
     public Brush Fill
     {
         get => (Brush) GetValue( FillProperty );
         set => SetValue( FillProperty, value );
     }
 
-    public static DependencyProperty StrokeProperty = DependencyProperty.Register( nameof( Stroke ),
-        typeof( Brush ),
-        typeof( MapPin ),
-        new PropertyMetadata( new SolidColorBrush( Color.FromArgb( 0, 0, 0, 0 ) ) ) );
-
     public Brush Stroke
     {
         get => (Brush) GetValue( StrokeProperty );
         set => SetValue( StrokeProperty, value );
     }
-
-    public static DependencyProperty StrokeThicknessProperty =
-        DependencyProperty.Register( nameof( StrokeThickness ),
-                                     typeof( double ),
-                                     typeof( MapPin ),
-                                     new PropertyMetadata( 0D ) );
 
     public double StrokeThickness
     {

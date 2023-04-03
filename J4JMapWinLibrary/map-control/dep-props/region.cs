@@ -1,27 +1,30 @@
+using System;
+using System.ComponentModel;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
-using System.ComponentModel;
-using System;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public MapRegion? MapRegion { get; private set; }
+    public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
+                                                                            typeof( string ),
+                                                                            typeof( J4JMapControl ),
+                                                                            new PropertyMetadata( "0N, 0W" ) );
+
+    public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
+                                                                             typeof( double ),
+                                                                             typeof( J4JMapControl ),
+                                                                             new PropertyMetadata( 0D ) );
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( double ),
                                                                               typeof( J4JMapControl ),
                                                                               new PropertyMetadata( 0.0d ) );
 
-    private void MapGridOnPointerWheelChanged( object sender, PointerRoutedEventArgs e )
-    {
-        e.Handled = true;
-        var point = e.GetCurrentPoint( this );
-        MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
-    }
+    public MapRegion? MapRegion { get; private set; }
 
     public double MapScale
     {
@@ -41,11 +44,6 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
-                                                                             typeof( double ),
-                                                                             typeof( J4JMapControl ),
-                                                                             new PropertyMetadata( 0D ) );
-
     public double Heading
     {
         get => (double) GetValue( HeadingProperty );
@@ -61,11 +59,6 @@ public sealed partial class J4JMapControl
             PositionCompassRose();
         }
     }
-
-    public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
-                                                                            typeof( string ),
-                                                                            typeof( J4JMapControl ),
-                                                                            new PropertyMetadata( "0N, 0W" ) );
 
     public string Center
     {
@@ -83,6 +76,13 @@ public sealed partial class J4JMapControl
 
             MapRegion?.Center( latitude, longitude );
         }
+    }
+
+    private void MapGridOnPointerWheelChanged( object sender, PointerRoutedEventArgs e )
+    {
+        e.Handled = true;
+        var point = e.GetCurrentPoint( this );
+        MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
     }
 
     private void MapRegionBuildUpdated( object? sender, RegionBuildResults e )

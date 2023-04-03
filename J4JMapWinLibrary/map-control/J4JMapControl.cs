@@ -3,27 +3,21 @@
 
 using System;
 using System.ComponentModel;
-using Microsoft.UI.Xaml.Controls;
+using System.IO;
+using Windows.Foundation;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml.Media.Imaging;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using Windows.Foundation;
-using Windows.UI;
-using J4JSoftware.DependencyInjection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Serilog;
-using DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue;
-using Path = System.IO.Path;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -34,11 +28,11 @@ public sealed partial class J4JMapControl : Control
 {
     private const int DefaultMemoryCacheSize = 1000000;
     private const int DefaultMemoryCacheEntries = 500;
-    private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
-    private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
     private const int DefaultUpdateEventInterval = 250;
+    private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
+    private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
 
     private readonly ILogger _logger;
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
@@ -124,9 +118,9 @@ public sealed partial class J4JMapControl : Control
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        transforms.Children.Add( new TranslateTransform() { X = update.Translation.X, Y = update.Translation.Y } );
+        transforms.Children.Add( new TranslateTransform { X = update.Translation.X, Y = update.Translation.Y } );
 
-        transforms.Children.Add( new RotateTransform()
+        transforms.Children.Add( new RotateTransform
         {
             Angle = update.Rotation, CenterX = ActualWidth / 2, CenterY = ActualHeight / 2
         } );
@@ -214,7 +208,7 @@ public sealed partial class J4JMapControl : Control
 
         for( var row = 0; row < MapRegion.TilesHigh; row++ )
         {
-            _mapGrid.RowDefinitions.Add( new RowDefinition() { Height = cellHeight } );
+            _mapGrid.RowDefinitions.Add( new RowDefinition { Height = cellHeight } );
         }
     }
 

@@ -13,6 +13,12 @@ public class Location : DependencyObject
                                              typeof( Location ),
                                              new PropertyMetadata( null ) );
 
+    public static DependencyProperty OffsetProperty =
+        DependencyProperty.RegisterAttached( "Offset",
+                                             typeof( string ),
+                                             typeof( Location ),
+                                             new PropertyMetadata( "0,0" ) );
+
     public static string GetCenter( UIElement element ) => (string) element.GetValue( CenterProperty );
 
     public static void SetCenter( UIElement element, string value ) => element.SetValue( CenterProperty, value );
@@ -26,12 +32,6 @@ public class Location : DependencyObject
 
         return !string.IsNullOrEmpty( center ) && Extensions.TryParseToLatLong( center, out latitude, out longitude );
     }
-
-    public static DependencyProperty OffsetProperty =
-        DependencyProperty.RegisterAttached( "Offset",
-                                             typeof( string ),
-                                             typeof( Location ),
-                                             new PropertyMetadata( "0,0" ) );
 
     public static string GetOffset( UIElement element ) => (string) element.GetValue( OffsetProperty );
 

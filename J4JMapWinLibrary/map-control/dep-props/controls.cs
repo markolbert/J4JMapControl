@@ -7,6 +7,50 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register( nameof( CompassRoseImage ),
+        typeof( BitmapImage ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( GetDefaultCompassRoseImage() ) );
+
+    public DependencyProperty CompassRoseHeightWidthProperty = DependencyProperty.Register(
+        nameof( CompassRoseHeightWidth ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 100D ) );
+
+    public DependencyProperty ControlBackgroundOpacityProperty = DependencyProperty.Register(
+        nameof( ControlBackgroundOpacity ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0.6 ) );
+
+    public DependencyProperty ControlBackgroundProperty = DependencyProperty.Register( nameof( ControlBackground ),
+        typeof( Color ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0 ) );
+
+    public DependencyProperty ControlVerticalMarginProperty = DependencyProperty.Register(
+        nameof( ControlVerticalMargin ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 5D ) );
+
+    public DependencyProperty ControlVisibilityProperty = DependencyProperty.Register( nameof( ControlVisibility ),
+        typeof( bool ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( true ) );
+
+    public DependencyProperty HorizontalControlAlignmentProperty = DependencyProperty.Register(
+        nameof( HorizontalControlAlignment ),
+        typeof( HorizontalAlignment ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( HorizontalAlignment.Right ) );
+
+    public DependencyProperty LargeMapScaleChangeProperty = DependencyProperty.Register( nameof( LargeMapScaleChange ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0.6 ) );
+
     public DependencyProperty VerticalControlAlignmentProperty = DependencyProperty.Register(
         nameof( VerticalControlAlignment ),
         typeof( VerticalAlignment ),
@@ -19,22 +63,11 @@ public sealed partial class J4JMapControl
         set => SetValue( VerticalControlAlignmentProperty, value );
     }
 
-    public DependencyProperty HorizontalControlAlignmentProperty = DependencyProperty.Register(
-        nameof( HorizontalControlAlignment ),
-        typeof( HorizontalAlignment ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( HorizontalAlignment.Right ) );
-
     public HorizontalAlignment HorizontalControlAlignment
     {
         get => (HorizontalAlignment) GetValue( HorizontalControlAlignmentProperty );
         set => SetValue( HorizontalControlAlignmentProperty, value );
     }
-
-    public DependencyProperty ControlVisibilityProperty = DependencyProperty.Register( nameof( ControlVisibility ),
-        typeof( bool ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( true ) );
 
     public bool ControlVisibility
     {
@@ -48,33 +81,11 @@ public sealed partial class J4JMapControl
         set => SetValue( CompassRoseImageProperty, value );
     }
 
-    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register( nameof( CompassRoseImage ),
-        typeof( BitmapImage ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( GetDefaultCompassRoseImage() ) );
-
-    private static BitmapImage GetDefaultCompassRoseImage()
-    {
-        var uri = new Uri( "ms-appx:///media/rose.png" );
-        return new BitmapImage( uri );
-    }
-
-    public DependencyProperty CompassRoseHeightWidthProperty = DependencyProperty.Register(
-        nameof( CompassRoseHeightWidth ),
-        typeof( double ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 100D ) );
-
     public double CompassRoseHeightWidth
     {
         get => (double) GetValue( CompassRoseHeightWidthProperty );
         set => SetValue( CompassRoseHeightWidthProperty, value );
     }
-
-    public DependencyProperty ControlBackgroundProperty = DependencyProperty.Register( nameof( ControlBackground ),
-        typeof( Color ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 0 ) );
 
     public Color ControlBackground
     {
@@ -82,22 +93,11 @@ public sealed partial class J4JMapControl
         set => SetValue( ControlBackgroundProperty, value );
     }
 
-    public DependencyProperty ControlBackgroundOpacityProperty = DependencyProperty.Register(
-        nameof( ControlBackgroundOpacity ),
-        typeof( double ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 0.6 ) );
-
     public double ControlBackgroundOpacity
     {
         get => (double) GetValue( ControlBackgroundOpacityProperty );
         set => SetValue( ControlBackgroundOpacityProperty, value );
     }
-
-    public DependencyProperty LargeMapScaleChangeProperty = DependencyProperty.Register( nameof( LargeMapScaleChange ),
-        typeof( double ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 0.6 ) );
 
     public double LargeMapScaleChange
     {
@@ -110,12 +110,6 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public DependencyProperty ControlVerticalMarginProperty = DependencyProperty.Register(
-        nameof( ControlVerticalMargin ),
-        typeof( double ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 5D ) );
-
     public double ControlVerticalMargin
     {
         get => (double) GetValue( ControlVerticalMarginProperty );
@@ -125,6 +119,12 @@ public sealed partial class J4JMapControl
             SetValue( ControlVerticalMarginProperty, value );
             SetMapControlMargins( value );
         }
+    }
+
+    private static BitmapImage GetDefaultCompassRoseImage()
+    {
+        var uri = new Uri( "ms-appx:///media/rose.png" );
+        return new BitmapImage( uri );
     }
 
     private void SetMapControlMargins( double value )
