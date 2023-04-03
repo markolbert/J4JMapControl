@@ -56,7 +56,7 @@ public abstract class CacheBase : ITileCache
             return await ParentCache.LoadImageAsync( mapTile, ctx );
 
         Logger.Verbose( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
-                        this.GetType(),
+                        GetType(),
                         mapTile.Region.Projection.Name,
                         mapTile.X,
                         mapTile.Y );

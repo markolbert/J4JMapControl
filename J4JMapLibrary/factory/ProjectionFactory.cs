@@ -150,14 +150,12 @@ public class ProjectionFactory
         string? credentialsName = null,
         bool authenticate = true
     )
-        where TProj : IProjection
-    {
-        return await CreateProjectionAsync( typeof( TProj ),
-                                            cache,
-                                            serverName,
-                                            credentialsName,
-                                            authenticate );
-    }
+        where TProj : IProjection =>
+        await CreateProjectionAsync( typeof( TProj ),
+                                     cache,
+                                     serverName,
+                                     credentialsName,
+                                     authenticate );
 
     public ProjectionFactoryResult CreateProjection(
         Type projType,
@@ -238,13 +236,13 @@ public class ProjectionFactory
 
         for( var idx = 0; idx < ctorInfo.ParameterTypes.Count; idx++ )
         {
-            args[ idx ] = ( ctorInfo.ParameterTypes[ idx ] switch
+            args[ idx ] = ctorInfo.ParameterTypes[ idx ] switch
             {
                 ProjectionCtorParameterType.Cache => cache,
                 ProjectionCtorParameterType.Logger => _logger,
                 _ => throw new InvalidEnumArgumentException(
                     $"Unsupported {typeof( ProjectionCtorParameterType )} value '{ctorInfo.ParameterTypes[ idx ]}'" )
-            } );
+            };
         }
 
         try
@@ -280,17 +278,21 @@ public class ProjectionFactory
             if( string.IsNullOrEmpty( credentialsName ) )
                 _logger.Warning<string>( "No valid credentials type supporting '{0}' projection found", projInfo.Name );
             else
+            {
                 _logger.Warning<string, string>(
                     "No credentials type named '{0}' found, and no other credentials supporting '{1}' projection found",
                     credentialsName,
                     projInfo.Name );
+            }
         }
 
         if( credTypes.Count > 1 )
+        {
             _logger.Warning<string, string>(
                 "Multiple credentials types supporting '{0}' projection found, using {1} credentials type",
                 projInfo.Name,
                 credType?.Name ?? "Default" );
+        }
 
         if( credType == null )
         {
