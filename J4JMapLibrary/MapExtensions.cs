@@ -16,28 +16,20 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text;
-using J4JSoftware.DeusEx;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapExtensions
 {
-    private static readonly ILogger? Logger;
     private static readonly char[] ValidQuadKeyCharacters = { '0', '1', '2', '3' };
-
-    static MapExtensions()
-    {
-        Logger = J4JDeusEx.GetLogger();
-        Logger?.ForContext( typeof( MapExtensions ) );
-    }
 
     public static ProjectionType GetProjectionType( this IProjection projection ) =>
         projection.GetType().GetInterface( nameof( ITiledProjection ) ) == null
             ? ProjectionType.Static
             : ProjectionType.Tiled;
 
-    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale )
+    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale, ILogger? logger )
     {
         var tileRange = projection.GetTileRange( scale );
         var x = tileRange.ConformValueToRange( xTile, "GetQuadKey X Tile" );
@@ -45,7 +37,7 @@ public static class MapExtensions
 
         if( x != xTile || y != yTile )
         {
-            Logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
+            logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
                            xTile,
                            yTile,
                            scale );
@@ -80,18 +72,12 @@ public static class MapExtensions
         result = null;
 
         if( quadKey.Length < 1 )
-        {
-            Logger?.Error( "Empty quadkey string" );
             return false;
-        }
 
         result = new DeconstructedQuadKey { Scale = quadKey.Length };
 
         if( !quadKey.Any( x => ValidQuadKeyCharacters.Any( y => y == x ) ) )
-        {
-            Logger?.Error( "Invalid characters in quadkey string" );
             return false;
-        }
 
         var levelOfDetail = quadKey.Length;
 
@@ -115,10 +101,6 @@ public static class MapExtensions
                     result.XTile |= mask;
                     result.YTile |= mask;
                     break;
-
-                default:
-                    Logger?.Error( "Unexpected quadkey character '{0}'", quadKey[ levelOfDetail - 1 ] );
-                    break;
             }
         }
 
@@ -128,10 +110,7 @@ public static class MapExtensions
     public static string LatitudeToText( float value, int decimals = 5 )
     {
         if( decimals < 0 )
-        {
-            Logger?.Error( "Trying to set number of decimal digits < 0, defaulting to 5" );
             decimals = 5;
-        }
 
         var ns = value < 0 ? "S" : "N";
 
@@ -145,10 +124,7 @@ public static class MapExtensions
     public static string LongitudeToText( float value, int decimals = 5 )
     {
         if( decimals < 0 )
-        {
-            Logger?.Error( "Trying to set number of decimal digits < 0, defaulting to 5" );
             decimals = 5;
-        }
 
         var ew = value < 0 ? "W" : "E";
 

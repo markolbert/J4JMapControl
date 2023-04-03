@@ -30,7 +30,6 @@ public class MapRegion : IEnumerable<MapTile>
 
     private float _latitude;
     private float _longitude;
-    private float _oldRotation = 360;
     private int _oldScale;
     private float _requestedHeight;
     private float _requestedWidth;
@@ -42,10 +41,10 @@ public class MapRegion : IEnumerable<MapTile>
     public MapRegion(
 #pragma warning restore CS8618
         IProjection projection,
-        ILogger logger
+        ILogger? logger
     )
     {
-        Logger = logger.ForContext<MapRegion>();
+        Logger = logger?.ForContext<MapRegion>();
 
         Projection = projection;
         ProjectionType = Projection.GetProjectionType();
@@ -56,7 +55,7 @@ public class MapRegion : IEnumerable<MapTile>
         UpdateEmpty();
     }
 
-    protected internal ILogger Logger { get; }
+    protected internal ILogger? Logger { get; }
 
     public IProjection Projection { get; }
     public ProjectionType ProjectionType { get; }
@@ -295,7 +294,6 @@ public class MapRegion : IEnumerable<MapTile>
 
         Changed = false;
         _oldScale = Scale;
-        _oldRotation = Rotation;
 
         BuildUpdated?.Invoke( this, new RegionBuildResults( RegionChange, ViewpointOffset, Rotation ) );
 

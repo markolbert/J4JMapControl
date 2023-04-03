@@ -141,19 +141,19 @@ public partial class MapTile : Tile
         if( !InProjection )
             return null;
 
-        Logger.Verbose( "Beginning image retrieval from web" );
+        Logger?.Verbose( "Beginning image retrieval from web" );
 
         var request = Region.Projection.CreateMessage( this );
         if( request == null )
         {
-            Logger.Error( "Could not create HttpRequestMessage for mapTile ({0})", FragmentId );
+            Logger?.Error("Could not create HttpRequestMessage for mapTile ({0})", FragmentId);
             return null;
         }
 
         var uriText = request.RequestUri!.AbsoluteUri;
         var httpClient = new HttpClient();
 
-        Logger.Verbose( "Querying {0}", uriText );
+        Logger?.Verbose("Querying {0}", uriText);
 
         HttpResponseMessage? response;
 
@@ -165,27 +165,25 @@ public partial class MapTile : Tile
                                   .WaitAsync( TimeSpan.FromMilliseconds( Region.Projection.MaxRequestLatency ),
                                               ctx );
 
-            Logger.Verbose( "Got response from {0}", uriText );
+            Logger?.Verbose("Got response from {0}", uriText);
         }
         catch( Exception ex )
         {
-            Logger.Error( "Image request from {0} failed, message was '{1}'",
-                          request.RequestUri,
-                          ex.Message );
+            Logger?.Error( "Image request from {0} failed, message was '{1}'", request.RequestUri, ex.Message );
             return null;
         }
 
         if( response.StatusCode != HttpStatusCode.OK )
         {
-            Logger.Error( "Image request from {0} failed with response code {1}, message was '{2}'",
-                          uriText,
-                          response.StatusCode,
-                          await response.Content.ReadAsStringAsync( ctx ) );
+            Logger?.Error( "Image request from {0} failed with response code {1}, message was '{2}'",
+                           uriText,
+                           response.StatusCode,
+                           await response.Content.ReadAsStringAsync( ctx ) );
 
             return null;
         }
 
-        Logger.Verbose( "Reading response from {0}", uriText );
+        Logger?.Verbose("Reading response from {0}", uriText);
 
         // extract image data from response
         try
@@ -203,9 +201,9 @@ public partial class MapTile : Tile
         }
         catch( Exception ex )
         {
-            Logger.Error( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
-                          response.RequestMessage!.RequestUri!,
-                          ex.Message );
+            Logger?.Error( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
+                           response.RequestMessage!.RequestUri!,
+                           ex.Message );
 
             return null;
         }

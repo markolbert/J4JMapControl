@@ -12,7 +12,7 @@ public class Tile
     )
     {
         Region = region;
-        Logger = region.Logger.ForContext<MapTile>();
+        Logger = region.Logger?.ForContext<MapTile>();
 
         ( X, Y ) = region.ProjectionType switch
         {
@@ -23,7 +23,7 @@ public class Tile
         };
     }
 
-    protected ILogger Logger { get; }
+    protected ILogger? Logger { get; }
 
     public MapRegion Region { get; }
 

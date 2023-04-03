@@ -70,7 +70,7 @@ public sealed partial class J4JMapControl
 
             if( !Extensions.TryParseToLatLong( value, out var latitude, out var longitude ) )
             {
-                _logger.Error( "Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
+                Logger?.Error( "Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
                                value );
             }
 

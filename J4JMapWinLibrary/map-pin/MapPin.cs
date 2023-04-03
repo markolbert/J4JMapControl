@@ -4,13 +4,11 @@
 using System;
 using System.Numerics;
 using Windows.Foundation;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
-using Serilog;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -19,16 +17,11 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class MapPin : Control
 {
-    private readonly ILogger _logger;
-
     private Path? _pinPath;
 
     public MapPin()
     {
         DefaultStyleKey = typeof( MapPin );
-
-        _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain ILogger instance" );
-        _logger.ForContext( GetType() );
     }
 
     protected override void OnApplyTemplate()
@@ -44,9 +37,8 @@ public sealed partial class MapPin : Control
         where T : UIElement
     {
         var retVal = GetTemplateChild( name ) as T;
-        if( retVal == null )
-            _logger.Error( "Couldn't find {0}", name );
-        else postProcessor?.Invoke( retVal );
+        if( retVal != null )
+            postProcessor?.Invoke( retVal );
 
         return retVal;
     }

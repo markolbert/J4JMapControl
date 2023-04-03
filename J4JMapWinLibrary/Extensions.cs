@@ -1,23 +1,14 @@
 ﻿using System;
 using System.Text;
 using Windows.Foundation;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Xaml;
-using Serilog;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public static class Extensions
 {
     private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
-    private static readonly ILogger? Logger;
-
-    static Extensions()
-    {
-        Logger = J4JDeusEx.GetLogger();
-        Logger?.ForContext( typeof( Extensions ) );
-    }
 
     public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
     {
@@ -29,10 +20,7 @@ public static class Extensions
 
         var parts = text.Split( new[] { ',' } );
         if( parts.Length != 2 )
-        {
-            Logger?.Error( "Could not parse location text, missing ','" );
             return false;
-        }
 
         if( !TryParseDirection( parts[ 0 ], out var dir1, out var dirType1 ) )
             return false;
@@ -99,16 +87,9 @@ public static class Extensions
         }
 
         if( latitude is < -90 or > 90 )
-        {
-            Logger?.Error( "Invalid latitude value ({0})", text );
             return false;
-        }
 
-        if( longitude >= -180 && longitude <= 180 )
-            return true;
-
-        Logger?.Error( "Invalid longitude value ({0})", text );
-        return false;
+        return longitude >= -180 && longitude <= 180;
     }
 
     private static bool TryParseDirection( string? text, out float direction, out DirectionType dirType )
@@ -154,14 +135,11 @@ public static class Extensions
             break;
         }
 
-        if( float.TryParse( text, out direction ) )
-        {
-            direction *= sign;
-            return true;
-        }
+        if( !float.TryParse( text, out direction ) )
+            return false;
 
-        Logger?.Error( "Could not parse direction string '{0}'", text );
-        return false;
+        direction *= sign;
+        return true;
     }
 
     public static string ConvertToLatLongText( float latitude, float longitude )

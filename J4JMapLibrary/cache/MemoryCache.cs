@@ -25,7 +25,7 @@ public class MemoryCache : CacheBase
     private readonly Dictionary<string, CachedTile> _cached = new( StringComparer.OrdinalIgnoreCase );
 
     public MemoryCache(
-        ILogger logger
+        ILogger? logger
     )
         : base( logger )
     {
@@ -101,7 +101,7 @@ public class MemoryCache : CacheBase
     {
         if( !await mapTile.LoadImageAsync( ctx ) )
         {
-            Logger.Error( "Failed to retrieve image data" );
+            Logger?.Error("Failed to retrieve image data");
             return false;
         }
 
@@ -111,7 +111,7 @@ public class MemoryCache : CacheBase
 
         if( _cached.ContainsKey( key ) )
         {
-            Logger.Warning( "Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId );
+            Logger?.Warning("Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId);
             _cached[ key ] = cacheEntry;
 
             Stats.Initialize( this );

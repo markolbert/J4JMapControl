@@ -24,14 +24,14 @@ namespace J4JSoftware.J4JMapLibrary;
 public abstract class CacheBase : ITileCache
 {
     protected CacheBase(
-        ILogger logger
+        ILogger? logger
     )
     {
         Logger = logger;
-        Logger.ForContext( GetType() );
+        Logger?.ForContext( GetType() );
     }
 
-    protected ILogger Logger { get; }
+    protected ILogger? Logger { get; }
 
     public int MaxEntries { get; set; }
     public long MaxBytes { get; set; }
@@ -55,11 +55,11 @@ public abstract class CacheBase : ITileCache
         if( ParentCache != null )
             return await ParentCache.LoadImageAsync( mapTile, ctx );
 
-        Logger.Verbose( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
-                        GetType(),
-                        mapTile.Region.Projection.Name,
-                        mapTile.X,
-                        mapTile.Y );
+        Logger?.Verbose( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
+                         GetType(),
+                         mapTile.Region.Projection.Name,
+                         mapTile.X,
+                         mapTile.Y );
 
         return false;
     }

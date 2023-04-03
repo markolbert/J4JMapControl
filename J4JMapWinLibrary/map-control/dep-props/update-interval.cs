@@ -25,7 +25,7 @@ public sealed partial class J4JMapControl
 
         if( value < 0 )
         {
-            mapControl._logger.Warning( "Tried to set UpdateEventInterval < 0, defaulting to {0}",
+            mapControl.Logger?.Warning( "Tried to set UpdateEventInterval < 0, defaulting to {0}",
                                         DefaultUpdateEventInterval );
             value = DefaultUpdateEventInterval;
         }

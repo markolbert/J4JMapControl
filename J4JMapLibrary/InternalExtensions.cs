@@ -17,21 +17,11 @@
 
 using System.Numerics;
 using System.Text;
-using J4JSoftware.DeusEx;
-using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 internal static class InternalExtensions
 {
-    private static readonly ILogger? Logger;
-
-    static InternalExtensions()
-    {
-        Logger = J4JDeusEx.GetLogger();
-        Logger?.ForContext( typeof( InternalExtensions ) );
-    }
-
     // thanx to 3dGrabber for this
     // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
     internal static int Pow( int numBase, int exp ) =>
@@ -63,15 +53,11 @@ internal static class InternalExtensions
         where T : struct, IComparable
     {
         if( toCheck.CompareTo( range.Minimum ) < 0 )
-        {
-            Logger?.Warning( "{0} ({1}) < minimum ({2}), capping", name, toCheck, range.Minimum );
             return range.Minimum;
-        }
 
         if( toCheck.CompareTo( range.Maximum ) <= 0 )
             return toCheck;
 
-        Logger?.Warning( "{0} ({1}) > maximum ({2}), capping", name, toCheck, range.Maximum );
         return range.Maximum;
     }
 
