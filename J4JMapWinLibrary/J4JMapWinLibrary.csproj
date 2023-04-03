@@ -51,7 +51,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\ProgrammingUtilities\DeusWinApp\DeusWinApp.csproj" />
 	  <ProjectReference Include="..\..\ProgrammingUtilities\VisualUtilities\VisualUtilities.csproj" />
 	  <ProjectReference Include="..\..\ProgrammingUtilities\WindowsUtilities\WindowsUtilities.csproj" />
 	  <ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
