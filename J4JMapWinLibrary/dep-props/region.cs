@@ -1,5 +1,3 @@
-using Windows.Devices.Input;
-using CommunityToolkit.WinUI.Helpers;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
