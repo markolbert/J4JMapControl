@@ -94,11 +94,13 @@ public sealed partial class J4JMapControl
 
             case MapRegionChange.OffsetChanged:
                 SetImagePanelTransforms(e);
+                DisplayAnnotations();
                 break;
 
             case MapRegionChange.LoadRequired:
                 _projection!.LoadRegionAsync(MapRegion!);
                 SetImagePanelTransforms(e);
+                DisplayAnnotations();
                 break;
 
             default:
