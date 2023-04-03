@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -11,11 +11,10 @@ internal record ProjectionTypeInfo
 
     public ProjectionTypeInfo(
         Type projType,
-        ILogger? logger
+        ILoggerFactory? loggerFactory = null
     )
     {
-        _logger = logger;
-        _logger?.ForContext( GetType() );
+        _logger = loggerFactory?.CreateLogger<ProjectionTypeInfo>();
 
         var attr = projType.GetCustomAttribute<ProjectionAttribute>( false )
          ?? throw new NullReferenceException( $"{projType} is not decorated with a {typeof( ProjectionAttribute )}" );
@@ -27,7 +26,7 @@ internal record ProjectionTypeInfo
         InitializeCtorParameters();
 
         if( !ConstructorInfo.Any() )
-            _logger?.Error( "No supported constructors found for {0}", projType );
+            _logger?.LogError( "No supported constructors found for {0}", projType );
     }
 
     public string Name { get; init; }
@@ -49,9 +48,9 @@ internal record ProjectionTypeInfo
 
             foreach( var ctorParameter in ctor.GetParameters() )
             {
-                if( ctorParameter.ParameterType.IsAssignableTo( typeof( ILogger ) ) )
+                if( ctorParameter.ParameterType.IsAssignableTo( typeof( ILoggerFactory ) ) )
                 {
-                    ctorParameters.Add( ProjectionCtorParameterType.Logger );
+                    ctorParameters.Add( ProjectionCtorParameterType.LoggerFactory );
                     continue;
                 }
 
@@ -66,7 +65,7 @@ internal record ProjectionTypeInfo
 
             if( ctorParameters.Count == requiredCount )
                 ConstructorInfo.Add( new ProjectionCtorInfo( supportsCaching, ctorParameters ) );
-            else _logger?.Warning( "Found unsupported public constructor taking {0} parameters", ctorParameters.Count );
+            else _logger?.LogWarning( "Found unsupported public constructor taking {0} parameters", ctorParameters.Count );
         }
     }
 }

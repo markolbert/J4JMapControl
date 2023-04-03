@@ -43,7 +43,7 @@ public class ExtractTests : TestBase
         projection!.Initialized.Should().BeTrue();
         projection.MaxRequestLatency = 0;
 
-        var region = new MapRegion( projection, Logger )
+        var region = new MapRegion( projection, LoggerFactory )
                     .Center( latitude, longitude )
                     .Heading( heading )
                     .Size( height, width )

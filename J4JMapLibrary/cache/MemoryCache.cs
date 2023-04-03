@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -25,7 +25,7 @@ public class MemoryCache : CacheBase
     private readonly Dictionary<string, CachedTile> _cached = new( StringComparer.OrdinalIgnoreCase );
 
     public MemoryCache(
-        ILogger? logger
+        ILoggerFactory? logger = null
     )
         : base( logger )
     {
@@ -101,7 +101,7 @@ public class MemoryCache : CacheBase
     {
         if( !await mapTile.LoadImageAsync( ctx ) )
         {
-            Logger?.Error("Failed to retrieve image data");
+            Logger?.LogError("Failed to retrieve image data");
             return false;
         }
 
@@ -111,7 +111,7 @@ public class MemoryCache : CacheBase
 
         if( _cached.ContainsKey( key ) )
         {
-            Logger?.Warning("Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId);
+            Logger?.LogWarning("Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId);
             _cached[ key ] = cacheEntry;
 
             Stats.Initialize( this );

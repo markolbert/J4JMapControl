@@ -18,7 +18,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -26,9 +26,9 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 {
     public GoogleMapsProjection(
-        ILogger logger
+        ILoggerFactory? loggerFactory = null
     )
-        : base( logger )
+        : base( loggerFactory )
     {
         MinScale = 0;
         MaxScale = 20;
@@ -87,7 +87,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     {
         if( !Initialized )
         {
-            Logger.Error( "Trying to create image retrieval HttpRequestMessage when uninitialized" );
+            Logger?.LogError( "Trying to create image retrieval HttpRequestMessage when uninitialized" );
             return null;
         }
 

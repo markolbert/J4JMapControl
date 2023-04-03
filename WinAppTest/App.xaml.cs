@@ -4,7 +4,8 @@
 using Microsoft.UI.Xaml;
 using System;
 using J4JSoftware.DeusEx;
-using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,10 +28,10 @@ public partial class App : Application
             throw new InvalidOperationException("Could not initialize J4JDeusEx");
         }
 
-        Logger= J4JDeusEx.GetLogger<App>();
+        LoggerFactory = J4JDeusEx.ServiceProvider.GetService<ILoggerFactory>();
     }
 
-    public ILogger? Logger { get; }
+    public ILoggerFactory? LoggerFactory { get; }
 
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {

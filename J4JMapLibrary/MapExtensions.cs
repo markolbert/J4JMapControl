@@ -16,7 +16,6 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text;
-using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -29,21 +28,14 @@ public static class MapExtensions
             ? ProjectionType.Static
             : ProjectionType.Tiled;
 
-    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale, ILogger? logger )
+    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale )
     {
         var tileRange = projection.GetTileRange( scale );
         var x = tileRange.ConformValueToRange( xTile, "GetQuadKey X Tile" );
         var y = tileRange.ConformValueToRange( yTile, "GetQuadKey Y Tile" );
 
         if( x != xTile || y != yTile )
-        {
-            logger?.Error( "Tile coordinates ({0}, {1}) are inconsistent with projection's scale {2}",
-                           xTile,
-                           yTile,
-                           scale );
-
             return null;
-        }
 
         var retVal = new StringBuilder();
 

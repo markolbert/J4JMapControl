@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -26,9 +26,9 @@ public class FileSystemCache : CacheBase
     private string? _cacheDir;
 
     public FileSystemCache(
-        ILogger? logger
+        ILoggerFactory? loggerFactory = null
     )
-        : base( logger )
+        : base( loggerFactory )
     {
     }
 
@@ -53,7 +53,7 @@ public class FileSystemCache : CacheBase
             }
             catch
             {
-                Logger?.Error("Cache path '{0}' is not accessible", value);
+                Logger?.LogError("Cache path '{0}' is not accessible", value);
             }
         }
     }
@@ -62,7 +62,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.Error("Caching directory is undefined");
+            Logger?.LogError("Caching directory is undefined");
             return;
         }
 
@@ -91,7 +91,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.Error("Caching directory is undefined");
+            Logger?.LogError("Caching directory is undefined");
             return;
         }
 
@@ -142,7 +142,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.Error("Caching directory is undefined");
+            Logger?.LogError("Caching directory is undefined");
             return false;
         }
 
@@ -161,7 +161,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.Error("Caching directory is undefined");
+            Logger?.LogError("Caching directory is undefined");
             return false;
         }
 
@@ -171,12 +171,12 @@ public class FileSystemCache : CacheBase
 
         if( !await mapTile.LoadImageAsync( ctx ) )
         {
-            Logger?.Error("Failed to retrieve image data");
+            Logger?.LogError("Failed to retrieve image data");
             return false;
         }
 
         if( File.Exists( filePath ) )
-            Logger?.Warning("Replacing map mapFragment with mapTile ID '{0}'", mapTile.FragmentId);
+            Logger?.LogWarning("Replacing map mapFragment with mapTile ID '{0}'", mapTile.FragmentId);
 
         await using var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( mapTile.ImageData, ctx );
@@ -194,7 +194,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.Error("Caching directory is undefined");
+            Logger?.LogError("Caching directory is undefined");
             yield break;
         }
 
@@ -210,13 +210,13 @@ public class FileSystemCache : CacheBase
 
             if( parts.Length != 2 )
             {
-                Logger?.Error("Unable to parse cached filename '{0}'", fileName);
+                Logger?.LogError("Unable to parse cached filename '{0}'", fileName);
                 continue;
             }
 
             if( !MapExtensions.TryParseQuadKey( parts[ 1 ], out _ ) )
             {
-                Logger?.Error("Could not deconstruct quadkey for file '{0}'", fileName);
+                Logger?.LogError("Could not deconstruct quadkey for file '{0}'", fileName);
                 continue;
             }
 

@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -24,10 +24,10 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredentials>
 {
     public OpenStreetMapsProjection(
-        ILogger logger,
+        ILoggerFactory? loggerFactory=null,
         ITileCache? tileCache = null
     )
-        : base( logger )
+        : base( loggerFactory )
     {
         TileCache = tileCache;
         ImageFileExtension = ".png";
@@ -61,19 +61,19 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
     {
         if( !Initialized )
         {
-            Logger.Error( "Projection not initialized" );
+            Logger?.LogError( "Projection not initialized" );
             return null;
         }
 
         if( !mapTile.InProjection )
         {
-            Logger.Error( "MapTile not in the projection" );
+            Logger?.LogError("MapTile not in the projection");
             return null;
         }
 
         if( string.IsNullOrEmpty( UserAgent ) )
         {
-            Logger.Error( "Undefined or empty User-Agent" );
+            Logger?.LogError("Undefined or empty User-Agent");
             return null;
         }
 

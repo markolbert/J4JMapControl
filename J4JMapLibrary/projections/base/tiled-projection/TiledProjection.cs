@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -24,9 +24,9 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     where TAuth : class, new()
 {
     protected TiledProjection(
-        ILogger logger
+        ILoggerFactory? loggerFactory
     )
-        : base( logger )
+        : base( loggerFactory )
     {
     }
 
@@ -42,7 +42,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     {
         if( !Initialized )
         {
-            Logger.Error( "Projection is not initialized" );
+            Logger?.LogError("Projection is not initialized");
             return 0;
         }
 
@@ -64,7 +64,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         CancellationToken ctx = default
     )
     {
-        var region = new MapRegion.MapRegion( this, Logger ) { Scale = scale };
+        var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
 
         var retVal = new MapTile( region, y ).SetXRelative( x );
         await retVal.LoadFromCacheAsync( TileCache, ctx );
@@ -79,7 +79,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         CancellationToken ctx = default
     )
     {
-        var region = new MapRegion.MapRegion( this, Logger ) { Scale = scale };
+        var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
 
         var retVal = new MapTile( region, y ).SetXAbsolute( x );
         await retVal.LoadFromCacheAsync( TileCache, ctx );

@@ -19,7 +19,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Numerics;
 using J4JSoftware.VisualUtilities;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
@@ -41,10 +41,11 @@ public class MapRegion : IEnumerable<MapTile>
     public MapRegion(
 #pragma warning restore CS8618
         IProjection projection,
-        ILogger? logger
+        ILoggerFactory? loggerFactory = null
     )
     {
-        Logger = logger?.ForContext<MapRegion>();
+        LoggerFactory = loggerFactory;
+        Logger = loggerFactory?.CreateLogger<MapRegion>();
 
         Projection = projection;
         ProjectionType = Projection.GetProjectionType();
@@ -55,7 +56,8 @@ public class MapRegion : IEnumerable<MapTile>
         UpdateEmpty();
     }
 
-    protected internal ILogger? Logger { get; }
+    protected ILogger? Logger { get; }
+    internal ILoggerFactory? LoggerFactory { get; }
 
     public IProjection Projection { get; }
     public ProjectionType ProjectionType { get; }

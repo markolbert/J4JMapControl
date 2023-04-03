@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
@@ -25,8 +26,8 @@ public sealed partial class J4JMapControl
 
         if( value < 0 )
         {
-            mapControl.Logger?.Warning( "Tried to set UpdateEventInterval < 0, defaulting to {0}",
-                                        DefaultUpdateEventInterval );
+            mapControl._logger?.LogWarning( "Tried to set UpdateEventInterval < 0, defaulting to {0}",
+                                            DefaultUpdateEventInterval );
             value = DefaultUpdateEventInterval;
         }
 

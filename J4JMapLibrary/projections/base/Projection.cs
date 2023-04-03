@@ -17,7 +17,7 @@
 
 using System.Reflection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 #pragma warning disable CS8618
 
@@ -38,15 +38,15 @@ public abstract class Projection<TAuth> : IProjection
     private MinMax<int>? _scaleRange;
 
     protected Projection(
-        ILogger logger
+        ILoggerFactory? loggerFactory = null
     )
     {
-        Logger = logger;
-        Logger.ForContext( GetType() );
+        LoggerFactory = loggerFactory;
+        Logger = loggerFactory?.CreateLogger( GetType() );
 
         var attribute = GetType().GetCustomAttribute<ProjectionAttribute>();
         if( attribute == null )
-            Logger.Error( "Map projection class is not decorated with ProjectionAttribute(s), cannot be used" );
+            Logger?.LogError( "Map projection class is not decorated with ProjectionAttribute(s), cannot be used" );
         else Name = attribute.ProjectionName;
 
         Initialized = !string.IsNullOrEmpty( Name );
@@ -55,7 +55,8 @@ public abstract class Projection<TAuth> : IProjection
         LongitudeRange = new MinMax<float>( -180, 180 );
     }
 
-    protected ILogger Logger { get; }
+    protected ILogger? Logger { get; }
+    protected ILoggerFactory? LoggerFactory { get; }
 
     protected TAuth? Credentials { get; private set; }
 
@@ -138,7 +139,7 @@ public abstract class Projection<TAuth> : IProjection
     {
         if( !Initialized )
         {
-            Logger.Error( "Projection not initialized" );
+            Logger?.LogError("Projection not initialized");
             return false;
         }
 
@@ -156,7 +157,7 @@ public abstract class Projection<TAuth> : IProjection
         if( credentials is TAuth castCredentials )
             return SetCredentials( castCredentials );
 
-        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        Logger?.LogError("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
         return false;
     }
 
@@ -168,7 +169,7 @@ public abstract class Projection<TAuth> : IProjection
             return true;
         }
 
-        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        Logger?.LogError("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
         return false;
     }
 
@@ -197,7 +198,7 @@ public abstract class Projection<TAuth> : IProjection
         if( Credentials != null )
             return true;
 
-        Logger.Error( "Attempting to authenticate before setting credentials" );
+        Logger?.LogError("Attempting to authenticate before setting credentials");
         return false;
     }
 

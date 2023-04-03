@@ -1,4 +1,4 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
@@ -9,10 +9,10 @@ public partial class MapTile
         int xTile,
         int yTile,
         int scale,
-        ILogger logger
+        ILoggerFactory? loggerFactory
     )
     {
-        var region = new MapRegion( projection, logger )
+        var region = new MapRegion( projection, loggerFactory )
                     .Scale( scale )
                     .Size( projection.TileHeightWidth, projection.TileHeightWidth )
                     .Update();

@@ -3,7 +3,7 @@ using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.DeusEx;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace MapLibTests;
 
@@ -19,13 +19,14 @@ public class TestBase
         var deusEx = new DeusEx();
         deusEx.Initialize().Should().BeTrue();
 
-        var logger = J4JDeusEx.ServiceProvider.GetRequiredService<ILogger>();
-        logger.Should().NotBeNull();
-        Logger = logger;
+        LoggerFactory = J4JDeusEx.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        LoggerFactory.Should().NotBeNull();
+        Logger = LoggerFactory.CreateLogger( GetType() );
 
         _config = J4JDeusEx.ServiceProvider.GetRequiredService<IConfiguration>();
     }
 
+    protected ILoggerFactory LoggerFactory { get; }
     protected ILogger Logger { get; }
 
     protected async Task<IProjection?> CreateProjection(
@@ -48,16 +49,16 @@ public class TestBase
     {
         var retVal = projName switch
         {
-            "BingMaps" => (IProjection) new BingMapsProjection(Logger, cache),
-            "OpenStreetMaps" => new OpenStreetMapsProjection(Logger, cache),
-            "OpenTopoMaps" => new OpenTopoMapsProjection(Logger, cache),
-            "GoogleMaps" => new GoogleMapsProjection(Logger),
+            "BingMaps" => (IProjection) new BingMapsProjection(LoggerFactory, cache),
+            "OpenStreetMaps" => new OpenStreetMapsProjection(LoggerFactory, cache),
+            "OpenTopoMaps" => new OpenTopoMapsProjection(LoggerFactory, cache),
+            "GoogleMaps" => new GoogleMapsProjection(LoggerFactory),
             _ => null
         };
 
         if (retVal == null)
         {
-            Logger.Error("Unknown projection {0}", projName);
+            Logger.LogError("Unknown projection {0}", projName);
             return null;
         }
 
@@ -71,16 +72,16 @@ public class TestBase
     {
         var retVal = projName switch
         {
-            "BingMaps" => (IProjection) new BingMapsProjection( Logger, cache ),
-            "OpenStreetMaps" => new OpenStreetMapsProjection( Logger, cache ),
-            "OpenTopoMaps" => new OpenTopoMapsProjection( Logger, cache ),
-            "GoogleMaps" => new GoogleMapsProjection( Logger ),
+            "BingMaps" => (IProjection) new BingMapsProjection( LoggerFactory, cache ),
+            "OpenStreetMaps" => new OpenStreetMapsProjection( LoggerFactory, cache ),
+            "OpenTopoMaps" => new OpenTopoMapsProjection( LoggerFactory, cache ),
+            "GoogleMaps" => new GoogleMapsProjection( LoggerFactory ),
             _ => null
         };
 
         if( retVal == null )
         {
-            Logger.Error("Unknown projection {0}", projName);
+            Logger.LogError("Unknown projection {0}", projName);
             return null;
         }
 
@@ -107,7 +108,7 @@ public class TestBase
 
         if (retVal == null)
         {
-            Logger.Error("Unknown credentials type {0}", credentialName);
+            Logger.LogError("Unknown credentials type {0}", credentialName);
             return null;
         }
 

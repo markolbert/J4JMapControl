@@ -5,7 +5,9 @@ using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
+using ILogger = Serilog.ILogger;
 
 namespace WinAppTest;
 
@@ -43,7 +45,7 @@ internal class DeusEx : J4JDeusExWinApp
         builder.Register(c =>
                 {
                     var retVal = new ProjectionFactory(c.Resolve<IConfiguration>(),
-                                                       c.Resolve<ILogger>());
+                                                       c.Resolve<ILoggerFactory>());
 
                     retVal.ScanAssemblies();
 

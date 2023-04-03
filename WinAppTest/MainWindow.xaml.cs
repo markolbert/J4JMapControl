@@ -10,10 +10,10 @@ using J4JSoftware.DependencyInjection;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Serilog;
 using WinRT.Interop;
 
 namespace WinAppTest;
@@ -29,12 +29,13 @@ public sealed partial class MainWindow
     {
         this.InitializeComponent();
 
-        _logger = ( (App) Application.Current ).Logger?.ForContext<MainWindow>();
-        mapControl.Logger = _logger;
+        var loggerFactory = ( (App) Application.Current ).LoggerFactory;
+        _logger = loggerFactory?.CreateLogger<MainWindow>();
+        mapControl.LoggerFactory = loggerFactory;
 
         mapControl.ProjectionFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
         if( mapControl.ProjectionFactory == null )
-            _logger?.Fatal( "ProjectionFactory is not defined" );
+            _logger?.LogCritical( "ProjectionFactory is not defined" );
 
         var hWnd = WindowNative.GetWindowHandle(this);
         var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
@@ -59,7 +60,7 @@ public sealed partial class MainWindow
         var hostConfig = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>();
 
         if( hostConfig == null )
-            _logger?.Error("Could not retrieve instance of IJ4JHost");
+            _logger?.LogError("Could not retrieve instance of IJ4JHost");
         else mapControl.FileSystemCachePath = Path.Combine( hostConfig.ApplicationConfigurationFolder, "map-cache" );
     }
 }

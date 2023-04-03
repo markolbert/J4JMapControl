@@ -14,7 +14,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapRegion = new MapRegion( projection, Logger )
+        var mapRegion = new MapRegion( projection, LoggerFactory )
                        .Scale( data.Scale )
                        .Update();
 
@@ -36,7 +36,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapRegion = new MapRegion(projection, Logger)
+        var mapRegion = new MapRegion(projection, LoggerFactory)
                        .Scale(data.Scale)
                        .Update();
 
@@ -58,7 +58,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapRegion = new MapRegion(projection, Logger)
+        var mapRegion = new MapRegion(projection, LoggerFactory)
                        .Scale(data.Scale)
                        .Update();
 
@@ -80,7 +80,7 @@ public class CreateImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = MapTile.CreateStaticMapTile( projection, data.TileX, data.TileY, data.Scale, Logger );
+        var mapTile = MapTile.CreateStaticMapTile( projection, data.TileX, data.TileY, data.Scale, LoggerFactory );
         
         var loaded = await mapTile.LoadImageAsync();
         loaded.Should().BeTrue();

@@ -82,7 +82,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion( projection, Logger )
+        var region = new MapRegion( projection, LoggerFactory )
                     .Scale( scale )
                     .Update();
 
@@ -122,7 +122,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion(projection, Logger)
+        var region = new MapRegion(projection, LoggerFactory)
                     .Scale(scale)
                     .Update();
 
@@ -162,7 +162,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion(projection, Logger)
+        var region = new MapRegion(projection, LoggerFactory)
                     .Scale(scale)
                     .Update();
 

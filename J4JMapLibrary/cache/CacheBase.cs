@@ -17,18 +17,17 @@
 
 using System.Collections;
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class CacheBase : ITileCache
 {
     protected CacheBase(
-        ILogger? logger
+        ILoggerFactory? loggerFactory
     )
     {
-        Logger = logger;
-        Logger?.ForContext( GetType() );
+        Logger = loggerFactory?.CreateLogger( GetType() );
     }
 
     protected ILogger? Logger { get; }
@@ -55,11 +54,11 @@ public abstract class CacheBase : ITileCache
         if( ParentCache != null )
             return await ParentCache.LoadImageAsync( mapTile, ctx );
 
-        Logger?.Verbose( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
-                         GetType(),
-                         mapTile.Region.Projection.Name,
-                         mapTile.X,
-                         mapTile.Y );
+        Logger?.LogTrace( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
+                          GetType(),
+                          mapTile.Region.Projection.Name,
+                          mapTile.X,
+                          mapTile.Y );
 
         return false;
     }

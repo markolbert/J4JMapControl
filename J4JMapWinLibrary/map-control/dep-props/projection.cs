@@ -2,6 +2,7 @@ using System;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 
@@ -61,7 +62,7 @@ public sealed partial class J4JMapControl
     {
         if( ProjectionFactory == null )
         {
-            _logger?.Error("ProjectionFactory is not defined");
+            _logger?.LogError("ProjectionFactory is not defined");
             return;
         }
 
@@ -70,13 +71,13 @@ public sealed partial class J4JMapControl
         var projResult = ProjectionFactory.CreateProjection( MapProjection, cache );
         if( !projResult.ProjectionTypeFound )
         {
-            Logger?.Fatal("Could not create projection '{0}'", MapProjection);
+            _logger?.LogCritical("Could not create projection '{0}'", MapProjection);
             throw new InvalidOperationException( $"Could not create projection '{MapProjection}'" );
         }
 
         if( !projResult.Authenticated )
         {
-            Logger?.Fatal( $"Could not authenticate projection '{0}'", MapProjection );
+            _logger?.LogCritical( $"Could not authenticate projection '{0}'", MapProjection );
             throw new InvalidOperationException( $"Could not authenticate projection '{MapProjection}'" );
         }
 
@@ -84,7 +85,7 @@ public sealed partial class J4JMapControl
         _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
 
         if( !Extensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            Logger?.Error("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
+            _logger?.LogError("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
 
         if( MapRegion != null )
         {
@@ -92,7 +93,7 @@ public sealed partial class J4JMapControl
             MapRegion.BuildUpdated -= MapRegionBuildUpdated;
         }
 
-        MapRegion = new MapRegion( _projection, Logger )
+        MapRegion = new MapRegion( _projection, LoggerFactory )
                    .Center( latitude, longitude )
                    .Scale( (int) MapScale )
                    .Heading( (float) Heading )

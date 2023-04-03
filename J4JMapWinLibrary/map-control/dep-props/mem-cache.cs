@@ -80,7 +80,7 @@ public sealed partial class J4JMapControl
 
         _tileFileCache = string.IsNullOrEmpty(FileSystemCachePath)
             ? null
-            : new FileSystemCache(Logger)
+            : new FileSystemCache(LoggerFactory)
             {
                 CacheDirectory = FileSystemCachePath,
                 MaxBytes = FileSystemCacheSize <= 0 ? DefaultFileSystemCacheSize : FileSystemCacheSize,
@@ -92,7 +92,7 @@ public sealed partial class J4JMapControl
             memRetention = TimeSpan.FromHours(1);
 
         _tileMemCache = UseMemoryCache
-            ? new MemoryCache(Logger)
+            ? new MemoryCache(LoggerFactory)
             {
                 MaxBytes = MemoryCacheSize <= 0 ? DefaultMemoryCacheSize : MemoryCacheSize,
                 MaxEntries = MemoryCacheEntries <= 0 ? DefaultMemoryCacheEntries : MemoryCacheEntries,

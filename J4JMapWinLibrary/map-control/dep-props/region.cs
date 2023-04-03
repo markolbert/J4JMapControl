@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 
@@ -70,8 +71,8 @@ public sealed partial class J4JMapControl
 
             if( !Extensions.TryParseToLatLong( value, out var latitude, out var longitude ) )
             {
-                Logger?.Error( "Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
-                               value );
+                _logger?.LogError( "Could not parse center '{0}' to latitude/longitude, defaulting to (0,0)",
+                                   value );
             }
 
             MapRegion?.Center( latitude, longitude );

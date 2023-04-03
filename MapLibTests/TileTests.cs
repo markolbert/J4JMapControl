@@ -34,7 +34,7 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion( projection, Logger )
+        var region = new MapRegion( projection, LoggerFactory )
                     .Center( latitude, longitude )
                     .Size( height, width )
                     .Heading( heading )
@@ -75,7 +75,7 @@ public class TileTests : TestBase
 
         var width = regionWidth * projection.TileHeightWidth;
 
-        var region = new MapRegion(projection, Logger)
+        var region = new MapRegion(projection, LoggerFactory)
                     .Size(projection.TileHeightWidth, width)
                     .Scale(scale);
 

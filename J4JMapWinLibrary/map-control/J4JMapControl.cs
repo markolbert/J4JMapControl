@@ -8,6 +8,7 @@ using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -15,7 +16,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Serilog;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -35,6 +35,7 @@ public sealed partial class J4JMapControl : Control
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
 
     private Grid? _mapGrid;
+    private ILoggerFactory? _loggerFactory;
     private ILogger? _logger;
 
     public J4JMapControl()
@@ -54,10 +55,15 @@ public sealed partial class J4JMapControl : Control
         SizeChanged += OnSizeChanged;
     }
 
-    public ILogger? Logger
+    public ILoggerFactory? LoggerFactory
     {
-        get => _logger;
-        set => _logger = value?.ForContext<J4JMapControl>();
+        get => _loggerFactory;
+
+        set
+        {
+            _loggerFactory = value;
+            _logger = _loggerFactory?.CreateLogger<J4JMapControl>();
+        }
     }
 
     protected override void OnApplyTemplate()
@@ -97,7 +103,7 @@ public sealed partial class J4JMapControl : Control
     {
         var retVal = GetTemplateChild( name ) as T;
         if( retVal == null )
-            Logger?.Error( "Couldn't find {0}", name );
+            _logger?.LogError( "Couldn't find {0}", name );
         else postProcessor?.Invoke( retVal );
 
         return retVal;

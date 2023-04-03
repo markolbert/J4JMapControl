@@ -16,7 +16,7 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -24,9 +24,9 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     where TAuth : class, new()
 {
     protected StaticProjection(
-        ILogger logger
+        ILoggerFactory? loggerFactory = null
     )
-        : base( logger )
+        : base( loggerFactory )
     {
     }
 
@@ -39,7 +39,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
         CancellationToken ctx = default
     )
     {
-        var retVal = MapTile.CreateStaticMapTile( this, x, y, scale, Logger );
+        var retVal = MapTile.CreateStaticMapTile( this, x, y, scale, LoggerFactory );
         await retVal.LoadImageAsync( ctx );
 
         return retVal;
@@ -61,7 +61,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
         if( region.IsDefined )
             return await region.MapTiles[ 0, 0 ].LoadImageAsync( ctx );
 
-        Logger.Error( "Undefined static MapRegion" );
+        Logger?.LogError( "Undefined static MapRegion" );
         return false;
     }
 }

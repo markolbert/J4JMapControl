@@ -2,7 +2,7 @@
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace MapLibTests;
 
@@ -13,7 +13,7 @@ internal partial class DeusEx
         builder.Register( c =>
                 {
                     var retVal = new ProjectionFactory( c.Resolve<IConfiguration>(),
-                                                  c.Resolve<ILogger>() );
+                                                  c.Resolve<ILoggerFactory>() );
 
                     retVal.ScanAssemblies();
 

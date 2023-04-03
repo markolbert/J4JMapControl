@@ -18,7 +18,7 @@
 using System.Net;
 using System.Text.Json;
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -32,10 +32,10 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     private string? _cultureCode;
 
     public BingMapsProjection(
-        ILogger logger,
+        ILoggerFactory? loggerFactory = null,
         ITileCache? tileCache = null
     )
-        : base( logger )
+        : base( loggerFactory )
     {
         TileCache = tileCache;
     }
@@ -53,7 +53,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             else
             {
                 if( !BingMapsCultureCodes.Default.ContainsKey( value ) )
-                    Logger.Error( "Invalid or unsupported culture code '{0}'", value );
+                    Logger?.LogError("Invalid or unsupported culture code '{0}'", value);
                 else _cultureCode = value;
             }
         }
@@ -103,7 +103,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
         HttpResponseMessage? response;
 
-        Logger.Verbose( "Attempting to retrieve Bing Maps metadata" );
+        Logger?.LogTrace( "Attempting to retrieve Bing Maps metadata" );
 
         try
         {
@@ -125,7 +125,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 #pragma warning restore CA2200
 #endif
 
-            Logger.Error( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
+            Logger?.LogError( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
                           uriText,
                           ex.Message );
             return false;
@@ -138,7 +138,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
                 : await response.Content.ReadAsStringAsync( ctx )
                                 .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
-            Logger.Error(
+            Logger?.LogError(
                 "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
                 uriText,
                 error );
@@ -146,7 +146,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             return false;
         }
 
-        Logger.Verbose( "Attempting to parse Bing Maps metadata" );
+        Logger?.LogTrace( "Attempting to parse Bing Maps metadata" );
 
         try
         {
@@ -154,18 +154,17 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             Metadata = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
-            Logger.Verbose( "Bing Maps metadata retrieved" );
+            Logger?.LogTrace("Bing Maps metadata retrieved");
         }
         catch( Exception ex )
         {
-            Logger.Error( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
-
+            Logger?.LogError( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
             return false;
         }
 
         if( Metadata!.PrimaryResource == null )
         {
-            Logger.Error( "Primary resource is not defined" );
+            Logger?.LogError( "Primary resource is not defined" );
             return false;
         }
 
@@ -190,13 +189,13 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     {
         if( !Initialized )
         {
-            Logger.Error( "Projection not initialized" );
+            Logger?.LogError("Projection not initialized");
             return null;
         }
 
         if( !mapTile.InProjection )
         {
-            Logger.Error( "MapTile not in the projection" );
+            Logger?.LogError("MapTile not in the projection");
             return null;
         }
 

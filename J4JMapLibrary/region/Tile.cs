@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
@@ -12,7 +12,7 @@ public class Tile
     )
     {
         Region = region;
-        Logger = region.Logger?.ForContext<MapTile>();
+        Logger = region.LoggerFactory?.CreateLogger<MapTile>();
 
         ( X, Y ) = region.ProjectionType switch
         {
