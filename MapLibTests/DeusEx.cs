@@ -1,5 +1,5 @@
 ﻿using J4JSoftware.DependencyInjection;
-using J4JSoftware.Logging;
+using J4JSoftware.DeusEx;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 

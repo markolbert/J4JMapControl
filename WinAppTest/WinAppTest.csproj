@@ -41,7 +41,7 @@
 		<ProjectCapability Include="Msix" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\ProgrammingUtilities\WindowsAppUtilities\WindowsAppUtilities.csproj" />
+		<ProjectReference Include="..\..\ProgrammingUtilities\DeusWinApp\DeusWinApp.csproj" />
 		<ProjectReference Include="..\J4JMapWinLibrary\J4JMapWinLibrary.csproj" />
 	</ItemGroup>
 

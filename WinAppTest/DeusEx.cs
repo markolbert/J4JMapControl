@@ -1,12 +1,11 @@
 ﻿using System.IO;
 using Autofac;
 using J4JSoftware.DependencyInjection;
+using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.WindowsAppUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Events;
 
 namespace WinAppTest;
 

@@ -7,7 +7,7 @@ using System.IO;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
-using J4JSoftware.WindowsAppUtilities;
+using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
