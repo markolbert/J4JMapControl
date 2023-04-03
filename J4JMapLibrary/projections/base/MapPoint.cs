@@ -1,4 +1,6 @@
-﻿namespace J4JSoftware.J4JMapLibrary;
+﻿using System.Numerics;
+
+namespace J4JSoftware.J4JMapLibrary;
 
 public class MapPoint
 {
@@ -57,6 +59,24 @@ public class MapPoint
 
         SetCartesian( x, y );
     }
+
+    //public void Rotate( float angle )
+    //{
+    //    angle = angle % 360;
+
+    //    if( angle == 0 )
+    //        return;
+
+    //    var curPoint = new Vector3( X, Y, 0 );
+
+    //    var heightWidth = (float) Region.Projection.GetHeightWidth(Region.Scale);
+    //    var centerPoint = new Vector3( heightWidth / 2, heightWidth / 2, 0 );
+
+    //    var transform = Matrix4x4.CreateRotationZ( angle * MapConstants.RadiansPerDegree, centerPoint );
+    //    var rotatedPoint = Vector3.Transform( curPoint, transform );
+
+    //    SetCartesian( rotatedPoint.X, rotatedPoint.Y );
+    //}
 
     private void UpdateLatLong()
     {
