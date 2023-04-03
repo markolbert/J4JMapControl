@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using Serilog;
 using System.Security.Cryptography;
 using System.Text;
 using J4JSoftware.J4JMapLibrary.MapRegion;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -49,6 +49,10 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 
     public GoogleMapStyle GoogleMapStyle { get; set; } = GoogleMapStyle.RoadMap;
 
+    public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
+    public string RetrievalUrl { get; }
+    public string RetrievalQueryString { get; }
+
     protected override void OnMapStyleChanged( string value )
     {
         base.OnMapStyleChanged( value );
@@ -61,10 +65,6 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         if( Credentials != null && !Initialized )
             Authenticate();
     }
-
-    public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
-    public string RetrievalUrl { get; }
-    public string RetrievalQueryString { get; }
 
 #pragma warning disable CS1998
     protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )

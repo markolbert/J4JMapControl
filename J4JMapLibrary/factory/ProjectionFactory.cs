@@ -1,17 +1,17 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
-using Serilog;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public class ProjectionFactory
 {
     private readonly IConfiguration _config;
-    private readonly ILogger _logger;
-    private readonly bool _includeDefaults;
-    private readonly List<ProjectionTypeInfo> _projTypes = new();
     private readonly List<CredentialsTypeInfo> _credTypes = new();
+    private readonly bool _includeDefaults;
+    private readonly ILogger _logger;
+    private readonly List<ProjectionTypeInfo> _projTypes = new();
 
     public ProjectionFactory(
         IConfiguration config,
@@ -120,7 +120,7 @@ public class ProjectionFactory
 
         if( projInfo == null )
         {
-            _logger.Error<string>( "Could not find IProjection type named '{0}'", projName );
+            _logger.Error( "Could not find IProjection type named '{0}'", projName );
             return ProjectionFactoryResult.NotFound;
         }
 
@@ -251,9 +251,9 @@ public class ProjectionFactory
         }
         catch( Exception ex )
         {
-            _logger.Error<Type, string>( "Could not create instance of {0}, message was {1}",
-                                         projInfo.ProjectionType,
-                                         ex.Message );
+            _logger.Error( "Could not create instance of {0}, message was {1}",
+                           projInfo.ProjectionType,
+                           ex.Message );
             return ProjectionFactoryResult.NotFound;
         }
 
@@ -276,10 +276,10 @@ public class ProjectionFactory
         if( credType == null )
         {
             if( string.IsNullOrEmpty( credentialsName ) )
-                _logger.Warning<string>( "No valid credentials type supporting '{0}' projection found", projInfo.Name );
+                _logger.Warning( "No valid credentials type supporting '{0}' projection found", projInfo.Name );
             else
             {
-                _logger.Warning<string, string>(
+                _logger.Warning(
                     "No credentials type named '{0}' found, and no other credentials supporting '{1}' projection found",
                     credentialsName,
                     projInfo.Name );
@@ -288,15 +288,14 @@ public class ProjectionFactory
 
         if( credTypes.Count > 1 )
         {
-            _logger.Warning<string, string>(
-                "Multiple credentials types supporting '{0}' projection found, using {1} credentials type",
-                projInfo.Name,
-                credType?.Name ?? "Default" );
+            _logger.Warning( "Multiple credentials types supporting '{0}' projection found, using {1} credentials type",
+                             projInfo.Name,
+                             credType?.Name ?? "Default" );
         }
 
         if( credType == null )
         {
-            _logger.Error<string>( "Could not find a credentials type supporting projection {0}", projInfo.Name );
+            _logger.Error( "Could not find a credentials type supporting projection {0}", projInfo.Name );
             return null;
         }
 
@@ -311,9 +310,9 @@ public class ProjectionFactory
         }
         catch( Exception ex )
         {
-            _logger.Error<Type, string>( "Could not create an instance of credentials type {0}, message was {1}",
-                                         credType.CredentialsType,
-                                         ex.Message );
+            _logger.Error( "Could not create an instance of credentials type {0}, message was {1}",
+                           credType.CredentialsType,
+                           ex.Message );
             return null;
         }
     }

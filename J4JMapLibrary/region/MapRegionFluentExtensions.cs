@@ -1,6 +1,4 @@
-﻿using Math = System.Math;
-
-namespace J4JSoftware.J4JMapLibrary;
+﻿namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapRegionFluentExtensions
 {

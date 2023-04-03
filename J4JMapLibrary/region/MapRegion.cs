@@ -25,21 +25,18 @@ namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
 public class MapRegion : IEnumerable<MapTile>
 {
-    public event EventHandler? ConfigurationChanged;
-    public event EventHandler<RegionBuildResults>? BuildUpdated;
-
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
+    private float _heading;
 
     private float _latitude;
     private float _longitude;
-    private float _xOffset;
-    private float _yOffset;
+    private float _oldRotation = 360;
+    private int _oldScale;
     private float _requestedHeight;
     private float _requestedWidth;
     private int _scale;
-    private int _oldScale;
-    private float _oldRotation = 360;
-    private float _heading;
+    private float _xOffset;
+    private float _yOffset;
 
 #pragma warning disable CS8618
     public MapRegion(
@@ -65,26 +62,6 @@ public class MapRegion : IEnumerable<MapTile>
     public ProjectionType ProjectionType { get; }
 
     public bool Changed { get; private set; }
-
-    private void SetField( ref int field, int newValue )
-    {
-        if( newValue == field )
-            return;
-
-        field = newValue;
-        Changed = true;
-        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
-    }
-
-    private void SetField( ref float field, float newValue )
-    {
-        if( Math.Abs( newValue - field ) < MapConstants.FloatTolerance )
-            return;
-
-        field = newValue;
-        Changed = true;
-        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
-    }
 
     public float CenterLatitude
     {
@@ -194,6 +171,47 @@ public class MapRegion : IEnumerable<MapTile>
         }
     }
 
+    public bool IsDefined { get; private set; }
+    public MapRegionChange RegionChange { get; private set; }
+
+    public IEnumerator<MapTile> GetEnumerator()
+    {
+        if( !IsDefined )
+            yield break;
+
+        for( var row = 0; row < TilesHigh; row++ )
+        {
+            for( var column = 0; column < TilesWide; column++ )
+            {
+                yield return MapTiles[ row, column ];
+            }
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public event EventHandler? ConfigurationChanged;
+    public event EventHandler<RegionBuildResults>? BuildUpdated;
+
+    private void SetField( ref int field, int newValue )
+    {
+        if( newValue == field )
+            return;
+
+        field = newValue;
+        Changed = true;
+        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
+    }
+
+    private void SetField( ref float field, float newValue )
+    {
+        if( Math.Abs( newValue - field ) < MapConstants.FloatTolerance )
+            return;
+
+        field = newValue;
+        Changed = true;
+        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
+    }
+
     public int WrapXOffsetWithinProjection( int offsetX )
     {
         var retVal = UpperLeft.X + offsetX;
@@ -209,9 +227,6 @@ public class MapRegion : IEnumerable<MapTile>
 
         return retVal;
     }
-
-    public bool IsDefined { get; private set; }
-    public MapRegionChange RegionChange { get; private set; }
 
     public MapRegion Update()
     {
@@ -360,20 +375,4 @@ public class MapRegion : IEnumerable<MapTile>
 
         //return tile < 0 ? (int) Math.Floor( tile ) : (int) Math.Ceiling( tile );
     }
-
-    public IEnumerator<MapTile> GetEnumerator()
-    {
-        if( !IsDefined )
-            yield break;
-
-        for( var row = 0; row < TilesHigh; row++ )
-        {
-            for( var column = 0; column < TilesWide; column++ )
-            {
-                yield return MapTiles[ row, column ];
-            }
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

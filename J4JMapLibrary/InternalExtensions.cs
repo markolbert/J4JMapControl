@@ -16,9 +16,9 @@
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Numerics;
+using System.Text;
 using J4JSoftware.DeusEx;
 using Serilog;
-using System.Text;
 
 namespace J4JSoftware.J4JMapLibrary;
 

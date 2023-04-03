@@ -20,6 +20,37 @@ public partial class MapTile : Tile
             : $"{MapExtensions.LatitudeToText( region.CenterLatitude )}-{MapExtensions.LongitudeToText( region.CenterLongitude )}-{region.Scale}-{region.Projection.TileHeightWidth}-{region.Projection.TileHeightWidth}";
     }
 
+    public bool InProjection
+    {
+        get
+        {
+            switch( Region.ProjectionType )
+            {
+                case ProjectionType.Static:
+                    return X == 0 && Y == 0;
+
+                case ProjectionType.Tiled:
+                    var tileRange = Region.Projection.GetTileRange( Region.Scale );
+                    return tileRange.InRange( X ) && tileRange.InRange( Y );
+
+                default:
+                    return false;
+            }
+        }
+    }
+
+    public float Height { get; set; }
+    public float Width { get; set; }
+
+    public string FragmentId { get; private set; }
+    public string QuadKey { get; private set; }
+
+    public int Row { get; private set; } = -1;
+    public int Column { get; private set; } = -1;
+
+    public byte[]? ImageData { get; set; }
+    public long ImageBytes => ImageData?.Length <= 0 ? -1 : ImageData?.Length ?? -1;
+
     private string GetQuadKey()
     {
         // static projections only have a single quadkey, defaulting to "0"
@@ -67,31 +98,6 @@ public partial class MapTile : Tile
         }
     }
 
-    public bool InProjection
-    {
-        get
-        {
-            switch( Region.ProjectionType )
-            {
-                case ProjectionType.Static:
-                    return X == 0 && Y == 0;
-
-                case ProjectionType.Tiled:
-                    var tileRange = Region.Projection.GetTileRange( Region.Scale );
-                    return tileRange.InRange( X ) && tileRange.InRange( Y );
-
-                default:
-                    return false;
-            }
-        }
-    }
-
-    public float Height { get; set; }
-    public float Width { get; set; }
-
-    public string FragmentId { get; private set; }
-    public string QuadKey { get; private set; }
-
     public MapTile SetXRelative( int relativeX ) => SetXAbsolute( Region.WrapXOffsetWithinProjection( relativeX ) );
 
     public MapTile SetXAbsolute( int absoluteX )
@@ -105,9 +111,6 @@ public partial class MapTile : Tile
 
         return this;
     }
-
-    public int Row { get; private set; } = -1;
-    public int Column { get; private set; } = -1;
 
     public MapTile SetRowColumn( int row, int column )
     {
@@ -127,9 +130,6 @@ public partial class MapTile : Tile
 
         return this;
     }
-
-    public byte[]? ImageData { get; set; }
-    public long ImageBytes => ImageData?.Length <= 0 ? -1 : ImageData?.Length ?? -1;
 
     public byte[]? GetImage()
     {

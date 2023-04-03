@@ -1,12 +1,9 @@
-﻿using System.Numerics;
-
-namespace J4JSoftware.J4JMapLibrary;
+﻿namespace J4JSoftware.J4JMapLibrary;
 
 public class MapPoint
 {
-    public EventHandler? Changed;
-
     private bool _suppressUpdate;
+    public EventHandler? Changed;
 
     public MapPoint(
         MapRegion.MapRegion region
@@ -14,6 +11,14 @@ public class MapPoint
     {
         Region = region;
     }
+
+    public MapRegion.MapRegion Region { get; private set; }
+
+    public float X { get; private set; }
+    public float Y { get; private set; }
+
+    public float Latitude { get; private set; }
+    public float Longitude { get; private set; }
 
     public MapPoint Copy()
     {
@@ -23,11 +28,6 @@ public class MapPoint
 
         return retVal;
     }
-
-    public MapRegion.MapRegion Region { get; private set; }
-
-    public float X { get; private set; }
-    public float Y { get; private set; }
 
     public void SetCartesian( float? x, float? y )
     {
@@ -97,9 +97,6 @@ public class MapPoint
         _suppressUpdate = false;
         Changed?.Invoke( this, EventArgs.Empty );
     }
-
-    public float Latitude { get; private set; }
-    public float Longitude { get; private set; }
 
     public void SetLatLong( float? latitude, float? longitude )
     {

@@ -27,17 +27,15 @@ public abstract class Projection<TAuth> : IProjection
     where TAuth : class, new()
 {
     public const int DefaultMaxRequestLatency = 500;
-
-    public event EventHandler<bool>? LoadComplete;
+    private string _mapStyle = string.Empty;
+    private float _maxLat = MapConstants.Wgs84MaxLatitude;
+    private float _maxLong = 180;
+    private int _maxScale;
+    private float _minLat = -MapConstants.Wgs84MaxLatitude;
+    private float _minLong = -180;
 
     private int _minScale;
-    private int _maxScale;
     private MinMax<int>? _scaleRange;
-    private float _minLat = -MapConstants.Wgs84MaxLatitude;
-    private float _maxLat = MapConstants.Wgs84MaxLatitude;
-    private float _minLong = -180;
-    private float _maxLong = 180;
-    private string _mapStyle = string.Empty;
 
     protected Projection(
         ILogger logger
@@ -59,8 +57,154 @@ public abstract class Projection<TAuth> : IProjection
 
     protected ILogger Logger { get; }
 
+    protected TAuth? Credentials { get; private set; }
+
+    public event EventHandler<bool>? LoadComplete;
+
     public string Name { get; } = string.Empty;
     public bool Initialized { get; protected set; }
+
+    public MinMax<float> GetXYRange( int scale )
+    {
+        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
+
+        var pow2 = InternalExtensions.Pow( 2, scale );
+        return new MinMax<float>( 0, TileHeightWidth * pow2 - 1 );
+    }
+
+    public MinMax<int> GetTileRange( int scale )
+    {
+        scale = ScaleRange.ConformValueToRange( scale, "GetTileRange() Scale" );
+        var pow = InternalExtensions.Pow( 2, scale );
+
+        return new MinMax<int>( 0, pow - 1 );
+    }
+
+    public int GetNumTiles( int scale )
+    {
+        scale = ScaleRange.ConformValueToRange( scale, "GetNumTiles() Scale" );
+        return InternalExtensions.Pow( 2, scale );
+    }
+
+    public int TileHeightWidth { get; protected set; }
+
+    public int GetHeightWidth( int scale )
+    {
+        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
+        var pow2 = InternalExtensions.Pow( 2, scale );
+
+        return TileHeightWidth * pow2;
+    }
+
+    public string ImageFileExtension { get; protected set; } = string.Empty;
+
+    public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
+
+    public string Copyright { get; protected set; } = string.Empty;
+    public Uri? CopyrightUri { get; protected set; }
+
+    public string MapStyle
+    {
+        get => _mapStyle;
+
+        set
+        {
+            var changed = !value.Equals( _mapStyle, StringComparison.OrdinalIgnoreCase );
+
+            _mapStyle = value;
+
+            if( changed )
+                OnMapStyleChanged( value );
+        }
+    }
+
+    public abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
+
+    public abstract Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
+        int x,
+        int y,
+        int scale,
+        CancellationToken ctx = default
+    );
+
+    public abstract Task<MapTile> GetMapTileByRegionCoordinatesAsync(
+        int x,
+        int y,
+        int scale,
+        CancellationToken ctx = default
+    );
+
+    public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
+    {
+        if( !Initialized )
+        {
+            Logger.Error( "Projection not initialized" );
+            return false;
+        }
+
+        // only reload if we have to
+        var retVal = region.RegionChange != MapRegionChange.LoadRequired
+         || await LoadRegionInternalAsync( region, ctx );
+
+        LoadComplete?.Invoke( this, retVal );
+
+        return retVal;
+    }
+
+    bool IProjection.SetCredentials( object credentials )
+    {
+        if( credentials is TAuth castCredentials )
+            return SetCredentials( castCredentials );
+
+        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        return false;
+    }
+
+    async Task<bool> IProjection.SetCredentialsAsync( object credentials, CancellationToken ctx )
+    {
+        if( credentials is TAuth castCredentials )
+        {
+            await SetCredentialsAsync( castCredentials, ctx );
+            return true;
+        }
+
+        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        return false;
+    }
+
+    protected virtual void OnMapStyleChanged( string value )
+    {
+    }
+
+    public bool SetCredentials( TAuth credentials )
+    {
+        Credentials = credentials;
+        return Authenticate();
+    }
+
+    public async Task<bool> SetCredentialsAsync( TAuth credentials, CancellationToken ctx = default )
+    {
+        Credentials = credentials;
+        return await AuthenticateAsync( ctx );
+    }
+
+    protected bool Authenticate() => Task.Run( async () => await AuthenticateAsync() ).Result;
+
+#pragma warning disable CS1998
+    protected virtual async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+#pragma warning restore CS1998
+    {
+        if( Credentials != null )
+            return true;
+
+        Logger.Error( "Attempting to authenticate before setting credentials" );
+        return false;
+    }
+
+    protected abstract Task<bool> LoadRegionInternalAsync(
+        MapRegion.MapRegion region,
+        CancellationToken ctx = default
+    );
 
     #region Scale
 
@@ -150,150 +294,6 @@ public abstract class Projection<TAuth> : IProjection
     public MinMax<float> LongitudeRange { get; private set; }
 
     #endregion
-
-    public MinMax<float> GetXYRange( int scale )
-    {
-        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
-
-        var pow2 = InternalExtensions.Pow( 2, scale );
-        return new MinMax<float>( 0, TileHeightWidth * pow2 - 1 );
-    }
-
-    public MinMax<int> GetTileRange( int scale )
-    {
-        scale = ScaleRange.ConformValueToRange( scale, "GetTileRange() Scale" );
-        var pow = InternalExtensions.Pow( 2, scale );
-
-        return new MinMax<int>( 0, pow - 1 );
-    }
-
-    public int GetNumTiles( int scale )
-    {
-        scale = ScaleRange.ConformValueToRange( scale, "GetNumTiles() Scale" );
-        return InternalExtensions.Pow( 2, scale );
-    }
-
-    public int TileHeightWidth { get; protected set; }
-
-    public int GetHeightWidth( int scale )
-    {
-        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
-        var pow2 = InternalExtensions.Pow( 2, scale );
-
-        return TileHeightWidth * pow2;
-    }
-
-    public string ImageFileExtension { get; protected set; } = string.Empty;
-
-    public int MaxRequestLatency { get; set; } = DefaultMaxRequestLatency;
-
-    public string Copyright { get; protected set; } = string.Empty;
-    public Uri? CopyrightUri { get; protected set; }
-
-    public string MapStyle
-    {
-        get => _mapStyle;
-
-        set
-        {
-            var changed = !value.Equals( _mapStyle, StringComparison.OrdinalIgnoreCase );
-
-            _mapStyle = value;
-
-            if( changed )
-                OnMapStyleChanged( value );
-        }
-    }
-
-    protected virtual void OnMapStyleChanged( string value )
-    {
-    }
-
-    protected TAuth? Credentials { get; private set; }
-
-    public bool SetCredentials( TAuth credentials )
-    {
-        Credentials = credentials;
-        return Authenticate();
-    }
-
-    public async Task<bool> SetCredentialsAsync( TAuth credentials, CancellationToken ctx = default )
-    {
-        Credentials = credentials;
-        return await AuthenticateAsync( ctx );
-    }
-
-    protected bool Authenticate() => Task.Run( async () => await AuthenticateAsync() ).Result;
-
-#pragma warning disable CS1998
-    protected virtual async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
-#pragma warning restore CS1998
-    {
-        if( Credentials != null )
-            return true;
-
-        Logger.Error( "Attempting to authenticate before setting credentials" );
-        return false;
-    }
-
-    public abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
-
-    public abstract Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
-        int x,
-        int y,
-        int scale,
-        CancellationToken ctx = default
-    );
-
-    public abstract Task<MapTile> GetMapTileByRegionCoordinatesAsync(
-        int x,
-        int y,
-        int scale,
-        CancellationToken ctx = default
-    );
-
-    public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
-    {
-        if( !Initialized )
-        {
-            Logger.Error( "Projection not initialized" );
-            return false;
-        }
-
-        // only reload if we have to
-        var retVal = region.RegionChange != MapRegionChange.LoadRequired
-         || await LoadRegionInternalAsync( region, ctx );
-
-        LoadComplete?.Invoke( this, retVal );
-
-        return retVal;
-    }
-
-    protected abstract Task<bool> LoadRegionInternalAsync(
-        MapRegion.MapRegion region,
-        CancellationToken ctx = default
-    );
-
-    bool IProjection.SetCredentials( object credentials )
-    {
-        if( credentials is TAuth castCredentials )
-            return SetCredentials( castCredentials );
-
-        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
-        return false;
-    }
-
-    async Task<bool> IProjection.SetCredentialsAsync( object credentials, CancellationToken ctx )
-    {
-        if( credentials is TAuth castCredentials )
-        {
-            await SetCredentialsAsync( castCredentials, ctx );
-            return true;
-        }
-
-        Logger.Error( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
-        return false;
-    }
 
     #region IEquatable
 

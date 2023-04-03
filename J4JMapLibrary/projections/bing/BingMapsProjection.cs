@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using Serilog;
 using System.Net;
 using System.Text.Json;
 using J4JSoftware.J4JMapLibrary.MapRegion;
+using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -61,6 +61,8 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
     public BingMapStyle BingMapStyle { get; private set; } = BingMapStyle.RoadOnDemand;
 
+    public BingImageryMetadata? Metadata { get; internal set; }
+
     protected override void OnMapStyleChanged( string value )
     {
         base.OnMapStyleChanged( value );
@@ -75,8 +77,6 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         if( Credentials != null )
             Authenticate();
     }
-
-    public BingImageryMetadata? Metadata { get; internal set; }
 
     protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
     {

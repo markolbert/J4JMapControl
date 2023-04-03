@@ -2,6 +2,13 @@
 
 public class CacheStats
 {
+    public long Bytes { get; protected set; }
+    public int Entries { get; protected set; }
+
+    // these DateTimes are in UTC
+    public DateTime Earliest { get; protected set; } = DateTime.MinValue;
+    public DateTime MostRecent { get; protected set; } = DateTime.MaxValue;
+
     public void Initialize( CacheBase cache )
     {
         Bytes = 0;
@@ -43,13 +50,6 @@ public class CacheStats
             }
         }
     }
-
-    public long Bytes { get; protected set; }
-    public int Entries { get; protected set; }
-
-    // these DateTimes are in UTC
-    public DateTime Earliest { get; protected set; } = DateTime.MinValue;
-    public DateTime MostRecent { get; protected set; } = DateTime.MaxValue;
 
     public void RecordEntry( byte[]? imageData )
     {

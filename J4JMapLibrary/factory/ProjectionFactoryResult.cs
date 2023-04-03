@@ -2,9 +2,8 @@
 
 public record ProjectionFactoryResult( IProjection? Projection, bool ProjectionTypeFound )
 {
-    public static ProjectionFactoryResult NotFound => new( null, false );
-
     private readonly bool _authenticated;
+    public static ProjectionFactoryResult NotFound => new( null, false );
 
     public bool Authenticated
     {

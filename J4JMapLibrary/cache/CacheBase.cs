@@ -33,11 +33,11 @@ public abstract class CacheBase : ITileCache
 
     protected ILogger Logger { get; }
 
-    public CacheStats Stats { get; } = new();
-
     public int MaxEntries { get; set; }
     public long MaxBytes { get; set; }
     public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
+
+    public CacheStats Stats { get; } = new();
 
     public ITileCache? ParentCache { get; set; }
 
@@ -64,10 +64,11 @@ public abstract class CacheBase : ITileCache
         return false;
     }
 
-    protected abstract Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default );
     public abstract Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default );
 
     public abstract IEnumerator<CachedEntry> GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    protected abstract Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default );
 }

@@ -21,8 +21,6 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface IProjection : IEquatable<IProjection>
 {
-    event EventHandler<bool>? LoadComplete;
-
     string Name { get; }
 
     bool Initialized { get; }
@@ -30,8 +28,6 @@ public interface IProjection : IEquatable<IProjection>
     int MinScale { get; }
     int MaxScale { get; }
     MinMax<int> ScaleRange { get; }
-
-    int GetHeightWidth( int scale );
 
     float MaxLatitude { get; }
     float MinLatitude { get; }
@@ -41,10 +37,6 @@ public interface IProjection : IEquatable<IProjection>
     float MinLongitude { get; }
     MinMax<float> LongitudeRange { get; }
 
-    MinMax<float> GetXYRange( int scale );
-    MinMax<int> GetTileRange( int scale );
-    int GetNumTiles( int scale );
-
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }
     string ImageFileExtension { get; }
@@ -53,6 +45,13 @@ public interface IProjection : IEquatable<IProjection>
     Uri? CopyrightUri { get; }
 
     string MapStyle { get; set; }
+    event EventHandler<bool>? LoadComplete;
+
+    int GetHeightWidth( int scale );
+
+    MinMax<float> GetXYRange( int scale );
+    MinMax<int> GetTileRange( int scale );
+    int GetNumTiles( int scale );
 
     HttpRequestMessage? CreateMessage( MapTile mapTile );
 

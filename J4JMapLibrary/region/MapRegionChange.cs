@@ -6,4 +6,4 @@ public enum MapRegionChange
     NoChange,
     OffsetChanged,
     LoadRequired
-};
+}

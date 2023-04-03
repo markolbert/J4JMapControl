@@ -200,7 +200,7 @@ public class FileSystemCache : CacheBase
 
         foreach( var path in Directory.EnumerateFiles( _cacheDir,
                                                        "*",
-                                                       new EnumerationOptions()
+                                                       new EnumerationOptions
                                                        {
                                                            IgnoreInaccessible = true, RecurseSubdirectories = false
                                                        } ) )

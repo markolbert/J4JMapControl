@@ -57,13 +57,6 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     public string ScaleDescription( float latitude, int scale, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude, scale ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-#pragma warning disable CS1998
-    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
-#pragma warning restore CS1998
-    {
-        return !string.IsNullOrEmpty( Name );
-    }
-
     public override async Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
         int x,
         int y,
@@ -92,6 +85,13 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         await retVal.LoadFromCacheAsync( TileCache, ctx );
 
         return retVal;
+    }
+
+#pragma warning disable CS1998
+    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+#pragma warning restore CS1998
+    {
+        return !string.IsNullOrEmpty( Name );
     }
 
     protected override async Task<bool> LoadRegionInternalAsync(
