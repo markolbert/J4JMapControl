@@ -36,17 +36,17 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
         MaxScale = 20;
         RetrievalUrl = "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png";
         Copyright = "© OpenStreetMap Contributors";
-        CopyrightUri = new Uri("http://www.openstreetmap.org/copyright");
+        CopyrightUri = new Uri( "http://www.openstreetmap.org/copyright" );
     }
 
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
 #pragma warning disable CS1998
-    protected override async Task<bool> AuthenticateAsync(CancellationToken ctx = default)
+    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        if (!await base.AuthenticateAsync(ctx))
+        if( !await base.AuthenticateAsync( ctx ) )
             return false;
 
         Initialized = false;
@@ -59,19 +59,19 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
 
     public override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
-        if (!Initialized)
+        if( !Initialized )
         {
-            Logger.Error("Projection not initialized");
+            Logger.Error( "Projection not initialized" );
             return null;
         }
 
-        if (!mapTile.InProjection)
+        if( !mapTile.InProjection )
         {
-            Logger.Error("MapTile not in the projection");
+            Logger.Error( "MapTile not in the projection" );
             return null;
         }
 
-        if ( string.IsNullOrEmpty( UserAgent ) )
+        if( string.IsNullOrEmpty( UserAgent ) )
         {
             Logger.Error( "Undefined or empty User-Agent" );
             return null;

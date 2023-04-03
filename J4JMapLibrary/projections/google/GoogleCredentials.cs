@@ -17,7 +17,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[MapCredentials("GoogleMaps", typeof(GoogleMapsProjection))]
+[ MapCredentials( "GoogleMaps", typeof( GoogleMapsProjection ) ) ]
 public record GoogleCredentials( string ApiKey, string SignatureSecret )
 {
     public GoogleCredentials()

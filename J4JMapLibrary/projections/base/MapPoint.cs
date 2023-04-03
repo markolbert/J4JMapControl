@@ -117,12 +117,12 @@ public class MapPoint
 
     private void UpdateCartesian()
     {
-        if (_suppressUpdate)
+        if( _suppressUpdate )
             return;
 
         _suppressUpdate = true;
 
-        var heightWidth = Region.Projection.GetHeightWidth(Region.Scale);
+        var heightWidth = Region.Projection.GetHeightWidth( Region.Scale );
 
         // x == 0 is the left hand edge of the projection (the x/y origin is in
         // the upper left corner)
@@ -146,6 +146,6 @@ public class MapPoint
         SetCartesian( x, y );
 
         _suppressUpdate = false;
-        Changed?.Invoke(this, EventArgs.Empty);
+        Changed?.Invoke( this, EventArgs.Empty );
     }
 }

@@ -53,12 +53,15 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     ) =>
         await GetMapTileByProjectionCoordinatesAsync( x, y, scale, ctx );
 
-    protected override async Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
+    protected override async Task<bool> LoadRegionInternalAsync(
+        MapRegion.MapRegion region,
+        CancellationToken ctx = default
+    )
     {
-        if( region.IsDefined)
-            return await region.MapTiles[0,0].LoadImageAsync( ctx );
+        if( region.IsDefined )
+            return await region.MapTiles[ 0, 0 ].LoadImageAsync( ctx );
 
-        Logger.Error("Undefined static MapRegion");
+        Logger.Error( "Undefined static MapRegion" );
         return false;
     }
 }

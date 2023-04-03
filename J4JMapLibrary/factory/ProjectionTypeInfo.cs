@@ -12,14 +12,14 @@ internal record ProjectionTypeInfo
 
     public ProjectionTypeInfo(
         Type projType
-        )
+    )
     {
         _logger = J4JDeusEx.GetLogger();
         _logger?.ForContext( GetType() );
 
         var attr = projType.GetCustomAttribute<ProjectionAttribute>( false )
          ?? throw new NullReferenceException( $"{projType} is not decorated with a {typeof( ProjectionAttribute )}" );
-        
+
         Name = attr.ProjectionName;
         ProjectionType = projType;
         TiledProjection = projType.IsAssignableTo( typeof( ITiledProjection ) );
@@ -37,31 +37,31 @@ internal record ProjectionTypeInfo
 
     private void InitializeCtorParameters()
     {
-        foreach (var ctor in ProjectionType.GetConstructors() )
+        foreach( var ctor in ProjectionType.GetConstructors() )
         {
             // see if the ctor also accepts an ITiledCache parameter
             var supportsCaching =
-                ctor.GetParameters().Any(p => p.ParameterType.IsAssignableTo(typeof(ITileCache)));
+                ctor.GetParameters().Any( p => p.ParameterType.IsAssignableTo( typeof( ITileCache ) ) );
 
             var requiredCount = supportsCaching ? 2 : 1;
 
             var ctorParameters = new List<ProjectionCtorParameterType>();
 
-            foreach (var ctorParameter in ctor.GetParameters())
+            foreach( var ctorParameter in ctor.GetParameters() )
             {
-                if (ctorParameter.ParameterType.IsAssignableTo(typeof(ILogger)))
+                if( ctorParameter.ParameterType.IsAssignableTo( typeof( ILogger ) ) )
                 {
-                    ctorParameters.Add(ProjectionCtorParameterType.Logger);
+                    ctorParameters.Add( ProjectionCtorParameterType.Logger );
                     continue;
                 }
 
-                if (ctorParameter.ParameterType.IsAssignableTo(typeof(ITileCache)))
+                if( ctorParameter.ParameterType.IsAssignableTo( typeof( ITileCache ) ) )
                 {
-                    ctorParameters.Add(ProjectionCtorParameterType.Cache);
+                    ctorParameters.Add( ProjectionCtorParameterType.Cache );
                     continue;
                 }
 
-                ctorParameters.Add(ProjectionCtorParameterType.Other);
+                ctorParameters.Add( ProjectionCtorParameterType.Other );
             }
 
             if( ctorParameters.Count == requiredCount )

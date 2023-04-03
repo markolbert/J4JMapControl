@@ -8,9 +8,9 @@ internal record CredentialsTypeInfo
         Type credentialsType
     )
     {
-        var attr = credentialsType.GetCustomAttribute<MapCredentialsAttribute>(false)
+        var attr = credentialsType.GetCustomAttribute<MapCredentialsAttribute>( false )
          ?? throw new NullReferenceException(
-                $"{credentialsType} is not decorated with a {typeof(MapCredentialsAttribute)}");
+                $"{credentialsType} is not decorated with a {typeof( MapCredentialsAttribute )}" );
 
         Name = attr.CredentialsName;
         ProjectionType = attr.ProjectionType;

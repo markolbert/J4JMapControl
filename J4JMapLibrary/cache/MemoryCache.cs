@@ -93,7 +93,7 @@ public class MemoryCache : CacheBase
             return false;
 
         mapTile.ImageData = cachedTile.Tile.ImageData;
-        
+
         return mapTile.ImageData != null;
     }
 
@@ -101,7 +101,7 @@ public class MemoryCache : CacheBase
     {
         if( !await mapTile.LoadImageAsync( ctx ) )
         {
-            Logger.Error("Failed to retrieve image data");
+            Logger.Error( "Failed to retrieve image data" );
             return false;
         }
 
@@ -109,7 +109,7 @@ public class MemoryCache : CacheBase
 
         var cacheEntry = new CachedTile( mapTile.ImageBytes, DateTime.UtcNow, DateTime.UtcNow, mapTile );
 
-        if ( _cached.ContainsKey( key ) )
+        if( _cached.ContainsKey( key ) )
         {
             Logger.Warning( "Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId );
             _cached[ key ] = cacheEntry;

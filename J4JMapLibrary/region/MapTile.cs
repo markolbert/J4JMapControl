@@ -12,7 +12,7 @@ public partial class MapTile : Tile
         : base( region, -1, absoluteY )
     {
         SetSize();
-        
+
         QuadKey = InProjection ? GetQuadKey() : string.Empty;
 
         FragmentId = region.Projection is ITiledProjection
@@ -23,26 +23,26 @@ public partial class MapTile : Tile
     private string GetQuadKey()
     {
         // static projections only have a single quadkey, defaulting to "0"
-        if (Region.Projection is not ITiledProjection)
+        if( Region.Projection is not ITiledProjection )
             return "0";
 
         var retVal = new StringBuilder();
 
-        for (var i = Region.Scale; i > Region.Projection.ScaleRange.Minimum - 1; i--)
+        for( var i = Region.Scale; i > Region.Projection.ScaleRange.Minimum - 1; i-- )
         {
             var digit = '0';
-            var mask = 1 << (i - 1);
+            var mask = 1 << ( i - 1 );
 
-            if ((X & mask) != 0)
+            if( ( X & mask ) != 0 )
                 digit++;
 
-            if ((Y & mask) != 0)
+            if( ( Y & mask ) != 0 )
             {
                 digit++;
                 digit++;
             }
 
-            retVal.Append(digit);
+            retVal.Append( digit );
         }
 
         return retVal.ToString();
@@ -112,18 +112,18 @@ public partial class MapTile : Tile
     public MapTile SetRowColumn( int row, int column )
     {
         Row = row < 0
-            ? throw new ArgumentOutOfRangeException($"Row row ({row}) less than 0")
+            ? throw new ArgumentOutOfRangeException( $"Row row ({row}) less than 0" )
             : row < Region.TilesHigh
                 ? row
                 : throw new ArgumentOutOfRangeException(
-                    $"Row row ({row}) equals or exceeds region height ({Region.TilesHigh})");
+                    $"Row row ({row}) equals or exceeds region height ({Region.TilesHigh})" );
 
         Column = column < 0
-            ? throw new ArgumentOutOfRangeException($"Column column ({column}) less than 0")
+            ? throw new ArgumentOutOfRangeException( $"Column column ({column}) less than 0" )
             : column < Region.TilesWide
                 ? column
                 : throw new ArgumentOutOfRangeException(
-                    $"Column column ({column}) equals or exceeds region width ({Region.TilesWide})");
+                    $"Column column ({column}) equals or exceeds region width ({Region.TilesWide})" );
 
         return this;
     }
@@ -133,79 +133,79 @@ public partial class MapTile : Tile
 
     public byte[]? GetImage()
     {
-        return Task.Run(async () => await GetImageAsync()).Result;
+        return Task.Run( async () => await GetImageAsync() ).Result;
     }
 
-    public async Task<byte[]?> GetImageAsync(CancellationToken ctx = default)
+    public async Task<byte[]?> GetImageAsync( CancellationToken ctx = default )
     {
         if( !InProjection )
             return null;
 
-        Logger.Verbose("Beginning image retrieval from web");
+        Logger.Verbose( "Beginning image retrieval from web" );
 
-        var request = Region.Projection.CreateMessage(this);
-        if (request == null)
+        var request = Region.Projection.CreateMessage( this );
+        if( request == null )
         {
-            Logger.Error("Could not create HttpRequestMessage for mapTile ({0})", FragmentId);
+            Logger.Error( "Could not create HttpRequestMessage for mapTile ({0})", FragmentId );
             return null;
         }
 
         var uriText = request.RequestUri!.AbsoluteUri;
         var httpClient = new HttpClient();
 
-        Logger.Verbose("Querying {0}", uriText);
+        Logger.Verbose( "Querying {0}", uriText );
 
         HttpResponseMessage? response;
 
         try
         {
             response = Region.Projection.MaxRequestLatency <= 0
-                ? await httpClient.SendAsync(request, ctx)
-                : await httpClient.SendAsync(request, ctx)
-                                  .WaitAsync(TimeSpan.FromMilliseconds(Region.Projection.MaxRequestLatency),
-                                              ctx);
+                ? await httpClient.SendAsync( request, ctx )
+                : await httpClient.SendAsync( request, ctx )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( Region.Projection.MaxRequestLatency ),
+                                              ctx );
 
-            Logger.Verbose("Got response from {0}", uriText);
+            Logger.Verbose( "Got response from {0}", uriText );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
-            Logger.Error("Image request from {0} failed, message was '{1}'",
-                           request.RequestUri,
-                           ex.Message);
+            Logger.Error( "Image request from {0} failed, message was '{1}'",
+                          request.RequestUri,
+                          ex.Message );
             return null;
         }
 
-        if (response.StatusCode != HttpStatusCode.OK)
+        if( response.StatusCode != HttpStatusCode.OK )
         {
             Logger.Error( "Image request from {0} failed with response code {1}, message was '{2}'",
-                           uriText,
-                           response.StatusCode,
-                           await response.Content.ReadAsStringAsync( ctx ) );
+                          uriText,
+                          response.StatusCode,
+                          await response.Content.ReadAsStringAsync( ctx ) );
 
             return null;
         }
 
-        Logger.Verbose("Reading response from {0}", uriText);
+        Logger.Verbose( "Reading response from {0}", uriText );
 
         // extract image data from response
         try
         {
             await using var responseStream = Region.Projection.MaxRequestLatency < 0
-                ? await response.Content.ReadAsStreamAsync(ctx)
-                : await response.Content.ReadAsStreamAsync(ctx)
-                                .WaitAsync(TimeSpan.FromMilliseconds(Region.Projection.MaxRequestLatency),
-                                            ctx);
+                ? await response.Content.ReadAsStreamAsync( ctx )
+                : await response.Content.ReadAsStreamAsync( ctx )
+                                .WaitAsync( TimeSpan.FromMilliseconds( Region.Projection.MaxRequestLatency ),
+                                            ctx );
 
             var memStream = new MemoryStream();
-            await responseStream.CopyToAsync(memStream, ctx);
+            await responseStream.CopyToAsync( memStream, ctx );
 
             return memStream.ToArray();
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
             Logger.Error( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
-                           response.RequestMessage!.RequestUri!,
-                           ex.Message );
+                          response.RequestMessage!.RequestUri!,
+                          ex.Message );
 
             return null;
         }
@@ -236,7 +236,7 @@ public partial class MapTile : Tile
         // load the image from the web, and then cache it if possible
         retVal = await LoadImageAsync( ctx );
 
-        if ( retVal && cache != null )
+        if( retVal && cache != null )
             await cache.AddEntryAsync( this, ctx );
 
         return retVal;

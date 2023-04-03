@@ -27,7 +27,6 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
 {
     public GoogleMapsProjection(
         ILogger logger
-
     )
         : base( logger )
     {
@@ -35,7 +34,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         MaxScale = 20;
         TileHeightWidth = 256;
         Copyright = "© Google";
-        CopyrightUri = new Uri("http://www.google.com");
+        CopyrightUri = new Uri( "http://www.google.com" );
         ImageFileExtension = ".png";
 
         // this doesn't have the required signature field, but that gets appended
@@ -54,12 +53,12 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     {
         base.OnMapStyleChanged( value );
 
-        if (!Enum.TryParse<GoogleMapStyle>(value, true, out var result))
+        if( !Enum.TryParse<GoogleMapStyle>( value, true, out var result ) )
             return;
 
         GoogleMapStyle = result;
 
-        if (Credentials != null && !Initialized)
+        if( Credentials != null && !Initialized )
             Authenticate();
     }
 
@@ -71,7 +70,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        if (!await base.AuthenticateAsync(ctx))
+        if( !await base.AuthenticateAsync( ctx ) )
             return false;
 
         Initialized = false;
@@ -84,11 +83,11 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage(MapTile mapTile )
+    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
-        if (!Initialized)
+        if( !Initialized )
         {
-            Logger.Error("Trying to create image retrieval HttpRequestMessage when uninitialized");
+            Logger.Error( "Trying to create image retrieval HttpRequestMessage when uninitialized" );
             return null;
         }
 
@@ -104,35 +103,35 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
             { "{apikey}", ApiKey }
         };
 
-        var unsignedQuery = InternalExtensions.ReplaceParameters(RetrievalQueryString, replacements);
-        var encodedQuery = unsignedQuery;// HttpUtility.UrlEncode(unsignedQuery);
+        var unsignedQuery = InternalExtensions.ReplaceParameters( RetrievalQueryString, replacements );
+        var encodedQuery = unsignedQuery; // HttpUtility.UrlEncode(unsignedQuery);
         var unsignedUrl = $"{RetrievalUrl}{encodedQuery}";
-        var signedUrl = SignUrl(unsignedUrl);
+        var signedUrl = SignUrl( unsignedUrl );
 
-        return new HttpRequestMessage(HttpMethod.Get, new Uri(signedUrl));
+        return new HttpRequestMessage( HttpMethod.Get, new Uri( signedUrl ) );
     }
 
-    public string SignUrl(string url)
+    public string SignUrl( string url )
     {
         var encoding = new ASCIIEncoding();
 
         // converting key to bytes will throw an exception, need to replace '-' and '_' characters first.
-        var usablePrivateKey = Signature.Replace("-", "+")
-                                        .Replace("_", "/");
+        var usablePrivateKey = Signature.Replace( "-", "+" )
+                                        .Replace( "_", "/" );
 
-        var privateKeyBytes = Convert.FromBase64String(usablePrivateKey);
+        var privateKeyBytes = Convert.FromBase64String( usablePrivateKey );
 
-        var uri = new Uri(url);
-        var encodedPathAndQueryBytes = encoding.GetBytes(uri.LocalPath + uri.Query);
+        var uri = new Uri( url );
+        var encodedPathAndQueryBytes = encoding.GetBytes( uri.LocalPath + uri.Query );
 
         // compute the hash
-        var algorithm = new HMACSHA1(privateKeyBytes);
-        var hash = algorithm.ComputeHash(encodedPathAndQueryBytes);
+        var algorithm = new HMACSHA1( privateKeyBytes );
+        var hash = algorithm.ComputeHash( encodedPathAndQueryBytes );
 
         // convert the bytes to string and make url-safe by replacing '+' and '/' characters
-        var signature = Convert.ToBase64String(hash)
-                               .Replace("+", "-")
-                               .Replace("/", "_");
+        var signature = Convert.ToBase64String( hash )
+                               .Replace( "+", "-" )
+                               .Replace( "/", "_" );
 
         // Add the signature to the existing URI.
         return $"{uri.Scheme}://{uri.Host}{uri.LocalPath}{uri.Query}&signature={signature}";

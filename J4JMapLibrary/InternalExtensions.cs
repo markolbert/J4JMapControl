@@ -62,16 +62,16 @@ internal static class InternalExtensions
     internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name )
         where T : struct, IComparable
     {
-        if (toCheck.CompareTo(range.Minimum) < 0)
+        if( toCheck.CompareTo( range.Minimum ) < 0 )
         {
-            Logger?.Warning("{0} ({1}) < minimum ({2}), capping", name, toCheck, range.Minimum);
+            Logger?.Warning( "{0} ({1}) < minimum ({2}), capping", name, toCheck, range.Minimum );
             return range.Minimum;
         }
 
-        if (toCheck.CompareTo(range.Maximum) <= 0)
+        if( toCheck.CompareTo( range.Maximum ) <= 0 )
             return toCheck;
 
-        Logger?.Warning("{0} ({1}) > maximum ({2}), capping", name, toCheck, range.Maximum);
+        Logger?.Warning( "{0} ({1}) > maximum ({2}), capping", name, toCheck, range.Maximum );
         return range.Maximum;
     }
 
@@ -82,7 +82,7 @@ internal static class InternalExtensions
     internal static int CompareTo<T>( this MinMax<T> range, T toCheck )
         where T : struct, IComparable
     {
-        if( toCheck.CompareTo(range.Minimum)< 0)
+        if( toCheck.CompareTo( range.Minimum ) < 0 )
             return -1;
 
         return toCheck.CompareTo( range.Maximum ) > 0 ? 1 : 0;

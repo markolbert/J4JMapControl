@@ -20,14 +20,14 @@ using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[Projection("OpenTopoMaps")]
+[ Projection( "OpenTopoMaps" ) ]
 public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials>
 {
     public OpenTopoMapsProjection(
         ILogger logger,
         ITileCache? tileCache = null
     )
-        : base(logger )
+        : base( logger )
     {
         TileCache = tileCache;
         ImageFileExtension = ".png";
@@ -37,17 +37,17 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
         MaxRequestLatency = 5000;
         RetrievalUrl = "https://tile.opentopomap.org/{zoom}/{x}/{y}.png";
         Copyright = "© OpenTopoMap-Mitwirkende, SRTM | Kartendarstellung\n© OpenTopoMap\nCC-BY-SA";
-        CopyrightUri = new Uri("http://opentopomap.org/");
+        CopyrightUri = new Uri( "http://opentopomap.org/" );
     }
 
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
 #pragma warning disable CS1998
-    protected override async Task<bool> AuthenticateAsync(CancellationToken ctx = default)
+    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        if (!await base.AuthenticateAsync(ctx))
+        if( !await base.AuthenticateAsync( ctx ) )
             return false;
 
         Initialized = false;
@@ -60,19 +60,19 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
 
     public override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
-        if (!Initialized)
+        if( !Initialized )
         {
-            Logger.Error("Projection not initialized");
+            Logger.Error( "Projection not initialized" );
             return null;
         }
 
-        if (!mapTile.InProjection)
+        if( !mapTile.InProjection )
         {
-            Logger.Error("MapTile not in the projection");
+            Logger.Error( "MapTile not in the projection" );
             return null;
         }
 
-        if ( string.IsNullOrEmpty( UserAgent ) )
+        if( string.IsNullOrEmpty( UserAgent ) )
         {
             Logger.Error( "Undefined or empty User-Agent" );
             return null;
@@ -92,5 +92,4 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
 
         return retVal;
     }
-
 }

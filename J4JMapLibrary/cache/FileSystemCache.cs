@@ -140,14 +140,14 @@ public class FileSystemCache : CacheBase
 
     protected override async Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default )
     {
-        if (string.IsNullOrEmpty(_cacheDir))
+        if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger.Error("Caching directory is undefined");
+            Logger.Error( "Caching directory is undefined" );
             return false;
         }
 
         var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
-        var filePath = Path.Combine(_cacheDir, $"{key}{mapTile.Region.Projection.ImageFileExtension}");
+        var filePath = Path.Combine( _cacheDir, $"{key}{mapTile.Region.Projection.ImageFileExtension}" );
 
         if( !File.Exists( filePath ) )
             return false;
@@ -165,10 +165,11 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
-        var fileName = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}{mapTile.Region.Projection.ImageFileExtension}";
+        var fileName =
+            $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}{mapTile.Region.Projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
-        if( !await mapTile.LoadImageAsync(ctx))
+        if( !await mapTile.LoadImageAsync( ctx ) )
         {
             Logger.Error( "Failed to retrieve image data" );
             return false;
@@ -181,7 +182,7 @@ public class FileSystemCache : CacheBase
         await imgFile.WriteAsync( mapTile.ImageData, ctx );
         imgFile.Close();
 
-        Stats.RecordEntry(mapTile.ImageData);
+        Stats.RecordEntry( mapTile.ImageData );
 
         if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
@@ -191,9 +192,9 @@ public class FileSystemCache : CacheBase
 
     public override IEnumerator<CachedEntry> GetEnumerator()
     {
-        if (string.IsNullOrEmpty(_cacheDir))
+        if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger.Error("Caching directory is undefined");
+            Logger.Error( "Caching directory is undefined" );
             yield break;
         }
 
@@ -201,8 +202,7 @@ public class FileSystemCache : CacheBase
                                                        "*",
                                                        new EnumerationOptions()
                                                        {
-                                                           IgnoreInaccessible = true, 
-                                                           RecurseSubdirectories = false
+                                                           IgnoreInaccessible = true, RecurseSubdirectories = false
                                                        } ) )
         {
             var fileName = Path.GetFileNameWithoutExtension( path );
@@ -210,13 +210,13 @@ public class FileSystemCache : CacheBase
 
             if( parts.Length != 2 )
             {
-                Logger.Error("Unable to parse cached filename '{0}'", fileName);
+                Logger.Error( "Unable to parse cached filename '{0}'", fileName );
                 continue;
             }
 
             if( !MapExtensions.TryParseQuadKey( parts[ 1 ], out _ ) )
             {
-                Logger.Error("Could not deconstruct quadkey for file '{0}'", fileName  );
+                Logger.Error( "Could not deconstruct quadkey for file '{0}'", fileName );
                 continue;
             }
 

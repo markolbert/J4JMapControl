@@ -23,22 +23,22 @@ public class CacheStats
         }
     }
 
-    public void Initialize(IEnumerable<FileInfo> files )
+    public void Initialize( IEnumerable<FileInfo> files )
     {
         Bytes = 0;
         Entries = 0;
         Earliest = DateTime.MaxValue;
         MostRecent = DateTime.MinValue;
 
-        foreach (var file in files )
+        foreach( var file in files )
         {
             Bytes += file.Length;
             Entries++;
 
-            if (file.LastAccessTimeUtc > MostRecent)
+            if( file.LastAccessTimeUtc > MostRecent )
                 MostRecent = file.LastAccessTimeUtc;
             {
-                if (file.LastAccessTimeUtc < Earliest)
+                if( file.LastAccessTimeUtc < Earliest )
                     Earliest = file.LastAccessTimeUtc;
             }
         }
@@ -51,7 +51,7 @@ public class CacheStats
     public DateTime Earliest { get; protected set; } = DateTime.MinValue;
     public DateTime MostRecent { get; protected set; } = DateTime.MaxValue;
 
-    public void RecordEntry(byte[]? imageData )
+    public void RecordEntry( byte[]? imageData )
     {
         Entries++;
 

@@ -28,7 +28,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
 
-    private readonly Random _random = new(Environment.TickCount);
+    private readonly Random _random = new( Environment.TickCount );
     private string? _cultureCode;
 
     public BingMapsProjection(
@@ -48,12 +48,12 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
         set
         {
-            if (string.IsNullOrEmpty(value))
+            if( string.IsNullOrEmpty( value ) )
                 _cultureCode = null;
             else
             {
-                if (!BingMapsCultureCodes.Default.ContainsKey(value))
-                    Logger.Error("Invalid or unsupported culture code '{0}'", value);
+                if( !BingMapsCultureCodes.Default.ContainsKey( value ) )
+                    Logger.Error( "Invalid or unsupported culture code '{0}'", value );
                 else _cultureCode = value;
             }
         }
@@ -93,31 +93,32 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             { "{mode}", BingMapStyle.ToString() }, { "{apikey}", ApiKey }
         };
 
-        var temp = InternalExtensions.ReplaceParameters(MetadataUrl, replacements);
-        var uri = new Uri(temp);
+        var temp = InternalExtensions.ReplaceParameters( MetadataUrl, replacements );
+        var uri = new Uri( temp );
 
-        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        var request = new HttpRequestMessage( HttpMethod.Get, uri );
 
         var uriText = uri.AbsoluteUri;
         var httpClient = new HttpClient();
 
         HttpResponseMessage? response;
 
-        Logger.Verbose("Attempting to retrieve Bing Maps metadata");
+        Logger.Verbose( "Attempting to retrieve Bing Maps metadata" );
 
         try
         {
             response = MaxRequestLatency < 0
-                ? await httpClient.SendAsync(request, ctx)
-                : await httpClient.SendAsync(request, ctx)
-                                  .WaitAsync(TimeSpan.FromMilliseconds(MaxRequestLatency), ctx);
+                ? await httpClient.SendAsync( request, ctx )
+                : await httpClient.SendAsync( request, ctx )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
             // need to re-throw the exception to satisfy tests that look for
             // thrown exceptions
 #if DEBUG
-            if (MaxRequestLatency == 1)
+            if( MaxRequestLatency == 1 )
+
                 // ReSharper disable once PossibleIntendedRethrow
 #pragma warning disable CA2200
                 throw ex;
@@ -130,12 +131,12 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             return false;
         }
 
-        if (response.StatusCode != HttpStatusCode.OK)
+        if( response.StatusCode != HttpStatusCode.OK )
         {
             var error = MaxRequestLatency < 0
-                ? await response.Content.ReadAsStringAsync(ctx)
-                : await response.Content.ReadAsStringAsync(ctx)
-                                .WaitAsync(TimeSpan.FromMilliseconds(MaxRequestLatency), ctx);
+                ? await response.Content.ReadAsStringAsync( ctx )
+                : await response.Content.ReadAsStringAsync( ctx )
+                                .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
             Logger.Error(
                 "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
@@ -145,26 +146,26 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             return false;
         }
 
-        Logger.Verbose("Attempting to parse Bing Maps metadata");
+        Logger.Verbose( "Attempting to parse Bing Maps metadata" );
 
         try
         {
-            var respText = await response.Content.ReadAsStringAsync(CancellationToken.None);
+            var respText = await response.Content.ReadAsStringAsync( CancellationToken.None );
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            Metadata = JsonSerializer.Deserialize<BingImageryMetadata>(respText, options);
-            Logger.Verbose("Bing Maps metadata retrieved");
+            Metadata = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
+            Logger.Verbose( "Bing Maps metadata retrieved" );
         }
-        catch (Exception ex)
+        catch( Exception ex )
         {
-            Logger.Error("Could not parse Bing Maps metadata, message was '{0}'", ex.Message);
+            Logger.Error( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
 
             return false;
         }
 
-        if (Metadata!.PrimaryResource == null)
+        if( Metadata!.PrimaryResource == null )
         {
-            Logger.Error("Primary resource is not defined");
+            Logger.Error( "Primary resource is not defined" );
             return false;
         }
 

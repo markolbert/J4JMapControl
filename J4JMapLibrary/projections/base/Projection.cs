@@ -18,6 +18,7 @@
 using System.Reflection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Serilog;
+
 #pragma warning disable CS8618
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -52,8 +53,8 @@ public abstract class Projection<TAuth> : IProjection
 
         Initialized = !string.IsNullOrEmpty( Name );
 
-        LatitudeRange = new MinMax<float>(-90, 90);
-        LongitudeRange = new MinMax<float>(-180, 180);
+        LatitudeRange = new MinMax<float>( -90, 90 );
+        LongitudeRange = new MinMax<float>( -180, 180 );
     }
 
     protected ILogger Logger { get; }
@@ -89,8 +90,8 @@ public abstract class Projection<TAuth> : IProjection
     {
         get
         {
-            if (_scaleRange == null)
-                _scaleRange = new MinMax<int>(MinScale, MaxScale);
+            if( _scaleRange == null )
+                _scaleRange = new MinMax<int>( MinScale, MaxScale );
 
             return _scaleRange;
         }
@@ -107,7 +108,7 @@ public abstract class Projection<TAuth> : IProjection
         protected set
         {
             _maxLat = value;
-            LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
+            LatitudeRange = new MinMax<float>( MinLatitude, MaxLatitude );
         }
     }
 
@@ -118,7 +119,7 @@ public abstract class Projection<TAuth> : IProjection
         protected set
         {
             _minLat = value;
-            LatitudeRange = new MinMax<float>(MinLatitude, MaxLatitude);
+            LatitudeRange = new MinMax<float>( MinLatitude, MaxLatitude );
         }
     }
 
@@ -131,7 +132,7 @@ public abstract class Projection<TAuth> : IProjection
         protected set
         {
             _maxLong = value;
-            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+            LongitudeRange = new MinMax<float>( MinLongitude, MaxLongitude );
         }
     }
 
@@ -142,7 +143,7 @@ public abstract class Projection<TAuth> : IProjection
         protected set
         {
             _minLong = value;
-            LongitudeRange = new MinMax<float>(MinLongitude, MaxLongitude);
+            LongitudeRange = new MinMax<float>( MinLongitude, MaxLongitude );
         }
     }
 
@@ -158,12 +159,12 @@ public abstract class Projection<TAuth> : IProjection
         return new MinMax<float>( 0, TileHeightWidth * pow2 - 1 );
     }
 
-    public MinMax<int> GetTileRange(int scale)
+    public MinMax<int> GetTileRange( int scale )
     {
-        scale = ScaleRange.ConformValueToRange(scale, "GetTileRange() Scale");
-        var pow = InternalExtensions.Pow(2, scale);
+        scale = ScaleRange.ConformValueToRange( scale, "GetTileRange() Scale" );
+        var pow = InternalExtensions.Pow( 2, scale );
 
-        return new MinMax<int>(0, pow - 1);
+        return new MinMax<int>( 0, pow - 1 );
     }
 
     public int GetNumTiles( int scale )
@@ -176,8 +177,8 @@ public abstract class Projection<TAuth> : IProjection
 
     public int GetHeightWidth( int scale )
     {
-        scale = ScaleRange.ConformValueToRange(scale, "Scale");
-        var pow2 = InternalExtensions.Pow(2, scale);
+        scale = ScaleRange.ConformValueToRange( scale, "Scale" );
+        var pow2 = InternalExtensions.Pow( 2, scale );
 
         return TileHeightWidth * pow2;
     }
@@ -222,8 +223,7 @@ public abstract class Projection<TAuth> : IProjection
         return await AuthenticateAsync( ctx );
     }
 
-    protected bool Authenticate() =>
-        Task.Run( async () => await AuthenticateAsync() ).Result;
+    protected bool Authenticate() => Task.Run( async () => await AuthenticateAsync() ).Result;
 
 #pragma warning disable CS1998
     protected virtual async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
@@ -232,7 +232,7 @@ public abstract class Projection<TAuth> : IProjection
         if( Credentials != null )
             return true;
 
-        Logger.Error("Attempting to authenticate before setting credentials");
+        Logger.Error( "Attempting to authenticate before setting credentials" );
         return false;
     }
 
@@ -261,14 +261,18 @@ public abstract class Projection<TAuth> : IProjection
         }
 
         // only reload if we have to
-        var retVal = region.RegionChange != MapRegionChange.LoadRequired || await LoadRegionInternalAsync( region, ctx );
+        var retVal = region.RegionChange != MapRegionChange.LoadRequired
+         || await LoadRegionInternalAsync( region, ctx );
 
         LoadComplete?.Invoke( this, retVal );
 
         return retVal;
     }
 
-    protected abstract Task<bool> LoadRegionInternalAsync( MapRegion.MapRegion region, CancellationToken ctx = default );
+    protected abstract Task<bool> LoadRegionInternalAsync(
+        MapRegion.MapRegion region,
+        CancellationToken ctx = default
+    );
 
     bool IProjection.SetCredentials( object credentials )
     {
@@ -295,7 +299,7 @@ public abstract class Projection<TAuth> : IProjection
 
     public static bool operator==( Projection<TAuth>? left, Projection<TAuth>? right ) => Equals( left, right );
 
-    public static bool operator!=(Projection<TAuth>? left, Projection<TAuth>? right) => !Equals( left, right );
+    public static bool operator!=( Projection<TAuth>? left, Projection<TAuth>? right ) => !Equals( left, right );
 
     public bool Equals( IProjection? other ) =>
         other != null
@@ -303,8 +307,8 @@ public abstract class Projection<TAuth> : IProjection
      && MaxScale == other.MaxScale
      && Math.Abs( MinLatitude - other.MinLatitude ) < MapConstants.FloatTolerance
      && Math.Abs( MaxLatitude - other.MaxLatitude ) < MapConstants.FloatTolerance
-     && Math.Abs(MinLongitude - other.MinLongitude) < MapConstants.FloatTolerance
-     && Math.Abs(MaxLongitude - other.MaxLongitude) < MapConstants.FloatTolerance
+     && Math.Abs( MinLongitude - other.MinLongitude ) < MapConstants.FloatTolerance
+     && Math.Abs( MaxLongitude - other.MaxLongitude ) < MapConstants.FloatTolerance
      && Name.Equals( other.Name, StringComparison.OrdinalIgnoreCase );
 
     public override bool Equals( object? obj )

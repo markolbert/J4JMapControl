@@ -76,14 +76,14 @@ public class MapRegion : IEnumerable<MapTile>
         ConfigurationChanged?.Invoke( this, EventArgs.Empty );
     }
 
-    private void SetField(ref float field, float newValue)
+    private void SetField( ref float field, float newValue )
     {
-        if (Math.Abs( newValue - field ) < MapConstants.FloatTolerance)
+        if( Math.Abs( newValue - field ) < MapConstants.FloatTolerance )
             return;
 
         field = newValue;
         Changed = true;
-        ConfigurationChanged?.Invoke(this, EventArgs.Empty);
+        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
     }
 
     public float CenterLatitude
@@ -111,7 +111,7 @@ public class MapRegion : IEnumerable<MapTile>
     public float CenterYOffset
     {
         get => _yOffset;
-        internal set => SetField(ref _yOffset, value);
+        internal set => SetField( ref _yOffset, value );
     }
 
     public MapPoint Center { get; private set; }
@@ -157,7 +157,7 @@ public class MapRegion : IEnumerable<MapTile>
         internal set => SetField( ref _heading, value % 360 );
     }
 
-    public float Rotation => (360 - Heading) % 360;
+    public float Rotation => ( 360 - Heading ) % 360;
 
     public Rectangle2D BoundingBox { get; private set; }
     public int MaximumTiles { get; private set; }
@@ -177,11 +177,11 @@ public class MapRegion : IEnumerable<MapTile>
         ProjectionType switch
         {
             ProjectionType.Static => RequestedHeight,
-            ProjectionType.Tiled => ((ITiledProjection)Projection).TileHeightWidth,
-            _ => throw new InvalidEnumArgumentException($"Unsupported {typeof(ProjectionType)} '{ProjectionType}'")
+            ProjectionType.Tiled => ( (ITiledProjection) Projection ).TileHeightWidth,
+            _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( ProjectionType )} '{ProjectionType}'" )
         };
 
-    public MapTile[,] MapTiles { get; private set; } = new MapTile[0, 0];
+    public MapTile[ , ] MapTiles { get; private set; } = new MapTile[ 0, 0 ];
 
     public MapTile? this[ int xRelative, int yRelative ]
     {
@@ -198,13 +198,13 @@ public class MapRegion : IEnumerable<MapTile>
     {
         var retVal = UpperLeft.X + offsetX;
 
-        if (retVal < 0)
+        if( retVal < 0 )
             retVal += MaximumTiles;
 
-        if (retVal < 0)
+        if( retVal < 0 )
             retVal = -1;
 
-        if (retVal >= MaximumTiles)
+        if( retVal >= MaximumTiles )
             retVal = -1;
 
         return retVal;
@@ -236,14 +236,13 @@ public class MapRegion : IEnumerable<MapTile>
 
             if( Heading != 0 )
             {
-                var offset = new Vector3(CenterXOffset, CenterYOffset, 0);
+                var offset = new Vector3( CenterXOffset, CenterYOffset, 0 );
                 var transform = Matrix4x4.CreateRotationZ( -Rotation * MapConstants.RadiansPerDegree );
                 var rotated = Vector3.Transform( offset, transform );
 
                 adjX = rotated.X;
                 adjY = rotated.Y;
             }
-
 
             var xOffset = adjX == 0 ? (float?) null : adjX;
             var yOffset = adjY == 0 ? (float?) null : adjY;
@@ -290,28 +289,28 @@ public class MapRegion : IEnumerable<MapTile>
 
     private void UpdateEmpty()
     {
-        UpperLeft = new Tile(this, int.MinValue, int.MinValue);
+        UpperLeft = new Tile( this, int.MinValue, int.MinValue );
         TilesWide = 0;
         TilesHigh = 0;
         BoundingBox = Rectangle2D.Empty;
     }
 
-    private void UpdateStaticDimensions(Rectangle2D oldBoundingBox)
+    private void UpdateStaticDimensions( Rectangle2D oldBoundingBox )
     {
-        UpperLeft = new Tile(this, 0, 0);
+        UpperLeft = new Tile( this, 0, 0 );
         TilesWide = 1;
         TilesHigh = 1;
 
-        ViewpointOffset = new Vector3(-(BoundingBox.Width - RequestedWidth) / 2,
-                                      -(BoundingBox.Height - RequestedHeight) / 2,
-                                      0);
+        ViewpointOffset = new Vector3( -( BoundingBox.Width - RequestedWidth ) / 2,
+                                       -( BoundingBox.Height - RequestedHeight ) / 2,
+                                       0 );
 
-        MapTiles = new MapTile[1, 1];
-        MapTiles[0, 0] = new MapTile(this, 0)
-                        .SetXAbsolute(0)
-                        .SetRowColumn(0, 0);
+        MapTiles = new MapTile[ 1, 1 ];
+        MapTiles[ 0, 0 ] = new MapTile( this, 0 )
+                          .SetXAbsolute( 0 )
+                          .SetRowColumn( 0, 0 );
 
-        RegionChange = BoundingBox.Equals(oldBoundingBox)
+        RegionChange = BoundingBox.Equals( oldBoundingBox )
             ? MapRegionChange.OffsetChanged
             : MapRegionChange.LoadRequired;
     }
@@ -321,7 +320,7 @@ public class MapRegion : IEnumerable<MapTile>
         var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
         var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) - 1 );
         var minYTile = RoundTile( BoundingBox.Min( c => c.Y ) );
-        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y )-1 );
+        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y ) - 1 );
 
         UpperLeft = new Tile( this, minXTile, minYTile );
         TilesWide = maxXTile - minXTile + 1;
@@ -341,8 +340,8 @@ public class MapRegion : IEnumerable<MapTile>
             for( var column = 0; column < TilesWide; column++ )
             {
                 MapTiles[ row, column ] = new MapTile( this, UpperLeft.Y + row )
-                                                      .SetXRelative( column )
-                                                      .SetRowColumn( row, column );
+                                         .SetXRelative( column )
+                                         .SetRowColumn( row, column );
             }
         }
 
@@ -356,8 +355,9 @@ public class MapRegion : IEnumerable<MapTile>
 
     private int RoundTile( float value )
     {
-        var tile = Math.Round(value) / Projection.TileHeightWidth;
-        return (int)Math.Floor(tile);
+        var tile = Math.Round( value ) / Projection.TileHeightWidth;
+        return (int) Math.Floor( tile );
+
         //return tile < 0 ? (int) Math.Floor( tile ) : (int) Math.Ceiling( tile );
     }
 

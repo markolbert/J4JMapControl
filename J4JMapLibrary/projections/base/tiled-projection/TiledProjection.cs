@@ -73,7 +73,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     {
         var region = new MapRegion.MapRegion( this, Logger ) { Scale = scale };
 
-        var retVal = new MapTile( region, y ).SetXRelative(x);
+        var retVal = new MapTile( region, y ).SetXRelative( x );
         await retVal.LoadFromCacheAsync( TileCache, ctx );
 
         return retVal;
@@ -86,15 +86,18 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         CancellationToken ctx = default
     )
     {
-        var region = new MapRegion.MapRegion(this, Logger) { Scale = scale };
+        var region = new MapRegion.MapRegion( this, Logger ) { Scale = scale };
 
-        var retVal = new MapTile(region, y).SetXAbsolute(x);
-        await retVal.LoadFromCacheAsync(TileCache, ctx);
+        var retVal = new MapTile( region, y ).SetXAbsolute( x );
+        await retVal.LoadFromCacheAsync( TileCache, ctx );
 
         return retVal;
     }
 
-    protected override async Task<bool> LoadRegionInternalAsync(MapRegion.MapRegion region, CancellationToken ctx = default )
+    protected override async Task<bool> LoadRegionInternalAsync(
+        MapRegion.MapRegion region,
+        CancellationToken ctx = default
+    )
     {
         foreach( var mapTile in region )
         {
