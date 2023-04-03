@@ -1,5 +1,7 @@
+using System;
 using Windows.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -39,6 +41,24 @@ public sealed partial class J4JMapControl
     {
         get => (bool)GetValue(ControlVisibilityProperty);
         set => SetValue(ControlVisibilityProperty, value);
+    }
+
+    public BitmapImage CompassRoseImage
+    {
+        get => (BitmapImage)GetValue(CompassRoseImageProperty);
+        set => SetValue(CompassRoseImageProperty, value);
+    }
+
+    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register(
+        nameof(CompassRoseImage),
+        typeof(BitmapImage),
+        typeof(J4JMapControl),
+        new PropertyMetadata(GetDefaultCompassRoseImage()));
+
+    private static BitmapImage GetDefaultCompassRoseImage()
+    {
+        var uri = new Uri("ms-appx:///media/rose.png");
+        return new BitmapImage(uri);
     }
 
     public DependencyProperty CompassRoseHeightWidthProperty = DependencyProperty.Register(
