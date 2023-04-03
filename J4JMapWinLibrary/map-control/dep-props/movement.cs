@@ -107,7 +107,7 @@ public sealed partial class J4JMapControl
         Canvas.SetTop( _rotationPanel, point.Y + 5 );
         _rotationText!.Text = $"Rotated {deltaRotation:F0}";
 
-        _headingText!.Text = $"Heading {( Heading + deltaRotation ):F0}";
+        _headingText!.Text = $"Heading {Heading + deltaRotation:F0}";
 
         _rotationCanvas!.Visibility = Visibility.Visible;
 

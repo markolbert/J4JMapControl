@@ -67,7 +67,7 @@ public sealed partial class J4JMapControl : Control
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
 
-        this.SizeChanged += OnSizeChanged;
+        SizeChanged += OnSizeChanged;
     }
 
     protected override void OnApplyTemplate()

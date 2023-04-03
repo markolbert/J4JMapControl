@@ -25,7 +25,7 @@ public sealed partial class MapPin : Control
 
     public MapPin()
     {
-        this.DefaultStyleKey = typeof( MapPin );
+        DefaultStyleKey = typeof( MapPin );
 
         _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain ILogger instance" );
         _logger.ForContext( GetType() );

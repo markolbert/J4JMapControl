@@ -7,7 +7,7 @@ public sealed partial class J4JMapControl
     public DependencyProperty UpdateEventIntervalProperty = DependencyProperty.Register( nameof( UpdateEventInterval ),
         typeof( int ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( J4JMapControl.DefaultUpdateEventInterval, OnUpdateIntervalChanged ) );
+        new PropertyMetadata( DefaultUpdateEventInterval, OnUpdateIntervalChanged ) );
 
     private static void OnUpdateIntervalChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
@@ -20,7 +20,7 @@ public sealed partial class J4JMapControl
         if( value < 0 )
         {
             mapControl._logger.Warning( "Tried to set UpdateEventInterval < 0, defaulting to {0}",
-                                        J4JMapControl.DefaultUpdateEventInterval );
+                                        DefaultUpdateEventInterval );
             value = DefaultUpdateEventInterval;
         }
 
