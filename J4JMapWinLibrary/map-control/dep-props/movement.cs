@@ -32,12 +32,12 @@ public sealed partial class J4JMapControl
     private Image? _compassRose;
     private Slider? _scaleSlider;
 
-    public DependencyProperty ShowRotationHintsProperty = DependencyProperty.Register(nameof(ShowRotationHints),
-        typeof(bool),
-        typeof(J4JMapControl),
-        new PropertyMetadata(true));
+    public DependencyProperty ShowRotationHintsProperty = DependencyProperty.Register( nameof( ShowRotationHints ),
+        typeof( bool ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( true ) );
 
-    private void MovementProcessorOnMoved(object? sender, Movement e)
+    private void MovementProcessorOnMoved( object? sender, Movement e )
     {
         _rotationHintsEnabled = e.Type == MovementType.Rotation;
 
@@ -48,7 +48,7 @@ public sealed partial class J4JMapControl
                 break;
 
             case MovementType.Translation:
-                ProcessTranslation(e.Position);
+                ProcessTranslation( e.Position );
                 break;
 
             case MovementType.Undefined:
@@ -57,7 +57,7 @@ public sealed partial class J4JMapControl
         }
     }
 
-    private void MovementProcessorOnMovementsEnded(object? sender, MovementType e)
+    private void MovementProcessorOnMovementsEnded( object? sender, MovementType e )
     {
         switch( e )
         {
@@ -66,7 +66,7 @@ public sealed partial class J4JMapControl
                 _firstRotationAngle = null;
                 _firstRotationPoint = null;
 
-                if (_rotationCanvas != null)
+                if( _rotationCanvas != null )
                     _rotationCanvas.Visibility = Visibility.Collapsed;
 
                 break;
@@ -82,9 +82,9 @@ public sealed partial class J4JMapControl
         }
     }
 
-    private void ProcessRotation(Point point)
+    private void ProcessRotation( Point point )
     {
-        if (!_rotationHintsDefined || !ShowRotationHints || !_rotationHintsEnabled)
+        if( !_rotationHintsDefined || !ShowRotationHints || !_rotationHintsEnabled )
             return;
 
         _firstRotationPoint ??= point;
@@ -103,8 +103,8 @@ public sealed partial class J4JMapControl
         _rotationLine.X2 = point.X;
         _rotationLine.Y2 = point.Y;
 
-        Canvas.SetLeft(_rotationPanel, point.X + 5);
-        Canvas.SetTop(_rotationPanel, point.Y + 5);
+        Canvas.SetLeft( _rotationPanel, point.X + 5 );
+        Canvas.SetTop( _rotationPanel, point.Y + 5 );
         _rotationText!.Text = $"Rotated {deltaRotation:F0}";
 
         _headingText!.Text = $"Heading {( Heading + deltaRotation ):F0}";
@@ -122,9 +122,7 @@ public sealed partial class J4JMapControl
 
         _compassRose.RenderTransform = new RotateTransform
         {
-            Angle = 360 - Heading,
-            CenterX = _compassRose.ActualWidth / 2,
-            CenterY = _compassRose.ActualHeight / 2
+            Angle = 360 - Heading, CenterX = _compassRose.ActualWidth / 2, CenterY = _compassRose.ActualHeight / 2
         };
     }
 
@@ -132,13 +130,13 @@ public sealed partial class J4JMapControl
     {
         _lastTranslationPoint ??= point;
 
-        var xDelta = _lastTranslationPoint.Value.X- point.X;
+        var xDelta = _lastTranslationPoint.Value.X - point.X;
         var yDelta = _lastTranslationPoint.Value.Y - point.Y;
 
         if( Math.Abs( xDelta ) < 5 && Math.Abs( yDelta ) < 5 )
             return;
 
-        MapRegion!.Offset( (float)xDelta, (float) yDelta );
+        MapRegion!.Offset( (float) xDelta, (float) yDelta );
         MapRegion!.Update();
     }
 
@@ -161,8 +159,8 @@ public sealed partial class J4JMapControl
     {
         e.Handled = true;
 
-        if ( PointerCaptures == null
-         || PointerCaptures.All( p => p.PointerId != e.Pointer.PointerId ) )
+        if( PointerCaptures == null
+        || PointerCaptures.All( p => p.PointerId != e.Pointer.PointerId ) )
             return;
 
         var controlPressed = InputKeyboardSource
@@ -203,7 +201,7 @@ public sealed partial class J4JMapControl
             _ => double.NaN
         };
 
-        if( double.IsNaN(heading) )
+        if( double.IsNaN( heading ) )
             return false;
 
         Heading = heading;

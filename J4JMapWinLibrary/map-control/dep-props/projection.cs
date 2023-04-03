@@ -17,14 +17,14 @@ public sealed partial class J4JMapControl
 
     private IProjection? _projection;
 
-    public DependencyProperty MapProjectionProperty = DependencyProperty.Register(nameof(MapProjection),
-        typeof(string),
-        typeof(J4JMapControl),
-        new PropertyMetadata(null, OnMapProjectionChanged));
+    public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
+        typeof( string ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( null, OnMapProjectionChanged ) );
 
-    private static void OnMapProjectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnMapProjectionChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
-        if (d is not J4JMapControl mapControl)
+        if( d is not J4JMapControl mapControl )
             return;
 
         mapControl.UpdateProjection();
@@ -51,12 +51,12 @@ public sealed partial class J4JMapControl
         }
 
         _projection = projResult.Projection!;
-        _projection.LoadComplete += (_, _) => _dispatcherQueue.TryEnqueue(LoadMapImages);
+        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
 
-        if (!Extensions.TryParseToLatLong(Center, out var latitude, out var longitude))
-            _logger.Error("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
+        if( !Extensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
+            _logger.Error( "Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center );
 
-        if (MapRegion != null)
+        if( MapRegion != null )
         {
             MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
             MapRegion.BuildUpdated -= MapRegionBuildUpdated;
@@ -79,20 +79,19 @@ public sealed partial class J4JMapControl
 
     public string MapProjection
     {
-        get => (string)GetValue(MapProjectionProperty);
-        set => SetValue(MapProjectionProperty, value);
+        get => (string) GetValue( MapProjectionProperty );
+        set => SetValue( MapProjectionProperty, value );
     }
 
-    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
-                                                                             typeof(string),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata(
-                                                                                 null,
-                                                                                 OnMapProjectionChanged));
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
+                                                                              typeof( string ),
+                                                                              typeof( J4JMapControl ),
+                                                                              new PropertyMetadata( null,
+                                                                                  OnMapProjectionChanged ) );
 
     public string MapStyle
     {
-        get => (string)GetValue(MapStyleProperty);
-        set => SetValue(MapStyleProperty, value);
+        get => (string) GetValue( MapStyleProperty );
+        set => SetValue( MapStyleProperty, value );
     }
 }

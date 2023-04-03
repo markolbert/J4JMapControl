@@ -13,11 +13,9 @@ public class Location : DependencyObject
                                              typeof( Location ),
                                              new PropertyMetadata( null ) );
 
-    public static string GetCenter(UIElement element) =>
-        (string) element.GetValue(CenterProperty);
+    public static string GetCenter( UIElement element ) => (string) element.GetValue( CenterProperty );
 
-    public static void SetCenter( UIElement element, string value ) =>
-        element.SetValue( CenterProperty, value );
+    public static void SetCenter( UIElement element, string value ) => element.SetValue( CenterProperty, value );
 
     public static bool TryParseCenter( UIElement element, out float latitude, out float longitude )
     {
@@ -30,22 +28,20 @@ public class Location : DependencyObject
     }
 
     public static DependencyProperty OffsetProperty =
-        DependencyProperty.RegisterAttached("Offset",
-                                            typeof(string),
-                                            typeof(Location),
-                                            new PropertyMetadata("0,0"));
+        DependencyProperty.RegisterAttached( "Offset",
+                                             typeof( string ),
+                                             typeof( Location ),
+                                             new PropertyMetadata( "0,0" ) );
 
-    public static string GetOffset(UIElement element) =>
-        (string)element.GetValue(OffsetProperty);
+    public static string GetOffset( UIElement element ) => (string) element.GetValue( OffsetProperty );
 
-    public static void SetOffset(UIElement element, string value) =>
-        element.SetValue(OffsetProperty, value);
+    public static void SetOffset( UIElement element, string value ) => element.SetValue( OffsetProperty, value );
 
-    public static bool TryParseOffset(UIElement element, out Point offset )
+    public static bool TryParseOffset( UIElement element, out Point offset )
     {
         offset = new Point();
 
-        var offsetText = GetOffset(element);
+        var offsetText = GetOffset( element );
 
         if( !Extensions.TryParseToPoint( offsetText, out var temp ) )
             return false;
@@ -59,7 +55,7 @@ public class Location : DependencyObject
         if( !TryParseCenter( element, out var latitude, out var longitude ) )
             return false;
 
-        if( latitude < -MapConstants.Wgs84MaxLatitude || latitude > MapConstants.Wgs84MaxLatitude)
+        if( latitude < -MapConstants.Wgs84MaxLatitude || latitude > MapConstants.Wgs84MaxLatitude )
             return false;
 
         var mapPoint = new MapPoint( region );

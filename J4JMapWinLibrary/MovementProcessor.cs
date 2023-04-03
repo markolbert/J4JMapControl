@@ -48,7 +48,7 @@ public class MovementProcessor
 
         for( var idx = 0; idx < points.Count; idx++ )
         {
-            var curPoint = points[idx];
+            var curPoint = points[ idx ];
 
             if( idx == 0 && _lastProcessed == null )
             {
@@ -79,7 +79,7 @@ public class MovementProcessor
         if( !Enabled )
             _points.Clear();
 
-        if ( _points.Any() )
+        if( _points.Any() )
             ProcessPoints();
         else EndProcessing();
     }
@@ -91,20 +91,21 @@ public class MovementProcessor
         // if none fits that filter
         KeyedPoint? toProcess = null;
 
-        while (toProcess == null)
+        while( toProcess == null )
         {
             var dequeued = _points.Dequeue();
 
-            if (!_points.Any() || dequeued.Point.Timestamp - _lastProcessedTimestamp >= _timer.Interval.TotalMicroseconds)
+            if( !_points.Any()
+            || dequeued.Point.Timestamp - _lastProcessedTimestamp >= _timer.Interval.TotalMicroseconds )
                 toProcess = dequeued;
         }
 
         _lastProcessedTimestamp = toProcess.Point.Timestamp;
 
-        if (toProcess.MovementType != MovementType)
+        if( toProcess.MovementType != MovementType )
         {
-            if (MovementType != MovementType.Undefined)
-                MovementsEnded?.Invoke(this, MovementType);
+            if( MovementType != MovementType.Undefined )
+                MovementsEnded?.Invoke( this, MovementType );
 
             MovementType = toProcess.MovementType;
         }
@@ -113,7 +114,7 @@ public class MovementProcessor
         {
             case MovementType.Rotation:
             case MovementType.Translation:
-                Moved?.Invoke(this, new Movement(MovementType, toProcess.Point.Position));
+                Moved?.Invoke( this, new Movement( MovementType, toProcess.Point.Position ) );
                 break;
 
             case MovementType.Undefined:
@@ -127,11 +128,11 @@ public class MovementProcessor
     {
         _timer.Stop();
 
-        switch (MovementType)
+        switch( MovementType )
         {
             case MovementType.Rotation:
             case MovementType.Translation:
-                MovementsEnded?.Invoke(this, MovementType);
+                MovementsEnded?.Invoke( this, MovementType );
                 break;
 
             case MovementType.Undefined:

@@ -4,31 +4,31 @@
     xmlns:tk="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:local="using:J4JSoftware.J4JMapWinLibrary">
 
-    <BitmapImage x:Key="DefaultCompassRoseImage" UriSource="/media/rose.png"/>
+    <BitmapImage x:Key="DefaultCompassRoseImage" UriSource="/media/rose.png" />
 
-    <Style TargetType="local:J4JMapControl" >
+    <Style TargetType="local:J4JMapControl">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:J4JMapControl">
                     <Grid x:Name="MapContainer">
 
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <Grid x:Name="MapGrid" 
+                        <Grid x:Name="MapGrid"
                               Grid.Column="0" Grid.Row="0"
-                              Canvas.ZIndex="0"/>
+                              Canvas.ZIndex="0" />
 
-                        <Canvas x:Name="AnnotationsCanvas" 
-                              Grid.Column="0" Grid.Row="0"
-                              Canvas.ZIndex="1"/>
+                        <Canvas x:Name="AnnotationsCanvas"
+                                Grid.Column="0" Grid.Row="0"
+                                Canvas.ZIndex="1" />
 
-                        <Grid x:Name="ControlGrid" 
+                        <Grid x:Name="ControlGrid"
                               Grid.Column="0" Grid.Row="0"
                               Canvas.ZIndex="2"
                               Height="300"
@@ -37,24 +37,24 @@
                               Visibility="{TemplateBinding ControlVisibility}">
 
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
                             <Image x:Name="CompassRose"
                                    Grid.Column="0" Grid.Row="0"
                                    Source="{TemplateBinding CompassRoseImage}"
                                    Width="{TemplateBinding CompassRoseHeightWidth}"
-                                   Height="{TemplateBinding CompassRoseHeightWidth}"/>
+                                   Height="{TemplateBinding CompassRoseHeightWidth}" />
 
-                            <Rectangle Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" 
-                                       Fill="{TemplateBinding ControlBackground}" 
-                                       Canvas.ZIndex="-1" 
-                                       Opacity="{TemplateBinding ControlBackgroundOpacity}"/>
+                            <Rectangle Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                                       Fill="{TemplateBinding ControlBackground}"
+                                       Canvas.ZIndex="-1"
+                                       Opacity="{TemplateBinding ControlBackgroundOpacity}" />
 
                             <Slider x:Name="ScaleSlider"
                                     Grid.Column="0" Grid.Row="1"
@@ -69,27 +69,27 @@
                                     Value="{TemplateBinding MapScale}" />
                         </Grid>
 
-                        <Canvas x:Name="RotationCanvas" 
+                        <Canvas x:Name="RotationCanvas"
                                 Grid.Column="0" Grid.Row="0"
-                                Canvas.ZIndex="3" 
+                                Canvas.ZIndex="3"
                                 Visibility="Collapsed">
-                            
-                            <StackPanel x:Name="RotationPanel" 
+
+                            <StackPanel x:Name="RotationPanel"
                                         Orientation="Vertical">
-                            
-                                <TextBlock x:Name="RotationText" 
+
+                                <TextBlock x:Name="RotationText"
                                            Margin="2"
-                                           Foreground="Red" 
-                                           FontWeight="Bold"/>
-                                
-                                <TextBlock x:Name="HeadingText" 
+                                           Foreground="Red"
+                                           FontWeight="Bold" />
+
+                                <TextBlock x:Name="HeadingText"
                                            Margin="2"
-                                           Foreground="Blue" 
-                                           FontWeight="Bold"/>
+                                           Foreground="Blue"
+                                           FontWeight="Bold" />
                             </StackPanel>
 
-                            <Line x:Name="BaseLine" Stroke="Blue" StrokeThickness="2"/>
-                            <Line x:Name="RotationLine" Stroke="Red" StrokeThickness="2"/>
+                            <Line x:Name="BaseLine" Stroke="Blue" StrokeThickness="2" />
+                            <Line x:Name="RotationLine" Stroke="Red" StrokeThickness="2" />
                         </Canvas>
 
                     </Grid>
@@ -98,7 +98,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="local:MapPin" >
+    <Style TargetType="local:MapPin">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:MapPin">

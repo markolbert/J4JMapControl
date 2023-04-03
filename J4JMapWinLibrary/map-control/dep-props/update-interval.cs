@@ -4,10 +4,10 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public DependencyProperty UpdateEventIntervalProperty = DependencyProperty.Register(nameof(UpdateEventInterval),
-        typeof(int),
-        typeof(J4JMapControl),
-        new PropertyMetadata(J4JMapControl.DefaultUpdateEventInterval, OnUpdateIntervalChanged));
+    public DependencyProperty UpdateEventIntervalProperty = DependencyProperty.Register( nameof( UpdateEventInterval ),
+        typeof( int ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( J4JMapControl.DefaultUpdateEventInterval, OnUpdateIntervalChanged ) );
 
     private static void OnUpdateIntervalChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     {
@@ -29,7 +29,7 @@ public sealed partial class J4JMapControl
 
     public int UpdateEventInterval
     {
-        get => (int)GetValue(UpdateEventIntervalProperty);
-        set => SetValue(UpdateEventIntervalProperty, value);
+        get => (int) GetValue( UpdateEventIntervalProperty );
+        set => SetValue( UpdateEventIntervalProperty, value );
     }
 }

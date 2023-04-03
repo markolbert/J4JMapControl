@@ -11,21 +11,21 @@ public sealed partial class J4JMapControl
 {
     public MapRegion? MapRegion { get; private set; }
 
-    public DependencyProperty MapScaleProperty = DependencyProperty.Register(nameof(MapScale),
-                                                                             typeof(double),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata( 0.0d));
+    public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
+                                                                              typeof( double ),
+                                                                              typeof( J4JMapControl ),
+                                                                              new PropertyMetadata( 0.0d ) );
 
-    private void MapGridOnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    private void MapGridOnPointerWheelChanged( object sender, PointerRoutedEventArgs e )
     {
         e.Handled = true;
-        var point = e.GetCurrentPoint(this);
+        var point = e.GetCurrentPoint( this );
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
     }
 
     public double MapScale
     {
-        get => (double)GetValue(MapScaleProperty);
+        get => (double) GetValue( MapScaleProperty );
 
         set
         {
@@ -35,20 +35,20 @@ public sealed partial class J4JMapControl
                     ? MaxMapScale
                     : value;
 
-            SetValue(MapScaleProperty, value);
+            SetValue( MapScaleProperty, value );
 
-            MapRegion?.Scale((int)value);
+            MapRegion?.Scale( (int) value );
         }
     }
 
-    public DependencyProperty HeadingProperty = DependencyProperty.Register(nameof(Heading),
-                                                                            typeof(double),
-                                                                            typeof(J4JMapControl),
-                                                                            new PropertyMetadata( 0D));
+    public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
+                                                                             typeof( double ),
+                                                                             typeof( J4JMapControl ),
+                                                                             new PropertyMetadata( 0D ) );
 
     public double Heading
     {
-        get => (double)GetValue(HeadingProperty);
+        get => (double) GetValue( HeadingProperty );
 
         set
         {
@@ -62,10 +62,10 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public DependencyProperty CenterProperty = DependencyProperty.Register(nameof(Center),
-                                                                           typeof(string),
-                                                                           typeof(J4JMapControl),
-                                                                           new PropertyMetadata( "0N, 0W"));
+    public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
+                                                                            typeof( string ),
+                                                                            typeof( J4JMapControl ),
+                                                                            new PropertyMetadata( "0N, 0W" ) );
 
     public string Center
     {
@@ -83,33 +83,32 @@ public sealed partial class J4JMapControl
         }
     }
 
-    private void MapRegionBuildUpdated(object? sender, RegionBuildResults e)
+    private void MapRegionBuildUpdated( object? sender, RegionBuildResults e )
     {
-        switch (e.Change)
+        switch( e.Change )
         {
             case MapRegionChange.Empty:
             case MapRegionChange.NoChange:
                 break;
 
             case MapRegionChange.OffsetChanged:
-                SetImagePanelTransforms(e);
+                SetImagePanelTransforms( e );
                 IncludeAnnotations();
                 break;
 
             case MapRegionChange.LoadRequired:
-                _projection!.LoadRegionAsync(MapRegion!);
-                SetImagePanelTransforms(e);
+                _projection!.LoadRegionAsync( MapRegion! );
+                SetImagePanelTransforms( e );
                 IncludeAnnotations();
                 break;
 
             default:
-                throw new InvalidEnumArgumentException($"Unsupported {typeof(MapRegionChange)} value '{e.Change}'");
+                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{e.Change}'" );
         }
     }
 
-    private void MapRegionConfigurationChanged(object? sender, EventArgs e)
+    private void MapRegionConfigurationChanged( object? sender, EventArgs e )
     {
-        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Update());
+        _throttleRegionChanges.Throttle( UpdateEventInterval, _ => MapRegion!.Update() );
     }
-
 }

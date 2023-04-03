@@ -5,15 +5,15 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public DependencyProperty MinMapScaleProperty = DependencyProperty.Register(nameof(MinMapScale),
-                                                                             typeof(double),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata( 0.0));
+    public DependencyProperty MinMapScaleProperty = DependencyProperty.Register( nameof( MinMapScale ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0.0 ) );
 
-    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register(nameof(MaxMapScale),
-                                                                             typeof(double),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata( 0.0));
+    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register( nameof( MaxMapScale ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0.0 ) );
 
     //private static void OnMinMaxScaleChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
     //{
@@ -30,7 +30,7 @@ public sealed partial class J4JMapControl
 
     public double MinMapScale
     {
-        get => (double)GetValue(MinMapScaleProperty);
+        get => (double) GetValue( MinMapScaleProperty );
 
         private set
         {
@@ -46,16 +46,16 @@ public sealed partial class J4JMapControl
 
     public double MaxMapScale
     {
-        get=> (double)GetValue(MaxMapScaleProperty);
+        get => (double) GetValue( MaxMapScaleProperty );
 
         private set
         {
-            if (value > _projection?.MaxScale)
+            if( value > _projection?.MaxScale )
                 value = _projection.MaxScale;
 
             SetValue( MaxMapScaleProperty, value );
 
-            if (MapScale > value)
+            if( MapScale > value )
                 MapScale = value;
         }
     }

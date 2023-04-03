@@ -34,7 +34,7 @@ public sealed partial class J4JMapControl : Control
 {
     private const int DefaultMemoryCacheSize = 1000000;
     private const int DefaultMemoryCacheEntries = 500;
-    private static readonly TimeSpan DefaultMemoryCacheRetention = new ( 1, 0, 0 );
+    private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
@@ -47,7 +47,7 @@ public sealed partial class J4JMapControl : Control
 
     public J4JMapControl()
     {
-        DefaultStyleKey = typeof(J4JMapControl);
+        DefaultStyleKey = typeof( J4JMapControl );
 
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
@@ -74,10 +74,10 @@ public sealed partial class J4JMapControl : Control
     {
         base.OnApplyTemplate();
 
-        _mapGrid = FindUIElement<Grid>( "MapGrid", x=>x.PointerWheelChanged += MapGridOnPointerWheelChanged );
+        _mapGrid = FindUIElement<Grid>( "MapGrid", x => x.PointerWheelChanged += MapGridOnPointerWheelChanged );
         _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas", _ => ValidateAnnotations() );
 
-        _rotationCanvas = FindUIElement<Canvas>("RotationCanvas");
+        _rotationCanvas = FindUIElement<Canvas>( "RotationCanvas" );
         _rotationPanel = FindUIElement<StackPanel>( "RotationPanel" );
         _rotationText = FindUIElement<TextBlock>( "RotationText" );
         _headingText = FindUIElement<TextBlock>( "HeadingText" );
@@ -92,14 +92,14 @@ public sealed partial class J4JMapControl : Control
          && _baseLine != null;
 
         _compassRose = FindUIElement<Image>( "CompassRose" );
-        _scaleSlider = FindUIElement<Slider>("ScaleSlider", x=> x.ValueChanged += ScaleSliderOnValueChanged);
+        _scaleSlider = FindUIElement<Slider>( "ScaleSlider", x => x.ValueChanged += ScaleSliderOnValueChanged );
 
         SetMapControlMargins( ControlVerticalMargin );
     }
 
     private void ScaleSliderOnValueChanged( object sender, RangeBaseValueChangedEventArgs e )
     {
-        _throttleScaleChanges.Throttle(UpdateEventInterval, _ => MapScale = e.NewValue );
+        _throttleScaleChanges.Throttle( UpdateEventInterval, _ => MapScale = e.NewValue );
     }
 
     private T? FindUIElement<T>( string name, Action<T>? postProcessor = null )
@@ -107,7 +107,7 @@ public sealed partial class J4JMapControl : Control
     {
         var retVal = GetTemplateChild( name ) as T;
         if( retVal == null )
-            _logger.Error("Couldn't find {0}", name);
+            _logger.Error( "Couldn't find {0}", name );
         else postProcessor?.Invoke( retVal );
 
         return retVal;
@@ -116,29 +116,27 @@ public sealed partial class J4JMapControl : Control
     private void OnSizeChanged( object sender, SizeChangedEventArgs e ) =>
         MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width );
 
-    private void SetImagePanelTransforms(RegionBuildResults update)
+    private void SetImagePanelTransforms( RegionBuildResults update )
     {
-        if (_mapGrid == null)
+        if( _mapGrid == null )
             return;
 
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        transforms.Children.Add(new TranslateTransform() { X = update.Translation.X, Y = update.Translation.Y });
+        transforms.Children.Add( new TranslateTransform() { X = update.Translation.X, Y = update.Translation.Y } );
 
-        transforms.Children.Add(new RotateTransform()
+        transforms.Children.Add( new RotateTransform()
         {
-            Angle = update.Rotation,
-            CenterX = ActualWidth / 2,
-            CenterY = ActualHeight / 2
-        });
+            Angle = update.Rotation, CenterX = ActualWidth / 2, CenterY = ActualHeight / 2
+        } );
 
         _mapGrid.RenderTransform = transforms;
     }
 
     private void LoadMapImages()
     {
-        if (_mapGrid == null)
+        if( _mapGrid == null )
             return;
 
         DefineColumns();
@@ -189,18 +187,17 @@ public sealed partial class J4JMapControl : Control
         var cellWidth = MapRegion!.ProjectionType switch
         {
             ProjectionType.Static => GridLength.Auto,
-            ProjectionType.Tiled => new GridLength(MapRegion.TileWidth),
+            ProjectionType.Tiled => new GridLength( MapRegion.TileWidth ),
             _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof(ProjectionType)} value '{MapRegion.ProjectionType}'")
+                $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
         };
 
         _mapGrid!.ColumnDefinitions.Clear();
 
-        for (var column = 0; column < MapRegion.TilesWide; column++)
+        for( var column = 0; column < MapRegion.TilesWide; column++ )
         {
-            _mapGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = cellWidth });
+            _mapGrid.ColumnDefinitions.Add( new ColumnDefinition { Width = cellWidth } );
         }
-
     }
 
     private void DefineRows()
@@ -208,28 +205,27 @@ public sealed partial class J4JMapControl : Control
         var cellHeight = MapRegion!.ProjectionType switch
         {
             ProjectionType.Static => GridLength.Auto,
-            ProjectionType.Tiled => new GridLength(MapRegion.TileHeight),
+            ProjectionType.Tiled => new GridLength( MapRegion.TileHeight ),
             _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof(ProjectionType)} value '{MapRegion.ProjectionType}'")
+                $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
         };
 
         _mapGrid!.RowDefinitions.Clear();
 
-        for (var row = 0; row < MapRegion.TilesHigh; row++)
+        for( var row = 0; row < MapRegion.TilesHigh; row++ )
         {
             _mapGrid.RowDefinitions.Add( new RowDefinition() { Height = cellHeight } );
         }
-
     }
 
-    protected override Size MeasureOverride(Size availableSize)
+    protected override Size MeasureOverride( Size availableSize )
     {
-        if (MapRegion == null || _projection == null)
+        if( MapRegion == null || _projection == null )
             return Size.Empty;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
         var width = Width < availableSize.Width ? Width : availableSize.Width;
 
-        return new Size(width, height);
+        return new Size( width, height );
     }
 }

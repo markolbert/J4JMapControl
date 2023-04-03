@@ -16,6 +16,7 @@ using J4JSoftware.J4JMapLibrary;
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace J4JSoftware.J4JMapWinLibrary;
+
 public sealed partial class MapPin : Control
 {
     private readonly ILogger _logger;
@@ -24,10 +25,10 @@ public sealed partial class MapPin : Control
 
     public MapPin()
     {
-        this.DefaultStyleKey = typeof(MapPin);
-    
-        _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException("Could not obtain ILogger instance");
-        _logger.ForContext(GetType());
+        this.DefaultStyleKey = typeof( MapPin );
+
+        _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain ILogger instance" );
+        _logger.ForContext( GetType() );
     }
 
     protected override void OnApplyTemplate()
@@ -39,13 +40,13 @@ public sealed partial class MapPin : Control
         InitializePin();
     }
 
-    private T? FindUIElement<T>(string name, Action<T>? postProcessor = null)
+    private T? FindUIElement<T>( string name, Action<T>? postProcessor = null )
         where T : UIElement
     {
-        var retVal = GetTemplateChild(name) as T;
-        if (retVal == null)
-            _logger.Error("Couldn't find {0}", name);
-        else postProcessor?.Invoke(retVal);
+        var retVal = GetTemplateChild( name ) as T;
+        if( retVal == null )
+            _logger.Error( "Couldn't find {0}", name );
+        else postProcessor?.Invoke( retVal );
 
         return retVal;
     }
@@ -55,17 +56,12 @@ public sealed partial class MapPin : Control
         if( _pinPath == null )
             return;
 
-        var pathFigure = new PathFigure
-        {
-            IsClosed = true,
-            IsFilled = true,
-            StartPoint = new Point(0, ArcRadius)
-        };
+        var pathFigure = new PathFigure { IsClosed = true, IsFilled = true, StartPoint = new Point( 0, ArcRadius ) };
 
         pathFigure.Segments.Add( new ArcSegment
         {
             IsLargeArc = false,
-            Point = new Point( 2* ArcRadius, ArcRadius ),
+            Point = new Point( 2 * ArcRadius, ArcRadius ),
             SweepDirection = SweepDirection.Clockwise,
             Size = new Size( ArcRadius, ArcRadius )
         } );
@@ -76,12 +72,11 @@ public sealed partial class MapPin : Control
         geometry.Figures.Add( pathFigure );
 
         _pinPath.Data = geometry;
-        _pinPath.Width = 2*ArcRadius;
+        _pinPath.Width = 2 * ArcRadius;
         _pinPath.Height = ArcRadius + TailLength;
     }
 
-    protected override Size MeasureOverride( Size availableSize ) => 
-        new ( 2 * ArcRadius, ArcRadius + TailLength );
+    protected override Size MeasureOverride( Size availableSize ) => new( 2 * ArcRadius, ArcRadius + TailLength );
 
     protected override Size ArrangeOverride( Size finalSize )
     {
@@ -118,26 +113,26 @@ public sealed partial class MapPin : Control
 
         if( region.Rotation % 360 != 0 )
         {
-            var centerPoint = new Vector3(region.RequestedWidth / 2, region.RequestedHeight / 2, 0);
+            var centerPoint = new Vector3( region.RequestedWidth / 2, region.RequestedHeight / 2, 0 );
 
-            var transform = Matrix4x4.CreateRotationZ(region.Rotation * MapConstants.RadiansPerDegree, centerPoint);
+            var transform = Matrix4x4.CreateRotationZ( region.Rotation * MapConstants.RadiansPerDegree, centerPoint );
             offset = Vector3.Transform( offset, transform );
         }
 
         // get the relative horizontal/vertical offsets for the UIElement
-        offset.X += (float) (HorizontalAlignment switch
+        offset.X += (float) ( HorizontalAlignment switch
         {
             HorizontalAlignment.Left => -finalSize.Width,
             HorizontalAlignment.Right => 0,
             _ => -finalSize.Width / 2
-        });
+        } );
 
-        offset.Y += (float) (VerticalAlignment switch
+        offset.Y += (float) ( VerticalAlignment switch
         {
             VerticalAlignment.Top => 0,
             VerticalAlignment.Bottom => -finalSize.Height,
             _ => -finalSize.Height / 2
-        });
+        } );
 
         // get the specific/custom offset
         Location.TryParseOffset( this, out var customOffset );

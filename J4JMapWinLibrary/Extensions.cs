@@ -34,17 +34,17 @@ public static class Extensions
         if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var parts = text.Split( new [] { ',' } );
+        var parts = text.Split( new[] { ',' } );
         if( parts.Length != 2 )
         {
-            Logger?.Error("Could not parse location text, missing ','"  );
+            Logger?.Error( "Could not parse location text, missing ','" );
             return false;
         }
 
         if( !TryParseDirection( parts[ 0 ], out var dir1, out var dirType1 ) )
             return false;
 
-        if (!TryParseDirection(parts[1], out var dir2, out var dirType2))
+        if( !TryParseDirection( parts[ 1 ], out var dir2, out var dirType2 ) )
             return false;
 
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
@@ -64,9 +64,9 @@ public static class Extensions
                         longitude = dir1;
                         break;
 
-                    case DirectionType.Longitude: 
+                    case DirectionType.Longitude:
                         longitude = dir2;
-                        latitude =dir1;
+                        latitude = dir1;
                         break;
                 }
 
@@ -74,7 +74,7 @@ public static class Extensions
 
             case DirectionType.Latitude:
                 // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-                switch (dirType2)
+                switch( dirType2 )
                 {
                     case DirectionType.Latitude:
                         // can't both be latitude!
@@ -88,10 +88,9 @@ public static class Extensions
 
                 break;
 
-
             case DirectionType.Longitude:
                 // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-                switch (dirType2)
+                switch( dirType2 )
                 {
                     case DirectionType.Longitude:
                         // can't both be longitude!
@@ -108,14 +107,14 @@ public static class Extensions
 
         if( latitude is < -90 or > 90 )
         {
-            Logger?.Error("Invalid latitude value ({0})", text  );
+            Logger?.Error( "Invalid latitude value ({0})", text );
             return false;
         }
 
         if( longitude >= -180 && longitude <= 180 )
             return true;
 
-        Logger?.Error("Invalid longitude value ({0})", text);
+        Logger?.Error( "Invalid longitude value ({0})", text );
         return false;
     }
 
@@ -168,7 +167,7 @@ public static class Extensions
             return true;
         }
 
-        Logger?.Error("Could not parse direction string '{0}'", text  );
+        Logger?.Error( "Could not parse direction string '{0}'", text );
         return false;
     }
 
@@ -197,7 +196,7 @@ public static class Extensions
         if( !float.TryParse( parts[ 0 ], out var xOffset ) )
             return false;
 
-        if (!float.TryParse(parts[1], out var yOffset))
+        if( !float.TryParse( parts[ 1 ], out var yOffset ) )
             return false;
 
         point = new Point( xOffset, yOffset );
@@ -207,7 +206,7 @@ public static class Extensions
     public static double AngleFromCenter( this FrameworkElement control, Point point ) =>
         AngleBetweenPoints( new Point( control.ActualWidth / 2, control.ActualHeight / 2 ), point );
 
-    public static double AngleBetweenPoints(Point origin, Point point) =>
-        Math.Atan2(origin.Y - point.Y, point.X - origin.X)
+    public static double AngleBetweenPoints( Point origin, Point point ) =>
+        Math.Atan2( origin.Y - point.Y, point.X - origin.X )
       * MapConstants.DegreesPerRadian;
 }
