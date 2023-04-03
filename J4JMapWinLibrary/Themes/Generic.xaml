@@ -97,4 +97,20 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="local:MapPin" >
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:MapPin">
+
+                    <Path x:Name="ForegroundPath"
+                          Width="30" Height="45"
+                          Fill="{TemplateBinding Fill}"
+                          StrokeThickness="{TemplateBinding StrokeThickness}"
+                          Stroke="{TemplateBinding Stroke}" />
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>
