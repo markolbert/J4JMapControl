@@ -329,8 +329,6 @@ public class MapRegion : IEnumerable<MapTile>
 
         var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
 
-        // this may need to look for the first tile above and to the left
-        // of the tile containing the center point
         var xOffset = Center.X - RequestedWidth / 2 - UpperLeft.X * tileHeightWidth;
         var yOffset = Center.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
 
