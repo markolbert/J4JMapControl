@@ -32,7 +32,22 @@
                            MapProjection="BingMaps"
                            MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
-                           Center="37.5072N,122.2605W"/>
+                           Center="37.5072N,122.2605W">
+
+            <map:J4JMapControl.Annotations>
+                
+                <Rectangle x:Name="Rectangle1" Width="50" Height="50" 
+                           Fill="Yellow" 
+                           Opacity="0.5"
+                           map:Location.Center="37.5072N,122.2605W" 
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+                <Rectangle x:Name="Rectangle2" Width="50" Height="50" Fill="Green"/>
+
+            </map:J4JMapControl.Annotations>
+
+        </map:J4JMapControl>
 
         <TextBlock Grid.Column="0" Grid.Row="1"
                    Margin="0,0,5,0"
