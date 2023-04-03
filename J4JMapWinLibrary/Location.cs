@@ -1,5 +1,4 @@
 using Windows.Foundation;
-using ABI.Microsoft.UI.Xaml.Controls;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
@@ -55,11 +54,8 @@ public class Location : DependencyObject
         return true;
     }
 
-    public static bool InRegion( FrameworkElement element, MapRegion region, out float xOffset, out float yOffset )
+    public static bool InRegion( FrameworkElement element, MapRegion region )
     {
-        xOffset = 0;
-        yOffset = 0;
-
         if( !TryParseCenter( element, out var latitude, out var longitude ) )
             return false;
 
@@ -69,26 +65,7 @@ public class Location : DependencyObject
         var mapPoint = new MapPoint( region );
         mapPoint.SetLatLong( latitude, longitude );
 
-        var vpOffset = region.ViewpointOffset;
         var upperLeft = region.UpperLeft.GetUpperLeftCartesian();
-
-        // get the relative horizontal/vertical offsets for the UIElement
-        var hOffset = (float) ( element.HorizontalAlignment switch
-        {
-            HorizontalAlignment.Left => element.ActualWidth,
-            HorizontalAlignment.Right => 0,
-            _ => element.ActualWidth / 2
-        } );
-
-        var vOffset = (float) ( element.VerticalAlignment switch
-        {
-            VerticalAlignment.Top => 0,
-            VerticalAlignment.Bottom => element.ActualHeight,
-            _ => element.ActualHeight / 2
-        } );
-
-        xOffset = mapPoint.X - upperLeft.X + vpOffset.X - hOffset;
-        yOffset = mapPoint.Y - upperLeft.Y + vpOffset.Y - vOffset;
 
         return mapPoint.X >= upperLeft.X
          && mapPoint.X < upperLeft.X + region.RequestedWidth + region.Projection.TileHeightWidth
