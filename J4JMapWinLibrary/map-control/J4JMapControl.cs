@@ -5,11 +5,9 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using Windows.Foundation;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -34,24 +32,16 @@ public sealed partial class J4JMapControl : Control
     private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
 
-    private readonly ILogger _logger;
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
 
     private Grid? _mapGrid;
+    private ILogger? _logger;
 
     public J4JMapControl()
     {
         DefaultStyleKey = typeof( J4JMapControl );
 
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-        _logger = J4JDeusEx.GetLogger() ?? throw new NullReferenceException( "Could not obtain ILogger instance" );
-        _logger.ForContext( GetType() );
-
-        _projFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>()
-         ?? throw new NullReferenceException( "Could not create ProjectionFactory" );
-
-        _projFactory.ScanAssemblies();
 
         _movementProcessor = new MovementProcessor();
         _movementProcessor.Moved += MovementProcessorOnMoved;
@@ -62,6 +52,12 @@ public sealed partial class J4JMapControl : Control
         PointerReleased += OnPointerReleased;
 
         SizeChanged += OnSizeChanged;
+    }
+
+    public ILogger? Logger
+    {
+        get => _logger;
+        set => _logger = value?.ForContext<J4JMapControl>();
     }
 
     protected override void OnApplyTemplate()
@@ -101,7 +97,7 @@ public sealed partial class J4JMapControl : Control
     {
         var retVal = GetTemplateChild( name ) as T;
         if( retVal == null )
-            _logger.Error( "Couldn't find {0}", name );
+            Logger?.Error( "Couldn't find {0}", name );
         else postProcessor?.Invoke( retVal );
 
         return retVal;

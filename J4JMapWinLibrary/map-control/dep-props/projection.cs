@@ -1,5 +1,4 @@
 using System;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsAppUtilities;
@@ -11,10 +10,21 @@ namespace J4JSoftware.J4JMapWinLibrary;
 public sealed partial class J4JMapControl
 {
     private readonly DispatcherQueue _dispatcherQueue;
-    private readonly ProjectionFactory _projFactory;
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
 
     private IProjection? _projection;
+    private ProjectionFactory? _projFactory;
+
+    public ProjectionFactory? ProjectionFactory
+    {
+        get => _projFactory;
+
+        set
+        {
+            _projFactory = value;
+            _projFactory?.ScanAssemblies();
+        }
+    }
 
     public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
         typeof( string ),
@@ -49,21 +59,24 @@ public sealed partial class J4JMapControl
 
     private void UpdateProjection()
     {
-        if( !_cacheIsValid )
-            UpdateCaching();
+        if( ProjectionFactory == null )
+        {
+            _logger?.Error("ProjectionFactory is not defined");
+            return;
+        }
 
         var cache = _tileMemCache ?? _tileFileCache;
 
-        var projResult = _projFactory.CreateProjection( MapProjection, cache );
+        var projResult = ProjectionFactory.CreateProjection( MapProjection, cache );
         if( !projResult.ProjectionTypeFound )
         {
-            J4JDeusEx.OutputFatalMessage( $"Could not create projection '{MapProjection}'", _logger );
+            Logger?.Fatal("Could not create projection '{0}'", MapProjection);
             throw new InvalidOperationException( $"Could not create projection '{MapProjection}'" );
         }
 
         if( !projResult.Authenticated )
         {
-            J4JDeusEx.OutputFatalMessage( $"Could not authenticate projection '{MapProjection}'", _logger );
+            Logger?.Fatal( $"Could not authenticate projection '{0}'", MapProjection );
             throw new InvalidOperationException( $"Could not authenticate projection '{MapProjection}'" );
         }
 
@@ -71,7 +84,7 @@ public sealed partial class J4JMapControl
         _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
 
         if( !Extensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            _logger.Error( "Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center );
+            Logger?.Error("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
 
         if( MapRegion != null )
         {
@@ -79,7 +92,7 @@ public sealed partial class J4JMapControl
             MapRegion.BuildUpdated -= MapRegionBuildUpdated;
         }
 
-        MapRegion = new MapRegion( _projection, _logger )
+        MapRegion = new MapRegion( _projection, Logger )
                    .Center( latitude, longitude )
                    .Scale( (int) MapScale )
                    .Heading( (float) Heading )
