@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using J4JSoftware.DeusEx;
 using Serilog;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -11,10 +10,11 @@ internal record ProjectionTypeInfo
     private readonly ILogger? _logger;
 
     public ProjectionTypeInfo(
-        Type projType
+        Type projType,
+        ILogger? logger
     )
     {
-        _logger = J4JDeusEx.GetLogger();
+        _logger = logger;
         _logger?.ForContext( GetType() );
 
         var attr = projType.GetCustomAttribute<ProjectionAttribute>( false )
