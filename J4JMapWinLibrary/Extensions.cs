@@ -183,6 +183,27 @@ public static class Extensions
         return sb.ToString();
     }
 
+    public static bool TryParseToPoint( string? text, out Point? point )
+    {
+        point = null;
+
+        if( string.IsNullOrEmpty( text ) )
+            return false;
+
+        var parts = text.Split( new char[] { ',', ' ' } );
+        if( parts.Length != 2 )
+            return false;
+
+        if( !float.TryParse( parts[ 0 ], out var xOffset ) )
+            return false;
+
+        if (!float.TryParse(parts[1], out var yOffset))
+            return false;
+
+        point = new Point( xOffset, yOffset );
+        return true;
+    }
+
     public static double AngleFromCenter( this FrameworkElement control, Point point ) =>
         AngleBetweenPoints( new Point( control.ActualWidth / 2, control.ActualHeight / 2 ), point );
 
