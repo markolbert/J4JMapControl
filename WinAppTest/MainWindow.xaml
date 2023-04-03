@@ -36,14 +36,14 @@
 
             <map:J4JMapControl.Annotations>
                 
-                <Rectangle x:Name="Rectangle1" Width="50" Height="50" 
-                           Fill="Yellow" 
-                           Opacity="0.5"
-                           map:Location.Center="37.5072N,122.2605W" 
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
+                <map:MapPin ArcRadius="15"
+                            TailLength="30"                      
+                            map:Location.Center="37.5072N,122.2605W" 
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom" />
 
-                <Rectangle x:Name="Rectangle2" Width="50" Height="50" Fill="Green"/>
+                <!-- this shouldn't show up -->
+                <Rectangle Width="50" Height="50" Fill="Green"/>
 
             </map:J4JMapControl.Annotations>
 
