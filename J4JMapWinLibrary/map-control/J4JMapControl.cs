@@ -168,7 +168,7 @@ public sealed partial class J4JMapControl : Control
         InvalidateArrange();
     }
 
-    private void DisplayAnnotations()
+    private void IncludeAnnotations()
     {
         if( _annotationsCanvas == null || MapRegion == null )
             return;
@@ -177,13 +177,8 @@ public sealed partial class J4JMapControl : Control
 
         foreach( var element in Annotations )
         {
-            if( !Location.InRegion( element, MapRegion, out var xOffset, out var yOffset ) )
+            if( !Location.InRegion( element, MapRegion ) )
                 continue;
-
-            Location.TryParseOffset( element, out var offset );
-
-            Canvas.SetLeft( element, xOffset );
-            Canvas.SetTop( element, yOffset);
 
             _annotationsCanvas.Children.Add( element );
         }

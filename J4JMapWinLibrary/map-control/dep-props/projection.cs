@@ -22,13 +22,6 @@ public sealed partial class J4JMapControl
         typeof(J4JMapControl),
         new PropertyMetadata(null, OnMapProjectionChanged));
 
-    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
-                                                                             typeof(string),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata(
-                                                                                 null,
-                                                                                 OnMapProjectionChanged));
-
     private static void OnMapProjectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not J4JMapControl mapControl)
@@ -84,45 +77,22 @@ public sealed partial class J4JMapControl
         MapRegion.Update();
     }
 
-    private void MapRegionBuildUpdated(object? sender, RegionBuildResults e)
-    {
-        switch (e.Change)
-        {
-            case MapRegionChange.Empty:
-            case MapRegionChange.NoChange:
-                break;
-
-            case MapRegionChange.OffsetChanged:
-                SetImagePanelTransforms(e);
-                DisplayAnnotations();
-                break;
-
-            case MapRegionChange.LoadRequired:
-                _projection!.LoadRegionAsync(MapRegion!);
-                SetImagePanelTransforms(e);
-                DisplayAnnotations();
-                break;
-
-            default:
-                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{e.Change}'" );
-        }
-    }
-
-    private void MapRegionConfigurationChanged(object? sender, EventArgs e)
-    {
-        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Update());
-    }
-
     public string MapProjection
     {
         get => (string)GetValue(MapProjectionProperty);
         set => SetValue(MapProjectionProperty, value);
     }
 
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
+                                                                             typeof(string),
+                                                                             typeof(J4JMapControl),
+                                                                             new PropertyMetadata(
+                                                                                 null,
+                                                                                 OnMapProjectionChanged));
+
     public string MapStyle
     {
         get => (string)GetValue(MapStyleProperty);
         set => SetValue(MapStyleProperty, value);
     }
-
 }

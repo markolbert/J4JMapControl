@@ -4,7 +4,6 @@ using System.Linq;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
-using System.Numerics;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;

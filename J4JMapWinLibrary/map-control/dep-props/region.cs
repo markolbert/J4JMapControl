@@ -2,11 +2,15 @@ using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
+using System.ComponentModel;
+using System;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    public MapRegion? MapRegion { get; private set; }
+
     public DependencyProperty MapScaleProperty = DependencyProperty.Register(nameof(MapScale),
                                                                              typeof(double),
                                                                              typeof(J4JMapControl),
@@ -63,8 +67,6 @@ public sealed partial class J4JMapControl
                                                                            typeof(J4JMapControl),
                                                                            new PropertyMetadata( "0N, 0W"));
 
-    public MapRegion? MapRegion { get; private set; }
-
     public string Center
     {
         get => (string) GetValue( CenterProperty );
@@ -80,4 +82,34 @@ public sealed partial class J4JMapControl
             MapRegion?.Center( latitude, longitude );
         }
     }
+
+    private void MapRegionBuildUpdated(object? sender, RegionBuildResults e)
+    {
+        switch (e.Change)
+        {
+            case MapRegionChange.Empty:
+            case MapRegionChange.NoChange:
+                break;
+
+            case MapRegionChange.OffsetChanged:
+                SetImagePanelTransforms(e);
+                IncludeAnnotations();
+                break;
+
+            case MapRegionChange.LoadRequired:
+                _projection!.LoadRegionAsync(MapRegion!);
+                SetImagePanelTransforms(e);
+                IncludeAnnotations();
+                break;
+
+            default:
+                throw new InvalidEnumArgumentException($"Unsupported {typeof(MapRegionChange)} value '{e.Change}'");
+        }
+    }
+
+    private void MapRegionConfigurationChanged(object? sender, EventArgs e)
+    {
+        _throttleRegionChanges.Throttle(UpdateEventInterval, _ => MapRegion!.Update());
+    }
+
 }
