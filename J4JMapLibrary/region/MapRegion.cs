@@ -190,8 +190,9 @@ public class MapRegion : IEnumerable<MapTile>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     public event EventHandler? ConfigurationChanged;
-    public event EventHandler<RegionBuildResults>? BuildUpdated;
+    public event EventHandler<MapRegionChange>? BuildUpdated;
 
     private void SetField( ref int field, int newValue )
     {
@@ -277,7 +278,7 @@ public class MapRegion : IEnumerable<MapTile>
             UpdateEmpty();
             RegionChange = MapRegionChange.Empty;
 
-            BuildUpdated?.Invoke( this, new RegionBuildResults( MapRegionChange.Empty, Vector3.Zero, 0 ) );
+            BuildUpdated?.Invoke( this, MapRegionChange.Empty );
             return this;
         }
 
@@ -297,7 +298,7 @@ public class MapRegion : IEnumerable<MapTile>
         Changed = false;
         _oldScale = Scale;
 
-        BuildUpdated?.Invoke( this, new RegionBuildResults( RegionChange, ViewpointOffset, Rotation ) );
+        BuildUpdated?.Invoke( this, RegionChange );
 
         return this;
     }
