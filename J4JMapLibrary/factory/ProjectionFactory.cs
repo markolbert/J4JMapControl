@@ -8,11 +8,12 @@ namespace J4JSoftware.J4JMapLibrary;
 public class ProjectionFactory
 {
     private readonly IConfiguration _config;
+    private readonly List<Assembly> _assemblies = new();
+    private readonly List<ProjectionTypeInfo> _projTypes = new();
     private readonly List<CredentialsTypeInfo> _credTypes = new();
     private readonly bool _includeDefaults;
     private readonly ILogger? _logger;
     private readonly ILoggerFactory? _loggerFactory;
-    private readonly List<ProjectionTypeInfo> _projTypes = new();
 
     public ProjectionFactory(
         IConfiguration config,
@@ -28,22 +29,27 @@ public class ProjectionFactory
         _includeDefaults = includeDefaults;
     }
 
-    public void ScanAssemblies( params Type[] types ) =>
+    public ProjectionFactory ScanAssemblies( params Type[] types ) =>
         ScanAssemblies( types.Distinct().Select( t => t.Assembly ).ToArray() );
 
-    public void ScanAssemblies() => ScanAssemblies( Enumerable.Empty<Assembly>().ToArray() );
-
-    public void ScanAssemblies( params Assembly[] assemblies )
+    public ProjectionFactory ScanAssemblies() => ScanAssemblies( Enumerable.Empty<Assembly>().ToArray() );
+    public ProjectionFactory ScanAssemblies( params Assembly[] assemblies )
     {
-        var toScan = assemblies.ToList();
+        _assemblies.AddRange( assemblies );
+        return this;
+    }
 
-        if( _includeDefaults )
-            toScan.Add( typeof( ProjectionFactory ).Assembly );
+    public bool InitializeFactory()
+    {
+        if (_includeDefaults)
+            _assemblies.Add(typeof(ProjectionFactory).Assembly);
 
-        toScan = toScan.Distinct().ToList();
+        var toScan = _assemblies.Distinct().ToList();
 
-        ProcessProjectionTypes( toScan );
-        ProcessCredentialTypes( toScan );
+        ProcessProjectionTypes(toScan);
+        ProcessCredentialTypes(toScan);
+
+        return _projTypes.Any();
     }
 
     private void ProcessProjectionTypes( List<Assembly> toScan )
