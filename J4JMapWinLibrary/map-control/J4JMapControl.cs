@@ -112,19 +112,19 @@ public sealed partial class J4JMapControl : Control
     private void OnSizeChanged( object sender, SizeChangedEventArgs e ) =>
         MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width );
 
-    private void SetImagePanelTransforms( RegionBuildResults update )
+    private void SetImagePanelTransforms()
     {
-        if( _mapGrid == null )
+        if( _mapGrid == null || MapRegion == null )
             return;
 
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        transforms.Children.Add( new TranslateTransform { X = update.Translation.X, Y = update.Translation.Y } );
+        transforms.Children.Add( new TranslateTransform { X = MapRegion.ViewpointOffset.X, Y = MapRegion.ViewpointOffset.Y } );
 
         transforms.Children.Add( new RotateTransform
         {
-            Angle = update.Rotation, CenterX = ActualWidth / 2, CenterY = ActualHeight / 2
+            Angle = MapRegion.Rotation, CenterX = ActualWidth / 2, CenterY = ActualHeight / 2
         } );
 
         _mapGrid.RenderTransform = transforms;

@@ -23,7 +23,9 @@ public sealed partial class J4JMapControl
         set
         {
             _projFactory = value;
-            _projFactory?.ScanAssemblies();
+
+            if( _projFactory != null && !_projFactory.InitializeFactory() )
+                _logger?.LogError( "Projection factory failed to find projection classes" );
         }
     }
 

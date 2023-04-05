@@ -15,7 +15,7 @@ internal partial class DeusEx
                     var retVal = new ProjectionFactory( c.Resolve<IConfiguration>(),
                                                   c.Resolve<ILoggerFactory>() );
 
-                    retVal.ScanAssemblies();
+                    retVal.InitializeFactory();
 
                     return retVal;
                 } )

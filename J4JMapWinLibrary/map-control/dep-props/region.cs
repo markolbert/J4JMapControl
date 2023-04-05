@@ -86,27 +86,27 @@ public sealed partial class J4JMapControl
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
     }
 
-    private void MapRegionBuildUpdated( object? sender, RegionBuildResults e )
+    private void MapRegionBuildUpdated( object? sender, MapRegionChange change )
     {
-        switch( e.Change )
+        switch( change )
         {
             case MapRegionChange.Empty:
             case MapRegionChange.NoChange:
                 break;
 
             case MapRegionChange.OffsetChanged:
-                SetImagePanelTransforms( e );
+                SetImagePanelTransforms();
                 IncludeAnnotations();
                 break;
 
             case MapRegionChange.LoadRequired:
                 _projection!.LoadRegionAsync( MapRegion! );
-                SetImagePanelTransforms( e );
+                SetImagePanelTransforms();
                 IncludeAnnotations();
                 break;
 
             default:
-                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{e.Change}'" );
+                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{change}'" );
         }
     }
 

@@ -47,7 +47,7 @@ internal class DeusEx : J4JDeusExWinApp
                     var retVal = new ProjectionFactory(c.Resolve<IConfiguration>(),
                                                        c.Resolve<ILoggerFactory>());
 
-                    retVal.ScanAssemblies();
+                    retVal.InitializeFactory();
 
                     return retVal;
                 })
