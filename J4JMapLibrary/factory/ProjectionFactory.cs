@@ -98,20 +98,18 @@ public class ProjectionFactory
     public ProjectionFactoryResult CreateProjection(
         string projName,
         ITileCache? cache = null,
-        string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
     )
     {
         return Task.Run( async () =>
-                             await CreateProjectionAsync( projName, cache, serverName, credentialsName, authenticate ) )
+                             await CreateProjectionAsync( projName, cache, credentialsName, authenticate ) )
                    .Result;
     }
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         string projName,
         ITileCache? cache = null,
-        string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
     )
@@ -138,41 +136,36 @@ public class ProjectionFactory
 
     public ProjectionFactoryResult CreateProjection<TProj>(
         ITileCache? cache = null,
-        string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
     )
         where TProj : IProjection =>
-        CreateProjection( typeof( TProj ), cache, serverName, credentialsName, authenticate );
+        CreateProjection( typeof( TProj ), cache, credentialsName, authenticate );
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync<TProj>(
         ITileCache? cache = null,
-        string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
     )
         where TProj : IProjection =>
         await CreateProjectionAsync( typeof( TProj ),
                                      cache,
-                                     serverName,
                                      credentialsName,
                                      authenticate );
 
     public ProjectionFactoryResult CreateProjection(
         Type projType,
         ITileCache? cache = null,
-        string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
     ) =>
         Task.Run( async () =>
-                      await CreateProjectionAsync( projType, cache, serverName, credentialsName, authenticate ) )
+                      await CreateProjectionAsync( projType, cache, credentialsName, authenticate ) )
             .Result;
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         Type projType,
         ITileCache? cache = null,
-        string? serverName = null,
         string? credentialsName = null,
         bool authenticate = true
     )
@@ -303,7 +296,7 @@ public class ProjectionFactory
         {
             var retVal = Activator.CreateInstance( credType.CredentialsType )!;
 
-            var section = _config.GetSection( $"Credentials:{credType.Name!}" );
+            var section = _config.GetSection( $"Credentials:{credType.Name}" );
             section.Bind( retVal );
 
             return retVal;
