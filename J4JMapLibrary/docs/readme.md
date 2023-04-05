@@ -13,10 +13,10 @@ The library is built with nullability enabled.
 
 All of the services have usage rules (e.g., maximum number of downloads per day) you must adhere to. Consult the documentation for each of the services to learn more.
 
-- [Change log](changes.md)
-- [Terminology](terminology.md)
-- Usage
-  - [Authentication](authentication.md)
-  - [Caching](caching.md)
-  - [Obtaining a Projection](overview.md)
-  - [Retrieving Imagery](retrieving.md)
+The change log can be found [here](changes.md).
+
+Understanding how to use this library involves a number of terms which may not be familiar to many developers. It's worth reviewing the [notes on terminology](terminology.md) before diving into the rest of the documentation.
+
+[How to use the library](usage.md)
+
+[Note on development](development.md)
