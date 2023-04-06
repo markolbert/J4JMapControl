@@ -14,8 +14,8 @@
 		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
-		<Version>0.5.0.0</Version>
-		<AssemblyVersion>0.5.0.0</AssemblyVersion>
+		<Version>0.8.0.0</Version>
+		<AssemblyVersion>0.8.0.0</AssemblyVersion>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageDescription>WinApp extensions to J4JMapLibrary</PackageDescription>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>

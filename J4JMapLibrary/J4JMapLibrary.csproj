@@ -13,8 +13,8 @@
 		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
-		<Version>0.5.0.0</Version>
-		<AssemblyVersion>0.5.0.0</AssemblyVersion>
+		<Version>0.8.0.0</Version>
+		<AssemblyVersion>0.8.0.0</AssemblyVersion>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageDescription>library for interfacing with map image servers</PackageDescription>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
