@@ -57,31 +57,31 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     public string ScaleDescription( float latitude, int scale, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude, scale ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public override async Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
-        int x,
-        int y,
+    public override async Task<MapTile> GetMapTileWraparoundAsync(
+        int xTile,
+        int yTile,
         int scale,
         CancellationToken ctx = default
     )
     {
         var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
 
-        var retVal = new MapTile( region, y ).SetXRelative( x );
+        var retVal = new MapTile( region, yTile ).SetXRelative( xTile );
         await LoadImageAsync( retVal, ctx );
 
         return retVal;
     }
 
-    public override async Task<MapTile> GetMapTileByRegionCoordinatesAsync(
-        int x,
-        int y,
+    public override async Task<MapTile> GetMapTileAbsoluteAsync(
+        int xTile,
+        int yTile,
         int scale,
         CancellationToken ctx = default
     )
     {
         var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
 
-        var retVal = new MapTile( region, y ).SetXAbsolute( x );
+        var retVal = new MapTile( region, yTile ).SetXAbsolute( xTile );
         await LoadImageAsync(retVal, ctx);
 
         return retVal;

@@ -185,7 +185,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
         if( !Initialized )
         {

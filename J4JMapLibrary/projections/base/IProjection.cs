@@ -44,7 +44,6 @@ public interface IProjection : IEquatable<IProjection>
     string Copyright { get; }
     Uri? CopyrightUri { get; }
 
-    string MapStyle { get; set; }
     event EventHandler<bool>? LoadComplete;
 
     int GetHeightWidth( int scale );
@@ -53,20 +52,20 @@ public interface IProjection : IEquatable<IProjection>
     MinMax<int> GetTileRange( int scale );
     int GetNumTiles( int scale );
 
-    HttpRequestMessage? CreateMessage( MapTile mapTile );
+    //HttpRequestMessage? CreateMessage( MapTile mapTile );
 
     bool SetCredentials( object credentials );
     Task<bool> SetCredentialsAsync( object credentials, CancellationToken ctx = default );
 
-    Task<MapTile> GetMapTileByProjectionCoordinatesAsync( int x, int y, int scale, CancellationToken ctx = default );
-    Task<MapTile> GetMapTileByRegionCoordinatesAsync( int x, int y, int scale, CancellationToken ctx = default );
+    Task<MapTile> GetMapTileWraparoundAsync( int x, int y, int scale, CancellationToken ctx = default );
+    Task<MapTile> GetMapTileAbsoluteAsync( int x, int y, int scale, CancellationToken ctx = default );
 
     Task<bool> LoadRegionAsync(
         MapRegion.MapRegion region,
         CancellationToken ctx = default
     );
 
-    byte[]? GetImage( MapTile mapTile );
+    //byte[]? GetImage( MapTile mapTile );
     Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default );
 
     Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default );

@@ -57,7 +57,7 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
         if( !Initialized )
         {

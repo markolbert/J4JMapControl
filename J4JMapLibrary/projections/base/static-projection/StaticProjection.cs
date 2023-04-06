@@ -32,7 +32,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
 
     // there's only ever one valid tile in a static projection (0,0)
     // so these next two methods are the same for static projections
-    public override async Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
+    public override async Task<MapTile> GetMapTileWraparoundAsync(
         int x,
         int y,
         int scale,
@@ -45,13 +45,13 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
         return retVal;
     }
 
-    public override async Task<MapTile> GetMapTileByRegionCoordinatesAsync(
+    public override async Task<MapTile> GetMapTileAbsoluteAsync(
         int x,
         int y,
         int scale,
         CancellationToken ctx = default
     ) =>
-        await GetMapTileByProjectionCoordinatesAsync( x, y, scale, ctx );
+        await GetMapTileWraparoundAsync( x, y, scale, ctx );
 
     protected override async Task<bool> LoadRegionInternalAsync(
         MapRegion.MapRegion region,

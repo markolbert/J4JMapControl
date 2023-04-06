@@ -28,7 +28,6 @@ public abstract class Projection<TAuth> : IProjection
     where TAuth : class, new()
 {
     public const int DefaultMaxRequestLatency = 500;
-    private string _mapStyle = string.Empty;
     private float _maxLat = MapConstants.Wgs84MaxLatitude;
     private float _maxLong = 180;
     private int _maxScale;
@@ -84,7 +83,7 @@ public abstract class Projection<TAuth> : IProjection
 
     public int GetNumTiles( int scale )
     {
-        scale = ScaleRange.ConformValueToRange( scale, "GetNumTiles() Scale" );
+        scale = ScaleRange.ConformValueToRange( scale, "GetNumTiles()" );
         return InternalExtensions.Pow( 2, scale );
     }
 
@@ -105,31 +104,16 @@ public abstract class Projection<TAuth> : IProjection
     public string Copyright { get; protected set; } = string.Empty;
     public Uri? CopyrightUri { get; protected set; }
 
-    public string MapStyle
-    {
-        get => _mapStyle;
+    protected abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
 
-        set
-        {
-            var changed = !value.Equals( _mapStyle, StringComparison.OrdinalIgnoreCase );
-
-            _mapStyle = value;
-
-            if( changed )
-                OnMapStyleChanged( value );
-        }
-    }
-
-    public abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
-
-    public abstract Task<MapTile> GetMapTileByProjectionCoordinatesAsync(
+    public abstract Task<MapTile> GetMapTileWraparoundAsync(
         int x,
         int y,
         int scale,
         CancellationToken ctx = default
     );
 
-    public abstract Task<MapTile> GetMapTileByRegionCoordinatesAsync(
+    public abstract Task<MapTile> GetMapTileAbsoluteAsync(
         int x,
         int y,
         int scale,
@@ -208,10 +192,10 @@ public abstract class Projection<TAuth> : IProjection
         CancellationToken ctx = default
     );
 
-    public byte[]? GetImage( MapTile mapTile )
-    {
-        return Task.Run( async () => await GetImageAsync( mapTile ) ).Result;
-    }
+    //public byte[]? GetImage( MapTile mapTile )
+    //{
+    //    return Task.Run( async () => await GetImageAsync( mapTile ) ).Result;
+    //}
 
     public async Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default )
     {

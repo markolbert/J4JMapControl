@@ -83,7 +83,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         return true;
     }
 
-    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
         if( !Initialized )
         {

@@ -58,7 +58,7 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
         return Initialized;
     }
 
-    public override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
         if( !Initialized )
         {
