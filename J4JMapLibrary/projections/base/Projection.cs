@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net;
 using System.Reflection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
@@ -135,29 +136,12 @@ public abstract class Projection<TAuth> : IProjection
         CancellationToken ctx = default
     );
 
-    public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
-    {
-        if( !Initialized )
-        {
-            Logger?.LogError("Projection not initialized");
-            return false;
-        }
-
-        // only reload if we have to
-        var retVal = region.RegionChange != MapRegionChange.LoadRequired
-         || await LoadRegionInternalAsync( region, ctx );
-
-        LoadComplete?.Invoke( this, retVal );
-
-        return retVal;
-    }
-
     bool IProjection.SetCredentials( object credentials )
     {
         if( credentials is TAuth castCredentials )
             return SetCredentials( castCredentials );
 
-        Logger?.LogError("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
+        Logger?.LogError( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
         return false;
     }
 
@@ -169,7 +153,7 @@ public abstract class Projection<TAuth> : IProjection
             return true;
         }
 
-        Logger?.LogError("Expected a {0} but received a {1}", typeof(TAuth), credentials.GetType());
+        Logger?.LogError( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
         return false;
     }
 
@@ -198,14 +182,115 @@ public abstract class Projection<TAuth> : IProjection
         if( Credentials != null )
             return true;
 
-        Logger?.LogError("Attempting to authenticate before setting credentials");
+        Logger?.LogError( "Attempting to authenticate before setting credentials" );
         return false;
+    }
+
+    public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
+    {
+        if( !Initialized )
+        {
+            Logger?.LogError( "Projection not initialized" );
+            return false;
+        }
+
+        // only reload if we have to
+        var retVal = region.RegionChange != MapRegionChange.LoadRequired
+         || await LoadRegionInternalAsync( region, ctx );
+
+        LoadComplete?.Invoke( this, retVal );
+
+        return retVal;
     }
 
     protected abstract Task<bool> LoadRegionInternalAsync(
         MapRegion.MapRegion region,
         CancellationToken ctx = default
     );
+
+    public byte[]? GetImage( MapTile mapTile )
+    {
+        return Task.Run( async () => await GetImageAsync( mapTile ) ).Result;
+    }
+
+    public async Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default )
+    {
+        if( !mapTile.InProjection )
+            return null;
+
+        Logger?.LogTrace( "Beginning image retrieval from web" );
+
+        var request = CreateMessage( mapTile );
+        if( request == null )
+        {
+            Logger?.LogError( "Could not create HttpRequestMessage for mapTile ({0})", mapTile.FragmentId );
+            return null;
+        }
+
+        var uriText = request.RequestUri!.AbsoluteUri;
+        var httpClient = new HttpClient();
+
+        Logger?.LogTrace( "Querying {0}", uriText );
+
+        HttpResponseMessage? response;
+
+        try
+        {
+            response = MaxRequestLatency <= 0
+                ? await httpClient.SendAsync( request, ctx )
+                : await httpClient.SendAsync( request, ctx )
+                                  .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ),
+                                              ctx );
+
+            Logger?.LogTrace( "Got response from {0}", uriText );
+        }
+        catch( Exception ex )
+        {
+            Logger?.LogError( "Image request from {0} failed, message was '{1}'", request.RequestUri, ex.Message );
+            return null;
+        }
+
+        if( response.StatusCode != HttpStatusCode.OK )
+        {
+            Logger?.LogError( "Image request from {0} failed with response code {1}, message was '{2}'",
+                              uriText,
+                              response.StatusCode,
+                              await response.Content.ReadAsStringAsync( ctx ) );
+
+            return null;
+        }
+
+        Logger?.LogTrace( "Reading response from {0}", uriText );
+
+        // extract image data from response
+        try
+        {
+            await using var responseStream = MaxRequestLatency < 0
+                ? await response.Content.ReadAsStreamAsync( ctx )
+                : await response.Content.ReadAsStreamAsync( ctx )
+                                .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ),
+                                            ctx );
+
+            var memStream = new MemoryStream();
+            await responseStream.CopyToAsync( memStream, ctx );
+
+            return memStream.ToArray();
+        }
+        catch( Exception ex )
+        {
+            Logger?.LogError( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
+                              response.RequestMessage!.RequestUri!,
+                              ex.Message );
+
+            return null;
+        }
+    }
+
+    public virtual async Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
+    {
+        mapTile.ImageData = await GetImageAsync(mapTile, ctx);
+        return mapTile.ImageData != null;
+    }
 
     #region Scale
 

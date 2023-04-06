@@ -99,9 +99,9 @@ public class MemoryCache : CacheBase
 
     public override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
     {
-        if( !await mapTile.LoadImageAsync( ctx ) )
+        if( mapTile.ImageData == null )
         {
-            Logger?.LogError("Failed to retrieve image data");
+            Logger?.LogError("Map tile contains no image data");
             return false;
         }
 

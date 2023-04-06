@@ -65,4 +65,9 @@ public interface IProjection : IEquatable<IProjection>
         MapRegion.MapRegion region,
         CancellationToken ctx = default
     );
+
+    byte[]? GetImage( MapTile mapTile );
+    Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default );
+
+    Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default );
 }

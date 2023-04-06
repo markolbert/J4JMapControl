@@ -40,7 +40,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     )
     {
         var retVal = MapTile.CreateStaticMapTile( this, x, y, scale, LoggerFactory );
-        await retVal.LoadImageAsync( ctx );
+        await LoadImageAsync( retVal, ctx );
 
         return retVal;
     }
@@ -59,7 +59,7 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     )
     {
         if( region.IsDefined )
-            return await region.MapTiles[ 0, 0 ].LoadImageAsync( ctx );
+            return await LoadImageAsync( region.MapTiles[ 0, 0 ], ctx );
 
         Logger?.LogError( "Undefined static MapRegion" );
         return false;

@@ -67,7 +67,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
 
         var retVal = new MapTile( region, y ).SetXRelative( x );
-        await retVal.LoadFromCacheAsync( TileCache, ctx );
+        await LoadImageAsync( retVal, ctx );
 
         return retVal;
     }
@@ -82,7 +82,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
         var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
 
         var retVal = new MapTile( region, y ).SetXAbsolute( x );
-        await retVal.LoadFromCacheAsync( TileCache, ctx );
+        await LoadImageAsync(retVal, ctx);
 
         return retVal;
     }
@@ -101,9 +101,34 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     {
         foreach( var mapTile in region )
         {
-            await mapTile.LoadFromCacheAsync( TileCache, ctx );
+            await LoadImageAsync( mapTile, ctx );
         }
 
         return true;
+    }
+
+    public override async Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
+    {
+        if (!mapTile.InProjection)
+        {
+            mapTile.ImageData = null;
+            return true;
+        }
+
+        var retVal = false;
+
+        if( TileCache != null )
+            retVal = await TileCache.LoadImageAsync( mapTile, ctx );
+
+        if (retVal)
+            return true;
+
+        mapTile.ImageData = await GetImageAsync( mapTile, ctx );
+        retVal = mapTile.ImageData != null;
+
+        if( retVal && TileCache != null )
+            await TileCache.AddEntryAsync( mapTile, ctx );
+
+        return retVal;
     }
 }

@@ -165,15 +165,15 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
+        if( mapTile.ImageData == null )
+        {
+            Logger?.LogError("Map tile contains no image data");
+            return false;
+        }
+
         var fileName =
             $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}{mapTile.Region.Projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
-
-        if( !await mapTile.LoadImageAsync( ctx ) )
-        {
-            Logger?.LogError("Failed to retrieve image data");
-            return false;
-        }
 
         if( File.Exists( filePath ) )
             Logger?.LogWarning("Replacing map mapFragment with mapTile ID '{0}'", mapTile.FragmentId);
