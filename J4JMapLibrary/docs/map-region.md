@@ -130,9 +130,9 @@ The second event, `BuildUpdated`, signals when the call to `Update()` is complet
 |Value|Meaning|
 |-----|-------|
 |Empty|no display area is defined (typically this means `RequestedHeight` or `RequestedWidth` is 0)|
-|NoChange|the pre-existing collection of retrieved images did not have to be updated to satsify the request (this can happen if a change involves a "small" shift which results in the set of tiles being unchanged; note that this only applies to *tiled* projections, as any shift in a *static* projection requires a web query)|
-|OffsetChanged|the pre-existing collection of retrieved images did not have to be updated to satsify the request but the offset (of the display area relative to the bounding box's corresponding edge) did change|
-|LoadRequired|enough of a change occurred that the tile collection had to be reloaded|
+|NoChange|the pre-existing collection of retrieved images does  not have to be updated. This can happen if a change involves a "small" shift which results in the set of tiles being unchanged; note that this only applies to *tiled* projections, as any shifts in a *static* projection triggers the need for an image reload.|
+|OffsetChanged|the pre-existing collection of retrieved images does not have to be updated but the offset (of the display area relative to the bounding box's corresponding edge) changed|
+|LoadRequired|enough of a change occurred that the tile collection should be reloaded|
 
 The differing `MapRegionChange` values are intended to minimize the depth of update needed to be done in the calling application's user interface.
 

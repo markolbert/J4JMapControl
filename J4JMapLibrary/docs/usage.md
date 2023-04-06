@@ -10,45 +10,8 @@ Using the library involves the following workflow:
 - [using `ProjectionFactory` to get a `Projection` instance](factory.md)
 - how imagery is returned
   - [The MapRegion Object](map-region.md)
-  - [The MapTile Object](#the-maptile-object)
-- [calling the `Projection` instance's retrieval methods to obtain map imagery](#retrieving-imagery)
-
-## The MapTile Object
-
-The base object used to return all image data in the library is `MapTile`. This is true even for **static** projections, like Google Maps, which only ever return one 'tile' (whose size depends on the request being made).
-
-`MapTile` is a fairly complex object, offering a lot of meta information about the image data it contains and functionality so the rest of the library can abstract away common elements.
-
-`MapTile`s also always exist in relation to some `MapRegion`. There are no independent `MapTile`s. That's because a `MapRegion` typically contains multiple `MapTile`s, and defines certain essential features of a `MapTile` (e.g., the projection it's drawn from, the map scale it reflects).
-
-```csharp
-MapRegion Region { get; }
-
-bool InProjection { get; }
-
-float Height { get; set; }
-float Width { get; set; }
-
-string FragmentId { get; }
-string QuadKey { get; }
-int Row { get; }
-int Column { get; }
-
-byte[]? ImageData { get; set; }
-long ImageBytes { get; }
-byte[]? GetImage();
-Task<byte[]?> GetImageAsync( CancellationToken ctx = default );
-Task<bool> LoadImageAsync( CancellationToken ctx = default );
-Task<bool> LoadFromCacheAsync( ITileCache? cache, CancellationToken ctx = default );
-
-int X { get; }
-int Y { get; }
-MapTile SetXRelative( int relativeX );
-MapTile SetXAbsolute( int absoluteX );
-MapTile SetRowColumn( int row, int column );
-
-(int X, int Y) GetUpperLeftCartesian();
-```
+  - [The MapTile Object](maptile.md)
+    - [loading image data into a MapTile object](#retrieving-imagery)
 
 ## Retrieving Imagery
 
