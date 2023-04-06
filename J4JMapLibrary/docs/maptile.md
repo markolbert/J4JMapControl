@@ -2,11 +2,24 @@
 
 ## Overview
 
-`MapTile` is the class used to return image data in the library. This is true even for **static** projections, like Google Maps, which only ever return one 'tile' (whose size depends on the request being made).
+- [Interface](#interface)
+- [The Constructor and Contextual Properties](#the-constructor-and-contextual-properties)
+- [Positioning and Sizing MapTiles](#positioning-and-sizing-maptiles)
 
-`MapTile` is a fairly complex object, offering a lot of information about the map area it represents, in addition to the actual image data. It's also one of the ways -- and arguably the best way -- to retrieve image data, from either the cache (if one is being used) or the underlying online map service.
+`MapTile` is the class used to hold image data in the library. This is true even for **static** projections, like Google Maps, which only have one 'tile' (whose size depends on the request being made).
 
-`MapTile`s always exist in relation to some `MapRegion`. There are no independent `MapTile`s. That's because a `MapRegion` defines certain essential features of multiple `MapTile`s. This includes the projection the `MapTile` is drawn from and the map scale it embodies.
+MapTiles always exist in relation to some `MapRegion`. There are no independent `MapTile`s. That's because a `MapRegion` defines certain essential features of multiple `MapTile`s. This includes the projection the `MapTile` is drawn from and the map scale it embodies.
+
+`MapTile` is a fairly complex object, offering a lot of information about the map area it represents, in addition to the actual image data. However, it itself does not retrieve image data -- it merely holds it. There are two properties directly associated with the image data:
+
+|Property|Type|Description|
+|--------|----|-----------|
+|`ImageData`|`byte[]?`|a byte array of the actual image data|
+|`ImageBytes`|`long`|the number of image data bytes, or -1 if there is none|
+
+Consult the [documentation on `Projection`](projection.md) to learn about the library's image retrieval methods.
+
+## Interface
 
 Here's what the `MapTile` interface looks like:
 
@@ -32,11 +45,16 @@ string QuadKey { get; }
 
 byte[]? ImageData { get; set; }
 long ImageBytes { get; }
+
 byte[]? GetImage();
 Task<byte[]?> GetImageAsync( CancellationToken ctx = default );
 Task<bool> LoadImageAsync( CancellationToken ctx = default );
 Task<bool> LoadFromCacheAsync( ITileCache? cache, CancellationToken ctx = default );
 ```
+
+[return to overview](#overview)
+
+[return to usage table of contents](usage.md)
 
 ## The Constructor and Contextual Properties
 
@@ -67,6 +85,10 @@ The other required constructor parameter is the `MapTile`'s *vertical tile coord
 In this context, the row number can be any integer; it doesn't have to correspond to an actual row in the current projection and the current scale. A negative number simply means it's a row "above" any row in the actual projection. A number greater than the maximum number of tiles at the current map scale simply means the row is "below" any row in the actual projection.
 
 The `Tile` constructor requires both a row number and a column (horizontal, *X*) number. The column number can be any value, but values below 0 or above the maximum number of tiles at the current map scale imply wraparound. When a `MapTile` is created its `X` property is set to -1.
+
+[return to overview](#overview)
+
+[return to usage table of contents](usage.md)
 
 ## Positioning and Sizing MapTiles
 
@@ -102,3 +124,7 @@ The `Height` and `Width` properties allow the `MapTile` to be sized. They can ac
 |`FragmentId`|`string`|a string which uniquely define's a MapTile in a way which can be incorporated into a file name for caching purposes|
 
 Both of these properties are updated automatically whenever the `X` coordinate changes.
+
+[return to overview](#overview)
+
+[return to usage table of contents](usage.md)

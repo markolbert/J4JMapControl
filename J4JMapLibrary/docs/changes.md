@@ -2,4 +2,4 @@
 
 |Version|Comments|
 |:-----:|--------|
-|1.0|Initial release|
+|0.8|Initial release|

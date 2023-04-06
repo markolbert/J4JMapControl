@@ -23,4 +23,4 @@ The authentication methods return true if they succeed, false if they don't.
 
 The only service where authentication might fail is Bing Maps, because Bing Maps requires interaction with the web to complete authentication and acquire various pieces of information required to access the service. That can fail for many reasons, including inability to access the web.
 
-[return to table of contents](usage.md#overview)
+[return to usage](usage.md)

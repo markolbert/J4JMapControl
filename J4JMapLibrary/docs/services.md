@@ -26,4 +26,4 @@ Bing Maps and Google Maps offer the most diverse range of "views" (e.g., road, a
 
 Consult the service's online documentation on how to set up an account and obtain credentials, if required.
 
-[return to table of contents](usage.md#overview)
+[return to usage](usage.md)

@@ -19,4 +19,4 @@ Understanding how to use this library involves a number of terms which may not b
 
 [How to use the library](usage.md)
 
-[Note on development](development.md)
+[Writing a custom projection class](custom-projection.md)

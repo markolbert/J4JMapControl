@@ -1,6 +1,6 @@
 # J4JMapLibrary: Creating a Projection Instance
 
-To simplify obtaining a `Projection` instance I incorporated a factory method in the library. However, you can also obtain an instance by instantiating the projection yourself. These first few sections describe how to do that. To see how to use the factory approach, [jump to this section](usage.md#using-the-projection-factory).
+To simplify obtaining a `Projection` instance I incorporated a factory method in the library. However, you can also obtain an instance by instantiating the projection yourself. These first few sections describe how to do that. To see how to use the factory approach, [jump to this section](factory.md).
 
 Each service has its own unique projection class:
 
@@ -17,4 +17,6 @@ Three of the projections accept optional instances of `ITileCache` and `ILoggerF
 
 `ITileCache` is an instance of one or more classes that implement caching. For details, [consult the caching documentation](caching.md).
 
-[return to table of contentes](usage.md#overview)
+[return to creating a projection](creating-a-projection.md)
+
+[return to using the map factory](factory.md)

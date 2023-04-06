@@ -1,9 +1,5 @@
 # J4JMapLibrary: Usage
 
-## Overview
-
-Using the library involves the following workflow:
-
 - [determining which map service you want to use and setting up an account with it, if required](services.md)
 - [creating a `Projection` instance for the service](creating-a-projection.md)
 - [authenticating the projection](authentication.md)
@@ -11,31 +7,15 @@ Using the library involves the following workflow:
 - how imagery is returned
   - [The MapRegion Object](map-region.md)
   - [The MapTile Object](maptile.md)
-    - [loading image data into a MapTile object](#retrieving-imagery)
+  - [loading image data into a MapTile object](projection.md#retrieving-imagery)
+- Other topics
+  - [details on the `Projection` classes](projection.md)
+  - [writing your own projection class](custom-projection.md)
+  - [a note on the test routines](test.md)
 
-## Retrieving Imagery
+Using the library involves the following steps:
 
-There are three methods defined for retrieving map imagery from a `Projection`. All of them are asynchronous, because they deal with web-based services:
-
-```csharp
-Task<MapTile> GetMapTileByProjectionCoordinatesAsync( 
-    int x, 
-    int y, 
-    int scale, 
-    CancellationToken ctx = default );
-
-Task<MapTile> GetMapTileByRegionCoordinatesAsync( 
-    int x, 
-    int y, 
-    int scale, 
-    CancellationToken ctx = default );
-
-Task<bool> LoadRegionAsync(
-    MapRegion.MapRegion region,
-    CancellationToken ctx = default
-);
-```
-
-The first two return a specific `MapTile`, which contains the image data. The third one loads a `MapRegion` with image data.
-
-[return to top](#overview)
+- creating an instance of the projection class supporting the mapping service you want to use
+- authenticating the projection instance
+- defining a `MapRegion` (which describes the display area you're interested in and how it relates to the underlying map service's map at a given scale)
+- loading the `MapRegion` with image data, or defining a `MapTile` within the `MapRegion` and loading *it* with image data. This is done using one of the [image retrieval methods](projection.md#retrieving-imagery) defined for the projection.
