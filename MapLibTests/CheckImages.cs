@@ -13,7 +13,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetMapTileByRegionCoordinatesAsync( data.TileX, data.TileY, data.Scale );
+        var mapTile = await projection.GetMapTileAbsoluteAsync( data.TileX, data.TileY, data.Scale );
         mapTile.Should().NotBeNull();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
@@ -32,7 +32,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetMapTileByRegionCoordinatesAsync( data.TileX, data.TileY, data.Scale );
+        var mapTile = await projection.GetMapTileAbsoluteAsync( data.TileX, data.TileY, data.Scale );
         mapTile.Should().NotBeNull();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
@@ -51,7 +51,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetMapTileByRegionCoordinatesAsync( data.TileX, data.TileY, data.Scale );
+        var mapTile = await projection.GetMapTileAbsoluteAsync( data.TileX, data.TileY, data.Scale );
         mapTile.Should().NotBeNull();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
@@ -70,7 +70,7 @@ public class CheckImages : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var mapTile = await projection.GetMapTileByProjectionCoordinatesAsync( data.TileX, data.TileY, data.Scale );
+        var mapTile = await projection.GetMapTileWraparoundAsync( data.TileX, data.TileY, data.Scale );
         mapTile.Should().NotBeNull();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
