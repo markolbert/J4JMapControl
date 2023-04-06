@@ -21,7 +21,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapTile) );
     }
 
     [ Theory ]
@@ -40,7 +40,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapTile) );
     }
 
     [ Theory ]
@@ -59,7 +59,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapTile) );
     }
 
     [ Theory ]
@@ -78,7 +78,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await mapTile.GetImageAsync() );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapTile) );
     }
 
     private async Task CompareImageFileAsync( string filePath, byte[]? imageData )

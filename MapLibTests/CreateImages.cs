@@ -20,7 +20,7 @@ public class CreateImages : TestBase
 
         var mapTile = new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
 
-        var loaded = await mapTile.LoadImageAsync();
+        var loaded = await projection.LoadImageAsync(mapTile);
         loaded.Should().BeTrue();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
@@ -42,7 +42,7 @@ public class CreateImages : TestBase
 
         var mapTile = new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
 
-        var loaded = await mapTile.LoadImageAsync();
+        var loaded = await projection.LoadImageAsync(mapTile);
         loaded.Should().BeTrue();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
@@ -64,7 +64,7 @@ public class CreateImages : TestBase
 
         var mapTile = new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
 
-        var loaded = await mapTile.LoadImageAsync();
+        var loaded = await projection.LoadImageAsync(mapTile);
         loaded.Should().BeTrue();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
@@ -82,7 +82,7 @@ public class CreateImages : TestBase
 
         var mapTile = MapTile.CreateStaticMapTile( projection, data.TileX, data.TileY, data.Scale, LoggerFactory );
         
-        var loaded = await mapTile.LoadImageAsync();
+        var loaded = await projection.LoadImageAsync(mapTile);
         loaded.Should().BeTrue();
         mapTile.ImageBytes.Should().BePositive();
         mapTile.ImageData.Should().NotBeNull();
