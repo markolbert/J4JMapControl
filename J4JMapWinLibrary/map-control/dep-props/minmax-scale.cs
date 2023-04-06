@@ -14,19 +14,6 @@ public sealed partial class J4JMapControl
         typeof( J4JMapControl ),
         new PropertyMetadata( 0.0 ) );
 
-    //private static void OnMinMaxScaleChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
-    //{
-    //    if( d is not J4JMapControl mapControl )
-    //        return;
-
-    //    if( mapControl.MapScale >= mapControl.MinScale && mapControl.MapScale <= mapControl.MaxScale )
-    //        return;
-
-    //    mapControl.MapScale = mapControl.MapScale < mapControl.MinScale
-    //        ? mapControl.MinScale
-    //        : mapControl.MaxScale;
-    //}
-
     public double MinMapScale
     {
         get => (double) GetValue( MinMapScaleProperty );

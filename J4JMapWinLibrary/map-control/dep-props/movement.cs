@@ -178,6 +178,13 @@ public sealed partial class J4JMapControl
         ReleasePointerCapture( e.Pointer );
     }
 
+    private void MapGridOnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        e.Handled = true;
+        var point = e.GetCurrentPoint(this);
+        MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
+    }
+
     public bool SetHeadingByText( string text )
     {
         var heading = text.ToLower().Trim() switch
