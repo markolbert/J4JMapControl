@@ -87,7 +87,11 @@ public class MemoryCache : CacheBase
         if( string.IsNullOrEmpty( mapTile.QuadKey ) )
             return false;
 
-        var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
+        var styleKey = mapTile.Region.Projection.MapStyle == null
+            ? string.Empty
+            : $"-{mapTile.Region.Projection.MapStyle.ToLower()}";
+
+        var key = $"{mapTile.Region.Projection.Name}{styleKey}-{mapTile.QuadKey}";
 
         if( !_cached.TryGetValue( key, out var cachedTile ) )
             return false;

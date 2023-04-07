@@ -146,7 +146,11 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
-        var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
+        var styleKey = mapTile.Region.Projection.MapStyle == null
+            ? string.Empty
+            : $"-{mapTile.Region.Projection.MapStyle.ToLower()}";
+
+        var key = $"{mapTile.Region.Projection.Name}{styleKey}-{mapTile.QuadKey}";
         var filePath = Path.Combine( _cacheDir, $"{key}{mapTile.Region.Projection.ImageFileExtension}" );
 
         if( !File.Exists( filePath ) )
