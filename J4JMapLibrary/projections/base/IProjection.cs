@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.ObjectModel;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -37,6 +38,11 @@ public interface IProjection : IEquatable<IProjection>
     float MinLongitude { get; }
     MinMax<float> LongitudeRange { get; }
 
+    bool SupportsStyles { get; }
+    string? MapStyle { get; set; }
+    ReadOnlyCollection<string> MapStyles { get; }
+    bool IsStyleSupported( string style );
+
     int MaxRequestLatency { get; set; }
     int TileHeightWidth { get; }
     string ImageFileExtension { get; }
@@ -51,8 +57,6 @@ public interface IProjection : IEquatable<IProjection>
     MinMax<float> GetXYRange( int scale );
     MinMax<int> GetTileRange( int scale );
     int GetNumTiles( int scale );
-
-    //HttpRequestMessage? CreateMessage( MapTile mapTile );
 
     bool SetCredentials( object credentials );
     Task<bool> SetCredentialsAsync( object credentials, CancellationToken ctx = default );
