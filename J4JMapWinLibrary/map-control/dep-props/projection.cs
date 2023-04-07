@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
@@ -32,32 +34,28 @@ public sealed partial class J4JMapControl
     public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
         typeof( string ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( null, OnMapProjectionChanged ) );
-
-    public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
-                                                                              typeof( string ),
-                                                                              typeof( J4JMapControl ),
-                                                                              new PropertyMetadata( null,
-                                                                                  OnMapProjectionChanged ) );
+        new PropertyMetadata( null ) );
 
     public string MapProjection
     {
-        get => (string) GetValue( MapProjectionProperty );
-        set => SetValue( MapProjectionProperty, value );
+        get => (string)GetValue(MapProjectionProperty);
+
+        set
+        {
+            SetValue( MapProjectionProperty, value );
+            UpdateProjection();
+        }
     }
 
-    public string MapStyle
-    {
-        get => (string) GetValue( MapStyleProperty );
-        set => SetValue( MapStyleProperty, value );
-    }
+    public DependencyProperty MapStylesProperty = DependencyProperty.Register(nameof(MapStyles),
+                                                                             typeof(List<string>),
+                                                                             typeof(J4JMapControl),
+                                                                             new PropertyMetadata(null));
 
-    private static void OnMapProjectionChanged( DependencyObject d, DependencyPropertyChangedEventArgs e )
+    public List<string> MapStyles
     {
-        if( d is not J4JMapControl mapControl )
-            return;
-
-        mapControl.UpdateProjection();
+        get => (List<string>) GetValue( MapStylesProperty );
+        set => SetValue( MapStylesProperty, value );
     }
 
     private void UpdateProjection()
@@ -85,6 +83,8 @@ public sealed partial class J4JMapControl
 
         _projection = projResult.Projection!;
         _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
+        MapStyles = _projection.MapStyles.ToList();
+        MapStyle = _projection.MapStyle ?? string.Empty;
 
         if( !Extensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
             _logger?.LogError("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);

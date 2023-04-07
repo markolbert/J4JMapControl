@@ -79,6 +79,22 @@ public sealed partial class J4JMapControl
         }
     }
 
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
+                                                                             typeof(string),
+                                                                             typeof(J4JMapControl),
+                                                                             new PropertyMetadata(null));
+
+    public string MapStyle
+    {
+        get => (string) GetValue( MapStyleProperty );
+
+        set
+        {
+            SetValue( MapStyleProperty, value );
+            MapRegion?.MapStyle( value );
+        }
+    }
+
     private void MapRegionBuildUpdated( object? sender, MapRegionChange change )
     {
         switch( change )
