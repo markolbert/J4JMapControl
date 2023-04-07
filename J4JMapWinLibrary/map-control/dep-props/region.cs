@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
@@ -84,9 +85,9 @@ public sealed partial class J4JMapControl
                                                                              typeof(J4JMapControl),
                                                                              new PropertyMetadata(null));
 
-    public string MapStyle
+    public string? MapStyle
     {
-        get => (string) GetValue( MapStyleProperty );
+        get => (string?) GetValue( MapStyleProperty );
 
         set
         {
@@ -95,7 +96,7 @@ public sealed partial class J4JMapControl
         }
     }
 
-    private void MapRegionBuildUpdated( object? sender, MapRegionChange change )
+    private async void MapRegionBuildUpdated( object? sender, MapRegionChange change )
     {
         switch( change )
         {
@@ -109,7 +110,7 @@ public sealed partial class J4JMapControl
                 break;
 
             case MapRegionChange.LoadRequired:
-                _projection!.LoadRegionAsync( MapRegion! );
+                await _projection!.LoadRegionAsync( MapRegion! );
                 SetImagePanelTransforms();
                 IncludeAnnotations();
                 break;
