@@ -25,15 +25,20 @@ namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
 public class MapRegion : IEnumerable<MapTile>
 {
+    public event EventHandler? ConfigurationChanged;
+    public event EventHandler<MapRegionChange>? BuildUpdated;
+
     private readonly MinMax<float> _heightWidthRange = new( 0F, float.MaxValue );
-    private float _heading;
 
     private float _latitude;
     private float _longitude;
-    private int _oldScale;
     private float _requestedHeight;
     private float _requestedWidth;
     private int _scale;
+    private int _oldScale;
+    private float _heading;
+    private string? _mapStyle;
+    private string? _oldMapStyle;
     private float _xOffset;
     private float _yOffset;
 
@@ -49,6 +54,7 @@ public class MapRegion : IEnumerable<MapTile>
 
         Projection = projection;
         ProjectionType = Projection.GetProjectionType();
+        _mapStyle = projection.MapStyle;
 
         Scale = projection.MinScale;
         MaximumTiles = projection.GetNumTiles( Scale );
@@ -137,6 +143,19 @@ public class MapRegion : IEnumerable<MapTile>
 
     public float Rotation => ( 360 - Heading ) % 360;
 
+    public string? MapStyle
+    {
+        get => _mapStyle;
+
+        internal set
+        {
+            if( value != null && !Projection.IsStyleSupported( value ) )
+                value = null;
+
+            SetField( ref _mapStyle, value );
+        }
+    }
+
     public Rectangle2D BoundingBox { get; private set; }
     public int MaximumTiles { get; private set; }
     public Tile UpperLeft { get; private set; }
@@ -191,9 +210,6 @@ public class MapRegion : IEnumerable<MapTile>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public event EventHandler? ConfigurationChanged;
-    public event EventHandler<MapRegionChange>? BuildUpdated;
-
     private void SetField( ref int field, int newValue )
     {
         if( newValue == field )
@@ -207,6 +223,19 @@ public class MapRegion : IEnumerable<MapTile>
     private void SetField( ref float field, float newValue )
     {
         if( Math.Abs( newValue - field ) < MapConstants.FloatTolerance )
+            return;
+
+        field = newValue;
+        Changed = true;
+        ConfigurationChanged?.Invoke( this, EventArgs.Empty );
+    }
+
+    private void SetField( ref string? field, string? newValue )
+    {
+        if( field == null && newValue == null )
+            return;
+
+        if( field != null && newValue != null && field.Equals( newValue, StringComparison.OrdinalIgnoreCase ) )
             return;
 
         field = newValue;
@@ -297,6 +326,7 @@ public class MapRegion : IEnumerable<MapTile>
 
         Changed = false;
         _oldScale = Scale;
+        _oldMapStyle = MapStyle;
 
         BuildUpdated?.Invoke( this, RegionChange );
 
@@ -326,7 +356,7 @@ public class MapRegion : IEnumerable<MapTile>
                           .SetXAbsolute( 0 )
                           .SetRowColumn( 0, 0 );
 
-        RegionChange = BoundingBox.Equals( oldBoundingBox )
+        RegionChange = BoundingBox.Equals( oldBoundingBox ) && !MapStyleChanged()
             ? MapRegionChange.OffsetChanged
             : MapRegionChange.LoadRequired;
     }
@@ -365,8 +395,20 @@ public class MapRegion : IEnumerable<MapTile>
          && Scale == _oldScale
          && TilesWide == oldWide
          && TilesHigh == oldHigh
+         && !MapStyleChanged()
                 ? MapRegionChange.OffsetChanged
                 : MapRegionChange.LoadRequired;
+    }
+
+    private bool MapStyleChanged()
+    {
+        if( _mapStyle == null && _oldMapStyle == null )
+            return false;
+
+        if( _mapStyle != null && _oldMapStyle != null )
+            return Projection.IsStyleSupported( _mapStyle );
+
+        return true;
     }
 
     private int RoundTile( float value )

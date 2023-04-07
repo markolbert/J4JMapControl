@@ -35,9 +35,10 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         ILoggerFactory? loggerFactory = null,
         ITileCache? tileCache = null
     )
-        : base( loggerFactory )
+        : base( Enum.GetNames<BingMapStyle>(), loggerFactory )
     {
         TileCache = tileCache;
+        MapStyle = BingMapStyle.ToString();
     }
 
     public string ApiKey { get; private set; } = string.Empty;
@@ -63,12 +64,16 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
     public BingImageryMetadata? Metadata { get; internal set; }
 
-    protected override void OnMapStyleChanged( string value )
+    protected override void OnMapStyleChanged()
     {
-        base.OnMapStyleChanged( value );
+        base.OnMapStyleChanged();
 
-        if( !Enum.TryParse<BingMapStyle>( value, true, out var result ) )
+        if( MapStyle == null || !Enum.TryParse<BingMapStyle>(MapStyle, true, out var result))
+        {
+            // this will cause OnMapStyleChanged() to be raised again...
+            MapStyle = BingMapStyle.RoadOnDemand.ToString();
             return;
+        }
 
         BingMapStyle = result;
 

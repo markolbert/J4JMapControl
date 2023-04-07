@@ -24,9 +24,10 @@ public abstract class StaticProjection<TAuth> : Projection<TAuth>
     where TAuth : class, new()
 {
     protected StaticProjection(
+        IEnumerable<string>? mapStyles = null,
         ILoggerFactory? loggerFactory = null
     )
-        : base( loggerFactory )
+        : base( mapStyles, loggerFactory )
     {
     }
 

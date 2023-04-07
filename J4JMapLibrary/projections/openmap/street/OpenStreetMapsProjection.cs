@@ -24,10 +24,10 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredentials>
 {
     public OpenStreetMapsProjection(
-        ILoggerFactory? loggerFactory=null,
+        ILoggerFactory? loggerFactory = null,
         ITileCache? tileCache = null
     )
-        : base( loggerFactory )
+        : base( null, loggerFactory )
     {
         TileCache = tileCache;
         ImageFileExtension = ".png";

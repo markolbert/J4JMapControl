@@ -27,7 +27,7 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
         ILoggerFactory? loggerFactory = null,
         ITileCache? tileCache = null
     )
-        : base( loggerFactory )
+        : base( null, loggerFactory )
     {
         TileCache = tileCache;
         ImageFileExtension = ".png";

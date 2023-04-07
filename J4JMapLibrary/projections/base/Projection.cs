@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Reflection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -28,19 +29,26 @@ public abstract class Projection<TAuth> : IProjection
     where TAuth : class, new()
 {
     public const int DefaultMaxRequestLatency = 500;
+    
+    private readonly List<string> _mapStyles;
+
     private float _maxLat = MapConstants.Wgs84MaxLatitude;
     private float _maxLong = 180;
-    private int _maxScale;
     private float _minLat = -MapConstants.Wgs84MaxLatitude;
     private float _minLong = -180;
-
     private int _minScale;
+    private int _maxScale;
     private MinMax<int>? _scaleRange;
+    private string? _mapStyle;
 
     protected Projection(
+        IEnumerable<string>? mapStyles = null,
         ILoggerFactory? loggerFactory = null
     )
     {
+        _mapStyles = mapStyles?.ToList() ?? new List<string>();
+        SupportsStyles = _mapStyles.Any();
+
         LoggerFactory = loggerFactory;
         Logger = loggerFactory?.CreateLogger( GetType() );
 
@@ -104,6 +112,35 @@ public abstract class Projection<TAuth> : IProjection
     public string Copyright { get; protected set; } = string.Empty;
     public Uri? CopyrightUri { get; protected set; }
 
+    public bool SupportsStyles { get; }
+    public ReadOnlyCollection<string> MapStyles => _mapStyles.AsReadOnly();
+
+    public string? MapStyle
+    {
+        get => _mapStyle;
+
+        set
+        {
+            bool changed;
+
+            if( value != null && IsStyleSupported( value ) )
+                changed = !value.Equals( _mapStyle, StringComparison.OrdinalIgnoreCase );
+            else changed = _mapStyle != null;
+
+            _mapStyle = value;
+
+            if( changed )
+                OnMapStyleChanged();
+        }
+    }
+
+    public bool IsStyleSupported( string style ) =>
+        _mapStyles.Any( x => x.Equals( style, StringComparison.OrdinalIgnoreCase ) );
+
+    protected virtual void OnMapStyleChanged()
+    {
+    }
+
     protected abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
 
     public abstract Task<MapTile> GetMapTileWraparoundAsync(
@@ -139,10 +176,6 @@ public abstract class Projection<TAuth> : IProjection
 
         Logger?.LogError( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
         return false;
-    }
-
-    protected virtual void OnMapStyleChanged( string value )
-    {
     }
 
     public bool SetCredentials( TAuth credentials )

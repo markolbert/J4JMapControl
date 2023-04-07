@@ -61,4 +61,10 @@ public static class MapRegionFluentExtensions
         region.Heading = value;
         return region;
     }
+
+    public static MapRegion.MapRegion MapStyle(this MapRegion.MapRegion region, string value)
+    {
+        region.MapStyle = value;
+        return region;
+    }
 }

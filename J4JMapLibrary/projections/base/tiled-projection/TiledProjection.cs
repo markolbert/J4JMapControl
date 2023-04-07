@@ -24,9 +24,10 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     where TAuth : class, new()
 {
     protected TiledProjection(
-        ILoggerFactory? loggerFactory
+        IEnumerable<string>? mapStyles = null,
+        ILoggerFactory? loggerFactory = null
     )
-        : base( loggerFactory )
+        : base( mapStyles, loggerFactory )
     {
     }
 

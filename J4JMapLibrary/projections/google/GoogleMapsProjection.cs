@@ -28,7 +28,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
     public GoogleMapsProjection(
         ILoggerFactory? loggerFactory = null
     )
-        : base( loggerFactory )
+        : base( Enum.GetNames<GoogleMapStyle>(), loggerFactory )
     {
         MinScale = 0;
         MaxScale = 20;
@@ -42,28 +42,31 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         // against the raw URL
         RetrievalUrl = "https://maps.googleapis.com/maps/api/staticmap?";
         RetrievalQueryString = "center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
+
+        MapStyle = GoogleMapStyle.ToString();
     }
 
     public string ApiKey { get; private set; } = string.Empty;
     public string Signature { get; private set; } = string.Empty;
 
-    public GoogleMapStyle GoogleMapStyle { get; set; } = GoogleMapStyle.RoadMap;
-
     public GoogleImageFormat ImageFormat { get; set; } = GoogleImageFormat.Png;
     public string RetrievalUrl { get; }
     public string RetrievalQueryString { get; }
 
-    protected override void OnMapStyleChanged( string value )
-    {
-        base.OnMapStyleChanged( value );
+    public GoogleMapStyle GoogleMapStyle { get; set; } = GoogleMapStyle.RoadMap;
 
-        if( !Enum.TryParse<GoogleMapStyle>( value, true, out var result ) )
+    protected override void OnMapStyleChanged()
+    {
+        base.OnMapStyleChanged();
+
+        if( MapStyle == null || !Enum.TryParse<GoogleMapStyle>( MapStyle, true, out var result ) )
+        {
+            // this will cause OnMapStyleChanged() to be raised again...
+            MapStyle = GoogleMapStyle.RoadMap.ToString();
             return;
+        }
 
         GoogleMapStyle = result;
-
-        if( Credentials != null && !Initialized )
-            Authenticate();
     }
 
 #pragma warning disable CS1998
