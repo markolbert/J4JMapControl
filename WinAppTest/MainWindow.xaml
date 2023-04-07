@@ -25,10 +25,12 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <map:J4JMapControl x:Name="mapControl" 
                            Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"
+                           Margin="5"
                            MapProjection="BingMaps"
                            MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
@@ -50,11 +52,12 @@
         </map:J4JMapControl>
 
         <TextBlock Grid.Column="0" Grid.Row="1"
-                   Margin="0,0,5,0"
+                   Margin="5"
                    VerticalAlignment="Center">Map Scale</TextBlock>
 
         <NumberBox x:Name="numberBoxScale"
                    Grid.Column="1" Grid.Row="1"
+                   Margin="5"
                    HorizontalAlignment="Left"
                    Minimum="{Binding ElementName=mapControl, Path=MinMapScale}" 
                    Maximum="{Binding ElementName=mapControl, Path=MaxMapScale}"
@@ -64,10 +67,11 @@
                    Value="16"/>
 
         <TextBlock Grid.Column="0" Grid.Row="2"
-                   Margin="0,0,5,0"
+                   Margin="5"
                    VerticalAlignment="Center">Heading (0 == North)</TextBlock>
 
         <NumberBox x:Name="numberBoxHeading"
+                   Margin="5"
                    Grid.Column="1" Grid.Row="2"
                    HorizontalAlignment="Left"
                    Minimum="0" 
@@ -78,12 +82,22 @@
                    Value="0"/>
 
         <TextBlock Grid.Column="0" Grid.Row="3"
-                   Margin="0,0,5,0"
+                   Margin="5"
+                   VerticalAlignment="Center">MapStyle</TextBlock>
+
+        <ComboBox x:Name="mapStyle" 
+                 Grid.Column="1" Grid.Row="3"
+                 Margin="5"
+                 ItemsSource="{Binding ElementName=mapControl, Path=MapStyles}"
+                 SelectedValue="{Binding ElementName=mapControl, Path=MapStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="4"
+                   Margin="5"
                    VerticalAlignment="Center">Set Heading by Text</TextBlock>
 
         <TextBox x:Name="headingText" 
-                 Grid.Column="1" Grid.Row="3"
-                 Margin="0,0,5,0"
+                 Grid.Column="1" Grid.Row="4"
+                 Margin="5"
                  LostFocus="TextHeadingLostFocus"/>
 
     </Grid>
