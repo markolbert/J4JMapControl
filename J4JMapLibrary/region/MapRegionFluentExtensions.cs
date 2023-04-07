@@ -62,7 +62,7 @@ public static class MapRegionFluentExtensions
         return region;
     }
 
-    public static MapRegion.MapRegion MapStyle(this MapRegion.MapRegion region, string value)
+    public static MapRegion.MapRegion MapStyle(this MapRegion.MapRegion region, string? value)
     {
         region.MapStyle = value;
         return region;
