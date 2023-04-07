@@ -152,6 +152,8 @@ public class MapRegion : IEnumerable<MapTile>
             if( value != null && !Projection.IsStyleSupported( value ) )
                 value = null;
 
+            Projection.MapStyle = value;
+
             SetField( ref _mapStyle, value );
         }
     }
