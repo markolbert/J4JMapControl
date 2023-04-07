@@ -89,7 +89,8 @@
                  Grid.Column="1" Grid.Row="3"
                  Margin="5"
                  ItemsSource="{Binding ElementName=mapControl, Path=MapStyles}"
-                 SelectedValue="{Binding ElementName=mapControl, Path=MapStyle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                 SelectionChanged="MapStyle_OnSelectionChanged"
+                 SelectedValue="{Binding ElementName=mapControl, Path=MapStyle, Mode=TwoWay}"/>
 
         <TextBlock Grid.Column="0" Grid.Row="4"
                    Margin="5"

@@ -5,6 +5,7 @@
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 using System.IO;
+using System.Linq;
 using Windows.Graphics;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.DeusEx;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
 
 namespace WinAppTest;
@@ -62,5 +64,10 @@ public sealed partial class MainWindow
         if( hostConfig == null )
             _logger?.LogError("Could not retrieve instance of IJ4JHost");
         else mapControl.FileSystemCachePath = Path.Combine( hostConfig.ApplicationConfigurationFolder, "map-cache" );
+    }
+
+    private void MapStyle_OnSelectionChanged( object sender, SelectionChangedEventArgs e )
+    {
+        mapControl.MapStyle = e.AddedItems.First() as string;
     }
 }
