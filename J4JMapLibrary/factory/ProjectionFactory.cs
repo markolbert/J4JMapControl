@@ -103,19 +103,17 @@ public class ProjectionFactory
 
     public ProjectionFactoryResult CreateProjection(
         string projName,
-        ITileCache? cache = null,
         string? credentialsName = null,
         bool authenticate = true
     )
     {
         return Task.Run( async () =>
-                             await CreateProjectionAsync( projName, cache, credentialsName, authenticate ) )
+                             await CreateProjectionAsync( projName, credentialsName, authenticate ) )
                    .Result;
     }
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         string projName,
-        ITileCache? cache = null,
         string? credentialsName = null,
         bool authenticate = true
     )
@@ -129,7 +127,7 @@ public class ProjectionFactory
             return ProjectionFactoryResult.NotFound;
         }
 
-        var retVal = CreateProjectionInternal( projInfo, cache );
+        var retVal = CreateProjectionInternal( projInfo );
         if( !retVal.ProjectionTypeFound || !authenticate )
             return retVal;
 
@@ -141,37 +139,32 @@ public class ProjectionFactory
     }
 
     public ProjectionFactoryResult CreateProjection<TProj>(
-        ITileCache? cache = null,
         string? credentialsName = null,
         bool authenticate = true
     )
         where TProj : IProjection =>
-        CreateProjection( typeof( TProj ), cache, credentialsName, authenticate );
+        CreateProjection( typeof( TProj ), credentialsName, authenticate );
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync<TProj>(
-        ITileCache? cache = null,
         string? credentialsName = null,
         bool authenticate = true
     )
         where TProj : IProjection =>
         await CreateProjectionAsync( typeof( TProj ),
-                                     cache,
                                      credentialsName,
                                      authenticate );
 
     public ProjectionFactoryResult CreateProjection(
         Type projType,
-        ITileCache? cache = null,
         string? credentialsName = null,
         bool authenticate = true
     ) =>
         Task.Run( async () =>
-                      await CreateProjectionAsync( projType, cache, credentialsName, authenticate ) )
+                      await CreateProjectionAsync( projType, credentialsName, authenticate ) )
             .Result;
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         Type projType,
-        ITileCache? cache = null,
         string? credentialsName = null,
         bool authenticate = true
     )
@@ -188,7 +181,7 @@ public class ProjectionFactory
             return ProjectionFactoryResult.NotFound;
         }
 
-        var retVal = CreateProjectionInternal( projInfo, cache );
+        var retVal = CreateProjectionInternal( projInfo );
         if( !retVal.ProjectionTypeFound || !authenticate )
             return retVal;
 
@@ -200,31 +193,16 @@ public class ProjectionFactory
     }
 
     private ProjectionFactoryResult CreateProjectionInternal(
-        ProjectionTypeInfo projInfo,
-        ITileCache? cache
+        ProjectionTypeInfo projInfo
     )
     {
         // create instance of IProjection and return
         IProjection? projection;
 
         // figure out the sequence of ctor parameters
-        ProjectionCtorInfo? ctorInfo = null;
-
-        switch( projInfo.ConstructorInfo.Count )
-        {
-            case 0:
-                // no op
-                break;
-
-            case 1:
-                ctorInfo = projInfo.ConstructorInfo.First();
-                break;
-
-            default:
-                ctorInfo = projInfo.ConstructorInfo.FirstOrDefault( x => cache == null || x.SupportsCaching )
-                 ?? projInfo.ConstructorInfo.First();
-                break;
-        }
+        var ctorInfo = projInfo.ConstructorInfo.Count == 1
+            ? projInfo.ConstructorInfo.First()
+            : null;
 
         if( ctorInfo == null )
         {
@@ -238,7 +216,6 @@ public class ProjectionFactory
         {
             args[ idx ] = ctorInfo.ParameterTypes[ idx ] switch
             {
-                ProjectionCtorParameterType.Cache => cache,
                 ProjectionCtorParameterType.LoggerFactory => _loggerFactory,
                 _ => throw new InvalidEnumArgumentException(
                     $"Unsupported {typeof( ProjectionCtorParameterType )} value '{ctorInfo.ParameterTypes[ idx ]}'" )

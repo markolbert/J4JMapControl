@@ -26,8 +26,12 @@ public sealed partial class J4JMapControl
         {
             _projFactory = value;
 
-            if( _projFactory != null && !_projFactory.InitializeFactory() )
-                _logger?.LogError( "Projection factory failed to find projection classes" );
+            if( _projFactory == null )
+                return;
+
+            if( _projFactory.InitializeFactory() )
+                UpdateProjection();
+            else _logger?.LogError( "Projection factory failed to find projection classes" );
         }
     }
 
@@ -66,9 +70,7 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        var cache = _tileMemCache ?? _tileFileCache;
-
-        var projResult = ProjectionFactory.CreateProjection( MapProjection, cache );
+        var projResult = ProjectionFactory.CreateProjection( MapProjection );
         if( !projResult.ProjectionTypeFound )
         {
             _logger?.LogCritical("Could not create projection '{0}'", MapProjection);
@@ -83,6 +85,9 @@ public sealed partial class J4JMapControl
 
         _projection = projResult.Projection!;
         _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
+
+        UpdateCaching();
+
         MapStyles = _projection.MapStyles.ToList();
         MapStyle = _projection.MapStyle ?? string.Empty;
 

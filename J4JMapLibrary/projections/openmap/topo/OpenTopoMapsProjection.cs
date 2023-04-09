@@ -24,12 +24,10 @@ namespace J4JSoftware.J4JMapLibrary;
 public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials>
 {
     public OpenTopoMapsProjection(
-        ILoggerFactory? loggerFactory = null,
-        ITileCache? tileCache = null
+        ILoggerFactory? loggerFactory = null
     )
         : base( null, loggerFactory )
     {
-        TileCache = tileCache;
         ImageFileExtension = ".png";
         TileHeightWidth = 256;
         MinScale = 0;
@@ -43,9 +41,7 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
-#pragma warning disable CS1998
     protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
-#pragma warning restore CS1998
     {
         if( !await base.AuthenticateAsync( ctx ) )
             return false;

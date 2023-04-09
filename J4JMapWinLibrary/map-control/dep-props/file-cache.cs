@@ -5,8 +5,6 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    private ITileCache? _tileFileCache;
-
     public DependencyProperty FileSystemCachePathProperty = DependencyProperty.Register( nameof( FileSystemCachePath ),
         typeof( string ),
         typeof( J4JMapControl ),

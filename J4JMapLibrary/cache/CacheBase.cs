@@ -24,21 +24,24 @@ namespace J4JSoftware.J4JMapLibrary;
 public abstract class CacheBase : ITileCache
 {
     protected CacheBase(
+        string name,
         ILoggerFactory? loggerFactory
     )
     {
+        Name = name;
+        Stats = new CacheStats( name );
         Logger = loggerFactory?.CreateLogger( GetType() );
     }
 
     protected ILogger? Logger { get; }
 
+    public string Name { get; }
+
     public int MaxEntries { get; set; }
     public long MaxBytes { get; set; }
     public TimeSpan RetentionPeriod { get; set; } = TimeSpan.Zero;
 
-    public CacheStats Stats { get; } = new();
-
-    public ITileCache? ParentCache { get; set; }
+    public CacheStats Stats { get; }
 
     public abstract void Clear();
     public abstract void PurgeExpired();
@@ -50,9 +53,6 @@ public abstract class CacheBase : ITileCache
 
         if( await LoadImageDataInternalAsync( mapTile, ctx ) )
             return true;
-
-        if( ParentCache != null )
-            return await ParentCache.LoadImageAsync( mapTile, ctx );
 
         Logger?.LogTrace( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
                           GetType(),

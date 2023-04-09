@@ -19,7 +19,7 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public interface ITiledProjection : IProjection
 {
-    ITileCache? TileCache { get; }
+    ITileCaching TileCaching { get; }
 
     public int HeightWidthInTiles( int scale );
 

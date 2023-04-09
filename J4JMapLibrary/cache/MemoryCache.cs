@@ -25,13 +25,18 @@ public class MemoryCache : CacheBase
     private readonly Dictionary<string, CachedTile> _cached = new( StringComparer.OrdinalIgnoreCase );
 
     public MemoryCache(
+        string name,
         ILoggerFactory? logger = null
     )
-        : base( logger )
+        : base( name, logger )
     {
     }
 
-    public override void Clear() => _cached.Clear();
+    public override void Clear()
+    {
+        _cached.Clear();
+        Stats.Reload( this );
+    }
 
     public override void PurgeExpired()
     {
@@ -60,7 +65,7 @@ public class MemoryCache : CacheBase
 
         if( MaxBytes <= 0 || _cached.Sum( x => x.Value.Tile.ImageBytes ) <= MaxBytes )
         {
-            Stats.Initialize( this );
+            Stats.Reload( this );
             return;
         }
 
@@ -73,7 +78,7 @@ public class MemoryCache : CacheBase
             entriesByLargest.RemoveAt( 0 );
         }
 
-        Stats.Initialize( this );
+        Stats.Reload( this );
     }
 
 #pragma warning disable CS1998
@@ -87,13 +92,7 @@ public class MemoryCache : CacheBase
         if( string.IsNullOrEmpty( mapTile.QuadKey ) )
             return false;
 
-        var styleKey = mapTile.Region.Projection.MapStyle == null
-            ? string.Empty
-            : $"-{mapTile.Region.Projection.MapStyle.ToLower()}";
-
-        var key = $"{mapTile.Region.Projection.Name}{styleKey}-{mapTile.QuadKey}";
-
-        if( !_cached.TryGetValue( key, out var cachedTile ) )
+        if( !_cached.TryGetValue( mapTile.FragmentId, out var cachedTile ) )
             return false;
 
         mapTile.ImageData = cachedTile.Tile.ImageData;
@@ -101,7 +100,9 @@ public class MemoryCache : CacheBase
         return mapTile.ImageData != null;
     }
 
+#pragma warning disable CS1998
     public override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
+#pragma warning restore CS1998
     {
         if( mapTile.ImageData == null )
         {
@@ -109,29 +110,19 @@ public class MemoryCache : CacheBase
             return false;
         }
 
-        var key = $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}";
-
         var cacheEntry = new CachedTile( mapTile.ImageBytes, DateTime.UtcNow, DateTime.UtcNow, mapTile );
 
-        if( _cached.ContainsKey( key ) )
+        if( _cached.ContainsKey( mapTile.FragmentId ) )
         {
-            Logger?.LogWarning("Replacing map mapFragment with mapTile '{0}'", cacheEntry.Tile.FragmentId);
-            _cached[ key ] = cacheEntry;
-
-            Stats.Initialize( this );
+            Logger?.LogWarning( "Replacing map mapFragment with mapTile '{fragmentId}'", cacheEntry.Tile.FragmentId );
+            _cached[ mapTile.FragmentId ] = cacheEntry;
         }
-        else
-        {
-            _cached.Add( key, cacheEntry );
+        else _cached.Add( mapTile.FragmentId, cacheEntry );
 
-            Stats.RecordEntry( mapTile.ImageData );
-        }
+        Stats.RecordEntry(mapTile.ImageData);
 
-        if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
+        if ( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
-
-        if( ParentCache != null )
-            return await ParentCache.AddEntryAsync( mapTile, ctx );
 
         return true;
     }

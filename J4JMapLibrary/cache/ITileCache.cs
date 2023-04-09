@@ -15,18 +15,36 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.ObjectModel;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface ITileCache : IEnumerable<CachedEntry>
+public interface ITileCacheBase
 {
-    ITileCache? ParentCache { get; }
-    CacheStats Stats { get; }
+    Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default);
+}
 
+public interface ITileCache : ITileCacheBase, IEnumerable<CachedEntry>
+{
+    string Name { get; }
+    CacheStats Stats { get; }
     void Clear();
     void PurgeExpired();
+    Task<bool> AddEntryAsync(MapTile mapTile, CancellationToken ctx = default);
+}
 
-    Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default );
-    Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default );
+public interface ITileCaching : ITileCacheBase
+{
+    ReadOnlyCollection<CacheInfo> Caches { get; }
+    ReadOnlyCollection<CacheStats> CacheStats { get; }
+
+    void Clear( int minLevel = -1 );
+    void PurgeExpired( int minLevel = -1 );
+
+    bool AddCache( ITileCache tileCache );
+    bool RemoveCache( ITileCache tileCache );
+    bool RemoveCache( string name );
+    bool RemoveCache( int level );
+    void RemoveAllCaches();
 }

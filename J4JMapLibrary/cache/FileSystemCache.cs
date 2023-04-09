@@ -26,9 +26,10 @@ public class FileSystemCache : CacheBase
     private string? _cacheDir;
 
     public FileSystemCache(
+        string name,
         ILoggerFactory? loggerFactory = null
     )
-        : base( loggerFactory )
+        : base( name, loggerFactory )
     {
     }
 
@@ -50,6 +51,7 @@ public class FileSystemCache : CacheBase
             {
                 var dirInfo = Directory.CreateDirectory( value );
                 _cacheDir = dirInfo.FullName;
+                Stats.Reload(GetFiles());
             }
             catch
             {
@@ -70,6 +72,8 @@ public class FileSystemCache : CacheBase
         {
             File.Delete( fileInfo.FullName );
         }
+
+        Stats.Reload( GetFiles() );
     }
 
     // assumes _cacheDir is defined
@@ -122,7 +126,7 @@ public class FileSystemCache : CacheBase
 
         if( MaxBytes <= 0 || files.Sum( x => x.Length ) <= MaxBytes )
         {
-            Stats.Initialize( files );
+            Stats.Reload( files );
             return;
         }
 
@@ -135,7 +139,7 @@ public class FileSystemCache : CacheBase
             files.RemoveAt( 0 );
         }
 
-        Stats.Initialize( files );
+        Stats.Reload( files );
     }
 
     protected override async Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default )
@@ -146,12 +150,7 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
-        var styleKey = mapTile.Region.Projection.MapStyle == null
-            ? string.Empty
-            : $"-{mapTile.Region.Projection.MapStyle.ToLower()}";
-
-        var key = $"{mapTile.Region.Projection.Name}{styleKey}-{mapTile.QuadKey}";
-        var filePath = Path.Combine( _cacheDir, $"{key}{mapTile.Region.Projection.ImageFileExtension}" );
+        var filePath = Path.Combine( _cacheDir, $"{mapTile.FragmentId}{mapTile.Region.Projection.ImageFileExtension}" );
 
         if( !File.Exists( filePath ) )
             return false;
@@ -175,8 +174,7 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
-        var fileName =
-            $"{mapTile.Region.Projection.Name}-{mapTile.QuadKey}{mapTile.Region.Projection.ImageFileExtension}";
+        var fileName = $"{mapTile.FragmentId}{mapTile.Region.Projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         if( File.Exists( filePath ) )

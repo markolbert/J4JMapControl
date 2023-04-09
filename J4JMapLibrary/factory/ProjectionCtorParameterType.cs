@@ -3,6 +3,5 @@
 internal enum ProjectionCtorParameterType
 {
     LoggerFactory,
-    Cache,
     Other
 }

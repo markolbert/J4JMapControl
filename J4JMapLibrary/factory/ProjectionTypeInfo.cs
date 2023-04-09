@@ -54,12 +54,6 @@ internal record ProjectionTypeInfo
                     continue;
                 }
 
-                if( ctorParameter.ParameterType.IsAssignableTo( typeof( ITileCache ) ) )
-                {
-                    ctorParameters.Add( ProjectionCtorParameterType.Cache );
-                    continue;
-                }
-
                 ctorParameters.Add( ProjectionCtorParameterType.Other );
             }
 

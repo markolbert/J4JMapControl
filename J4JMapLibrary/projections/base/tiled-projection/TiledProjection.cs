@@ -31,7 +31,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     {
     }
 
-    public ITileCache? TileCache { get; protected set; }
+    public ITileCaching TileCaching { get; } = new TileCaching();
 
     public int HeightWidthInTiles( int scale )
     {
@@ -118,18 +118,13 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
 
         var retVal = false;
 
-        if( TileCache != null )
-            retVal = await TileCache.LoadImageAsync( mapTile, ctx );
+        if( TileCaching.Caches.Any() )
+            retVal = await TileCaching.LoadImageAsync( mapTile, ctx );
 
         if (retVal)
             return true;
 
         mapTile.ImageData = await GetImageAsync( mapTile, ctx );
-        retVal = mapTile.ImageData != null;
-
-        if( retVal && TileCache != null )
-            await TileCache.AddEntryAsync( mapTile, ctx );
-
-        return retVal;
+        return mapTile.ImageData != null;
     }
 }

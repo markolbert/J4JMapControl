@@ -32,12 +32,10 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
     private string? _cultureCode;
 
     public BingMapsProjection(
-        ILoggerFactory? loggerFactory = null,
-        ITileCache? tileCache = null
+        ILoggerFactory? loggerFactory = null
     )
         : base( Enum.GetNames<BingMapStyle>(), loggerFactory )
     {
-        TileCache = tileCache;
         MapStyle = BingMapStyle.ToString();
     }
 
