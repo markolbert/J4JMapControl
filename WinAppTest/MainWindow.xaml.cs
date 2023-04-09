@@ -4,6 +4,8 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Windows.Graphics;
@@ -26,7 +28,7 @@ namespace WinAppTest;
 public sealed partial class MainWindow
 {
     private readonly ILogger? _logger;
-
+    
     public MainWindow()
     {
         this.InitializeComponent();
@@ -43,7 +45,7 @@ public sealed partial class MainWindow
         var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
 
-        appWindow.Resize( new SizeInt32( 800, 800 ) );
+        appWindow.Resize( new SizeInt32( 800, 1000 ) );
 
         SetFileSystemCachePath();
     }
@@ -66,8 +68,25 @@ public sealed partial class MainWindow
         else mapControl.FileSystemCachePath = Path.Combine( hostConfig.ApplicationConfigurationFolder, "map-cache" );
     }
 
-    private void MapStyle_OnSelectionChanged( object sender, SelectionChangedEventArgs e )
+    private void PurgeCache( object sender, RoutedEventArgs e )
     {
-        mapControl.MapStyle = e.AddedItems.First() as string;
+        mapControl.PurgeCache();
     }
+
+    private void ClearCache( object sender, RoutedEventArgs e )
+    {
+        mapControl.ClearCache();
+    }
+
+    private void StatsClick( object sender, RoutedEventArgs e )
+    {
+        CacheStats.Clear();
+
+        foreach( var item in mapControl.GetCacheStats() )
+        {
+            CacheStats.Add( item );
+        }
+    }
+
+    private ObservableCollection<CacheStats> CacheStats { get; } = new();
 }
