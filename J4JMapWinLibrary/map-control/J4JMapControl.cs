@@ -217,7 +217,7 @@ public sealed partial class J4JMapControl : Control
     protected override Size MeasureOverride( Size availableSize )
     {
         if( MapRegion == null || _projection == null )
-            return Size.Empty;
+            return availableSize;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
         var width = Width < availableSize.Width ? Width : availableSize.Width;
