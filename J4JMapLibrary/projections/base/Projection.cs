@@ -21,8 +21,6 @@ using System.Reflection;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
 
-#pragma warning disable CS8618
-
 namespace J4JSoftware.J4JMapLibrary;
 
 public abstract class Projection<TAuth> : IProjection
@@ -162,7 +160,7 @@ public abstract class Projection<TAuth> : IProjection
         if( credentials is TAuth castCredentials )
             return SetCredentials( castCredentials );
 
-        Logger?.LogError( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        Logger?.LogError( "Expected a {credType} but received a {actualType}", typeof( TAuth ), credentials.GetType() );
         return false;
     }
 
@@ -174,7 +172,7 @@ public abstract class Projection<TAuth> : IProjection
             return true;
         }
 
-        Logger?.LogError( "Expected a {0} but received a {1}", typeof( TAuth ), credentials.GetType() );
+        Logger?.LogError( "Expected a {credType} but received a {actualType}", typeof( TAuth ), credentials.GetType() );
         return false;
     }
 
@@ -240,14 +238,14 @@ public abstract class Projection<TAuth> : IProjection
         var request = CreateMessage( mapTile );
         if( request == null )
         {
-            Logger?.LogError( "Could not create HttpRequestMessage for mapTile ({0})", mapTile.FragmentId );
+            Logger?.LogError( "Could not create HttpRequestMessage for mapTile ({fragmentId})", mapTile.FragmentId );
             return null;
         }
 
         var uriText = request.RequestUri!.AbsoluteUri;
         var httpClient = new HttpClient();
 
-        Logger?.LogTrace( "Querying {0}", uriText );
+        Logger?.LogTrace( "Querying {uriText}", uriText );
 
         HttpResponseMessage? response;
 
@@ -259,17 +257,19 @@ public abstract class Projection<TAuth> : IProjection
                                   .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ),
                                               ctx );
 
-            Logger?.LogTrace( "Got response from {0}", uriText );
+            Logger?.LogTrace( "Got response from {uriText}", uriText );
         }
         catch( Exception ex )
         {
-            Logger?.LogError( "Image request from {0} failed, message was '{1}'", request.RequestUri, ex.Message );
+            Logger?.LogError( "Image request from {uri} failed, message was '{errorMesg}'",
+                              request.RequestUri,
+                              ex.Message );
             return null;
         }
 
         if( response.StatusCode != HttpStatusCode.OK )
         {
-            Logger?.LogError( "Image request from {0} failed with response code {1}, message was '{2}'",
+            Logger?.LogError( "Image request from {uri} failed with response code {respCode}, message was '{mesg}'",
                               uriText,
                               response.StatusCode,
                               await response.Content.ReadAsStringAsync( ctx ) );
@@ -277,7 +277,7 @@ public abstract class Projection<TAuth> : IProjection
             return null;
         }
 
-        Logger?.LogTrace( "Reading response from {0}", uriText );
+        Logger?.LogTrace( "Reading response from {uri}", uriText );
 
         // extract image data from response
         try
@@ -295,7 +295,7 @@ public abstract class Projection<TAuth> : IProjection
         }
         catch( Exception ex )
         {
-            Logger?.LogError( "Could not retrieve bitmap image stream from {0}, message was '{1}'",
+            Logger?.LogError( "Could not retrieve bitmap image stream from {uri}, message was '{mesg}'",
                               response.RequestMessage!.RequestUri!,
                               ex.Message );
 
