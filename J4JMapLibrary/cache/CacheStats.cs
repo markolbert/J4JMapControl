@@ -2,14 +2,22 @@
 
 public class CacheStats
 {
+    public CacheStats(
+        string name
+    )
+    {
+        Name = name;
+    }
+
+    public string Name { get; }
     public long Bytes { get; protected set; }
     public int Entries { get; protected set; }
 
     // these DateTimes are in UTC
-    public DateTime Earliest { get; protected set; } = DateTime.MinValue;
-    public DateTime MostRecent { get; protected set; } = DateTime.MaxValue;
+    public DateTime Earliest { get; protected set; } = DateTime.MaxValue;
+    public DateTime MostRecent { get; protected set; } = DateTime.MinValue;
 
-    public void Initialize( CacheBase cache )
+    public void Reload( CacheBase cache )
     {
         Bytes = 0;
         Entries = 0;
@@ -30,7 +38,7 @@ public class CacheStats
         }
     }
 
-    public void Initialize( IEnumerable<FileInfo> files )
+    public void Reload( IEnumerable<FileInfo> files )
     {
         Bytes = 0;
         Entries = 0;
