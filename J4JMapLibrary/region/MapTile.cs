@@ -13,10 +13,7 @@ public partial class MapTile : Tile
         SetSize();
 
         QuadKey = InProjection ? GetQuadKey() : string.Empty;
-
-        FragmentId = region.Projection is ITiledProjection
-            ? QuadKey
-            : $"{MapExtensions.LatitudeToText( region.CenterLatitude )}-{MapExtensions.LongitudeToText( region.CenterLongitude )}-{region.Scale}-{region.Projection.TileHeightWidth}-{region.Projection.TileHeightWidth}";
+        FragmentId = GetFragmentId();
     }
 
     public bool InProjection
@@ -78,6 +75,17 @@ public partial class MapTile : Tile
         return retVal.ToString();
     }
 
+    private string GetFragmentId()
+    {
+        var styleKey = Region.Projection.MapStyle == null
+            ? string.Empty
+            : $"-{Region.Projection.MapStyle.ToLower()}";
+
+        return Region.Projection is ITiledProjection
+            ? $"{Region.Projection.Name}{styleKey}-{QuadKey}"
+            : $"{MapExtensions.LatitudeToText(Region.CenterLatitude)}-{MapExtensions.LongitudeToText(Region.CenterLongitude)}-{Region.Scale}{styleKey}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
+    }
+
     private void SetSize()
     {
         if( Region.Projection is ITiledProjection tiledProjection )
@@ -103,10 +111,7 @@ public partial class MapTile : Tile
     {
         X = absoluteX;
         QuadKey = InProjection ? GetQuadKey() : string.Empty;
-
-        FragmentId = Region.Projection is ITiledProjection
-            ? QuadKey
-            : $"{MapExtensions.LatitudeToText( Region.CenterLatitude )}-{MapExtensions.LongitudeToText( Region.CenterLongitude )}-{Region.Scale}-{Region.Projection.TileHeightWidth}-{Region.Projection.TileHeightWidth}";
+        FragmentId = GetFragmentId();
 
         return this;
     }
