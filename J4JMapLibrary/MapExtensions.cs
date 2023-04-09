@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU General Public License along 
 // with ConsoleUtilities. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Text;
-
 namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapExtensions
@@ -27,37 +25,6 @@ public static class MapExtensions
         projection.GetType().GetInterface( nameof( ITiledProjection ) ) == null
             ? ProjectionType.Static
             : ProjectionType.Tiled;
-
-    public static string? GetQuadKey( this ITiledProjection projection, int xTile, int yTile, int scale )
-    {
-        var tileRange = projection.GetTileRange( scale );
-        var x = tileRange.ConformValueToRange( xTile, "GetQuadKey X Tile" );
-        var y = tileRange.ConformValueToRange( yTile, "GetQuadKey Y Tile" );
-
-        if( x != xTile || y != yTile )
-            return null;
-
-        var retVal = new StringBuilder();
-
-        for( var i = scale; i > 0; i-- )
-        {
-            var digit = '0';
-            var mask = 1 << ( i - 1 );
-
-            if( ( xTile & mask ) != 0 )
-                digit++;
-
-            if( ( yTile & mask ) != 0 )
-            {
-                digit++;
-                digit++;
-            }
-
-            retVal.Append( digit );
-        }
-
-        return retVal.ToString();
-    }
 
     public static bool TryParseQuadKey( string quadKey, out DeconstructedQuadKey? result )
     {

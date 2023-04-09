@@ -69,9 +69,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         GoogleMapStyle = result;
     }
 
-#pragma warning disable CS1998
     protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
-#pragma warning restore CS1998
     {
         if( !await base.AuthenticateAsync( ctx ) )
             return false;
