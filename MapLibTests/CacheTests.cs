@@ -13,14 +13,16 @@ public class CacheTests : TestBase
     [ InlineData( 4, 30 ) ]
     public async Task MemoryCacheCount( int scale, int maxCached )
     {
+        var projection = await CreateProjection( "BingMaps" ) as BingMapsProjection;
+        projection.Should().NotBeNull();
+
         var cache = J4JDeusEx.ServiceProvider.GetService<MemoryCache>();
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
 
-        var projection = await CreateProjection( "BingMaps", cache ) as BingMapsProjection;
-        projection.Should().NotBeNull();
+        projection!.TileCaching.AddCache( cache);
 
-        var maxTile = projection!.GetTileRange( scale ).Maximum;
+        var maxTile = projection.GetTileRange( scale ).Maximum;
 
         for( var xTile = 0; xTile <= maxTile; xTile++ )
         {
@@ -55,10 +57,12 @@ public class CacheTests : TestBase
             File.Delete( fileName );
         }
 
-        var projection = await CreateProjection("BingMaps", cache) as BingMapsProjection;
+        var projection = await CreateProjection("BingMaps") as BingMapsProjection;
         projection.Should().NotBeNull();
 
-        var maxTile = projection!.GetTileRange( scale ).Maximum;
+        projection!.TileCaching.AddCache(cache);
+
+        var maxTile = projection.GetTileRange( scale ).Maximum;
 
         for (var xTile = 0; xTile <= maxTile; xTile++)
         {

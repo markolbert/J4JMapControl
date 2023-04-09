@@ -35,7 +35,7 @@ public class MapTests : TestBase
         var credentials = GetCredentials( "BingMaps" ) as BingCredentials;
         credentials.Should().NotBeNull();
         
-        var projection = await CreateProjection( "BingMaps", null, credentials ) as BingMapsProjection;
+        var projection = await CreateProjection( "BingMaps", credentials ) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.MaxRequestLatency = maxLatency;
 

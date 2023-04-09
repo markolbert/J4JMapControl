@@ -31,27 +31,25 @@ public class TestBase
 
     protected async Task<IProjection?> CreateProjection(
         string projName,
-        ITileCache? cache = null,
         object? credentials = null
     )
     {
         if( credentials != null )
-            return await CreateProjectionWithSuppliedCredentials( projName, cache, credentials);
+            return await CreateProjectionWithSuppliedCredentials( projName, credentials);
 
-        return await CreateProjectionUsingBuiltInCredentials(projName, cache);
+        return await CreateProjectionUsingBuiltInCredentials(projName);
     }
 
     private async Task<IProjection?> CreateProjectionWithSuppliedCredentials(
         string projName,
-        ITileCache? cache,
         object credentials
     )
     {
         var retVal = projName switch
         {
-            "BingMaps" => (IProjection) new BingMapsProjection(LoggerFactory, cache),
-            "OpenStreetMaps" => new OpenStreetMapsProjection(LoggerFactory, cache),
-            "OpenTopoMaps" => new OpenTopoMapsProjection(LoggerFactory, cache),
+            "BingMaps" => (IProjection) new BingMapsProjection(LoggerFactory),
+            "OpenStreetMaps" => new OpenStreetMapsProjection(LoggerFactory),
+            "OpenTopoMaps" => new OpenTopoMapsProjection(LoggerFactory),
             "GoogleMaps" => new GoogleMapsProjection(LoggerFactory),
             _ => null
         };
@@ -68,13 +66,13 @@ public class TestBase
         return retVal;
     }
 
-    private async Task<IProjection?> CreateProjectionUsingBuiltInCredentials( string projName, ITileCache? cache )
+    private async Task<IProjection?> CreateProjectionUsingBuiltInCredentials( string projName )
     {
         var retVal = projName switch
         {
-            "BingMaps" => (IProjection) new BingMapsProjection( LoggerFactory, cache ),
-            "OpenStreetMaps" => new OpenStreetMapsProjection( LoggerFactory, cache ),
-            "OpenTopoMaps" => new OpenTopoMapsProjection( LoggerFactory, cache ),
+            "BingMaps" => (IProjection) new BingMapsProjection( LoggerFactory ),
+            "OpenStreetMaps" => new OpenStreetMapsProjection( LoggerFactory ),
+            "OpenTopoMaps" => new OpenTopoMapsProjection( LoggerFactory ),
             "GoogleMaps" => new GoogleMapsProjection( LoggerFactory ),
             _ => null
         };

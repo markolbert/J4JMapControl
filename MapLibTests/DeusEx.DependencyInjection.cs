@@ -13,7 +13,7 @@ internal partial class DeusEx
         builder.Register( c =>
                 {
                     var retVal = new ProjectionFactory( c.Resolve<IConfiguration>(),
-                                                  c.Resolve<ILoggerFactory>() );
+                                                        c.Resolve<ILoggerFactory>() );
 
                     retVal.InitializeFactory();
 
@@ -22,10 +22,10 @@ internal partial class DeusEx
                .AsSelf()
                .SingleInstance();
 
-        builder.RegisterType<MemoryCache>()
+        builder.Register( c => new MemoryCache( "In Memory", c.Resolve<ILoggerFactory>() ) )
                .AsSelf();
 
-        builder.RegisterType<FileSystemCache>()
+        builder.Register( c => new FileSystemCache( "File System", c.Resolve<ILoggerFactory>() ) )
                .AsSelf();
     }
 }
