@@ -26,7 +26,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
-		<PackageReference Include="J4JSoftware.DeusWinApp" Version="1.1.0" />
+		<PackageReference Include="J4JSoftware.DeusWinApp" Version="1.1.1" />
+		<PackageReference Include="J4JSoftware.J4JMapWinLibrary" Version="0.8.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230313.1" />
@@ -44,10 +45,6 @@
   -->
 	<ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
 		<ProjectCapability Include="Msix" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\..\ProgrammingUtilities\DeusWinApp\DeusWinApp.csproj" />
-		<ProjectReference Include="..\J4JMapWinLibrary\J4JMapWinLibrary.csproj" />
 	</ItemGroup>
 
 	<!-- 

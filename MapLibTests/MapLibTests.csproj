@@ -11,7 +11,8 @@
 	<ItemGroup>
 		<PackageReference Include="Autofac" Version="7.0.0" />
 		<PackageReference Include="FluentAssertions" Version="6.10.0" />
-		<PackageReference Include="J4JSoftware.DependencyInjection" Version="2.5.0" />
+		<PackageReference Include="J4JSoftware.DependencyInjection" Version="2.5.1" />
+		<PackageReference Include="J4JSoftware.J4JMapLibrary" Version="0.8.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
@@ -26,11 +27,6 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\ProgrammingUtilities\DependencyInjection\DependencyInjection.csproj" />
-		<ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
