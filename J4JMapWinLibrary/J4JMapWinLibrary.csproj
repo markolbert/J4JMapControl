@@ -14,48 +14,20 @@
 		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
-		<Version>0.8.0.0</Version>
-		<AssemblyVersion>0.8.0.0</AssemblyVersion>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<PackageDescription>WinApp extensions to J4JMapLibrary</PackageDescription>
-		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-		<PackageIcon>Diego nuspec.png</PackageIcon>
-		<PackageReleaseNotes>initial release</PackageReleaseNotes>
-		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<Version>0.8.1.0</Version>
+		<AssemblyVersion>0.8.1.0</AssemblyVersion>
 		<AppDesignerFolder>dep-props</AppDesignerFolder>
 	</PropertyGroup>
 	
 	<ItemGroup>
-	  <Compile Remove="ControlViewport.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Primitives" Version="7.1.2" />
-		<PackageReference Include="J4JSoftware.VisualUtilities" Version="2.1.0" />
-		<PackageReference Include="J4JSoftware.WindowsUtilities" Version="1.0.0" />
+		<PackageReference Include="J4JSoftware.VisualUtilities" Version="2.1.1" />
+		<PackageReference Include="J4JSoftware.WindowsUtilities" Version="1.0.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230313.1" />
 		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\..\Media\JumpForJoy\Diego nuspec.png">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
-		<None Include="..\..\ProgrammingUtilities\ConsoleUtilities\GPLv3-2022.licenseheader" Link="GPLv3-2022.licenseheader" />
-
-		<None Include="docs/readme.md" Pack="true" PackagePath="/" />
-		<None Include="../LICENSE.md" />
-
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\ProgrammingUtilities\VisualUtilities\VisualUtilities.csproj" />
-	  <ProjectReference Include="..\..\ProgrammingUtilities\WindowsUtilities\WindowsUtilities.csproj" />
-	  <ProjectReference Include="..\J4JMapLibrary\J4JMapLibrary.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
