@@ -2,4 +2,5 @@
 
 |Version|Comments|
 |:-----:|--------|
+|0.8.1|changed how caching works, updated nuget dependencies|
 |0.8|Initial release|
