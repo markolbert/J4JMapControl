@@ -13,12 +13,11 @@
 		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
-		<Version>0.8.1.0</Version>
-		<AssemblyVersion>0.8.1.0</AssemblyVersion>
+		<VersionPrefix>0.8.2</VersionPrefix>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="J4JSoftware.VisualUtilities" Version="2.1.0" />
+	  <PackageReference Include="J4JSoftware.VisualUtilities" Version="2.1.1" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
