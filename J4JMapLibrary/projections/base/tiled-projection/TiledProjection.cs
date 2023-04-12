@@ -116,15 +116,22 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
             return true;
         }
 
-        var retVal = false;
+        var cacheLevel = -1;
 
         if( TileCaching.Caches.Any() )
-            retVal = await TileCaching.LoadImageAsync( mapTile, ctx );
+            cacheLevel = await TileCaching.LoadImageAsync( mapTile, ctx );
 
-        if (retVal)
-            return true;
+        if( cacheLevel < 0 )
+        {
+            mapTile.ImageData = await GetImageAsync( mapTile, ctx );
 
-        mapTile.ImageData = await GetImageAsync( mapTile, ctx );
+            // indicate that we have to update all caches
+            cacheLevel = int.MaxValue;
+        }
+
+        if( TileCaching.Caches.Any() )
+            await TileCaching.UpdateCaches( mapTile, cacheLevel, ctx );
+
         return mapTile.ImageData != null;
     }
 }

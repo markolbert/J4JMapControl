@@ -27,7 +27,7 @@ public class TileCaching : ITileCaching
     }
 
 
-    public async Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
+    public async Task<int> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
     {
         var levelFound = -1;
 
@@ -40,19 +40,15 @@ public class TileCaching : ITileCaching
             break;
         }
 
-        return await AddEntryAsync( mapTile, levelFound, ctx );
+        return levelFound;
     }
 
-    private async Task<bool> AddEntryAsync(MapTile mapTile, int levelFound, CancellationToken ctx = default)
+    public async Task UpdateCaches(MapTile mapTile, int foundLevel, CancellationToken ctx = default)
     {
-        var allAdded = true;
-
-        foreach( var info in _infoCollection.Where( x => x.Level != levelFound ) )
+        foreach( var info in _infoCollection.Where( x => x.Level < foundLevel ) )
         {
-            allAdded &= await info.Cache.AddEntryAsync( mapTile, ctx );
+            await info.Cache.AddEntryAsync( mapTile, ctx );
         }
-
-        return allAdded;
     }
 
     public ReadOnlyCollection<CacheInfo> Caches => _infoCollection.AsReadOnly();
