@@ -59,7 +59,7 @@ There are two properties which define the mapping service the control uses:
 |Property|Type|Comments|
 |--------|----|--------|
 |`MapProjection`|`string`|the name of the mapping projection to use|
-|`MapStyle`|`string`|the specific style of map projection to use (only applies to certain mapping services; **not yet implemented**)|
+|`MapStyle`|`string`|the specific style of map projection to use|
 
 If the map projection name is not recognized by `MapFactory` the control's projection is undefined and no imagery will display.
 
