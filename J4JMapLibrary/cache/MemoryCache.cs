@@ -114,10 +114,14 @@ public class MemoryCache : CacheBase
 
         if( _cached.ContainsKey( mapTile.FragmentId ) )
         {
-            Logger?.LogWarning( "Replacing map mapFragment with mapTile '{fragmentId}'", cacheEntry.Tile.FragmentId );
+            Logger?.LogWarning( "Replacing memory cache entry '{fragmentId}'", cacheEntry.Tile.FragmentId );
             _cached[ mapTile.FragmentId ] = cacheEntry;
         }
-        else _cached.Add( mapTile.FragmentId, cacheEntry );
+        else
+        {
+            _cached.Add( mapTile.FragmentId, cacheEntry );
+            Logger?.LogTrace("Added memory cache entry '{fragmentId}'", cacheEntry.Tile.FragmentId);
+        }
 
         Stats.RecordEntry(mapTile.ImageData);
 

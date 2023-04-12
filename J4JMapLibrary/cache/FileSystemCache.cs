@@ -178,7 +178,8 @@ public class FileSystemCache : CacheBase
         var filePath = Path.Combine( _cacheDir, fileName );
 
         if( File.Exists( filePath ) )
-            Logger?.LogWarning("Replacing map mapFragment with mapTile ID '{0}'", mapTile.FragmentId);
+            Logger?.LogWarning("Replacing file system cache entry '{0}'", mapTile.FragmentId);
+        else Logger?.LogTrace("Added file system cache entry '{fragmentId}'", mapTile.FragmentId);
 
         await using var imgFile = File.Create( filePath );
         await imgFile.WriteAsync( mapTile.ImageData, ctx );
