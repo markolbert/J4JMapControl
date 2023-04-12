@@ -29,6 +29,13 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public static class Extensions
 {
+    private enum DirectionType
+    {
+        Latitude,
+        Longitude,
+        Unknown
+    }
+
     private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
 
     public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
@@ -201,11 +208,4 @@ public static class Extensions
     public static double AngleBetweenPoints( Point origin, Point point ) =>
         Math.Atan2( origin.Y - point.Y, point.X - origin.X )
       * MapConstants.DegreesPerRadian;
-
-    private enum DirectionType
-    {
-        Latitude,
-        Longitude,
-        Unknown
-    }
 }
