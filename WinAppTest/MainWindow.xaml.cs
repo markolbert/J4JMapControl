@@ -4,11 +4,10 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using Windows.Graphics;
+using Windows.System;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
@@ -17,7 +16,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using WinRT.Interop;
 
 namespace WinAppTest;
@@ -48,6 +48,7 @@ public sealed partial class MainWindow
         appWindow.Resize( new SizeInt32( 800, 1000 ) );
 
         SetFileSystemCachePath();
+        UpdateStats();
     }
 
     private void TextHeadingLostFocus( object sender, RoutedEventArgs e )
@@ -71,22 +72,44 @@ public sealed partial class MainWindow
     private void PurgeCache( object sender, RoutedEventArgs e )
     {
         mapControl.PurgeCache();
+        UpdateStats();
     }
 
     private void ClearCache( object sender, RoutedEventArgs e )
     {
         mapControl.ClearCache();
+        UpdateStats();
     }
 
-    private void StatsClick( object sender, RoutedEventArgs e )
+    private void StatsClick( object sender, RoutedEventArgs e ) => UpdateStats();
+
+    private void UpdateStats()
     {
         CacheStats.Clear();
 
-        foreach( var item in mapControl.GetCacheStats() )
+        foreach( var stats in mapControl.GetCacheStats() )
         {
-            CacheStats.Add( item );
+            CacheStats.Add( stats );
         }
+
+        // this is ugly code...but as it's for testing...
+        cacheGrid.ItemsSource = null;
+        cacheGrid.ItemsSource = CacheStats;
     }
 
     private ObservableCollection<CacheStats> CacheStats { get; } = new();
+
+    private void TextHeadingKeyUp( object sender, KeyRoutedEventArgs e )
+    {
+        if( e.Key != VirtualKey.Enter )
+            return;
+
+        if (string.IsNullOrEmpty(headingText.Text))
+            return;
+
+        e.Handled = true;
+
+        mapControl.SetHeadingByText(headingText.Text);
+        headingText.Text = string.Empty;
+    }
 }
