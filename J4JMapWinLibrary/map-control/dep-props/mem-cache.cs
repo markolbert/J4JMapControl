@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using J4JSoftware.J4JMapLibrary;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
@@ -41,6 +42,8 @@ public sealed partial class J4JMapControl
         set
         {
             SetValue( UseMemoryCacheProperty, value );
+            _logger?.LogTrace( "{status} memory cache", value ? "Enabling" : "Disabling" );
+
             UpdateCaching();
         }
     }
@@ -56,7 +59,18 @@ public sealed partial class J4JMapControl
 
         set
         {
+            if( value <= 0 )
+            {
+                _logger?.LogWarning( "Invalid memory cache entries limit {limit}, defaulting to {default}",
+                                     value,
+                                     DefaultMemoryCacheEntries );
+
+                value = DefaultMemoryCacheEntries;
+            }
+
             SetValue( MemoryCacheEntriesProperty, value );
+            _logger?.LogTrace("Memory cache to hold up to {entries} entries", value);
+
             UpdateCaching();
         }
     }
@@ -73,7 +87,19 @@ public sealed partial class J4JMapControl
 
         set
         {
+            if( !TimeSpan.TryParse( value, out var retention ) )
+            {
+                _logger?.LogWarning(
+                    "Invalid memory cache retention period '{period}', defaulting to {default}",
+                    value,
+                    DefaultMemoryCacheRetention );
+
+                value = DefaultMemoryCacheRetention.ToString();
+            }
+
             SetValue( MemoryCacheRetentionProperty, value );
+            _logger?.LogTrace("Memory cache to retain items for {retention}", value);
+
             UpdateCaching();
         }
     }
@@ -89,7 +115,18 @@ public sealed partial class J4JMapControl
 
         set
         {
+            if (value <= 0)
+            {
+                _logger?.LogWarning("Invalid memory cache size {size}, defaulting to {default}",
+                                    value,
+                                    DefaultMemoryCacheSize);
+
+                value = DefaultMemoryCacheEntries;
+            }
+
             SetValue( MemoryCacheSizeProperty, value );
+            _logger?.LogTrace("Memory cache limited to {bytes} bytes", value);
+
             UpdateCaching();
         }
     }
@@ -104,21 +141,21 @@ public sealed partial class J4JMapControl
         // always add the memory cache first
         if (UseMemoryCache)
         {
+            // should never happen, but...
             if (!TimeSpan.TryParse(MemoryCacheRetention, out var memRetention))
-                memRetention = TimeSpan.FromHours(1);
+                memRetention = DefaultMemoryCacheRetention;
 
             var memCache = new MemoryCache("In Memory", LoggerFactory)
             {
-                MaxBytes =
-                    MemoryCacheSize <= 0
-                        ? DefaultMemoryCacheSize
-                        : MemoryCacheSize,
-                MaxEntries =
-                    MemoryCacheEntries <= 0
-                        ? DefaultMemoryCacheEntries
-                        : MemoryCacheEntries,
+                MaxBytes = MemoryCacheSize,
+                MaxEntries = MemoryCacheEntries,
                 RetentionPeriod = memRetention
             };
+
+            _logger?.LogTrace( "Enabling memory cache, max bytes {bytes}, max entries {entries}, {retention} retention",
+                               memCache.MaxBytes,
+                               memCache.MaxEntries,
+                               memCache.RetentionPeriod.ToString() );
 
             tiledProjection.TileCaching.AddCache(memCache);
         }
@@ -126,16 +163,22 @@ public sealed partial class J4JMapControl
         if( string.IsNullOrEmpty( FileSystemCachePath ) )
             return;
 
+        // should never happen, but...
         if (!TimeSpan.TryParse(FileSystemCacheRetention, out var fileRetention))
             fileRetention = TimeSpan.FromDays(1);
 
         var fileCache = new FileSystemCache("File System", LoggerFactory)
         {
             CacheDirectory = FileSystemCachePath,
-            MaxBytes = FileSystemCacheSize <= 0 ? DefaultFileSystemCacheSize : FileSystemCacheSize,
-            MaxEntries = FileSystemCacheEntries <= 0 ? DefaultFileSystemCacheEntries : FileSystemCacheEntries,
+            MaxBytes = FileSystemCacheSize,
+            MaxEntries = FileSystemCacheEntries,
             RetentionPeriod = fileRetention
         };
+
+        _logger?.LogTrace("Enabling file system cache, max bytes {bytes}, max entries {entries}, {retention} retention",
+                          fileCache.MaxBytes,
+                          fileCache.MaxEntries,
+                          fileCache.RetentionPeriod.ToString());
 
         tiledProjection.TileCaching.AddCache(fileCache);
     }
