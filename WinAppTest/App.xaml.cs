@@ -4,6 +4,7 @@
 using Microsoft.UI.Xaml;
 using System;
 using J4JSoftware.DeusEx;
+using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +30,7 @@ public partial class App : Application
         }
 
         LoggerFactory = J4JDeusEx.ServiceProvider.GetService<ILoggerFactory>();
+        //test = Type.GetType( "J4JSoftware.J4JMapLibrary.BingMapsProjection, J4JSoftware.J4JMapLibrary" );
     }
 
     public ILoggerFactory? LoggerFactory { get; }
