@@ -14,7 +14,7 @@
 		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
-		<VersionPrefix>0.8.2</VersionPrefix>
+		<VersionPrefix>0.8.3</VersionPrefix>
 		<AppDesignerFolder>dep-props</AppDesignerFolder>
 	</PropertyGroup>
 	
@@ -22,7 +22,7 @@
 		<PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Primitives" Version="7.1.2" />
-		<PackageReference Include="J4JSoftware.J4JMapLibrary" Version="0.8.2" />
+		<PackageReference Include="J4JSoftware.J4JMapLibrary" Version="0.8.3" />
 		<PackageReference Include="J4JSoftware.VisualUtilities" Version="2.1.1" />
 		<PackageReference Include="J4JSoftware.WindowsUtilities" Version="1.0.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
