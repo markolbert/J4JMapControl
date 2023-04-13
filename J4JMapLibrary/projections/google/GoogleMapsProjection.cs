@@ -45,7 +45,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         // when the request is created because it involves a cryptographic call
         // against the raw URL
         RetrievalUrl = "https://maps.googleapis.com/maps/api/staticmap?";
-        RetrievalQueryString = "center={center}&format={format}&zoom={zoom}&size={size}&key={apikey}";
+        RetrievalQueryString = "center={center}&format={format}&zoom={zoom}&size={size}&maptype={maptype}&key={apikey}";
 
         MapStyle = GoogleMapStyle.ToString();
     }
@@ -97,7 +97,7 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         }
 
         var height = (int) Math.Round( mapTile.Region.BoundingBox.Height );
-        var width = (int) Math.Round( mapTile.Region.BoundingBox.Height );
+        var width = (int) Math.Round( mapTile.Region.BoundingBox.Width );
 
         var replacements = new Dictionary<string, string>
         {
@@ -105,7 +105,8 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
             { "{format}", ImageFormat.ToString() },
             { "{zoom}", mapTile.Region.Scale.ToString() },
             { "{size}", $"{width}x{height}" },
-            { "{apikey}", ApiKey }
+            { "{apikey}", ApiKey },
+            { "{maptype}", MapStyle!.ToLower() }
         };
 
         var unsignedQuery = InternalExtensions.ReplaceParameters( RetrievalQueryString, replacements );
