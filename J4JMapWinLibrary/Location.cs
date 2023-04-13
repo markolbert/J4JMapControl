@@ -28,13 +28,13 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public class Location : DependencyObject
 {
-    public static DependencyProperty CenterProperty =
+    public static readonly DependencyProperty CenterProperty =
         DependencyProperty.RegisterAttached( "Center",
                                              typeof( string ),
                                              typeof( Location ),
                                              new PropertyMetadata( null ) );
 
-    public static DependencyProperty OffsetProperty =
+    public static readonly DependencyProperty OffsetProperty =
         DependencyProperty.RegisterAttached( "Offset",
                                              typeof( string ),
                                              typeof( Location ),
@@ -82,11 +82,11 @@ public class Location : DependencyObject
         var mapPoint = new MapPoint( region );
         mapPoint.SetLatLong( latitude, longitude );
 
-        var upperLeft = region.UpperLeft.GetUpperLeftCartesian();
+        var (upperLeftX, upperLeftY) = region.UpperLeft.GetUpperLeftCartesian();
 
-        return mapPoint.X >= upperLeft.X
-         && mapPoint.X < upperLeft.X + region.RequestedWidth + region.Projection.TileHeightWidth
-         && mapPoint.Y >= upperLeft.Y
-         && mapPoint.Y < upperLeft.Y + region.RequestedHeight + region.Projection.TileHeightWidth;
+        return mapPoint.X >= upperLeftX
+         && mapPoint.X < upperLeftX + region.RequestedWidth + region.Projection.TileHeightWidth
+         && mapPoint.Y >= upperLeftY
+         && mapPoint.Y < upperLeftY + region.RequestedHeight + region.Projection.TileHeightWidth;
     }
 }
