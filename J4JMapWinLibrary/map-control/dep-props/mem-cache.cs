@@ -44,7 +44,7 @@ public sealed partial class J4JMapControl
             SetValue( UseMemoryCacheProperty, value );
             _logger?.LogTrace( "{status} memory cache", value ? "Enabling" : "Disabling" );
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
@@ -71,7 +71,7 @@ public sealed partial class J4JMapControl
             SetValue( MemoryCacheEntriesProperty, value );
             _logger?.LogTrace("Memory cache to hold up to {entries} entries", value);
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
@@ -100,7 +100,7 @@ public sealed partial class J4JMapControl
             SetValue( MemoryCacheRetentionProperty, value );
             _logger?.LogTrace("Memory cache to retain items for {retention}", value);
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
@@ -127,11 +127,11 @@ public sealed partial class J4JMapControl
             SetValue( MemoryCacheSizeProperty, value );
             _logger?.LogTrace("Memory cache limited to {bytes} bytes", value);
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
-    private void UpdateCaching()
+    private void InitializeCaching()
     {
         if (_projection is not ITiledProjection tiledProjection)
             return;

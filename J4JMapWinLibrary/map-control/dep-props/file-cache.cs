@@ -41,7 +41,7 @@ public sealed partial class J4JMapControl
             SetValue( FileSystemCachePathProperty, value );
             _logger?.LogTrace("File system caching {text}", string.IsNullOrEmpty(value) ? "disabled": $"Enabled at {value}");
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
@@ -69,7 +69,7 @@ public sealed partial class J4JMapControl
             SetValue( FileSystemCacheEntriesProperty, value );
             _logger?.LogTrace("File system cache limited to {entries} entries", value);
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
@@ -98,7 +98,7 @@ public sealed partial class J4JMapControl
             SetValue( FileSystemCacheRetentionProperty, value );
             _logger?.LogTrace("File system cache entries retained for up to {retention}", value);
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 
@@ -125,7 +125,7 @@ public sealed partial class J4JMapControl
             SetValue( FileSystemCacheSizeProperty, value );
             _logger?.LogTrace("File system cache limited to {bytes} bytes", value);
 
-            UpdateCaching();
+            InitializeCaching();
         }
     }
 }
