@@ -19,7 +19,6 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using J4JSoftware.J4JMapLibrary;
@@ -28,6 +27,7 @@ using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Type = System.Type;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -38,6 +38,18 @@ public sealed partial class J4JMapControl
 
     private IProjection? _projection;
     private ProjectionFactory? _projFactory;
+
+    public static readonly DependencyProperty MapProjectionTypesProperty =
+        DependencyProperty.Register( nameof( MapProjectionTypes ),
+                                     typeof( List<string> ),
+                                     typeof( J4JMapControl ),
+                                     new PropertyMetadata( null ) );
+
+    public List<string>? MapProjectionTypes
+    {
+        get => (List<string>?) GetValue( MapProjectionTypesProperty );
+        set => SetValue( MapProjectionTypesProperty, value );
+    }
 
     public ProjectionFactory? ProjectionFactory
     {
@@ -50,82 +62,112 @@ public sealed partial class J4JMapControl
             if( _projFactory == null )
                 return;
 
+            foreach( var fqn in MapProjectionTypes ?? Enumerable.Empty<string>() )
+            {
+                var projType = Type.GetType( fqn );
+                if( projType != null )
+                    _projFactory.ScanAssemblies( projType );
+                else _logger?.LogWarning( "Could not create map projection type from '{fqn}'", fqn );
+            }
+
             if( _projFactory.InitializeFactory() )
-                UpdateProjection();
+            {
+                MapProjections = _projFactory.ProjectionNames.OrderBy(x => x).ToList();
+
+                if ( !string.IsNullOrEmpty( MapProjection ) )
+                    InitializeProjection( MapProjection );
+            }
             else _logger?.LogError( "Projection factory failed to find projection classes" );
         }
     }
 
-    public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
-        typeof( string ),
+    public DependencyProperty MapProjectionsProperty = DependencyProperty.Register(
+        nameof( MapProjections ),
+        typeof( List<string> ),
         typeof( J4JMapControl ),
-        new PropertyMetadata( null ) );
+        new PropertyMetadata( new List<string>() ) );
 
-    public string MapProjection
+    public List<string> MapProjections
     {
-        get => (string)GetValue(MapProjectionProperty);
+        get => (List<string>) GetValue( MapProjectionsProperty );
+        set => SetValue( MapProjectionsProperty, value );
+    }
+
+    public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
+                                                                               typeof( string ),
+                                                                               typeof( J4JMapControl ),
+                                                                               new PropertyMetadata( null ) );
+
+    public string? MapProjection
+    {
+        get => (string?)GetValue(MapProjectionProperty);
 
         set
         {
+            if( ProjectionFactory != null )
+            {
+                if (!ProjectionFactory.HasProjection(value))
+                    _logger?.LogWarning("'{proj}' is not an available map projection", value);
+            }
+            else _logger?.LogWarning("Projection factory undefined, cannot create map projection");
+
             SetValue( MapProjectionProperty, value );
-            UpdateProjection();
+
+            if( ProjectionFactory != null )
+                InitializeProjection( value! );
         }
     }
 
-    public DependencyProperty MapStylesProperty = DependencyProperty.Register(nameof(MapStyles),
-                                                                             typeof(List<string>),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata(null));
-
-    public List<string> MapStyles
+    private void InitializeProjection( string mapProjection )
     {
-        get => (List<string>) GetValue( MapStylesProperty );
-        set => SetValue( MapStylesProperty, value );
-    }
-
-    private void UpdateProjection()
-    {
+        // should never happen, but...
         if( ProjectionFactory == null )
+            return;
+
+        var projResult = ProjectionFactory.CreateProjection(mapProjection);
+        if (!projResult.ProjectionTypeFound)
         {
-            _logger?.LogError("ProjectionFactory is not defined");
+            _logger?.LogCritical("Could not create projection '{proj}'", mapProjection);
             return;
         }
 
-        var projResult = ProjectionFactory.CreateProjection( MapProjection );
-        if( !projResult.ProjectionTypeFound )
+        if (!projResult.Authenticated)
         {
-            _logger?.LogCritical("Could not create projection '{0}'", MapProjection);
-            throw new InvalidOperationException( $"Could not create projection '{MapProjection}'" );
+            _logger?.LogCritical("Could not authenticate projection '{proj}'", mapProjection);
+            return;
         }
 
-        if( !projResult.Authenticated )
-        {
-            _logger?.LogCritical( $"Could not authenticate projection '{0}'", MapProjection );
-            throw new InvalidOperationException( $"Could not authenticate projection '{MapProjection}'" );
-        }
+        if( _projection != null )
+            _projection.LoadComplete -= ProjectionOnLoadComplete;
 
         _projection = projResult.Projection!;
-        _projection.LoadComplete += ( _, _ ) => _dispatcherQueue.TryEnqueue( LoadMapImages );
+        _projection.LoadComplete += ProjectionOnLoadComplete;
 
-        UpdateCaching();
+        InitializeCaching();
 
         MapStyles = _projection.MapStyles.ToList();
         MapStyle = _projection.MapStyle ?? string.Empty;
 
-        if( !Extensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            _logger?.LogError("Could not parse Center ('{0}') to latitude/longitude, defaulting to 0/0", Center);
+        if (!Extensions.TryParseToLatLong(Center, out var latitude, out var longitude))
+            _logger?.LogError("Could not parse Center ('{center}') to latitude/longitude, defaulting to 0/0", Center);
 
-        if( MapRegion != null )
+        var height = (float)Height;
+        var width = (float)Width;
+
+        if (MapRegion != null)
         {
             MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
             MapRegion.BuildUpdated -= MapRegionBuildUpdated;
+
+            height = MapRegion.RequestedHeight;
+            width = MapRegion.RequestedWidth;
         }
 
-        MapRegion = new MapRegion( _projection, LoggerFactory )
-                   .Center( latitude, longitude )
-                   .Scale( (int) MapScale )
-                   .Heading( (float) Heading )
-                   .Size( (float) Height, (float) Width );
+        MapRegion = new MapRegion(_projection, LoggerFactory)
+                   .Center(latitude, longitude)
+                   .Scale((int)MapScale)
+                   .Heading((float)Heading)
+                   .Size(height, width);
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
@@ -134,5 +176,18 @@ public sealed partial class J4JMapControl
         MaxMapScale = _projection.MaxScale;
 
         MapRegion.Update();
+    }
+
+    private void ProjectionOnLoadComplete( object? sender, bool e ) => _dispatcherQueue.TryEnqueue(LoadMapImages);
+
+    public DependencyProperty MapStylesProperty = DependencyProperty.Register(nameof(MapStyles),
+                                                                              typeof(List<string>),
+                                                                              typeof(J4JMapControl),
+                                                                              new PropertyMetadata(null));
+
+    public List<string> MapStyles
+    {
+        get => (List<string>) GetValue( MapStylesProperty );
+        set => SetValue( MapStylesProperty, value );
     }
 }
