@@ -122,6 +122,14 @@ public class ProjectionFactory
         _credTypes.AddRange( types.Select( t => new CredentialsTypeInfo( t ) ) );
     }
 
+    public IEnumerable<string> ProjectionNames => _projTypes.Select( x => x.Name );
+    public IEnumerable<Type> ProjectionTypes => _projTypes.Select( x => x.ProjectionType );
+
+    public bool HasProjection( string? projectionName ) =>
+        _projTypes.Any( x => x.Name.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
+    public bool HasProjection<TProj>() => HasProjection( typeof( TProj ) );
+    public bool HasProjection( Type projectionType ) => _projTypes.Any( x => x.ProjectionType == projectionType );
+
     public ProjectionFactoryResult CreateProjection(
         string projName,
         string? credentialsName = null,
@@ -144,7 +152,7 @@ public class ProjectionFactory
 
         if( projInfo == null )
         {
-            _logger?.LogError( "Could not find IProjection type named '{0}'", projName );
+            _logger?.LogError( "Could not find IProjection type named '{projName}'", projName );
             return ProjectionFactoryResult.NotFound;
         }
 
@@ -198,7 +206,7 @@ public class ProjectionFactory
 
         if( projInfo == null )
         {
-            _logger?.LogError( "Could not find IProjection type '{0}'", projType );
+            _logger?.LogError( "Could not find IProjection type '{projType}'", projType );
             return ProjectionFactoryResult.NotFound;
         }
 
@@ -227,7 +235,7 @@ public class ProjectionFactory
 
         if( ctorInfo == null )
         {
-            _logger?.LogError( "Could not find supported constructor for {0}", projInfo.ProjectionType );
+            _logger?.LogError( "Could not find supported constructor for {projType}", projInfo.ProjectionType );
             return ProjectionFactoryResult.NotFound;
         }
 
@@ -249,7 +257,10 @@ public class ProjectionFactory
         }
         catch( Exception ex )
         {
-            _logger?.LogError( "Could not create instance of {0}, message was {1}", projInfo.ProjectionType, ex.Message );
+            _logger?.LogError( "Could not create instance of {projType}, message was {mesg}",
+                               projInfo.ProjectionType,
+                               ex.Message );
+
             return ProjectionFactoryResult.NotFound;
         }
 
@@ -272,11 +283,11 @@ public class ProjectionFactory
         if( credType == null )
         {
             if( string.IsNullOrEmpty( credentialsName ) )
-                _logger?.LogWarning( "No valid credentials type supporting '{0}' projection found", projInfo.Name );
+                _logger?.LogWarning( "No valid credentials type supporting '{name}' projection found", projInfo.Name );
             else
             {
                 _logger?.LogWarning(
-                    "No credentials type named '{0}' found, and no other credentials supporting '{1}' projection found",
+                    "No credentials type named '{credName}' found, and no other credentials supporting '{projName}' projection found",
                     credentialsName,
                     projInfo.Name );
             }
@@ -285,14 +296,14 @@ public class ProjectionFactory
         if( credTypes.Count > 1 )
         {
             _logger?.LogWarning(
-                "Multiple credentials types supporting '{0}' projection found, using {1} credentials type",
+                "Multiple credentials types supporting '{name}' projection found, using {credType} credentials type",
                 projInfo.Name,
                 credType?.Name ?? "Default" );
         }
 
         if( credType == null )
         {
-            _logger?.LogError( "Could not find a credentials type supporting projection {0}", projInfo.Name );
+            _logger?.LogError( "Could not find a credentials type supporting projection {name}", projInfo.Name );
             return null;
         }
 
@@ -300,14 +311,14 @@ public class ProjectionFactory
         {
             var retVal = Activator.CreateInstance( credType.CredentialsType )!;
 
-            var section = _config.GetSection( $"Credentials:{credType.Name}" );
+            var section = _config.GetSection($"Credentials:{credType.Name}");
             section.Bind( retVal );
 
             return retVal;
         }
         catch( Exception ex )
         {
-            _logger?.LogError( "Could not create an instance of credentials type {0}, message was {1}",
+            _logger?.LogError( "Could not create an instance of credentials type {credType}, message was {mesg}",
                             credType.CredentialsType,
                             ex.Message );
             return null;
