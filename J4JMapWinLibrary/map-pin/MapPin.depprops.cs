@@ -27,7 +27,7 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class MapPin
 {
-    public static DependencyProperty ArcRadiusProperty = DependencyProperty.Register( nameof( ArcRadius ),
+    public static readonly DependencyProperty ArcRadiusProperty = DependencyProperty.Register( nameof( ArcRadius ),
         typeof( double ),
         typeof( MapPin ),
         new PropertyMetadata( 15D ) );
@@ -45,7 +45,7 @@ public sealed partial class MapPin
         }
     }
 
-    public static DependencyProperty TailLengthProperty =
+    public static readonly DependencyProperty TailLengthProperty =
         DependencyProperty.Register( nameof( TailLength ),
                                      typeof( double ),
                                      typeof( MapPin ),
@@ -64,7 +64,7 @@ public sealed partial class MapPin
         }
     }
 
-    public static DependencyProperty FillProperty = DependencyProperty.Register( nameof( Fill ),
+    public static readonly DependencyProperty FillProperty = DependencyProperty.Register( nameof( Fill ),
         typeof( Brush ),
         typeof( MapPin ),
         new PropertyMetadata( new SolidColorBrush( Color.FromArgb( 128, 255, 0, 0 ) ) ) );
@@ -75,7 +75,7 @@ public sealed partial class MapPin
         set => SetValue(FillProperty, value);
     }
 
-    public static DependencyProperty StrokeProperty = DependencyProperty.Register( nameof( Stroke ),
+    public static readonly DependencyProperty StrokeProperty = DependencyProperty.Register( nameof( Stroke ),
         typeof( Brush ),
         typeof( MapPin ),
         new PropertyMetadata( new SolidColorBrush( Color.FromArgb( 0, 0, 0, 0 ) ) ) );
@@ -86,7 +86,7 @@ public sealed partial class MapPin
         set => SetValue( StrokeProperty, value );
     }
 
-    public static DependencyProperty StrokeThicknessProperty =
+    public static readonly DependencyProperty StrokeThicknessProperty =
         DependencyProperty.Register(nameof(StrokeThickness),
                                     typeof(double),
                                     typeof(MapPin),

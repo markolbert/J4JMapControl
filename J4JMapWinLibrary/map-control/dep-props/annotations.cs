@@ -27,7 +27,7 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public static DependencyProperty AnnotationsProperty = DependencyProperty.Register( nameof( Annotations ),
+    public static readonly DependencyProperty AnnotationsProperty = DependencyProperty.Register( nameof( Annotations ),
         typeof( List<FrameworkElement> ),
         typeof( J4JMapControl ),
         new PropertyMetadata( new List<FrameworkElement>() ) );
