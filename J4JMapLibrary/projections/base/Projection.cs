@@ -171,10 +171,7 @@ public abstract class Projection<TAuth> : IProjection
     async Task<bool> IProjection.SetCredentialsAsync( object credentials, CancellationToken ctx )
     {
         if( credentials is TAuth castCredentials )
-        {
-            await SetCredentialsAsync( castCredentials, ctx );
-            return true;
-        }
+            return await SetCredentialsAsync( castCredentials, ctx );
 
         Logger?.LogError( "Expected a {credType} but received a {actualType}", typeof( TAuth ), credentials.GetType() );
         return false;
@@ -420,7 +417,9 @@ public abstract class Projection<TAuth> : IProjection
 
     public override bool Equals( object? obj )
     {
+#pragma warning disable IDE0041
         if( ReferenceEquals( null, obj ) )
+#pragma warning restore IDE0041
             return false;
         if( ReferenceEquals( this, obj ) )
             return true;
