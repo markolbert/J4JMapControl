@@ -24,7 +24,6 @@ using System.ComponentModel;
 using System.IO;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
@@ -121,7 +120,7 @@ public sealed partial class J4JMapControl : Control
     {
         var retVal = GetTemplateChild( name ) as T;
         if( retVal == null )
-            _logger?.LogError( "Couldn't find {0}", name );
+            _logger?.LogError( "Couldn't find {name}", name );
         else postProcessor?.Invoke( retVal );
 
         return retVal;

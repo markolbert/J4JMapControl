@@ -9,7 +9,7 @@ namespace MapLibTests;
 
 public class TestBase
 {
-    public static string[] ProjectionNames =
+    public static readonly string[] ProjectionNames =
         new[] { "BingMaps", "OpenStreetMaps", "OpenTopoMaps", "GoogleMaps" };
 
     private readonly IConfiguration _config;
@@ -56,7 +56,7 @@ public class TestBase
 
         if (retVal == null)
         {
-            Logger.LogError("Unknown projection {0}", projName);
+            Logger.LogError("Unknown projection {projName}", projName);
             return null;
         }
 
@@ -79,7 +79,7 @@ public class TestBase
 
         if( retVal == null )
         {
-            Logger.LogError("Unknown projection {0}", projName);
+            Logger.LogError("Unknown projection {projName}", projName);
             return null;
         }
 
@@ -106,7 +106,7 @@ public class TestBase
 
         if (retVal == null)
         {
-            Logger.LogError("Unknown credentials type {0}", credentialName);
+            Logger.LogError("Unknown credentials type {credName}", credentialName);
             return null;
         }
 
@@ -116,7 +116,7 @@ public class TestBase
         return retVal;
     }
 
-    protected string GetCheckImagesFolder(string projectionName)
+    protected static string GetCheckImagesFolder(string projectionName)
     {
         var retVal = Environment.CurrentDirectory;
 

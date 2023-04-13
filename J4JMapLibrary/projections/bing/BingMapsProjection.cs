@@ -56,7 +56,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             else
             {
                 if( !BingMapsCultureCodes.Default.ContainsKey( value ) )
-                    Logger?.LogError("Invalid or unsupported culture code '{0}'", value);
+                    Logger?.LogError("Invalid or unsupported culture code '{code}'", value);
                 else _cultureCode = value;
             }
         }
@@ -132,7 +132,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 #pragma warning restore CA2200
 #endif
 
-            Logger?.LogError( "Could not retrieve Bing Maps Metadata from {0}, message was '{1}'",
+            Logger?.LogError( "Could not retrieve Bing Maps Metadata from {uriText}, message was '{mesg}'",
                           uriText,
                           ex.Message );
             return false;
@@ -146,7 +146,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
                                 .WaitAsync( TimeSpan.FromMilliseconds( MaxRequestLatency ), ctx );
 
             Logger?.LogError(
-                "Invalid response code received from {0} when retrieving Bing Maps Metadata, message was '{1}'",
+                "Invalid response code received from {uriText} when retrieving Bing Maps Metadata, message was '{mesg}'",
                 uriText,
                 error );
 
@@ -165,7 +165,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
         }
         catch( Exception ex )
         {
-            Logger?.LogError( "Could not parse Bing Maps metadata, message was '{0}'", ex.Message );
+            Logger?.LogError( "Could not parse Bing Maps metadata, message was '{mesg}'", ex.Message );
             return false;
         }
 
