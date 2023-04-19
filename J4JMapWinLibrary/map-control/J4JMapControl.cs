@@ -22,7 +22,10 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Numerics;
 using Windows.Foundation;
+using CommunityToolkit.WinUI.UI;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
@@ -186,13 +189,76 @@ public sealed partial class J4JMapControl : Control
 
         _annotationsCanvas.Children.Clear();
 
-        foreach( var element in Annotations )
+        if ((_pointsOfInterest?.Any() ?? false) && PointsOfInterestTemplate != null)
+            IncludeTemplatedAnnotations();
+        
+        IncludeXamlAnnotations();
+    }
+
+    private void IncludeXamlAnnotations()
+    {
+        if (_annotationsCanvas == null || MapRegion == null)
+            return;
+
+        foreach (var element in Annotations)
         {
-            if( !Location.InRegion( element, MapRegion ) )
+            if (!Location.InRegion(element, MapRegion))
                 continue;
+
+            _annotationsCanvas.Children.Add(element);
+        }
+    }
+
+    private void IncludeTemplatedAnnotations()
+    {
+        if( _annotationsCanvas == null || MapRegion == null || PointsOfInterestTemplate == null || _pointsOfInterest == null )
+            return;
+
+        foreach( var item in _pointsOfInterest )
+        {
+            var element = PointsOfInterestTemplate.LoadContent() as FrameworkElement;
+            if( element == null )
+                continue;
+
+            element.DataContext = item;
+
+            if (!Location.InRegion(element, MapRegion))
+                continue;
+
+            PositionTemplatedAnnotation( element );
 
             _annotationsCanvas.Children.Add( element );
         }
+    }
+
+    private void PositionTemplatedAnnotation( UIElement element )
+    {
+        if( MapRegion == null )
+            return;
+
+        if( !Location.TryParseCenter( element, out var latitude, out var longitude ) )
+            return;
+
+        var mapPoint = new MapPoint( MapRegion );
+        mapPoint.SetLatLong( latitude, longitude );
+
+        var upperLeft = MapRegion.UpperLeft.GetUpperLeftCartesian();
+
+        var offset = MapRegion.ViewpointOffset;
+        offset.X += mapPoint.X - upperLeft.X;
+        offset.Y += mapPoint.Y - upperLeft.Y;
+
+        if( MapRegion.Rotation % 360 != 0 )
+        {
+            var centerPoint = new Vector3( MapRegion.RequestedWidth / 2, MapRegion.RequestedHeight / 2, 0 );
+
+            var transform =
+                Matrix4x4.CreateRotationZ( MapRegion.Rotation * MapConstants.RadiansPerDegree, centerPoint );
+            offset = Vector3.Transform( offset, transform );
+        }
+
+        Canvas.SetLeft( element, offset.X );
+        Canvas.SetTop( element, offset.Y );
     }
 
     private void DefineColumns()

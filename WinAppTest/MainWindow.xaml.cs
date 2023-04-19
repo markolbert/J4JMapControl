@@ -4,10 +4,12 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using Windows.Graphics;
 using Windows.System;
+using Windows.UI;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
@@ -18,6 +20,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 
 namespace WinAppTest;
@@ -28,7 +31,7 @@ namespace WinAppTest;
 public sealed partial class MainWindow
 {
     private readonly ILogger? _logger;
-    
+
     public MainWindow()
     {
         this.InitializeComponent();
@@ -46,6 +49,15 @@ public sealed partial class MainWindow
         var appWindow = AppWindow.GetFromWindowId(windowId);
 
         appWindow.Resize( new SizeInt32( 800, 1000 ) );
+
+        mapControl.PointsOfInterestSource = new List<PointOfInterest>
+        {
+            new PointOfInterest( "37.5202N, 122.2758W", "Belmont", new SolidColorBrush( Colors.BlanchedAlmond ) ),
+            new PointOfInterest( "37.5072N, 122.2605W", "San Carlos", new SolidColorBrush( Colors.Gold ) ),
+            new PointOfInterest( "37.4848N, 122.2281W", "Redwood City", new SolidColorBrush( Colors.Red ) )
+        };
+
+        mapControl.PointsOfInterestLocationProperty = nameof( PointOfInterest.Location );
 
         SetFileSystemCachePath();
         UpdateStats();

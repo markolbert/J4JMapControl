@@ -6,6 +6,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:map="using:J4JSoftware.J4JMapWinLibrary"
+    xmlns:local="using:WinAppTest"
     xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
@@ -41,6 +42,14 @@
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
                            Center="37.5072N,122.2605W">
 
+            <map:J4JMapControl.PointsOfInterestTemplate>
+                <DataTemplate x:DataType="local:PointOfInterest">
+                    <TextBlock Text="{x:Bind Text}"
+                               map:Location.Center="{x:Bind Location}"
+                               Foreground="{x:Bind Color}"/>
+                </DataTemplate>
+            </map:J4JMapControl.PointsOfInterestTemplate>
+
             <map:J4JMapControl.Annotations>
                 
                 <map:MapPin ArcRadius="15"
@@ -49,7 +58,7 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom" />
 
-                <!-- this shouldn't show up -->
+                 <!--this shouldn't show up--> 
                 <Rectangle Width="50" Height="50" Fill="Green"/>
 
             </map:J4JMapControl.Annotations>
