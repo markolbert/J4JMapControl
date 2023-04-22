@@ -4,7 +4,7 @@
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using Windows.Graphics;
@@ -31,6 +31,10 @@ namespace WinAppTest;
 public sealed partial class MainWindow
 {
     private readonly ILogger? _logger;
+    private readonly PointOfInterest _sanCarlos;
+
+    private ObservableCollection<PointOfInterest> _ptsOfInterest;
+    private bool _scIncluded;
 
     public MainWindow()
     {
@@ -50,12 +54,32 @@ public sealed partial class MainWindow
 
         appWindow.Resize( new SizeInt32( 800, 1000 ) );
 
-        mapControl.PointsOfInterestSource = new List<PointOfInterest>
+        _ptsOfInterest = new ObservableCollection<PointOfInterest>
         {
-            new PointOfInterest( "37.5202N, 122.2758W", "Belmont", new SolidColorBrush( Colors.BlanchedAlmond ) ),
-            new PointOfInterest( "37.5072N, 122.2605W", "San Carlos", new SolidColorBrush( Colors.Gold ) ),
-            new PointOfInterest( "37.4848N, 122.2281W", "Redwood City", new SolidColorBrush( Colors.Red ) )
+            new PointOfInterest
+            {
+                Location = "37.5202N, 122.2758W",
+                Text = "Belmont",
+                Brush = new SolidColorBrush( Colors.BlanchedAlmond )
+            },
+            new PointOfInterest
+            {
+                Location = "37.5072N, 122.2605W",
+                Text = "San Carlos",
+                Brush = new SolidColorBrush( Colors.Gold )
+            },
+            new PointOfInterest
+            {
+                Location = "37.4848N, 122.2281W",
+                Text = "Redwood City",
+                Brush = new SolidColorBrush( Colors.Red )
+            }
         };
+
+        _sanCarlos = _ptsOfInterest[1];
+        _scIncluded = true;
+
+        mapControl.PointsOfInterestSource = _ptsOfInterest;
 
         mapControl.PointsOfInterestLocationProperty = nameof( PointOfInterest.Location );
 
@@ -123,5 +147,35 @@ public sealed partial class MainWindow
 
         mapControl.SetHeadingByText(headingText.Text);
         headingText.Text = string.Empty;
+    }
+
+    private void ChangeSanCarlosLabel( object sender, RoutedEventArgs e )
+    {
+        if( _sanCarlos.Text.IndexOf( "city", StringComparison.OrdinalIgnoreCase ) >= 0 )
+        {
+            _sanCarlos.Text = "San Carlos";
+            changeNameButton.Content = "Switch to City";
+        }
+        else
+        {
+            _sanCarlos.Text = "City of Good Living";
+            changeNameButton.Content = "Switch to San Carlos";
+        }
+    }
+
+    private void AddDeleteSanCarlosLabel(object sender, RoutedEventArgs e)
+    {
+        if( _scIncluded )
+        {
+            _ptsOfInterest.Remove( _sanCarlos );
+            _scIncluded = false;
+            addDeleteButton.Content = "Show San Carlos";
+        }
+        else
+        {
+            _ptsOfInterest.Add( _sanCarlos );
+            _scIncluded = true;
+            addDeleteButton.Content = "Hide San Carlos";
+        }
     }
 }

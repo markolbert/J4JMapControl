@@ -32,6 +32,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <map:J4JMapControl x:Name="mapControl" 
@@ -44,7 +45,7 @@
 
             <map:J4JMapControl.PointsOfInterestTemplate>
                 <DataTemplate x:DataType="local:PointOfInterest">
-                    <Border Background="{x:Bind Color}"
+                    <Border Background="{x:Bind Brush}"
                             Padding="5"
                             map:Location.Center="{x:Bind Location}">
                         <TextBlock Text="{x:Bind Text}"
@@ -166,6 +167,20 @@
             <Button Margin="5" Click="PurgeCache">Purge Cache</Button>
             <Button Margin="5" Click="ClearCache">Clear Cache</Button>
         </StackPanel>
+
+        <TextBlock Grid.Column="0" Grid.Row="8"
+                   Margin="5"
+                   VerticalAlignment="Center">Test Labels</TextBlock>
+
+        <Button x:Name="changeNameButton" 
+                Grid.Column="1" Grid.Row="8"
+                Margin="5"
+                Click="ChangeSanCarlosLabel">Switch to City</Button>
+
+        <Button x:Name="addDeleteButton" 
+                Grid.Column="2" Grid.Row="8"
+                Margin="5"
+                Click="AddDeleteSanCarlosLabel">Hide San Carlos</Button>
 
     </Grid>
 </Window>
