@@ -59,36 +59,16 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if( _pointsOfInterestSource != null )
-                RemoveCollectionChangedHandler( _pointsOfInterestSource );
+            if ( _pointsOfInterestSource is System.Collections.Specialized.INotifyCollectionChanged temp )
+                temp.CollectionChanged -= PoiCollectionChanged;
 
             _pointsOfInterestSource = value;
 
-            if( _pointsOfInterestSource != null )
-                AddCollectionChangedHandler( _pointsOfInterestSource );
+            if (_pointsOfInterestSource is System.Collections.Specialized.INotifyCollectionChanged temp2)
+                temp2.CollectionChanged += PoiCollectionChanged;
 
             InitializePointsOfInterest();
         }
-    }
-
-    private void RemoveCollectionChangedHandler( object collection )
-    {
-        var collectionType = collection.GetType();
-        var eventInfo = collectionType.GetEvent( nameof( INotifyCollectionChanged.CollectionChanged ) );
-
-        var handler = (System.Collections.Specialized.NotifyCollectionChangedEventHandler)PoiCollectionChanged;
-
-        eventInfo?.RemoveEventHandler( collection, handler );
-    }
-
-    private void AddCollectionChangedHandler( object collection )
-    {
-        var collectionType = collection.GetType();
-        var eventInfo = collectionType.GetEvent( nameof( INotifyCollectionChanged.CollectionChanged ) );
-
-        var handler = (System.Collections.Specialized.NotifyCollectionChangedEventHandler) PoiCollectionChanged;
-
-        eventInfo?.AddEventHandler( collection, handler );
     }
 
     private void PoiCollectionChanged( object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
