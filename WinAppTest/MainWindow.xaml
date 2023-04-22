@@ -44,9 +44,13 @@
 
             <map:J4JMapControl.PointsOfInterestTemplate>
                 <DataTemplate x:DataType="local:PointOfInterest">
-                    <TextBlock Text="{x:Bind Text}"
-                               map:Location.Center="{x:Bind Location}"
-                               Foreground="{x:Bind Color}"/>
+                    <Border Background="{x:Bind Color}"
+                            Padding="5"
+                            map:Location.Center="{x:Bind Location}">
+                        <TextBlock Text="{x:Bind Text}"
+                                   FontWeight="Bold"
+                                   FontSize="30"/>
+                    </Border>
                 </DataTemplate>
             </map:J4JMapControl.PointsOfInterestTemplate>
 
