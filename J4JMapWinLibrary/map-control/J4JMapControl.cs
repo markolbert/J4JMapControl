@@ -25,6 +25,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Windows.Foundation;
+using ABI.Microsoft.UI;
 using CommunityToolkit.WinUI.UI;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.WindowsUtilities;
@@ -36,6 +37,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
+using Colors = Microsoft.UI.Colors;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -225,15 +227,13 @@ public sealed partial class J4JMapControl : Control
             if (!Location.InRegion(element, MapRegion))
                 continue;
 
-            PositionTemplatedAnnotation( element );
-
-            _annotationsCanvas.Children.Add( element );
+            PlaceTemplatedAnnotation( element );
         }
     }
 
-    private void PositionTemplatedAnnotation( UIElement element )
+    private void PlaceTemplatedAnnotation( UIElement element )
     {
-        if( MapRegion == null )
+        if( MapRegion == null || _annotationsCanvas == null )
             return;
 
         if( !Location.TryParseCenter( element, out var latitude, out var longitude ) )
@@ -259,6 +259,7 @@ public sealed partial class J4JMapControl : Control
 
         Canvas.SetLeft( element, offset.X );
         Canvas.SetTop( element, offset.Y );
+        _annotationsCanvas.Children.Add(element);
     }
 
     private void DefineColumns()

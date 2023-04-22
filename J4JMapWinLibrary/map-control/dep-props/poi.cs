@@ -110,13 +110,11 @@ public sealed partial class J4JMapControl
 
         foreach( var item in _pointsOfInterest ?? Enumerable.Empty<object>() )
         {
-            if( item is not INotifyPropertyChanged propChanged )
-                continue;
-
-            propChanged.PropertyChanged -= PoiItemPropertyChanged;
+            if( item is INotifyPropertyChanged propChanged )
+                propChanged.PropertyChanged -= PoiItemPropertyChanged;
         }
 
-        foreach( var item in list )
+        foreach ( var item in list )
         {
             if (item is not INotifyPropertyChanged propChanged)
                 continue;
