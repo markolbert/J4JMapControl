@@ -19,10 +19,13 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using Windows.UI.Xaml.Interop;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
@@ -56,20 +59,46 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if( _pointsOfInterestSource is INotifyCollectionChanged collChanged )
-                collChanged.CollectionChanged -= PoiCollectionChanged;
+            if( _pointsOfInterestSource != null )
+                RemoveCollectionChangedHandler( _pointsOfInterestSource );
 
             _pointsOfInterestSource = value;
 
-            if (_pointsOfInterestSource is INotifyCollectionChanged collChanged2)
-                collChanged2.CollectionChanged += PoiCollectionChanged;
+            if( _pointsOfInterestSource != null )
+                AddCollectionChangedHandler( _pointsOfInterestSource );
 
             InitializePointsOfInterest();
         }
     }
 
-    private void PoiCollectionChanged( object sender, NotifyCollectionChangedEventArgs e ) =>
-        _throttlePoiSourceChange.Throttle( UpdateEventInterval, _ => InitializePointsOfInterest() );
+    private void RemoveCollectionChangedHandler( object collection )
+    {
+        var collectionType = collection.GetType();
+        var eventInfo = collectionType.GetEvent( nameof( INotifyCollectionChanged.CollectionChanged ) );
+
+        var handler = (System.Collections.Specialized.NotifyCollectionChangedEventHandler)PoiCollectionChanged;
+
+        eventInfo?.RemoveEventHandler( collection, handler );
+    }
+
+    private void AddCollectionChangedHandler( object collection )
+    {
+        var collectionType = collection.GetType();
+        var eventInfo = collectionType.GetEvent( nameof( INotifyCollectionChanged.CollectionChanged ) );
+
+        var handler = (System.Collections.Specialized.NotifyCollectionChangedEventHandler) PoiCollectionChanged;
+
+        eventInfo?.AddEventHandler( collection, handler );
+    }
+
+    private void PoiCollectionChanged( object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
+    {
+        _throttlePoiSourceChange.Throttle(UpdateEventInterval, _ =>
+        {
+            InitializePointsOfInterest();
+            IncludeAnnotations();
+        });
+    }
 
     private void InitializePointsOfInterest()
     {
@@ -126,7 +155,10 @@ public sealed partial class J4JMapControl
     }
 
     private void PoiItemPropertyChanged( object? sender, PropertyChangedEventArgs e ) =>
-        _throttlePoiItemChange.Throttle( UpdateEventInterval, _ => InvalidateMeasure() );
+        _throttlePoiItemChange.Throttle( UpdateEventInterval, _ =>
+        {
+            IncludeAnnotations();
+        });
 
     public string? PointsOfInterestLocationProperty
     {
