@@ -50,7 +50,7 @@
                             map:Location.Center="{x:Bind Location}">
                         <TextBlock Text="{x:Bind Text}"
                                    FontWeight="Bold"
-                                   FontSize="30"/>
+                                   FontSize="15"/>
                     </Border>
                 </DataTemplate>
             </map:J4JMapControl.PointsOfInterestTemplate>
