@@ -19,14 +19,10 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using Windows.UI.Xaml.Interop;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using J4JSoftware.WindowsUtilities;
@@ -40,7 +36,7 @@ public sealed partial class J4JMapControl
 
     private object? _pointsOfInterestSource;
     private string? _pointOfInterestLocationProp;
-    private List<object>? _pointsOfInterest;
+    private List<GeoData>? _pointsOfInterest;
 
     public static readonly DependencyProperty PointsOfInterestProperty = DependencyProperty.Register(nameof(PointsOfInterest),
                                                                                                      typeof(List<FrameworkElement>),
@@ -92,27 +88,12 @@ public sealed partial class J4JMapControl
 
         foreach (var item in temp)
         {
-            if (item == null)
+            if (!CheckDataSource(item,
+                                 nameof(PointsOfInterestSource),
+                                 PointsOfInterestLocationProperty,
+                                 x => x.PropertyType == typeof(string),
+                                 $"is not a {typeof(string)}"))
                 continue;
-
-            var locationProp = item.GetType().GetProperty(PointsOfInterestLocationProperty);
-
-            if( locationProp == null )
-            {
-                _logger?.LogWarning( "{source} items do not all include a {property} property",
-                                     nameof( PointsOfInterestSource ),
-                                     PointsOfInterestLocationProperty );
-                return;
-            }
-
-            if( locationProp.PropertyType != typeof( string ) )
-            {
-                _logger?.LogWarning( "{property} on {source} items is not a {type}",
-                                     PointsOfInterestLocationProperty,
-                                     nameof( PointsOfInterestSource ),
-                                     typeof( string ) );
-                return;
-            }
 
             list.Add( item );
         }
@@ -131,7 +112,8 @@ public sealed partial class J4JMapControl
             propChanged.PropertyChanged += PoiItemPropertyChanged;
         }
 
-        _pointsOfInterest = list;
+        var factory = new GeoDataFactory( PointsOfInterestLocationProperty, null, _loggerFactory );
+        _pointsOfInterest = factory.Create( temp ).ToList();
     }
 
     private void PoiItemPropertyChanged( object? sender, PropertyChangedEventArgs e ) =>
