@@ -148,7 +148,7 @@ public sealed partial class J4JMapControl
         MapStyles = _projection.MapStyles.ToList();
         MapStyle = _projection.MapStyle ?? string.Empty;
 
-        if (!Extensions.TryParseToLatLong(Center, out var latitude, out var longitude))
+        if (!MapExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
             _logger?.LogError("Could not parse Center ('{center}') to latitude/longitude, defaulting to 0/0", Center);
 
         var height = (float)Height;

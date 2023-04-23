@@ -47,7 +47,7 @@ public sealed partial class J4JMapControl
         {
             SetValue(CenterProperty, value);
 
-            if (!Extensions.TryParseToLatLong(value, out var latitude, out var longitude))
+            if (!MapExtensions.TryParseToLatLong(value, out var latitude, out var longitude))
             {
                 _logger?.LogError("Could not parse center '{center}' to latitude/longitude, defaulting to (0,0)",
                                   value);

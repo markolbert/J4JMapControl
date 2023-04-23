@@ -26,6 +26,7 @@ using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 using J4JSoftware.J4JMapLibrary;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -208,32 +209,13 @@ public sealed partial class J4JMapControl
 
     public bool SetHeadingByText( string text )
     {
-        var heading = text.ToLower().Trim() switch
+        if( MapExtensions.TryParseHeading( text, out var heading ) )
         {
-            "n" => 0D,
-            "e" => -90D,
-            "s" => 180D,
-            "w" => 90D,
-            "ne" => -45D,
-            "se" => -135D,
-            "sw" => 135D,
-            "nw" => 45D,
-            "nne" => -22.5,
-            "ene" => -67.5,
-            "ese" => -112.5,
-            "sse" => -157.5,
-            "ssw" => 157.5,
-            "wsw" => 112.5,
-            "wnw" => 67.5,
-            "nnw" => 22.5,
-            _ => double.NaN
-        };
+            Heading = heading;
+            return true;
+        }
 
-        if( double.IsNaN( heading ) )
-            return false;
-
-        Heading = heading;
-
-        return true;
+        _logger?.LogWarning( "Could not parse '{text}' into heading", text );
+        return false;
     }
 }
