@@ -47,7 +47,7 @@
                 <DataTemplate x:DataType="local:PointOfInterest">
                     <Border Background="{x:Bind Brush}"
                             Padding="5"
-                            map:Location.Center="{x:Bind Location}">
+                            map:Location.LatLong="{x:Bind Location}">
                         <TextBlock Text="{x:Bind Text}"
                                    FontWeight="Bold"
                                    FontSize="15"/>
@@ -59,7 +59,7 @@
                 
                 <map:MapPin ArcRadius="15"
                             TailLength="30"                      
-                            map:Location.Center="37.5072N,122.2605W" 
+                            map:Location.LatLong="37.5072N,122.2605W" 
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom" />
 
