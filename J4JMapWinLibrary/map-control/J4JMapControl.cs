@@ -25,8 +25,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Windows.Foundation;
-using ABI.Microsoft.UI;
-using CommunityToolkit.WinUI.UI;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
@@ -37,7 +35,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Colors = Microsoft.UI.Colors;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -93,7 +90,8 @@ public sealed partial class J4JMapControl : Control
         base.OnApplyTemplate();
 
         _mapGrid = FindUIElement<Grid>( "MapGrid", x => x.PointerWheelChanged += MapGridOnPointerWheelChanged );
-        _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas", _ => ValidateAnnotations() );
+        _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas" );
+        _routesCanvas = FindUIElement<Canvas>("RoutesCanvas");
 
         _rotationCanvas = FindUIElement<Canvas>( "RotationCanvas" );
         _rotationPanel = FindUIElement<StackPanel>( "RotationPanel" );
@@ -213,34 +211,35 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeTemplatedAnnotations()
     {
-        if( _annotationsCanvas == null || MapRegion == null || PointsOfInterestTemplate == null || _pointsOfInterest == null )
+        if( _annotationsCanvas == null
+        || MapRegion == null
+        || PointsOfInterestTemplate == null
+        || _pointsOfInterest == null
+        || !_pointsOfInterest.Any() )
             return;
 
         foreach( var item in _pointsOfInterest )
         {
+            if (!Location.InRegion(item, MapRegion))
+                continue;
+
             var element = PointsOfInterestTemplate.LoadContent() as FrameworkElement;
             if( element == null )
                 continue;
 
-            element.DataContext = item;
+            element.DataContext = item.Entity;
 
-            if (!Location.InRegion(element, MapRegion))
-                continue;
-
-            PlaceTemplatedAnnotation( element );
+            PlaceElement( element, item.Latitude, item.Longitude );
         }
     }
 
-    private void PlaceTemplatedAnnotation( UIElement element )
+    private void PlaceElement( UIElement element, float latitude, float longitude )
     {
         if( MapRegion == null || _annotationsCanvas == null )
             return;
 
-        if( !Location.TryParseCenter( element, out var latitude, out var longitude ) )
-            return;
-
         var mapPoint = new MapPoint( MapRegion );
-        mapPoint.SetLatLong( latitude, longitude );
+        mapPoint.SetLatLong( latitude, longitude);
 
         var upperLeft = MapRegion.UpperLeft.GetUpperLeftCartesian();
 
@@ -260,6 +259,34 @@ public sealed partial class J4JMapControl : Control
         Canvas.SetLeft( element, offset.X );
         Canvas.SetTop( element, offset.Y );
         _annotationsCanvas.Children.Add(element);
+    }
+
+    private void IncludeRoutes()
+    {
+        if (_routesCanvas== null || MapRegion == null || _routePoints == null)
+            return;
+
+        var seqIds = _routePoints.Select( x => x.SequenceId )
+                                 .Distinct()
+                                 .OrderBy( x => x )
+                                 .ToList();
+
+        var markers = RouteMarkers;
+
+        foreach( var seqId in seqIds )
+        {
+            foreach (var item in _routePoints.Where(x=>x.SequenceId == seqId  ))
+            {
+                if (!Location.InRegion(item, MapRegion))
+                    continue;
+
+                //if (!Location.InRegion(element, MapRegion))
+                //    continue;
+
+                //PlaceElement(element);
+            }
+        }
+
     }
 
     private void DefineColumns()
