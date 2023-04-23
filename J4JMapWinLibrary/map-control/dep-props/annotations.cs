@@ -40,12 +40,12 @@ public sealed partial class J4JMapControl
         set => SetValue( AnnotationsProperty, value );
     }
 
-    private void ValidateAnnotations()
-    {
-        foreach( var uiElement in Annotations )
-        {
-            if( Location.TryParseCenter( uiElement, out _, out _ ) )
-                continue;
-        }
-    }
+    //private void ValidateAnnotations()
+    //{
+    //    foreach( var uiElement in Annotations )
+    //    {
+    //        if( Location.TryParseLatLong( uiElement, out _, out _ ) )
+    //            continue;
+    //    }
+    //}
 }
