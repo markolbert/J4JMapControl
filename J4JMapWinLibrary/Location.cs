@@ -28,11 +28,42 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public class Location : DependencyObject
 {
-    public static readonly DependencyProperty CenterProperty =
-        DependencyProperty.RegisterAttached( "Center",
+    public static readonly DependencyProperty LatLongProperty =
+        DependencyProperty.RegisterAttached( "LatLong",
                                              typeof( string ),
                                              typeof( Location ),
                                              new PropertyMetadata( null ) );
+
+    public static string GetLatLong(UIElement element) => (string)element.GetValue(LatLongProperty);
+    public static void SetLatLong(UIElement element, string value) => element.SetValue(LatLongProperty, value);
+
+    public static readonly DependencyProperty LatitudeProperty =
+        DependencyProperty.RegisterAttached( "Latitude",
+                                             typeof( string ),
+                                             typeof( Location ),
+                                             new PropertyMetadata( null ) );
+
+    public static string GetLatitude(UIElement element)=> (string) element.GetValue(LatitudeProperty);
+    public static void SetLatitude(UIElement element, string value) => element.SetValue(LatitudeProperty, value);
+
+    public static readonly DependencyProperty LongitudeProperty =
+        DependencyProperty.RegisterAttached("Longitude",
+                                            typeof(string),
+                                            typeof(Location),
+                                            new PropertyMetadata(null));
+
+    public static string GetLongitude(UIElement element) => (string)element.GetValue(LongitudeProperty);
+    public static void SetLongitude(UIElement element, string value) => element.SetValue(LongitudeProperty, value);
+
+    public static bool TryParseLatLong(UIElement element, out float latitude, out float longitude)
+    {
+        // LatitudeProperty and LongitudeProperty, if valid, win out over any LatLongProperty value
+        if( MapExtensions.TryParseToLatitude(GetLatitude(element), out latitude)
+           && MapExtensions.TryParseToLongitude(GetLongitude(element), out longitude))
+            return true;
+
+        return MapExtensions.TryParseToLatLong( GetLatLong( element ), out latitude, out longitude );
+    }
 
     public static readonly DependencyProperty OffsetProperty =
         DependencyProperty.RegisterAttached( "Offset",
@@ -40,23 +71,9 @@ public class Location : DependencyObject
                                              typeof( Location ),
                                              new PropertyMetadata( "0,0" ) );
 
-    public static string GetCenter( UIElement element ) => (string) element.GetValue( CenterProperty );
+    public static string GetOffset(UIElement element) => (string)element.GetValue(OffsetProperty);
 
-    public static void SetCenter( UIElement element, string value ) => element.SetValue( CenterProperty, value );
-
-    public static bool TryParseCenter( UIElement element, out float latitude, out float longitude )
-    {
-        latitude = 0;
-        longitude = 0;
-
-        var center = GetCenter( element );
-
-        return !string.IsNullOrEmpty( center ) && Extensions.TryParseToLatLong( center, out latitude, out longitude );
-    }
-
-    public static string GetOffset( UIElement element ) => (string) element.GetValue( OffsetProperty );
-
-    public static void SetOffset( UIElement element, string value ) => element.SetValue( OffsetProperty, value );
+    public static void SetOffset(UIElement element, string value) => element.SetValue(OffsetProperty, value);
 
     public static bool TryParseOffset( UIElement element, out Point offset )
     {
@@ -73,7 +90,7 @@ public class Location : DependencyObject
 
     public static bool InRegion( FrameworkElement element, MapRegion region )
     {
-        if( !TryParseCenter( element, out var latitude, out var longitude ) )
+        if( !TryParseLatLong( element, out var latitude, out var longitude ) )
             return false;
 
         if( latitude < -MapConstants.Wgs84MaxLatitude || latitude > MapConstants.Wgs84MaxLatitude )
@@ -81,6 +98,22 @@ public class Location : DependencyObject
 
         var mapPoint = new MapPoint( region );
         mapPoint.SetLatLong( latitude, longitude );
+
+        var (upperLeftX, upperLeftY) = region.UpperLeft.GetUpperLeftCartesian();
+
+        return mapPoint.X >= upperLeftX
+         && mapPoint.X < upperLeftX + region.RequestedWidth + region.Projection.TileHeightWidth
+         && mapPoint.Y >= upperLeftY
+         && mapPoint.Y < upperLeftY + region.RequestedHeight + region.Projection.TileHeightWidth;
+    }
+
+    public static bool InRegion(GeoData item, MapRegion region)
+    {
+        if (item.Latitude < -MapConstants.Wgs84MaxLatitude || item.Latitude > MapConstants.Wgs84MaxLatitude)
+            return false;
+
+        var mapPoint = new MapPoint(region);
+        mapPoint.SetLatLong(item.Latitude, item.Longitude);
 
         var (upperLeftX, upperLeftY) = region.UpperLeft.GetUpperLeftCartesian();
 

@@ -109,7 +109,7 @@ public sealed partial class MapPin : Control
         if( region == null )
             return finalSize;
 
-        if( !Location.TryParseCenter( this, out var latitude, out var longitude ) )
+        if( !Location.TryParseLatLong( this, out var latitude, out var longitude ) )
             return finalSize;
 
         var mapPoint = new MapPoint( region );
