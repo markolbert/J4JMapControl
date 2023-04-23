@@ -48,9 +48,13 @@ with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
                                 Grid.Column="0" Grid.Row="0"
                                 Canvas.ZIndex="1" />
 
+                        <Canvas x:Name="RoutesCanvas"
+                                Grid.Column="0" Grid.Row="0"
+                                Canvas.ZIndex="2" />
+
                         <Grid x:Name="ControlGrid"
                               Grid.Column="0" Grid.Row="0"
-                              Canvas.ZIndex="2"
+                              Canvas.ZIndex="3"
                               Height="300"
                               VerticalAlignment="{TemplateBinding VerticalControlAlignment}"
                               HorizontalAlignment="{TemplateBinding HorizontalControlAlignment}"
@@ -91,7 +95,7 @@ with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 
                         <Canvas x:Name="RotationCanvas"
                                 Grid.Column="0" Grid.Row="0"
-                                Canvas.ZIndex="3"
+                                Canvas.ZIndex="4"
                                 Visibility="Collapsed">
 
                             <StackPanel x:Name="RotationPanel"
