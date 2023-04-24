@@ -3,18 +3,15 @@
 public class GeoData
 {
     public GeoData(
-        object entity
+        object dataEntity
     )
     {
-        Entity = entity;
+        DataEntity = dataEntity;
     }
 
-    public object Entity { get; }
+    public object DataEntity { get; }
     public bool LocationIsValid { get; internal set; }
 
     public float Latitude { get; internal set; }
     public float Longitude { get; internal set; }
-
-    public bool IsSequenced => SequenceId != null;
-    public object? SequenceId { get; internal set; }
 }

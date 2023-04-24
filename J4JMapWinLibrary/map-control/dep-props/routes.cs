@@ -84,23 +84,28 @@ public sealed partial class J4JMapControl
         if (_routeSourceValidator == null)
             return;
 
-        switch (_routeSourceValidator.Validate(RoutesSource,
-                                               nameof(RoutesSource),
-                                               out var validItems))
+        switch (_routeSourceValidator.Validate(PointsOfInterestSource, out var processed))
         {
-            case DataSourceValidationResult.UndefinedPropertyName:
-                _logger?.LogTrace("Properties not defined when validating {source} data source",
-                                  nameof(RoutesSource));
+            case DataSourceValidationResult.SourceNotEnumerable:
+                _logger?.LogWarning("Data source {source} is not enumerable", nameof(RoutesSource));
                 return;
 
-            case DataSourceValidationResult.Success:
-                // no op; proceed
+            case DataSourceValidationResult.UndefinedSource:
+                _logger?.LogWarning("Data source {source} is not defined", nameof(RoutesSource));
+                return;
+
+            case DataSourceValidationResult.Unprocessed:
+                _logger?.LogWarning("Data source {source} was not validated", nameof(RoutesSource));
+                return;
+
+            case DataSourceValidationResult.Processed:
+                // no op; proceed, but warn of oddities
+                if (processed.Any(
+                        x => x.ValidationResults.Any(y => y.Value != DataItemValidationResult.Validated)))
+                    _logger?.LogWarning("Data source {source} was validated but errors were found",
+                                        nameof(RoutesSource));
+
                 break;
-
-            default:
-                _logger?.LogError("Errors encountered when validating {source} data source",
-                                  nameof(RoutesSource));
-                return;
         }
 
         foreach ( var item in _routePoints ?? Enumerable.Empty<object>() )
@@ -108,6 +113,11 @@ public sealed partial class J4JMapControl
             if( item is INotifyPropertyChanged propChanged )
                 propChanged.PropertyChanged -= RouteItemPropertyChanged;
         }
+
+        var validItems = processed
+                        .Where(x => x.ValidationResults.All(y => y.Value == DataItemValidationResult.Validated))
+                        .Select(x => x.Item)
+                        .ToList();
 
         foreach ( var item in validItems )
         {

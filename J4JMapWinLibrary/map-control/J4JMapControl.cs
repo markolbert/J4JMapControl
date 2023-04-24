@@ -90,13 +90,17 @@ public sealed partial class J4JMapControl : Control
 
     private void InitializeDataValidators()
     {
-        _poiSourceValidator = new DataSourceValidator<J4JMapControl>(this, _loggerFactory);
-        _poiSourceValidator.AddRule(x => x.PointsOfInterestLocationProperty,
-                                    typeof(string));
+        _poiSourceValidator = new DataSourceValidator<J4JMapControl>(_loggerFactory);
+        _poiSourceValidator.AddRule( "PointsOfInterestLocationProperty",
+                                     this,
+                                     x => x.PointsOfInterestLocationProperty,
+                                     typeof( string ) );
 
-        _routeSourceValidator = new DataSourceValidator<J4JMapControl>(this, _loggerFactory);
-        _routeSourceValidator.AddRule(x => x.RoutesLocationProperty,
-                                      typeof(string));
+        _routeSourceValidator = new DataSourceValidator<J4JMapControl>(_loggerFactory);
+        _routeSourceValidator.AddRule( "RoutesLocationProperty",
+                                       this,
+                                       x => x.RoutesLocationProperty,
+                                       typeof( string ) );
     }
 
     public int UpdateEventInterval
@@ -247,7 +251,7 @@ public sealed partial class J4JMapControl : Control
             if( element == null )
                 continue;
 
-            element.DataContext = item.Entity;
+            element.DataContext = item.DataEntity;
 
             PlaceElement( element, item.Latitude, item.Longitude );
         }
@@ -285,27 +289,6 @@ public sealed partial class J4JMapControl : Control
     {
         if (_routesCanvas== null || MapRegion == null || _routePoints == null)
             return;
-
-        var seqIds = _routePoints.Select( x => x.SequenceId )
-                                 .Distinct()
-                                 .OrderBy( x => x )
-                                 .ToList();
-
-        var markers = RouteMarkers;
-
-        foreach( var seqId in seqIds )
-        {
-            foreach (var item in _routePoints.Where(x=>x.SequenceId == seqId  ))
-            {
-                if (!Location.InRegion(item, MapRegion))
-                    continue;
-
-                //if (!Location.InRegion(element, MapRegion))
-                //    continue;
-
-                //PlaceElement(element);
-            }
-        }
 
     }
 

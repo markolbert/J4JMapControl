@@ -19,11 +19,9 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using J4JSoftware.WindowsUtilities;
@@ -83,23 +81,28 @@ public sealed partial class J4JMapControl
         if( _poiSourceValidator == null )
             return;
 
-        switch( _poiSourceValidator.Validate( PointsOfInterestSource,
-                                              nameof( PointsOfInterestSource ),
-                                              out var validItems ) )
+        switch (_poiSourceValidator.Validate(PointsOfInterestSource, out var processed))
         {
-            case DataSourceValidationResult.UndefinedPropertyName:
-                _logger?.LogTrace( "Properties not defined when validating {source} data source",
-                                   nameof( PointsOfInterestSource ) );
+            case DataSourceValidationResult.SourceNotEnumerable:
+                _logger?.LogWarning("Data source {source} is not enumerable", nameof(PointsOfInterestSource));
                 return;
 
-            case DataSourceValidationResult.Success:
-                // no op; proceed
+            case DataSourceValidationResult.UndefinedSource:
+                _logger?.LogWarning("Data source {source} is not defined", nameof(PointsOfInterestSource));
+                return;
+
+            case DataSourceValidationResult.Unprocessed:
+                _logger?.LogWarning("Data source {source} was not validated", nameof(PointsOfInterestSource));
+                return;
+
+            case DataSourceValidationResult.Processed:
+                // no op; proceed, but warn of oddities
+                if( processed.Any(
+                       x => x.ValidationResults.Any( y => y.Value != DataItemValidationResult.Validated ) ) )
+                    _logger?.LogWarning( "Data source {source} was validated but errors were found",
+                                         nameof( PointsOfInterestSource ) );
+
                 break;
-
-            default:
-                _logger?.LogError("Errors encountered when validating {source} data source",
-                                  nameof(PointsOfInterestSource));
-                return;
         }
 
         foreach ( var item in _pointsOfInterest ?? Enumerable.Empty<object>() )
@@ -107,6 +110,11 @@ public sealed partial class J4JMapControl
             if( item is INotifyPropertyChanged propChanged )
                 propChanged.PropertyChanged -= PoiItemPropertyChanged;
         }
+
+        var validItems = processed
+                        .Where( x => x.ValidationResults.All( y => y.Value == DataItemValidationResult.Validated ) )
+                        .Select( x => x.Item )
+                        .ToList();
 
         foreach ( var item in validItems )
         {

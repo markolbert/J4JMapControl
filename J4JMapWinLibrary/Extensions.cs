@@ -20,6 +20,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.Logging;

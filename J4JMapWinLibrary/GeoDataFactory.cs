@@ -37,10 +37,10 @@ public class GeoDataFactory
 
     private void SetLocation( GeoData item )
     {
-        var locPropInfo = item.Entity.GetType().GetProperty(_locProp);
+        var locPropInfo = item.DataEntity.GetType().GetProperty(_locProp);
         if (locPropInfo == null)
         {
-            _logger?.LogWarning("{entityType} does not define a {locProp} property", item.Entity.GetType(), _locProp);
+            _logger?.LogWarning("{entityType} does not define a {locProp} property", item.DataEntity.GetType(), _locProp);
             return;
         }
 
@@ -48,11 +48,11 @@ public class GeoDataFactory
         {
             _logger?.LogWarning("{locProp} property on {entityType} is not a string",
                                 _locProp,
-                                item.Entity.GetType());
+                                item.DataEntity.GetType());
             return;
         }
 
-        var toParse = locPropInfo.GetValue(item.Entity) as string;
+        var toParse = locPropInfo.GetValue(item.DataEntity) as string;
 
         if (!MapExtensions.TryParseToLatLong(toParse, out var latitude, out var longitude))
         {
