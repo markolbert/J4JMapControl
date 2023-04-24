@@ -10,120 +10,99 @@ namespace J4JSoftware.J4JMapWinLibrary;
 public class DataSourceValidator<TBindingSource> : IDataSourceValidator
 where TBindingSource : class
 {
-    private readonly List<DataSourceValidationRule> _rules = new();
-    private readonly TBindingSource _bindingSource;
+    private readonly Dictionary<string, DataSourceValidationRule<TBindingSource>> _rules =
+        new( StringComparer.OrdinalIgnoreCase );
+
     private readonly ILogger? _logger;
 
     public DataSourceValidator(
-        TBindingSource bindingSource,
         ILoggerFactory? loggerFactory
     )
     {
-        _bindingSource = bindingSource;
         _logger = loggerFactory?.CreateLogger<DataSourceValidator<TBindingSource>>();
     }
 
     public void Clear() => _rules.Clear();
 
     public void AddRule(
+        string ruleName,
+        TBindingSource bindingSrc,
         Expression<Func<TBindingSource, string?>> propertyNameBinder,
         Type propertyType
     )
     {
-        var propNameRetriever = propertyNameBinder.Compile();
+        if( _rules.ContainsKey( ruleName ) )
+            throw new ArgumentException(
+                $"Duplicate {typeof( DataSourceValidationRule<TBindingSource> )} rule '{ruleName}'" );
 
-        _rules.Add( new DataSourceValidationRule( x => propNameRetriever( (TBindingSource) x ),
-                                                  propertyType ) );
+        _rules.Add( ruleName,
+                    new DataSourceValidationRule<TBindingSource>( ruleName,
+                                                                  bindingSrc,
+                                                                  propertyNameBinder,
+                                                                  propertyType ) );
     }
 
-    public DataSourceValidationResult Validate( object? source, string sourceName, out List<object> validItems )
+    public void AddRule( DataSourceValidationRule<TBindingSource> rule )
     {
-        validItems = new List<object>();
+        if (_rules.ContainsKey(rule.RuleName))
+            throw new ArgumentException(
+                $"Duplicate {typeof(DataSourceValidationRule<TBindingSource>)} rule '{rule.RuleName}'");
 
-        if( source == null )
+        _rules.Add( rule.RuleName, rule );
+    }
+
+    public DataSourceValidationResult ValidationState { get; private set; } = DataSourceValidationResult.Unprocessed;
+
+    public DataSourceValidationResult Validate( object? dataSource, out List<ValidationItem> processed )
+    {
+        processed = new List<ValidationItem>();
+        ValidationState = DataSourceValidationResult.Unprocessed;
+
+        if( dataSource == null )
         {
-            _logger?.LogWarning( "{sourceName} is undefined", sourceName );
-            return DataSourceValidationResult.UndefinedSourceName;
+            ValidationState = DataSourceValidationResult.UndefinedSource;
+            return ValidationState;
         }
 
-        if( source is not IEnumerable tempEnumerable )
+        if( dataSource is not IEnumerable tempEnumerable )
         {
-            _logger?.LogWarning( "{sourceName} is not an {enumerable}", sourceName, typeof( IEnumerable ) );
-            return DataSourceValidationResult.SourceNotEnumerable;
+            ValidationState = DataSourceValidationResult.SourceNotEnumerable;
+            return ValidationState;
         }
 
-        var enumerableSource = tempEnumerable.Cast<object?>().ToList();
+        processed = tempEnumerable.Cast<object?>()
+                                             .Select( x => new ValidationItem( x ) )
+                                             .ToList();
 
-        var retVal = DataSourceValidationResult.Success;
-
-        for( var ruleNum = 0; ruleNum < _rules.Count; ruleNum++ )
+        foreach( var kvp in _rules )
         {
-            var rule = _rules[ ruleNum ];
-
-            var propName = rule.GetPropertyName( _bindingSource );
-            if( string.IsNullOrEmpty( propName ) )
-            {
-                _logger?.LogWarning( "Rule #{ruleNum}: {propertyName} is undefined", ruleNum, propName );
-                retVal |= DataSourceValidationResult.UndefinedPropertyName;
-                continue;
-            }
-
-            var itemNum = 0;
-
-            foreach( var item in enumerableSource )
-            {
-                if( item == null )
-                {
-                    _logger?.LogWarning( "Rule #{ruleNum}, item #{itemNum}: Undefined item in {source}, skipping",
-                                         ruleNum,
-                                         itemNum,
-                                         sourceName );
-                    continue;
-                }
-
-                var propInfo = item.GetType().GetProperty( propName );
-                if( propInfo == null )
-                {
-                    _logger?.LogWarning( "Rule #{ruleNum}, item #{itemNum}: {property} property not found",
-                                         ruleNum,
-                                         itemNum,
-                                         propName );
-
-                    retVal |= DataSourceValidationResult.MissingProperty;
-                    continue;
-                }
-
-                if( rule.PropertyType == propInfo.PropertyType )
-                {
-                    validItems.Add( item );
-                    continue;
-                }
-
-                _logger?.LogWarning(
-                    "Rule #{ruleNum}, item #{itemNum}: property {propName} is a {incorrect} but should be a {correct}",
-                    ruleNum,
-                    itemNum,
-                    propName,
-                    propInfo.PropertyType,
-                    rule.PropertyType );
-
-                retVal |= DataSourceValidationResult.PropertyFailedTest;
-            }
+            kvp.Value.ValidateDataSource( processed );
         }
 
-        return retVal;
+        ValidationState = DataSourceValidationResult.Processed;
+        return ValidationState;
     }
 
     void IDataSourceValidator.AddRule<T>(
+        string ruleName,
+        object bindingSrc,
         Expression<Func<T, string?>> propertyNameBinder,
         Type propertyType
     )
-    where T : class
+        where T : class
     {
-        if( typeof(T)==typeof(TBindingSource) )
+        if( bindingSrc is TBindingSource castBindingSrc
+        && propertyNameBinder is Expression<Func<TBindingSource, string?>> castBinder )
         {
-            var compiled = propertyNameBinder.Compile();
-            _rules.Add( new DataSourceValidationRule( x => compiled( (T) x ), propertyType ) );
+            if( _rules.ContainsKey(ruleName))
+                throw new ArgumentException(
+                    $"Duplicate {typeof(DataSourceValidationRule<TBindingSource>)} rule '{ruleName}'");
+
+            _rules.Add( ruleName,
+                        new DataSourceValidationRule<TBindingSource>( ruleName,
+                                                                      castBindingSrc,
+                                                                      castBinder,
+                                                                      propertyType ) );
         }
         else
             _logger?.LogError( "Expected a {correct} but got an {incorrect}",
