@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.Logging;
@@ -9,18 +8,15 @@ namespace J4JSoftware.J4JMapWinLibrary;
 public class GeoDataFactory
 {
     private readonly string _locProp;
-    private readonly string? _seqIdProp;
     private readonly ILogger? _logger;
 
     public GeoDataFactory(
         string locationProperty,
-        string? sequenceIdProperty = null,
         ILoggerFactory? loggerFactory = null
 
     )
     {
         _locProp = locationProperty;
-        _seqIdProp = sequenceIdProperty;
         _logger = loggerFactory?.CreateLogger<GeoDataFactory>();
     }
 
@@ -34,9 +30,6 @@ public class GeoDataFactory
             var retVal = new GeoData( item );
 
             SetLocation(retVal);
-
-            if( !string.IsNullOrEmpty( _seqIdProp ) )
-                SetSequenceId( retVal );
 
             yield return retVal;
         }
@@ -70,26 +63,5 @@ public class GeoDataFactory
         item.Latitude = latitude;
         item.Longitude = longitude;
         item.LocationIsValid = true;
-    }
-
-    private void SetSequenceId( GeoData item )
-    {
-        var sequence = item.GetType().GetProperty(_seqIdProp!);
-        if (sequence == null)
-        {
-            _logger?.LogWarning("{entityType} does not define a {seqProp} property", item.Entity.GetType(), _seqIdProp);
-            return;
-        }
-
-        if (sequence.PropertyType.GetInterface(nameof(IEqualityComparer))== null)
-        {
-            _logger?.LogWarning( "{seqProp} property on {entityType} does not implement {comp}",
-                                 _seqIdProp,
-                                 item.Entity.GetType(),
-                                 typeof( IEqualityComparer ) );
-            return;
-        }
-
-        item.SequenceId = sequence.GetValue( _seqIdProp );
     }
 }
