@@ -22,7 +22,9 @@
 using System;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
