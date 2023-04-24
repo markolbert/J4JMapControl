@@ -47,7 +47,7 @@ public sealed partial class J4JMapControl : Control
     private const int DefaultMemoryCacheEntries = 500;
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
-    private const int DefaultUpdateEventInterval = 250;
+    internal const int DefaultUpdateEventInterval = 250;
     private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
 
@@ -56,6 +56,7 @@ public sealed partial class J4JMapControl : Control
     private Grid? _mapGrid;
     private ILoggerFactory? _loggerFactory;
     private ILogger? _logger;
+    private int _updateInterval = DefaultUpdateEventInterval;
 
     public J4JMapControl()
     {
@@ -82,7 +83,26 @@ public sealed partial class J4JMapControl : Control
         {
             _loggerFactory = value;
             _logger = _loggerFactory?.CreateLogger<J4JMapControl>();
+
+            InitializeDataValidators();
         }
+    }
+
+    private void InitializeDataValidators()
+    {
+        _poiSourceValidator = new DataSourceValidator<J4JMapControl>(this, _loggerFactory);
+        _poiSourceValidator.AddRule(x => x.PointsOfInterestLocationProperty,
+                                    typeof(string));
+
+        _routeSourceValidator = new DataSourceValidator<J4JMapControl>(this, _loggerFactory);
+        _routeSourceValidator.AddRule(x => x.RoutesLocationProperty,
+                                      typeof(string));
+    }
+
+    public int UpdateEventInterval
+    {
+        get => _updateInterval;
+        set => _updateInterval = value < 0 ? DefaultUpdateEventInterval : value;
     }
 
     protected override void OnApplyTemplate()

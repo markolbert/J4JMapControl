@@ -19,8 +19,6 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -28,6 +26,7 @@ using Microsoft.UI.Xaml;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Xaml.Shapes;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -39,8 +38,8 @@ public sealed partial class J4JMapControl
     private Canvas? _routesCanvas;
 
     private object? _routesSource;
-    private string? _routesIdProp;
     private string? _routesLocationProp;
+    private DataSourceValidator<J4JMapControl>? _routeSourceValidator;
     private List<GeoData>? _routePoints;
 
     public object? RoutesSource
@@ -69,17 +68,6 @@ public sealed partial class J4JMapControl
         });
     }
 
-    public string? RoutesIdProperty
-    {
-        get => _routesIdProp;
-
-        set
-        {
-            _routesIdProp = value;
-            InitializeRoutes();
-        }
-    }
-
     public string? RoutesLocationProperty
     {
         get => _routesLocationProp;
@@ -93,40 +81,35 @@ public sealed partial class J4JMapControl
 
     private void InitializeRoutes()
     {
-        if( string.IsNullOrEmpty( RoutesIdProperty ) || string.IsNullOrEmpty(RoutesLocationProperty) )
+        if (_routeSourceValidator == null)
             return;
 
-        if (RoutesSource is not IEnumerable temp)
-            return;
-
-        var list = new List<object>();
-
-        foreach (var item in temp)
+        switch (_routeSourceValidator.Validate(RoutesSource,
+                                               nameof(RoutesSource),
+                                               out var validItems))
         {
-            if( !CheckDataSource( item,
-                                  nameof( RoutesSource ),
-                                  RoutesLocationProperty,
-                                  x => x.PropertyType == typeof( string ),
-                                  $"is not a {typeof( string )}" ) )
-                continue;
+            case DataSourceValidationResult.UndefinedPropertyName:
+                _logger?.LogTrace("Properties not defined when validating {source} data source",
+                                  nameof(RoutesSource));
+                return;
 
-            if (!CheckDataSource(item,
-                                 nameof(RoutesSource),
-                                 RoutesIdProperty,
-                                 x => x.PropertyType.GetInterface(nameof(IComparable)) != null,
-                                 $"does not implement {typeof(IComparable)}"))
-                continue;
+            case DataSourceValidationResult.Success:
+                // no op; proceed
+                break;
 
-            list.Add( item );
+            default:
+                _logger?.LogError("Errors encountered when validating {source} data source",
+                                  nameof(RoutesSource));
+                return;
         }
 
-        foreach( var item in _routePoints ?? Enumerable.Empty<object>() )
+        foreach ( var item in _routePoints ?? Enumerable.Empty<object>() )
         {
             if( item is INotifyPropertyChanged propChanged )
                 propChanged.PropertyChanged -= RouteItemPropertyChanged;
         }
 
-        foreach ( var item in list )
+        foreach ( var item in validItems )
         {
             if (item is not INotifyPropertyChanged propChanged)
                 continue;
@@ -134,8 +117,8 @@ public sealed partial class J4JMapControl
             propChanged.PropertyChanged += RouteItemPropertyChanged;
         }
 
-        var factory = new GeoDataFactory(RoutesLocationProperty, RoutesIdProperty, _loggerFactory);
-        _routePoints = factory.Create(list).ToList();
+        var factory = new GeoDataFactory(RoutesLocationProperty!, _loggerFactory);
+        _routePoints = factory.Create(validItems).ToList();
     }
 
     public static readonly DependencyProperty RouteMarkersProperty = DependencyProperty.Register(nameof(RouteMarkers),

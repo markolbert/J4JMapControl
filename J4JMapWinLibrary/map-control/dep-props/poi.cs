@@ -23,6 +23,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using J4JSoftware.WindowsUtilities;
@@ -35,6 +36,7 @@ public sealed partial class J4JMapControl
     private readonly ThrottleDispatcher _throttlePoiItemChange = new();
 
     private object? _pointsOfInterestSource;
+    private DataSourceValidator<J4JMapControl>? _poiSourceValidator;
     private string? _pointOfInterestLocationProp;
     private List<GeoData>? _pointsOfInterest;
 
@@ -78,33 +80,35 @@ public sealed partial class J4JMapControl
 
     private void InitializePointsOfInterest()
     {
-        if( string.IsNullOrEmpty( PointsOfInterestLocationProperty ) )
+        if( _poiSourceValidator == null )
             return;
 
-        if (PointsOfInterestSource is not IEnumerable temp)
-            return;
-
-        var list = new List<object>();
-
-        foreach (var item in temp)
+        switch( _poiSourceValidator.Validate( PointsOfInterestSource,
+                                              nameof( PointsOfInterestSource ),
+                                              out var validItems ) )
         {
-            if (!CheckDataSource(item,
-                                 nameof(PointsOfInterestSource),
-                                 PointsOfInterestLocationProperty,
-                                 x => x.PropertyType == typeof(string),
-                                 $"is not a {typeof(string)}"))
-                continue;
+            case DataSourceValidationResult.UndefinedPropertyName:
+                _logger?.LogTrace( "Properties not defined when validating {source} data source",
+                                   nameof( PointsOfInterestSource ) );
+                return;
 
-            list.Add( item );
+            case DataSourceValidationResult.Success:
+                // no op; proceed
+                break;
+
+            default:
+                _logger?.LogError("Errors encountered when validating {source} data source",
+                                  nameof(PointsOfInterestSource));
+                return;
         }
 
-        foreach( var item in _pointsOfInterest ?? Enumerable.Empty<object>() )
+        foreach ( var item in _pointsOfInterest ?? Enumerable.Empty<object>() )
         {
             if( item is INotifyPropertyChanged propChanged )
                 propChanged.PropertyChanged -= PoiItemPropertyChanged;
         }
 
-        foreach ( var item in list )
+        foreach ( var item in validItems )
         {
             if (item is not INotifyPropertyChanged propChanged)
                 continue;
@@ -112,8 +116,8 @@ public sealed partial class J4JMapControl
             propChanged.PropertyChanged += PoiItemPropertyChanged;
         }
 
-        var factory = new GeoDataFactory( PointsOfInterestLocationProperty, null, _loggerFactory );
-        _pointsOfInterest = factory.Create( temp ).ToList();
+        var factory = new GeoDataFactory( PointsOfInterestLocationProperty!, _loggerFactory );
+        _pointsOfInterest = factory.Create( validItems ).ToList();
     }
 
     private void PoiItemPropertyChanged( object? sender, PropertyChangedEventArgs e ) =>
