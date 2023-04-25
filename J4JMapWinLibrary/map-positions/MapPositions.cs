@@ -90,7 +90,6 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
                 temp2.CollectionChanged += SourceCollectionChanged;
 
             InitializeSource();
-            SourceUpdated?.Invoke(this, EventArgs.Empty  );
         }
     }
 
@@ -107,7 +106,6 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
                                         _ =>
                                         {
                                             InitializeSource();
-                                            SourceUpdated?.Invoke( this, EventArgs.Empty );
                                         } );
     }
 
@@ -157,12 +155,14 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
                               .ToList();
 
         CreatePlacedItems();
+
+        SourceUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     private void ItemPropertyChanged(object? sender, PropertyChangedEventArgs e) =>
         _throttleItemChange.Throttle(_updateInterval, _ =>
         {
-            SourceUpdated?.Invoke(this, EventArgs.Empty);
+            InitializeSource();
         });
 
     protected abstract bool ItemIsValid( ValidationItem validationItem );
