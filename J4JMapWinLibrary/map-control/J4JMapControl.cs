@@ -222,33 +222,65 @@ public sealed partial class J4JMapControl : Control
 
         _poiCanvas.Children.Clear();
 
-        foreach ( var item in _pointsOfInterest.PlacedItems )
+        foreach( var item in _pointsOfInterest.PlacedItems )
         {
-            if( item is not PlacedPointOfInterest poiItem || !Location.InRegion( item, MapRegion ) )
+            if( item is not PlacedPointOfInterest poiItem
+            || !Location.InRegion( item, MapRegion )
+            || poiItem.VisualElement == null )
                 continue;
 
-            var mapPoint = new MapPoint( MapRegion );
-            mapPoint.SetLatLong( poiItem.Latitude, poiItem.Longitude );
+            PositionVisualElement( poiItem.VisualElement, poiItem.Latitude, poiItem.Longitude );
 
-            var upperLeft = MapRegion.UpperLeft.GetUpperLeftCartesian();
-
-            var offset = MapRegion.ViewpointOffset;
-            offset.X += mapPoint.X - upperLeft.X;
-            offset.Y += mapPoint.Y - upperLeft.Y;
-
-            if( MapRegion.Rotation % 360 != 0 )
-            {
-                var centerPoint = new Vector3( MapRegion.RequestedWidth / 2, MapRegion.RequestedHeight / 2, 0 );
-
-                var transform =
-                    Matrix4x4.CreateRotationZ( MapRegion.Rotation * MapConstants.RadiansPerDegree, centerPoint );
-                offset = Vector3.Transform( offset, transform );
-            }
-
-            Canvas.SetLeft( poiItem.VisualElement, offset.X );
-            Canvas.SetTop( poiItem.VisualElement, offset.Y );
             _poiCanvas.Children.Add( poiItem.VisualElement );
         }
+    }
+
+    private void PositionVisualElement( FrameworkElement element, float latitude, float longitude )
+    {
+        if( MapRegion == null )
+            return;
+
+        var mapPoint = new MapPoint(MapRegion);
+        mapPoint.SetLatLong(latitude, longitude);
+
+        var (offsetX, offsetY) = MapRegion.UpperLeft.GetUpperLeftCartesian();
+
+        var offset = MapRegion.ViewpointOffset;
+        offset.X += mapPoint.X - offsetX;
+        offset.Y += mapPoint.Y - offsetY;
+
+        if (MapRegion.Rotation % 360 != 0)
+        {
+            var centerPoint = new Vector3(MapRegion.RequestedWidth / 2, MapRegion.RequestedHeight / 2, 0);
+
+            var transform =
+                Matrix4x4.CreateRotationZ(MapRegion.Rotation * MapConstants.RadiansPerDegree, centerPoint);
+            offset = Vector3.Transform(offset, transform);
+        }
+
+        // get the relative horizontal/vertical offsets for the UIElement
+        offset.X += (float)(HorizontalAlignment switch
+        {
+            HorizontalAlignment.Left => -element.ActualWidth,
+            HorizontalAlignment.Right => 0,
+            _ => -element.ActualWidth / 2
+        });
+
+        offset.Y += (float)(VerticalAlignment switch
+        {
+            VerticalAlignment.Top => 0,
+            VerticalAlignment.Bottom => -element.ActualHeight,
+            _ => -element.ActualHeight / 2
+        });
+
+        // get the specific/custom offset
+        Location.TryParseOffset(this, out var customOffset);
+
+        offset.X += (float)customOffset.X;
+        offset.Y += (float)customOffset.Y;
+
+        Canvas.SetLeft(element, offset.X);
+        Canvas.SetTop(element, offset.Y);
     }
 
     private void IncludeRoutes()
@@ -303,5 +335,28 @@ public sealed partial class J4JMapControl : Control
         var width = Width < availableSize.Width ? Width : availableSize.Width;
 
         return new Size( width, height );
+    }
+
+    protected override Size ArrangeOverride( Size finalSize )
+    {
+        base.ArrangeOverride( finalSize );
+
+        ArrangeAnnotations();
+
+        return finalSize;
+    }
+
+    private void ArrangeAnnotations()
+    {
+        if( _annotationsCanvas == null || MapRegion == null )
+            return;
+
+        foreach( var element in _annotationsCanvas.Children
+                                                  .Where(x=>x is FrameworkElement  )
+                                                  .Cast<FrameworkElement>() )
+        {
+            Location.TryParseLatLong( element, out var latitude, out var longitude );
+            PositionVisualElement( element, latitude, longitude );
+        }
     }
 }
