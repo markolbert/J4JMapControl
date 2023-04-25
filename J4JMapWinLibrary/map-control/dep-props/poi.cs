@@ -19,13 +19,93 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using System;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public PointsOfInterestPositions PointsOfInterest { get; }
+    private readonly PointsOfInterestPositions _pointsOfInterest;
+    private readonly ThrottleDispatcher _throttlePoIChanges = new();
+
+    private Canvas? _poiCanvas;
+
+    public static readonly DependencyProperty PoILatitudeProperty =
+        DependencyProperty.Register( nameof( PoILatitude ),
+                                     typeof( string ),
+                                     typeof( J4JMapControl ),
+                                     new PropertyMetadata( null ) );
+
+    public string? PoILatitude
+    {
+        get => (string?) GetValue(PoILatitudeProperty);
+
+        set
+        {
+            SetValue( PoILatitudeProperty, value );
+            _pointsOfInterest.LatitudeProperty = value;
+        }
+    }
+
+    public static readonly DependencyProperty PoILongitudeProperty =
+        DependencyProperty.Register(nameof(PoILongitude),
+                                    typeof(string),
+                                    typeof(J4JMapControl),
+                                    new PropertyMetadata(null));
+
+    public string? PoILongitude
+    {
+        get => (string?)GetValue(PoILongitudeProperty);
+
+        set
+        {
+            SetValue( PoILongitudeProperty, value );
+            _pointsOfInterest.LongitudeProperty = value;
+        }
+    }
+
+    public static readonly DependencyProperty PoILatLongProperty =
+        DependencyProperty.Register(nameof(PoILatLong),
+                                    typeof(string),
+                                    typeof(J4JMapControl),
+                                    new PropertyMetadata(null));
+
+    public string? PoILatLong
+    {
+        get => (string?)GetValue(PoILatLongProperty);
+
+        set
+        {
+            SetValue( PoILatLongProperty, value );
+            _pointsOfInterest.LatLongProperty = value;
+        }
+    }
+
+    public static readonly DependencyProperty PoIDataSourceProperty =
+        DependencyProperty.Register(nameof(PoIDataSource),
+                                    typeof(object),
+                                    typeof(J4JMapControl),
+                                    new PropertyMetadata(null));
+
+    public object? PoIDataSource
+    {
+        get => GetValue(PoIDataSourceProperty);
+
+        set
+        {
+            SetValue( PoIDataSourceProperty, value );
+            _pointsOfInterest.Source = value;
+        }
+    }
 
     public DataTemplate? PointsOfInterestTemplate { get; set; }
+
+    private void PointsOfInterestSourceUpdated(object? sender, EventArgs e)
+    {
+        _throttlePoIChanges.Throttle( UpdateEventInterval, _ => IncludePointsOfInterest() );
+    }
+
 }
