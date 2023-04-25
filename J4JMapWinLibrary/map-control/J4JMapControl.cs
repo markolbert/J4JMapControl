@@ -35,6 +35,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
+using System.Xml.Linq;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -73,6 +74,13 @@ public sealed partial class J4JMapControl : Control
         PointerReleased += OnPointerReleased;
 
         SizeChanged += OnSizeChanged;
+
+        _routeSourceValidator = new DataSourceValidator<J4JMapControl>(this);
+        _routeSourceValidator.AddRule("RoutesLocationProperty",
+                                      x => x.RoutesLocationProperty,
+                                      typeof(string));
+
+        PointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
     }
 
     public ILoggerFactory? LoggerFactory
@@ -83,24 +91,7 @@ public sealed partial class J4JMapControl : Control
         {
             _loggerFactory = value;
             _logger = _loggerFactory?.CreateLogger<J4JMapControl>();
-
-            InitializeDataValidators();
         }
-    }
-
-    private void InitializeDataValidators()
-    {
-        _poiSourceValidator = new DataSourceValidator<J4JMapControl>(_loggerFactory);
-        _poiSourceValidator.AddRule( "PointsOfInterestLocationProperty",
-                                     this,
-                                     x => x.PointsOfInterestLocationProperty,
-                                     typeof( string ) );
-
-        _routeSourceValidator = new DataSourceValidator<J4JMapControl>(_loggerFactory);
-        _routeSourceValidator.AddRule( "RoutesLocationProperty",
-                                       this,
-                                       x => x.RoutesLocationProperty,
-                                       typeof( string ) );
     }
 
     public int UpdateEventInterval
@@ -213,7 +204,7 @@ public sealed partial class J4JMapControl : Control
 
         _annotationsCanvas.Children.Clear();
 
-        if ((_pointsOfInterest?.Any() ?? false) && PointsOfInterestTemplate != null)
+        if( PointsOfInterest.PlacedItems.Any() )
             IncludeTemplatedAnnotations();
         
         IncludeXamlAnnotations();
@@ -235,54 +226,36 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeTemplatedAnnotations()
     {
-        if( _annotationsCanvas == null
-        || MapRegion == null
-        || PointsOfInterestTemplate == null
-        || _pointsOfInterest == null
-        || !_pointsOfInterest.Any() )
+        if( _annotationsCanvas == null || MapRegion == null )
             return;
 
-        foreach( var item in _pointsOfInterest )
+        foreach( var item in PointsOfInterest.PlacedItems )
         {
-            if (!Location.InRegion(item, MapRegion))
+            if( item is not PlacedPointOfInterest poiItem || !Location.InRegion( item, MapRegion ) )
                 continue;
 
-            var element = PointsOfInterestTemplate.LoadContent() as FrameworkElement;
-            if( element == null )
-                continue;
+            var mapPoint = new MapPoint( MapRegion );
+            mapPoint.SetLatLong( poiItem.Latitude, poiItem.Longitude );
 
-            element.DataContext = item.DataEntity;
+            var upperLeft = MapRegion.UpperLeft.GetUpperLeftCartesian();
 
-            PlaceElement( element, item.Latitude, item.Longitude );
+            var offset = MapRegion.ViewpointOffset;
+            offset.X += mapPoint.X - upperLeft.X;
+            offset.Y += mapPoint.Y - upperLeft.Y;
+
+            if( MapRegion.Rotation % 360 != 0 )
+            {
+                var centerPoint = new Vector3( MapRegion.RequestedWidth / 2, MapRegion.RequestedHeight / 2, 0 );
+
+                var transform =
+                    Matrix4x4.CreateRotationZ( MapRegion.Rotation * MapConstants.RadiansPerDegree, centerPoint );
+                offset = Vector3.Transform( offset, transform );
+            }
+
+            Canvas.SetLeft( poiItem.VisualElement, offset.X );
+            Canvas.SetTop( poiItem.VisualElement, offset.Y );
+            _annotationsCanvas.Children.Add( poiItem.VisualElement );
         }
-    }
-
-    private void PlaceElement( UIElement element, float latitude, float longitude )
-    {
-        if( MapRegion == null || _annotationsCanvas == null )
-            return;
-
-        var mapPoint = new MapPoint( MapRegion );
-        mapPoint.SetLatLong( latitude, longitude);
-
-        var upperLeft = MapRegion.UpperLeft.GetUpperLeftCartesian();
-
-        var offset = MapRegion.ViewpointOffset;
-        offset.X += mapPoint.X - upperLeft.X;
-        offset.Y += mapPoint.Y - upperLeft.Y;
-
-        if( MapRegion.Rotation % 360 != 0 )
-        {
-            var centerPoint = new Vector3( MapRegion.RequestedWidth / 2, MapRegion.RequestedHeight / 2, 0 );
-
-            var transform =
-                Matrix4x4.CreateRotationZ( MapRegion.Rotation * MapConstants.RadiansPerDegree, centerPoint );
-            offset = Vector3.Transform( offset, transform );
-        }
-
-        Canvas.SetLeft( element, offset.X );
-        Canvas.SetTop( element, offset.Y );
-        _annotationsCanvas.Children.Add(element);
     }
 
     private void IncludeRoutes()
