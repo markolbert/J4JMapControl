@@ -57,7 +57,7 @@ public class Location : DependencyObject
 
     public static bool TryParseLatLong(UIElement element, out float latitude, out float longitude)
     {
-        // LatitudeProperty and LongitudeProperty, if valid, win out over any LatLongProperty value
+        // LatitudeField and LongitudeProperty, if valid, win out over any LatLongProperty value
         if( MapExtensions.TryParseToLatitude(GetLatitude(element), out latitude)
            && MapExtensions.TryParseToLongitude(GetLongitude(element), out longitude))
             return true;
@@ -107,7 +107,7 @@ public class Location : DependencyObject
          && mapPoint.Y < upperLeftY + region.RequestedHeight + region.Projection.TileHeightWidth;
     }
 
-    public static bool InRegion(GeoData item, MapRegion region)
+    public static bool InRegion(IPlacedItem item, MapRegion region)
     {
         if (item.Latitude < -MapConstants.Wgs84MaxLatitude || item.Latitude > MapConstants.Wgs84MaxLatitude)
             return false;
