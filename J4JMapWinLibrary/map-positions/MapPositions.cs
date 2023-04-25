@@ -127,7 +127,7 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
 
             case DataSourceValidationResult.Processed:
                 // no op; proceed, but warn of oddities
-                if( processed.Any(x=>x.ValidationResults.Any(y=>y.Value != DataItemValidationResult.Validated)))
+                if( processed.Any(x=>x.ValidationResults.Any(y=>y.Value != ValidationResult.Validated)))
                     Error?.Invoke(this, new ErrorEventArgs(LogLevel.Information, $"Data source {_srcName} was validated but errors were found"));
 
                 break;

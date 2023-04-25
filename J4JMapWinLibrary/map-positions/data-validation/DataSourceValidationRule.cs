@@ -31,8 +31,8 @@ where TBindingSrc : class
         toValidate.ForEach( x =>
         {
             if( x.ValidationResults.ContainsKey( RuleName ) )
-                x.ValidationResults[ RuleName ] = DataItemValidationResult.Untested;
-            else x.ValidationResults.Add( RuleName, DataItemValidationResult.Untested );
+                x.ValidationResults[ RuleName ] = ValidationResult.Untested;
+            else x.ValidationResults.Add( RuleName, ValidationResult.Untested );
         });
 
         var propName = _propRetriever( _bindingSrc );
@@ -40,7 +40,7 @@ where TBindingSrc : class
         {
             toValidate.ForEach(x =>
             {
-                x.ValidationResults[ RuleName ] = DataItemValidationResult.PropertyNameNotDefined;
+                x.ValidationResults[ RuleName ] = ValidationResult.PropertyNameNotDefined;
             });
 
             return;
@@ -49,20 +49,20 @@ where TBindingSrc : class
         foreach( var validationItem in toValidate )
         {
             var dataItem = validationItem.Item;
-            DataItemValidationResult validationState;
+            ValidationResult validationState;
 
             if( dataItem == null )
-                validationState = DataItemValidationResult.UndefinedDataItem;
+                validationState = ValidationResult.UndefinedDataItem;
             else
             {
                 var propInfo = dataItem.GetType().GetProperty( propName );
 
                 if( propInfo == null )
-                    validationState = DataItemValidationResult.PropertyNotFound;
+                    validationState = ValidationResult.PropertyNotFound;
                 else
                     validationState = PropertyType == propInfo.PropertyType
-                        ? DataItemValidationResult.Validated
-                        : DataItemValidationResult.IncorrectPropertyType;
+                        ? ValidationResult.Validated
+                        : ValidationResult.IncorrectPropertyType;
             }
 
             validationItem.ValidationResults[ RuleName ] = validationState;
