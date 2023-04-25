@@ -33,7 +33,7 @@ public sealed partial class MainWindow
     private readonly ILogger? _logger;
     private readonly PointOfInterest _sanCarlos;
 
-    private ObservableCollection<PointOfInterest> _ptsOfInterest;
+    private readonly ObservableCollection<PointOfInterest> _ptsOfInterest;
     private bool _scIncluded;
 
     public MainWindow()
@@ -147,7 +147,7 @@ public sealed partial class MainWindow
 
     private void ChangeSanCarlosLabel( object sender, RoutedEventArgs e )
     {
-        if( _sanCarlos.Text.IndexOf( "city", StringComparison.OrdinalIgnoreCase ) >= 0 )
+        if( _sanCarlos.Text.Contains( "city", StringComparison.OrdinalIgnoreCase ) )
         {
             _sanCarlos.Text = "San Carlos";
             changeNameButton.Content = "Switch to City";
