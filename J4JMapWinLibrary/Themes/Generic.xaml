@@ -59,7 +59,7 @@ with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
                         <Grid x:Name="ControlGrid"
                               Grid.Column="0" Grid.Row="0"
                               Canvas.ZIndex="4"
-                              Height="300"
+                              MaxHeight="{TemplateBinding MaxControlHeight}"
                               VerticalAlignment="{TemplateBinding VerticalControlAlignment}"
                               HorizontalAlignment="{TemplateBinding HorizontalControlAlignment}"
                               Visibility="{TemplateBinding ControlVisibility}">
@@ -88,6 +88,7 @@ with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
                                     Grid.Column="0" Grid.Row="1"
                                     Orientation="Vertical"
                                     HorizontalAlignment="Center"
+                                    VerticalAlignment="Top"
                                     Minimum="{TemplateBinding MinMapScale}"
                                     Maximum="{TemplateBinding MaxMapScale}"
                                     TickFrequency="1"

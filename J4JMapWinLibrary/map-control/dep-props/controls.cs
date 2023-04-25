@@ -20,14 +20,20 @@
 #endregion
 
 using System;
+using Windows.Foundation;
 using Windows.UI;
+using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    private readonly ThrottleDispatcher _throttleSliderSizeChange = new();
+    private Grid? _controlGrid;
+
     public DependencyProperty ControlVisibilityProperty = DependencyProperty.Register( nameof( ControlVisibility ),
         typeof( bool ),
         typeof( J4JMapControl ),
@@ -37,6 +43,22 @@ public sealed partial class J4JMapControl
     {
         get => (bool)GetValue(ControlVisibilityProperty);
         set => SetValue(ControlVisibilityProperty, value);
+    }
+
+    public DependencyProperty MaxControlHeightProperty = DependencyProperty.Register(nameof(MaxControlHeight),
+        typeof(double),
+        typeof(J4JMapControl),
+        new PropertyMetadata(double.MaxValue));
+
+    public double MaxControlHeight
+    {
+        get => (double)GetValue(MaxControlHeightProperty);
+
+        set
+        {
+            SetValue( MaxControlHeightProperty, value <= 0 ? DefaultControlHeight : value );
+            SetControlGridSizes( new Size( ActualWidth, ActualHeight ) );
+        }
     }
 
     public DependencyProperty HorizontalControlAlignmentProperty = DependencyProperty.Register(
@@ -83,7 +105,11 @@ public sealed partial class J4JMapControl
     public double CompassRoseHeightWidth
     {
         get => (double) GetValue( CompassRoseHeightWidthProperty );
-        set => SetValue( CompassRoseHeightWidthProperty, value );
+        set
+        {
+            SetValue( CompassRoseHeightWidthProperty, value );
+            SetControlGridSizes( new Size( this.ActualWidth, this.ActualHeight ) );
+        }
     }
 
     public DependencyProperty ControlBackgroundProperty = DependencyProperty.Register( nameof( ControlBackground ),
@@ -155,5 +181,19 @@ public sealed partial class J4JMapControl
 
         if( _scaleSlider != null )
             _scaleSlider.Margin = new Thickness( 0, value, 0, 2 * value );
+    }
+
+    private void SetControlGridSizes( Size mapSize )
+    {
+        if( _controlGrid != null )
+            _controlGrid.Height = mapSize.Height;
+
+        if( _scaleSlider == null )
+            return;
+
+        _scaleSlider.Height = mapSize.Height - _scaleSlider.Margin.Top - _scaleSlider.Margin.Bottom;
+
+        if( _compassRose != null )
+            _scaleSlider.Height -= _compassRose.Height + _compassRose.Margin.Top + _compassRose.Margin.Bottom;
     }
 }

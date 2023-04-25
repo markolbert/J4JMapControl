@@ -49,10 +49,12 @@ public sealed partial class J4JMapControl : Control
     private const int DefaultFileSystemCacheSize = 10000000;
     private const int DefaultFileSystemCacheEntries = 1000;
     internal const int DefaultUpdateEventInterval = 250;
+    private const int DefaultControlHeight = 300;
     private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
 
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
+    private readonly ThrottleDispatcher _throttleSizeChanges = new();
 
     private Grid? _mapGrid;
     private ILoggerFactory? _loggerFactory;
@@ -106,6 +108,7 @@ public sealed partial class J4JMapControl : Control
         base.OnApplyTemplate();
 
         _mapGrid = FindUIElement<Grid>( "MapGrid", x => x.PointerWheelChanged += MapGridOnPointerWheelChanged );
+        _controlGrid = FindUIElement<Grid>( "ControlGrid" );
         _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas" );
         _poiCanvas = FindUIElement<Canvas>( "PoICanvas" );
         _routesCanvas = FindUIElement<Canvas>("RoutesCanvas");
@@ -146,8 +149,13 @@ public sealed partial class J4JMapControl : Control
         return retVal;
     }
 
-    private void OnSizeChanged( object sender, SizeChangedEventArgs e ) =>
-        MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width );
+    private void OnSizeChanged( object sender, SizeChangedEventArgs e )
+    {
+        _throttleSizeChanges.Throttle( UpdateEventInterval,
+                                       _ => MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width ) );
+
+        _throttleSliderSizeChange.Throttle( UpdateEventInterval, _ => SetControlGridSizes( e.NewSize ) );
+    }
 
     private void SetImagePanelTransforms()
     {
@@ -340,6 +348,11 @@ public sealed partial class J4JMapControl : Control
     protected override Size ArrangeOverride( Size finalSize )
     {
         base.ArrangeOverride( finalSize );
+
+        Clip = new RectangleGeometry()
+        {
+            Rect = new Rect( new Point(), new Size( this.ActualWidth, this.ActualHeight ) )
+        };
 
         ArrangeAnnotations();
 
