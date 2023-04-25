@@ -9,13 +9,3 @@ public enum DataSourceValidationResult
     SourceNotEnumerable,
     Processed
 }
-
-public enum DataItemValidationResult
-{
-    Untested,
-    PropertyNameNotDefined,
-    UndefinedDataItem,
-    PropertyNotFound,
-    IncorrectPropertyType,
-    Validated
-}

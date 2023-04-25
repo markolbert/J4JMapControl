@@ -8,13 +8,15 @@ public interface IDataSourceValidator
 {
     void Clear();
 
-    void AddRule<TBindingSource>(
-        string ruleName,
-        object bindingSrc,
-        Expression<Func<TBindingSource, string?>> propertyNameBinder,
-        Type propertyType
-    )
-        where TBindingSource : class;
-
     DataSourceValidationResult Validate( object? dataSource, out List<ValidationItem> processed );
 }
+
+//public interface IDataSourceValidator<TBindingSource> : IDataSourceValidator
+//where TBindingSource : class
+//{
+//    void AddRule(
+//        string ruleName,
+//        Expression<Func<TBindingSource, string?>> propertyNameBinder,
+//        Type propertyType
+//    );
+//}
