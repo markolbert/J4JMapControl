@@ -20,7 +20,7 @@ public class PointsOfInterestPositions : MapPositions<J4JMapControl>
         _templateFunc = templateBinder.Compile();
 
         DataSourceValidator.AddRule( nameof( LatLongProperty ),
-                                     x => x.PointsOfInterest!.LatLongProperty,
+                                     x => x.PoILatLong,
                                      typeof( string ) );
     }
 
