@@ -1,6 +1,6 @@
 ﻿namespace J4JSoftware.J4JMapWinLibrary;
 
-public enum DataItemValidationResult
+public enum ValidationResult
 {
     Untested,
     PropertyNameNotDefined,
