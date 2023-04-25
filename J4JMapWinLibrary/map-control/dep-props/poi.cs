@@ -25,17 +25,7 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public static readonly DependencyProperty PointsOfInterestProperty =
-        DependencyProperty.Register( nameof( PointsOfInterest ),
-                                     typeof( PointsOfInterestPositions ),
-                                     typeof( J4JMapControl ),
-                                     new PropertyMetadata( null ) );
-
-    public PointsOfInterestPositions? PointsOfInterest
-    {
-        get => (PointsOfInterestPositions?) GetValue( PointsOfInterestProperty );
-        set => SetValue( PointsOfInterestProperty, value );
-    }
+    public PointsOfInterestPositions PointsOfInterest { get; }
 
     public DataTemplate? PointsOfInterestTemplate { get; set; }
 }

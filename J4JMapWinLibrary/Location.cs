@@ -57,7 +57,7 @@ public class Location : DependencyObject
 
     public static bool TryParseLatLong(UIElement element, out float latitude, out float longitude)
     {
-        // LatitudeField and LongitudeProperty, if valid, win out over any LatLongProperty value
+        // LatitudeProperty and LongitudeProperty, if valid, win out over any LatLongProperty value
         if( MapExtensions.TryParseToLatitude(GetLatitude(element), out latitude)
            && MapExtensions.TryParseToLongitude(GetLongitude(element), out longitude))
             return true;

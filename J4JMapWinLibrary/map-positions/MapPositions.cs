@@ -42,19 +42,13 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
     public TBindingSource BindingSource { get; }
     public DataSourceValidator<TBindingSource> DataSourceValidator { get; }
 
-    public static readonly DependencyProperty LatitudeFieldProperty =
-        DependencyProperty.Register( nameof( LatitudeField ),
-                                     typeof( string ),
-                                     typeof( MapPositions<TBindingSource> ),
-                                     new PropertyMetadata( null ) );
-
-    public string? LatitudeField
+    public string? LatitudeProperty
     {
-        get => (string?) GetValue(LatitudeFieldProperty);
-        
+        get => _latProp;
+
         set
         {
-            SetValue( LatitudeFieldProperty, value );
+            _latProp = value;
             InitializeSource();
         }
     }
@@ -201,9 +195,9 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
             // specific Latitude and Longitude properties override LatLong properties
             var itemType = dataItem.GetType();
 
-            var latText = string.IsNullOrEmpty( LatitudeField )
+            var latText = string.IsNullOrEmpty( LatitudeProperty )
                 ? string.Empty
-                : (string?) itemType.GetProperty( LatitudeField )!.GetValue( dataItem );
+                : (string?) itemType.GetProperty( LatitudeProperty )!.GetValue( dataItem );
 
             var longText = string.IsNullOrEmpty( LongitudeProperty )
                 ? string.Empty
