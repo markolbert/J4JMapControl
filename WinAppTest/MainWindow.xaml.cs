@@ -79,9 +79,8 @@ public sealed partial class MainWindow
         _sanCarlos = _ptsOfInterest[1];
         _scIncluded = true;
 
-        mapControl.PointsOfInterestSource = _ptsOfInterest;
-
-        mapControl.PointsOfInterestLocationProperty = nameof( PointOfInterest.Location );
+        mapControl.PointsOfInterest.Source = _ptsOfInterest;
+        mapControl.PointsOfInterest.LatLongProperty = nameof( PointOfInterest.Location );
 
         SetFileSystemCachePath();
         UpdateStats();
