@@ -80,7 +80,8 @@ public sealed partial class J4JMapControl : Control
                                       x => x.RoutesLocationProperty,
                                       typeof(string));
 
-        PointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
+        _pointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
+        _pointsOfInterest.SourceUpdated += PointsOfInterestSourceUpdated;
     }
 
     public ILoggerFactory? LoggerFactory
@@ -106,6 +107,7 @@ public sealed partial class J4JMapControl : Control
 
         _mapGrid = FindUIElement<Grid>( "MapGrid", x => x.PointerWheelChanged += MapGridOnPointerWheelChanged );
         _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas" );
+        _poiCanvas = FindUIElement<Canvas>( "PoICanvas" );
         _routesCanvas = FindUIElement<Canvas>("RoutesCanvas");
 
         _rotationCanvas = FindUIElement<Canvas>( "RotationCanvas" );
@@ -204,17 +206,6 @@ public sealed partial class J4JMapControl : Control
 
         _annotationsCanvas.Children.Clear();
 
-        if( PointsOfInterest.PlacedItems.Any() )
-            IncludeTemplatedAnnotations();
-        
-        IncludeXamlAnnotations();
-    }
-
-    private void IncludeXamlAnnotations()
-    {
-        if (_annotationsCanvas == null || MapRegion == null)
-            return;
-
         foreach (var element in Annotations)
         {
             if (!Location.InRegion(element, MapRegion))
@@ -224,12 +215,14 @@ public sealed partial class J4JMapControl : Control
         }
     }
 
-    private void IncludeTemplatedAnnotations()
+    private void IncludePointsOfInterest()
     {
-        if( _annotationsCanvas == null || MapRegion == null )
+        if( _poiCanvas == null || MapRegion == null )
             return;
 
-        foreach( var item in PointsOfInterest.PlacedItems )
+        _poiCanvas.Children.Clear();
+
+        foreach ( var item in _pointsOfInterest.PlacedItems )
         {
             if( item is not PlacedPointOfInterest poiItem || !Location.InRegion( item, MapRegion ) )
                 continue;
@@ -254,7 +247,7 @@ public sealed partial class J4JMapControl : Control
 
             Canvas.SetLeft( poiItem.VisualElement, offset.X );
             Canvas.SetTop( poiItem.VisualElement, offset.Y );
-            _annotationsCanvas.Children.Add( poiItem.VisualElement );
+            _poiCanvas.Children.Add( poiItem.VisualElement );
         }
     }
 

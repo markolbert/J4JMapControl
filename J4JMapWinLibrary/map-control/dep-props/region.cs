@@ -128,12 +128,14 @@ public sealed partial class J4JMapControl
             case MapRegionChange.OffsetChanged:
                 SetImagePanelTransforms();
                 IncludeAnnotations();
+                IncludePointsOfInterest();
                 break;
 
             case MapRegionChange.LoadRequired:
                 await _projection!.LoadRegionAsync( MapRegion! );
                 SetImagePanelTransforms();
                 IncludeAnnotations();
+                IncludePointsOfInterest();
                 break;
 
             default:
