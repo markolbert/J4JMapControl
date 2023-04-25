@@ -21,7 +21,6 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using Microsoft.UI.Xaml;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Xaml.Shapes;
@@ -39,8 +38,8 @@ public sealed partial class J4JMapControl
 
     private object? _routesSource;
     private string? _routesLocationProp;
-    private DataSourceValidator<J4JMapControl>? _routeSourceValidator;
-    private List<GeoData>? _routePoints;
+    private DataSourceValidator<J4JMapControl> _routeSourceValidator;
+    private List<PlacedItem>? _routePoints;
 
     public object? RoutesSource
     {
@@ -81,54 +80,54 @@ public sealed partial class J4JMapControl
 
     private void InitializeRoutes()
     {
-        if (_routeSourceValidator == null)
-            return;
+        //if (_routeSourceValidator == null)
+        //    return;
 
-        switch (_routeSourceValidator.Validate(PointsOfInterestSource, out var processed))
-        {
-            case DataSourceValidationResult.SourceNotEnumerable:
-                _logger?.LogWarning("Data source {source} is not enumerable", nameof(RoutesSource));
-                return;
+        //switch (_routeSourceValidator.Validate(PointsOfInterestSource, out var processed))
+        //{
+        //    case DataSourceValidationResult.SourceNotEnumerable:
+        //        _logger?.LogWarning("Data source {source} is not enumerable", nameof(RoutesSource));
+        //        return;
 
-            case DataSourceValidationResult.UndefinedSource:
-                _logger?.LogWarning("Data source {source} is not defined", nameof(RoutesSource));
-                return;
+        //    case DataSourceValidationResult.UndefinedSource:
+        //        _logger?.LogWarning("Data source {source} is not defined", nameof(RoutesSource));
+        //        return;
 
-            case DataSourceValidationResult.Unprocessed:
-                _logger?.LogWarning("Data source {source} was not validated", nameof(RoutesSource));
-                return;
+        //    case DataSourceValidationResult.Unprocessed:
+        //        _logger?.LogWarning("Data source {source} was not validated", nameof(RoutesSource));
+        //        return;
 
-            case DataSourceValidationResult.Processed:
-                // no op; proceed, but warn of oddities
-                if (processed.Any(
-                        x => x.ValidationResults.Any(y => y.Value != DataItemValidationResult.Validated)))
-                    _logger?.LogWarning("Data source {source} was validated but errors were found",
-                                        nameof(RoutesSource));
+        //    case DataSourceValidationResult.Processed:
+        //        // no op; proceed, but warn of oddities
+        //        if (processed.Any(
+        //                x => x.ValidationResults.Any(y => y.Value != DataItemValidationResult.Validated)))
+        //            _logger?.LogWarning("Data source {source} was validated but errors were found",
+        //                                nameof(RoutesSource));
 
-                break;
-        }
+        //        break;
+        //}
 
-        foreach ( var item in _routePoints ?? Enumerable.Empty<object>() )
-        {
-            if( item is INotifyPropertyChanged propChanged )
-                propChanged.PropertyChanged -= RouteItemPropertyChanged;
-        }
+        //foreach ( var item in _routePoints ?? Enumerable.Empty<object>() )
+        //{
+        //    if( item is INotifyPropertyChanged propChanged )
+        //        propChanged.PropertyChanged -= RouteItemPropertyChanged;
+        //}
 
-        var validItems = processed
-                        .Where(x => x.ValidationResults.All(y => y.Value == DataItemValidationResult.Validated))
-                        .Select(x => x.Item)
-                        .ToList();
+        //var validItems = processed
+        //                .Where(x => x.ValidationResults.All(y => y.Value == DataItemValidationResult.Validated))
+        //                .Select(x => x.Item)
+        //                .ToList();
 
-        foreach ( var item in validItems )
-        {
-            if (item is not INotifyPropertyChanged propChanged)
-                continue;
+        //foreach ( var item in validItems )
+        //{
+        //    if (item is not INotifyPropertyChanged propChanged)
+        //        continue;
 
-            propChanged.PropertyChanged += RouteItemPropertyChanged;
-        }
+        //    propChanged.PropertyChanged += RouteItemPropertyChanged;
+        //}
 
-        var factory = new GeoDataFactory(RoutesLocationProperty!, _loggerFactory);
-        _routePoints = factory.Create(validItems).ToList();
+        //var factory = new GeoDataFactory(RoutesLocationProperty!, _loggerFactory);
+        //_routePoints = factory.Create(validItems).ToList();
     }
 
     public static readonly DependencyProperty RouteMarkersProperty = DependencyProperty.Register(nameof(RouteMarkers),
