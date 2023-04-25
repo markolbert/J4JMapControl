@@ -181,13 +181,27 @@ If `Latitude` and `Longitude` are both valid values they will override any value
 
 The visual element's position also takes into account `HorizontalAlignment` and `VerticalAlignment` values, if those are specified. `HorizontalAlignment` defaults to `Center` while `VerticalAlignment` defaults to `Middle`.
 
+### Templated Annotations
+
+Templated annotations are defined by setting several properties on the map control:
+
+|Property|Type|Comments|
+|--------|----|--------|
+|`PoIDataSource`|object|an enumerable holding items defining the templated items to be constructed. Each record must at least contain location data.|
+|`PoILatitude`|`string`|the name of the property in the data source which holds  parseable latitude values (e.g., 10, -10, 10N, 10S)|
+|`PoILongitude`|`string`|the name of the property in the data source which holds parseable longitude values (e.g., 10, -10, 10E, 10W)|
+|`PoILatLong`|`string`|the name of the property in the data source which holds  parseable latitude/longitude values (e.g., "-10, 10", "10S, 10W")|
+
+If `PoIDataSource` is not an `IEnumerable` it will be ignored and no templated annotations will be created. The UI will update to reflect changes to the collection `PoIDataSource` points to.
+
+If `PoILatitude` and `PoILongitude` are both valid property names that contain valid values they will override the use of data contained in a `PoILatLong` property, even if it is separately defined.
+
 [return to top](#basic-usage)
 
 ## Miscellaneous properties
 
 |Property|Type|Comments|
 |--------|----|--------|
-|`Annotations`|`List<FrameworkElement>`|holds the FrameworkElements which are displayed above the map as annotations. See the [`MapPin` documentation](map-pin.md) for details.|
 |`ShowRotationHints`|`bool`|shows (`true`) or hides (`false`) hints showing how a map's heading is being changed while using click-and-drag to rotate it|
 |`MinMapScale`|`double`|sets the minimum map scale allowed. Values outside the range of what the projection supports are adjusted automatically.|
 |`MaxMapScale`|`double`|sets the maximum map scale allowed. Values outside the range of what the projection supports are adjusted automatically.|
