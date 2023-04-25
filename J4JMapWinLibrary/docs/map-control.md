@@ -202,6 +202,7 @@ If `PoILatitude` and `PoILongitude` are both valid property names that contain v
 
 |Property|Type|Comments|
 |--------|----|--------|
+|`MaxControlHeight`|`double`|sets the maximum height of the compass rose/scale slider region. Defaults to unlimited.|
 |`ShowRotationHints`|`bool`|shows (`true`) or hides (`false`) hints showing how a map's heading is being changed while using click-and-drag to rotate it|
 |`MinMapScale`|`double`|sets the minimum map scale allowed. Values outside the range of what the projection supports are adjusted automatically.|
 |`MaxMapScale`|`double`|sets the maximum map scale allowed. Values outside the range of what the projection supports are adjusted automatically.|
