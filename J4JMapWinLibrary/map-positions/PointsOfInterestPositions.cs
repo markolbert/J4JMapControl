@@ -22,11 +22,25 @@ public class PointsOfInterestPositions : MapPositions<J4JMapControl>
         DataSourceValidator.AddRule( nameof( LatLongProperty ),
                                      x => x.PoILatLong,
                                      typeof( string ) );
+
+        DataSourceValidator.AddRule(nameof(LatitudeProperty),
+                                    x => x.PoILatitude,
+                                    typeof(string));
+
+        DataSourceValidator.AddRule(nameof(LongitudeProperty),
+                                    x => x.PoILongitude,
+                                    typeof(string));
     }
 
-    protected override bool ItemIsValid( ValidationItem validationItem ) =>
-        validationItem.ValidationResults[ nameof( LatLongProperty ) ]
-     == DataItemValidationResult.Validated;
+    protected override bool ItemIsValid( ValidationItem validationItem )
+    {
+        if( validationItem.ValidationResults[ nameof( LatitudeProperty ) ] == ValidationResult.Validated
+        && validationItem.ValidationResults[ nameof( LongitudeProperty ) ] == ValidationResult.Validated )
+            return true;
+
+        return validationItem.ValidationResults[ nameof( LatLongProperty ) ]
+         == ValidationResult.Validated;
+    }
 
     internal override IPlacedItemInternal? CreatePlacedItem( ValidationItem validationItem )
     {
@@ -34,6 +48,6 @@ public class PointsOfInterestPositions : MapPositions<J4JMapControl>
 
         return template == null
             ? null
-            : new PlacedPointOfInterest( template );
+            : new PlacedElement( template );
     }
 }
