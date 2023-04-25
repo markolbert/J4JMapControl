@@ -41,7 +41,9 @@
                            MapProjection="BingMaps"
                            MapScale="{Binding ElementName=numberBoxScale, Path=Value, Mode=TwoWay}"
                            Heading="{Binding ElementName=numberBoxHeading, Path=Value, Mode=TwoWay}"
-                           Center="37.5072N,122.2605W">
+                           Center="37.5072N,122.2605W"
+                           PoILatLong="Location"
+                           PoIDataSource="{x:Bind _ptsOfInterest}">
 
             <map:J4JMapControl.PointsOfInterestTemplate>
                 <DataTemplate x:DataType="local:PointOfInterest">
