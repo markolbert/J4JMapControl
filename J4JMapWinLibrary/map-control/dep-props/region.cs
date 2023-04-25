@@ -129,6 +129,7 @@ public sealed partial class J4JMapControl
                 SetImagePanelTransforms();
                 IncludeAnnotations();
                 IncludePointsOfInterest();
+                IncludeRoutes();
                 break;
 
             case MapRegionChange.LoadRequired:
@@ -136,6 +137,7 @@ public sealed partial class J4JMapControl
                 SetImagePanelTransforms();
                 IncludeAnnotations();
                 IncludePointsOfInterest();
+                IncludeRoutes();
                 break;
 
             default:

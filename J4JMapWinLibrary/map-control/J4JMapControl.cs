@@ -77,11 +77,6 @@ public sealed partial class J4JMapControl : Control
 
         SizeChanged += OnSizeChanged;
 
-        _routeSourceValidator = new DataSourceValidator<J4JMapControl>(this);
-        _routeSourceValidator.AddRule("RoutesLocationProperty",
-                                      x => x.RoutesLocationProperty,
-                                      typeof(string));
-
         _pointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
         _pointsOfInterest.SourceUpdated += PointsOfInterestSourceUpdated;
     }
@@ -232,15 +227,21 @@ public sealed partial class J4JMapControl : Control
 
         foreach( var item in _pointsOfInterest.PlacedItems )
         {
-            if( item is not PlacedPointOfInterest poiItem
-            || !Location.InRegion( item, MapRegion )
-            || poiItem.VisualElement == null )
+            if( item is not PlacedElement poiItem || !Location.InRegion( item, MapRegion ) )
                 continue;
 
-            PositionVisualElement( poiItem.VisualElement, poiItem.Latitude, poiItem.Longitude );
+            PositionVisualElement( poiItem );
 
             _poiCanvas.Children.Add( poiItem.VisualElement );
         }
+    }
+
+    private void PositionVisualElement( PlacedElement element )
+    {
+        if( element.VisualElement == null )
+            return;
+
+        PositionVisualElement( element.VisualElement, element.Latitude, element.Longitude );
     }
 
     private void PositionVisualElement( FrameworkElement element, float latitude, float longitude )
@@ -293,9 +294,49 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeRoutes()
     {
-        if (_routesCanvas== null || MapRegion == null || _routePoints == null)
+        if (_routesCanvas == null || MapRegion == null)
             return;
 
+        _routesCanvas.Children.Clear();
+
+        foreach( var route in MapRoutes )
+        {
+            if( route.RoutePositions == null )
+                continue;
+
+            for( var ptNum = 0; ptNum<route.RoutePositions.PlacedItems.Count; ptNum++ )
+            {
+                var curPt = route.RoutePositions.PlacedItems[ ptNum ];
+                if( !Location.InRegion(curPt, MapRegion))
+                    continue;
+                
+                var nextPt = ptNum >= route.RoutePositions.PlacedItems.Count - 1
+                    ? null
+                    : route.RoutePositions.PlacedItems[ ptNum + 1 ];
+
+                if ( curPt is not PlacedElement curPlaced )
+                    continue;
+
+                PositionVisualElement( curPlaced );
+
+                if( nextPt is PlacedElement nextPlaced && nextPlaced.VisualElement != null )
+                {
+                    PositionVisualElement(nextPlaced);
+
+                    _routesCanvas.Children.Add( new Line
+                    {
+                        X1 = Canvas.GetLeft( curPlaced.VisualElement ),
+                        Y1 = Canvas.GetTop( curPlaced.VisualElement ),
+                        X2 = Canvas.GetLeft( nextPlaced.VisualElement ),
+                        Y2 = Canvas.GetTop( nextPlaced.VisualElement ),
+                        Stroke = route.Stroke,
+                        Width = route.Width
+                    } );
+                }
+
+                _routesCanvas.Children.Add(curPlaced.VisualElement);
+            }
+        }
     }
 
     private void DefineColumns()
