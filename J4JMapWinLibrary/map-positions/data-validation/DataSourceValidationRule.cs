@@ -48,7 +48,7 @@ where TBindingSrc : class
 
         foreach( var validationItem in toValidate )
         {
-            var dataItem = validationItem.Item;
+            var dataItem = validationItem.DataItem;
             ValidationResult validationState;
 
             if( dataItem == null )
