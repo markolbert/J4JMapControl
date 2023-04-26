@@ -71,6 +71,18 @@
 
             </map:J4JMapControl.Annotations>
 
+            <map:J4JMapControl.MapRoutes>
+                <map:MapRoute RouteName="Route1" 
+                              LatitudeField="Latitude" 
+                              LongitudeField="Longitude" 
+                              DataSource="{x:Bind _route1}"/>
+
+                <map:MapRoute RouteName="Route2" 
+                              LatitudeField="Latitude" 
+                              LongitudeField="Longitude" 
+                              DataSource="{x:Bind _route2}"/>
+            </map:J4JMapControl.MapRoutes>
+
         </map:J4JMapControl>
 
         <TextBlock Grid.Column="0" Grid.Row="1"

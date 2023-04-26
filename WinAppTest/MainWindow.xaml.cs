@@ -5,11 +5,14 @@
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Windows.Graphics;
 using Windows.System;
-using Windows.UI;
 using J4JSoftware.DependencyInjection;
 using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
@@ -18,10 +21,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
+using Windows.Storage;
 
 namespace WinAppTest;
 
@@ -30,11 +33,14 @@ namespace WinAppTest;
 /// </summary>
 public sealed partial class MainWindow
 {
+    private readonly IJ4JHost _j4jHost;
     private readonly ILogger? _logger;
     private readonly PointOfInterest _sanCarlos;
 
     private readonly ObservableCollection<PointOfInterest> _ptsOfInterest;
     private bool _scIncluded;
+    private readonly ObservableCollection<RoutePoint> _route1 = new();
+    private readonly ObservableCollection<RoutePoint> _route2 = new();
 
     public MainWindow()
     {
@@ -48,11 +54,14 @@ public sealed partial class MainWindow
         if( mapControl.ProjectionFactory == null )
             _logger?.LogCritical( "ProjectionFactory is not defined" );
 
-        var hWnd = WindowNative.GetWindowHandle(this);
-        var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
-        var appWindow = AppWindow.GetFromWindowId(windowId);
+        var hWnd = WindowNative.GetWindowHandle( this );
+        var windowId = Win32Interop.GetWindowIdFromWindow( hWnd );
+        var appWindow = AppWindow.GetFromWindowId( windowId );
 
         appWindow.Resize( new SizeInt32( 800, 1000 ) );
+
+        _j4jHost = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>()
+         ?? throw new NullReferenceException( $"Could not load {typeof( IJ4JHost )}" );
 
         _ptsOfInterest = new ObservableCollection<PointOfInterest>
         {
@@ -76,11 +85,48 @@ public sealed partial class MainWindow
             }
         };
 
-        _sanCarlos = _ptsOfInterest[1];
+        Task.Run( () => LoadRouteFileAsync( "route1.txt", _route1 ) ).Wait();
+        Task.Run( () => LoadRouteFileAsync( "route2.txt", _route2 ) ).Wait();
+
+        _sanCarlos = _ptsOfInterest[ 1 ];
         _scIncluded = true;
 
         SetFileSystemCachePath();
         UpdateStats();
+    }
+
+    private async Task LoadRouteFileAsync( string fileName, ObservableCollection<RoutePoint> routePoints )
+    {
+        routePoints.Clear();
+
+        var uri = new Uri( $"ms-appx:///Assets/test-routes/{fileName}" );
+        var file = await StorageFile.GetFileFromApplicationUriAsync( uri );
+        var lines = await FileIO.ReadLinesAsync( file );
+
+        foreach( var line in lines )
+        {
+            var parts = line.Split( ',' );
+            if( parts.Length != 2 )
+            {
+                _logger?.LogWarning( "Invalid route entry {entry}", line );
+                continue;
+            }
+
+            if( !float.TryParse( parts[ 1 ], out var latitude ) )
+            {
+                _logger?.LogWarning( "Invalid latitude {text}", parts[ 0 ] );
+                continue;
+            }
+
+            if( !float.TryParse( parts[ 0 ], out var longitude ) )
+            {
+                _logger?.LogWarning( "Invalid longitude {text}", parts[ 0 ] );
+                continue;
+            }
+
+            routePoints.Add( new RoutePoint( latitude.ToString( CultureInfo.CurrentCulture ),
+                                             longitude.ToString( CultureInfo.CurrentCulture ) ) );
+        }
     }
 
     private void TextHeadingLostFocus( object sender, RoutedEventArgs e )
