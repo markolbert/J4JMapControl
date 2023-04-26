@@ -28,6 +28,8 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class ProjectionFactory
 {
+    public event EventHandler<CredentialsNeedEventArgs>? CredentialsNeeded;
+
     private readonly IConfiguration _config;
     private readonly List<Assembly> _assemblies = new();
     private readonly List<ProjectionTypeInfo> _projTypes = new();
@@ -130,6 +132,8 @@ public class ProjectionFactory
     public bool HasProjection<TProj>() => HasProjection( typeof( TProj ) );
     public bool HasProjection( Type projectionType ) => _projTypes.Any( x => x.ProjectionType == projectionType );
 
+    public bool UseFirstCredentialsAsDefault { get; set; } = true;
+
     public ProjectionFactoryResult CreateProjection(
         string projName,
         string? credentialsName = null,
@@ -144,7 +148,8 @@ public class ProjectionFactory
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         string projName,
         string? credentialsName = null,
-        bool authenticate = true
+        bool authenticate = true,
+        CancellationToken ctx = default
     )
     {
         var projInfo = _projTypes
@@ -156,15 +161,14 @@ public class ProjectionFactory
             return ProjectionFactoryResult.NotFound;
         }
 
-        var retVal = CreateProjectionInternal( projInfo );
-        if( !retVal.ProjectionTypeFound || !authenticate )
-            return retVal;
+        var projection = CreateProjectionInternal( projInfo );
+        if( projection == null || !authenticate )
+            return new ProjectionFactoryResult( projection, projection != null );
 
-        var credentials = CreateCredentials( projInfo, credentialsName );
-        if( credentials == null )
-            return retVal;
-
-        return retVal with { Authenticated = await retVal.Projection!.SetCredentialsAsync( credentials ) };
+        return new ProjectionFactoryResult( projection, true )
+        {
+            Authenticated = await AuthenticateProjection( projection, projInfo, credentialsName, ctx )
+        };
     }
 
     public ProjectionFactoryResult CreateProjection<TProj>(
@@ -195,7 +199,8 @@ public class ProjectionFactory
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         Type projType,
         string? credentialsName = null,
-        bool authenticate = true
+        bool authenticate = true,
+        CancellationToken ctx = default
     )
     {
         if( !projType.IsAssignableTo( typeof( IProjection ) ) )
@@ -210,22 +215,18 @@ public class ProjectionFactory
             return ProjectionFactoryResult.NotFound;
         }
 
-        var retVal = CreateProjectionInternal( projInfo );
-        if( !retVal.ProjectionTypeFound || !authenticate )
-            return retVal;
+        var projection = CreateProjectionInternal( projInfo );
+        if( projection == null || !authenticate )
+            return new ProjectionFactoryResult( projection, projection != null );
 
-        var credentials = CreateCredentials( projInfo, credentialsName );
-        if( credentials == null )
-            return retVal;
-
-        return retVal with { Authenticated = await retVal.Projection!.SetCredentialsAsync( credentials ) };
+        return new ProjectionFactoryResult(projection, true)
+        {
+            Authenticated = await AuthenticateProjection(projection, projInfo, credentialsName, ctx)
+        };
     }
 
-    private ProjectionFactoryResult CreateProjectionInternal(
-        ProjectionTypeInfo projInfo
-    )
+    private IProjection? CreateProjectionInternal( ProjectionTypeInfo projInfo )
     {
-        // create instance of IProjection and return
         IProjection? projection;
 
         // figure out the sequence of ctor parameters
@@ -236,7 +237,7 @@ public class ProjectionFactory
         if( ctorInfo == null )
         {
             _logger?.LogError( "Could not find supported constructor for {projType}", projInfo.ProjectionType );
-            return ProjectionFactoryResult.NotFound;
+            return null;
         }
 
         var args = new object?[ ctorInfo.ParameterTypes.Count ];
@@ -261,10 +262,42 @@ public class ProjectionFactory
                                projInfo.ProjectionType,
                                ex.Message );
 
-            return ProjectionFactoryResult.NotFound;
+            return null;
         }
 
-        return new ProjectionFactoryResult( projection, true );
+        return projection;
+    }
+
+    private async Task<bool> AuthenticateProjection(
+        IProjection projection,
+        ProjectionTypeInfo projInfo,
+        string? credentialsName,
+        CancellationToken ctx = default
+    )
+    {
+        var credentials = CreateCredentials( projInfo, credentialsName );
+        var cancelOnFailure = false;
+        var retVal = false;
+
+        while( true )
+        {
+            if( credentials != null )
+                retVal = await projection.SetCredentialsAsync( credentials, ctx );
+
+            if( retVal )
+                break;
+
+            var eventArgs = new CredentialsNeedEventArgs( projInfo.Name );
+            CredentialsNeeded?.Invoke( this, eventArgs );
+
+            if( eventArgs.CancelImmediately || cancelOnFailure )
+                break;
+
+            cancelOnFailure = eventArgs.CancelOnFailure;
+            credentials = eventArgs.Credentials;
+        }
+
+        return retVal;
     }
 
     private object? CreateCredentials( ProjectionTypeInfo projInfo, string? credentialsName )
@@ -274,11 +307,12 @@ public class ProjectionFactory
                        .ToList();
 
         var credType = string.IsNullOrEmpty( credentialsName )
-            ? credTypes.FirstOrDefault()
+            ? null
             : credTypes.FirstOrDefault( x => x.Name.Equals( credentialsName, StringComparison.OrdinalIgnoreCase ) );
 
         // it's possible the search on serverName failed, so we need a fallback
-        credType ??= credTypes.FirstOrDefault();
+        if( UseFirstCredentialsAsDefault && credType == null )
+            credType = credTypes.FirstOrDefault();
 
         if( credType == null )
         {
