@@ -28,6 +28,7 @@ using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -35,7 +36,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using System.Xml.Linq;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -227,7 +227,7 @@ public sealed partial class J4JMapControl : Control
 
         foreach( var item in _pointsOfInterest.PlacedItems )
         {
-            if( item is not PlacedElement poiItem || !Location.InRegion( item, MapRegion ) )
+            if( item is not PlacedTemplatedElement poiItem || !Location.InRegion( item, MapRegion ) )
                 continue;
 
             PositionVisualElement( poiItem );
@@ -236,7 +236,7 @@ public sealed partial class J4JMapControl : Control
         }
     }
 
-    private void PositionVisualElement( PlacedElement element )
+    private void PositionVisualElement( IPlacedElement element )
     {
         if( element.VisualElement == null )
             return;
@@ -314,24 +314,26 @@ public sealed partial class J4JMapControl : Control
                     ? null
                     : route.RoutePositions.PlacedItems[ ptNum + 1 ];
 
-                if ( curPt is not PlacedElement curPlaced )
+                if ( curPt is not IPlacedElement curPlaced )
                     continue;
 
                 PositionVisualElement( curPlaced );
 
-                if( nextPt is PlacedElement nextPlaced && nextPlaced.VisualElement != null )
+                if( nextPt is IPlacedElement nextPlaced && nextPlaced.VisualElement != null )
                 {
                     PositionVisualElement(nextPlaced);
 
-                    _routesCanvas.Children.Add( new Line
+                    var line = new Line
                     {
                         X1 = Canvas.GetLeft( curPlaced.VisualElement ),
                         Y1 = Canvas.GetTop( curPlaced.VisualElement ),
                         X2 = Canvas.GetLeft( nextPlaced.VisualElement ),
                         Y2 = Canvas.GetTop( nextPlaced.VisualElement ),
                         Stroke = route.Stroke,
-                        Width = route.Width
-                    } );
+                        StrokeThickness = route.Width
+                    };
+
+                    _routesCanvas.Children.Add( line );
                 }
 
                 _routesCanvas.Children.Add(curPlaced.VisualElement);
