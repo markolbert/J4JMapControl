@@ -71,6 +71,30 @@ public class FactoryTests : TestBase
         result.Authenticated.Should().Be(authenticated);
     }
 
+    [ Theory ]
+    [InlineData(typeof(BingMapsProjection), true, true)]
+    [InlineData(typeof(OpenStreetMapsProjection), true, true)]
+    [InlineData(typeof(OpenTopoMapsProjection), true, true)]
+    [InlineData(typeof(GoogleMapsProjection), true, true)]
+    [InlineData(typeof(string), false, false)]
+    public async Task CheckDynamicCredentials( Type projType, bool projCreated, bool authenticated )
+    {
+        var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
+        factory.Should().NotBeNull();
+        factory!.UseFirstCredentialsAsDefault = false;
+        factory.CredentialsNeeded += CredentialsNeeded;
+
+        var result = await factory!.CreateProjectionAsync(projType);
+        result.ProjectionTypeFound.Should().Be(projCreated);
+        result.Authenticated.Should().Be(authenticated);
+    }
+
+    private void CredentialsNeeded( object? sender, CredentialsNeedEventArgs e )
+    {
+        e.Credentials = GetCredentials( e.ProjectionName );
+        e.CancelOnFailure = true;
+    }
+
     [Theory]
     [InlineData("BingMaps",".jpg")]
     [InlineData("OpenStreetMaps", ".png")]
@@ -82,5 +106,4 @@ public class FactoryTests : TestBase
         projection.Should().NotBeNull();
         projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }
-
 }
