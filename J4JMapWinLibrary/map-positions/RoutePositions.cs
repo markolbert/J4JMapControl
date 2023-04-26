@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using System.Linq.Expressions;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
@@ -46,12 +46,48 @@ public class RoutePositions : MapPositions<MapRoute>
          == ValidationResult.Validated;
     }
 
-    internal override IPlacedItemInternal? CreatePlacedItem( ValidationItem validationItem )
+    protected override void CompleteInitialization()
     {
+        base.CompleteInitialization();
+
+        if( string.IsNullOrEmpty( PositionVisibilityProperty ) || !ProcessedItems.Any() )
+            return;
+
+        BindingSource.PointVisibilityPropertyInfo = ProcessedItems.FirstOrDefault()
+                                                                 ?.DataItem?.GetType()
+                                                                  .GetProperty( PositionVisibilityProperty );
+    }
+
+    internal override IPlacedItemInternal CreatePlacedItem( ValidationItem validationItem )
+    {
+        var isVisible = BindingSource.ShowPoints;
+
+        if( BindingSource.PointVisibilityPropertyInfo != null )
+        {
+            var visibilityValue = BindingSource.PointVisibilityPropertyInfo.GetValue( validationItem.DataItem );
+            isVisible &= visibilityValue == null || (bool) visibilityValue;
+        }
+
         var template = _templateFunc( BindingSource );
 
-        return template == null
-            ? new PlacedElement( new Ellipse { Width = 5, Height = 5, Fill = new SolidColorBrush( Colors.Black ) } )
-            : new PlacedTemplatedElement( template );
+        if( template == null )
+            return new PlacedElement( new Ellipse
+            {
+                Width = BindingSource.StrokeWidth,
+                Height = BindingSource.StrokeWidth,
+                Fill = new SolidColorBrush( BindingSource.StrokeColor ),
+                Opacity = BindingSource.StrokeOpacity,
+                Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed,
+            } );
+
+        var retVal = new PlacedTemplatedElement( template );
+
+        if( retVal.VisualElement == null )
+            return retVal;
+
+        retVal.VisualElement.Opacity = BindingSource.StrokeOpacity;
+        retVal.VisualElement.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+
+        return retVal;
     }
 }

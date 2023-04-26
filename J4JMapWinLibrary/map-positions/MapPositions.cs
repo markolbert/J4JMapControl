@@ -26,6 +26,7 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
     private string? _latProp;
     private string? _longProp;
     private string? _latLongProp;
+    private string? _ptVisibilityProp;
 
     protected MapPositions(
         TBindingSource bindingSource,
@@ -71,6 +72,17 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
         set
         {
             _latLongProp = value;
+            InitializeSource();
+        }
+    }
+
+    public string? PositionVisibilityProperty
+    {
+        get => _ptVisibilityProp;
+
+        set
+        {
+            _ptVisibilityProp = value;
             InitializeSource();
         }
     }
@@ -136,14 +148,14 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
         // decouple property changed event handler from existing items
         foreach (var validationItem in ProcessedItems )
         {
-            if (validationItem.Item is INotifyPropertyChanged propChanged)
+            if (validationItem.DataItem is INotifyPropertyChanged propChanged)
                 propChanged.PropertyChanged -= ItemPropertyChanged;
         }
 
         // set up property changed event handler for valid items
         foreach (var validationItem in processed)
         {
-            if (validationItem.Item is not INotifyPropertyChanged propChanged)
+            if (validationItem.DataItem is not INotifyPropertyChanged propChanged)
                 continue;
 
             propChanged.PropertyChanged += ItemPropertyChanged;
@@ -151,8 +163,10 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
 
         ProcessedItems = processed;
 
-        ValidItems = processed.Where( x => x.Item != null && ItemIsValid( x ) )
+        ValidItems = processed.Where( x => x.DataItem != null && ItemIsValid( x ) )
                               .ToList();
+
+        CompleteInitialization();
 
         CreatePlacedItems();
 
@@ -168,6 +182,10 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
     protected abstract bool ItemIsValid( ValidationItem validationItem );
     internal abstract IPlacedItemInternal? CreatePlacedItem( ValidationItem validationItem );
 
+    protected virtual void CompleteInitialization()
+    {
+    }
+
     private void CreatePlacedItems()
     {
         PlacedItems.Clear();
@@ -175,7 +193,7 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
         for( var idx = 0; idx < ValidItems.Count; idx++ )
         {
             var validatedItem = ValidItems[ idx ];
-            var dataItem = validatedItem.Item;
+            var dataItem = validatedItem.DataItem;
 
             if( dataItem == null )
             {
