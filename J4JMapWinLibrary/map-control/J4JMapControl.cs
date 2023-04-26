@@ -28,7 +28,6 @@ using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -36,9 +35,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -227,69 +223,16 @@ public sealed partial class J4JMapControl : Control
 
         foreach( var item in _pointsOfInterest.PlacedItems )
         {
-            if( item is not PlacedTemplatedElement poiItem || !Location.InRegion( item, MapRegion ) )
+            if( item is not PlacedTemplatedElement poiItem
+            || !Location.InRegion( item, MapRegion )
+            || poiItem.VisualElement == null )
                 continue;
 
-            PositionVisualElement( poiItem );
+            var elementOffset = MapRegion.GetDisplayPosition( poiItem.Latitude, poiItem.Longitude );
+            poiItem.VisualElement.PositionRelativeToPoint( elementOffset );
 
             _poiCanvas.Children.Add( poiItem.VisualElement );
         }
-    }
-
-    private void PositionVisualElement( IPlacedElement element )
-    {
-        if( element.VisualElement == null )
-            return;
-
-        PositionVisualElement( element.VisualElement, element.Latitude, element.Longitude );
-    }
-
-    private void PositionVisualElement( FrameworkElement element, float latitude, float longitude )
-    {
-        if( MapRegion == null )
-            return;
-
-        var mapPoint = new MapPoint(MapRegion);
-        mapPoint.SetLatLong(latitude, longitude);
-
-        var (offsetX, offsetY) = MapRegion.UpperLeft.GetUpperLeftCartesian();
-
-        var offset = MapRegion.ViewpointOffset;
-        offset.X += mapPoint.X - offsetX;
-        offset.Y += mapPoint.Y - offsetY;
-
-        if (MapRegion.Rotation % 360 != 0)
-        {
-            var centerPoint = new Vector3(MapRegion.RequestedWidth / 2, MapRegion.RequestedHeight / 2, 0);
-
-            var transform =
-                Matrix4x4.CreateRotationZ(MapRegion.Rotation * MapConstants.RadiansPerDegree, centerPoint);
-            offset = Vector3.Transform(offset, transform);
-        }
-
-        // get the relative horizontal/vertical offsets for the UIElement
-        offset.X += (float)(HorizontalAlignment switch
-        {
-            HorizontalAlignment.Left => -element.ActualWidth,
-            HorizontalAlignment.Right => 0,
-            _ => -element.ActualWidth / 2
-        });
-
-        offset.Y += (float)(VerticalAlignment switch
-        {
-            VerticalAlignment.Top => 0,
-            VerticalAlignment.Bottom => -element.ActualHeight,
-            _ => -element.ActualHeight / 2
-        });
-
-        // get the specific/custom offset
-        Location.TryParseOffset(this, out var customOffset);
-
-        offset.X += (float)customOffset.X;
-        offset.Y += (float)customOffset.Y;
-
-        Canvas.SetLeft(element, offset.X);
-        Canvas.SetTop(element, offset.Y);
     }
 
     private void IncludeRoutes()
@@ -304,39 +247,60 @@ public sealed partial class J4JMapControl : Control
             if( route.RoutePositions == null )
                 continue;
 
-            for( var ptNum = 0; ptNum<route.RoutePositions.PlacedItems.Count; ptNum++ )
+            for( var ptNum = 0; ptNum < route.RoutePositions.PlacedItems.Count; ptNum++ )
             {
                 var curPt = route.RoutePositions.PlacedItems[ ptNum ];
-                if( !Location.InRegion(curPt, MapRegion))
+                if( !Location.InRegion( curPt, MapRegion ) )
                     continue;
-                
+
                 var nextPt = ptNum >= route.RoutePositions.PlacedItems.Count - 1
                     ? null
                     : route.RoutePositions.PlacedItems[ ptNum + 1 ];
 
-                if ( curPt is not IPlacedElement curPlaced )
+                if( curPt is not IPlacedElement curPlaced )
                     continue;
 
-                PositionVisualElement( curPlaced );
+                var curPtPosition = MapRegion.GetDisplayPosition( curPlaced.Latitude, curPlaced.Longitude );
 
-                if( nextPt is IPlacedElement nextPlaced && nextPlaced.VisualElement != null )
+                if( curPlaced.VisualElement != null )
+                    curPtPosition = curPlaced.VisualElement.PositionRelativeToPoint( curPtPosition );
+
+                if( nextPt is not IPlacedElement nextPlaced || nextPlaced.VisualElement == null )
                 {
-                    PositionVisualElement(nextPlaced);
+                    if( route.ShowPoints)
+                        _routesCanvas.Children.Add( curPlaced.VisualElement );
 
-                    var line = new Line
-                    {
-                        X1 = Canvas.GetLeft( curPlaced.VisualElement ),
-                        Y1 = Canvas.GetTop( curPlaced.VisualElement ),
-                        X2 = Canvas.GetLeft( nextPlaced.VisualElement ),
-                        Y2 = Canvas.GetTop( nextPlaced.VisualElement ),
-                        Stroke = route.Stroke,
-                        StrokeThickness = route.Width
-                    };
-
-                    _routesCanvas.Children.Add( line );
+                    continue;
                 }
 
-                _routesCanvas.Children.Add(curPlaced.VisualElement);
+                var nextPtPosition = MapRegion.GetDisplayPosition( nextPlaced.Latitude, nextPlaced.Longitude );
+
+                if( nextPlaced.VisualElement != null )
+                    nextPtPosition = nextPlaced.VisualElement.PositionRelativeToPoint( nextPtPosition );
+
+                var curElementSize = curPlaced.VisualElement == null
+                    ? new Vector3()
+                    : new Vector3( (float)curPlaced.VisualElement.Width, (float)curPlaced.VisualElement.Height, 0 );
+
+                var nextElementSize = nextPlaced.VisualElement == null
+                    ? new Vector3()
+                    : new Vector3((float)nextPlaced.VisualElement.Width, (float)nextPlaced.VisualElement.Height, 0);
+
+                var line = new Line
+                {
+                    X1 = curPtPosition.X + curElementSize.X / 2,
+                    Y1 = curPtPosition.Y + curElementSize.Y / 2,
+                    X2 = nextPtPosition.X + nextElementSize.X / 2,
+                    Y2 = nextPtPosition.Y + nextElementSize.Y / 2,
+                    Stroke = new SolidColorBrush( route.StrokeColor ),
+                    StrokeThickness = route.StrokeWidth,
+                    Opacity = route.StrokeOpacity
+                };
+
+                _routesCanvas.Children.Add( line );
+
+                if( route.ShowPoints )
+                    _routesCanvas.Children.Add( curPlaced.VisualElement );
             }
         }
     }
@@ -408,11 +372,12 @@ public sealed partial class J4JMapControl : Control
             return;
 
         foreach( var element in _annotationsCanvas.Children
-                                                  .Where(x=>x is FrameworkElement  )
+                                                  .Where( x => x is FrameworkElement )
                                                   .Cast<FrameworkElement>() )
         {
             Location.TryParseLatLong( element, out var latitude, out var longitude );
-            PositionVisualElement( element, latitude, longitude );
+
+            element.PositionRelativeToPoint( MapRegion.GetDisplayPosition( latitude, longitude ) );
         }
     }
 }

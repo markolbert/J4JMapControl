@@ -20,13 +20,13 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
-using Microsoft.Extensions.Logging;
+using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.UI.Xaml.Controls;
+using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -59,4 +59,55 @@ public static class Extensions
     public static double AngleBetweenPoints( Point origin, Point point ) =>
         Math.Atan2( origin.Y - point.Y, point.X - origin.X )
       * MapConstants.DegreesPerRadian;
+
+    public static Vector3 GetDisplayPosition( this MapRegion region, float latitude, float longitude )
+    {
+        var mapPoint = new MapPoint(region);
+        mapPoint.SetLatLong(latitude, longitude);
+
+        var (displayX, displayY) = region.UpperLeft.GetUpperLeftCartesian();
+
+        var position = region.ViewpointOffset;
+        position.X += mapPoint.X - displayX;
+        position.Y += mapPoint.Y - displayY;
+
+        if( region.Rotation % 360 == 0 )
+            return position;
+
+        var centerPoint = new System.Numerics.Vector3(region.RequestedWidth / 2, region.RequestedHeight / 2, 0);
+
+        var transform =
+            Matrix4x4.CreateRotationZ(region.Rotation * MapConstants.RadiansPerDegree, centerPoint);
+        position = System.Numerics.Vector3.Transform(position, transform);
+
+        return position;
+    }
+
+    public static Vector3 PositionRelativeToPoint( this FrameworkElement element, Vector3 position )
+    {
+        position.X += (float) ( element.HorizontalAlignment switch
+        {
+            HorizontalAlignment.Left => -element.ActualWidth,
+            HorizontalAlignment.Right => 0,
+            _ => -element.ActualWidth / 2
+        } );
+
+        position.Y += (float) ( element.VerticalAlignment switch
+        {
+            VerticalAlignment.Top => 0,
+            VerticalAlignment.Bottom => -element.ActualHeight,
+            _ => -element.ActualHeight / 2
+        } );
+
+        // get the specific/custom centerOffset
+        Location.TryParseOffset( element, out var customOffset );
+
+        position.X += (float) customOffset.X;
+        position.Y += (float) customOffset.Y;
+
+        Canvas.SetLeft( element, position.X );
+        Canvas.SetTop( element, position.Y );
+
+        return position;
+    }
 }
