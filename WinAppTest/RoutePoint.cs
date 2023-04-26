@@ -1,3 +1,3 @@
 ﻿namespace WinAppTest;
 
-public record RoutePoint( string Latitude, string Longitude );
+public record RoutePoint( string Latitude, string Longitude, bool Visible );

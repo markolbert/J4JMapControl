@@ -75,11 +75,17 @@
                 <map:MapRoute RouteName="Route1" 
                               LatitudeField="Latitude" 
                               LongitudeField="Longitude" 
+                              StrokeColor="Red"
+                              ShowPoints="True"
+                              PointVisibilityField="Visible"
                               DataSource="{x:Bind _route1}"/>
 
                 <map:MapRoute RouteName="Route2" 
                               LatitudeField="Latitude" 
                               LongitudeField="Longitude" 
+                              StrokeColor="Green"
+                              ShowPoints="True"
+                              PointVisibilityField="Visible"
                               DataSource="{x:Bind _route2}"/>
             </map:J4JMapControl.MapRoutes>
 

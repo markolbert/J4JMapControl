@@ -103,8 +103,10 @@ public sealed partial class MainWindow
         var file = await StorageFile.GetFileFromApplicationUriAsync( uri );
         var lines = await FileIO.ReadLinesAsync( file );
 
-        foreach( var line in lines )
+        for( var idx = 0; idx < lines.Count; idx++ )
         {
+            var line = lines[ idx ];
+
             var parts = line.Split( ',' );
             if( parts.Length != 2 )
             {
@@ -125,7 +127,8 @@ public sealed partial class MainWindow
             }
 
             routePoints.Add( new RoutePoint( latitude.ToString( CultureInfo.CurrentCulture ),
-                                             longitude.ToString( CultureInfo.CurrentCulture ) ) );
+                                             longitude.ToString( CultureInfo.CurrentCulture ),
+                                             idx % 3 == 0 ) );
         }
     }
 
