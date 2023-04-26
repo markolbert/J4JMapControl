@@ -12,4 +12,3 @@ Control documentation:
 
 - [J4JMapControl](map-control.md)
 - [MapPin](map-pin.md)
-- [Adding annotations](annotations.md)

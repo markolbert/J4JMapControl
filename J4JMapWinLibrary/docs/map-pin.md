@@ -13,8 +13,12 @@ To locate it on the map control you use the following *annotation properties*:
 
 |Property|Type|Default|Comments|
 |--------|----|-------|--------|
-|`Location.Center`|`string`|`null`|must be a parseable latitude/longitude string. See the discussion on [map region properties](map-control#map-region-properties) for details.|
+|`Location.Latitude`|`string`|`null`|must be a [parseable latitude](parseable-location-formats.md) value|
+|`Location.Longitude`|`string`|`null`|must be a [parseable longitude](parseable-location-formats.md) value|
+|`Location.LatLong`|`string`|`null`|must be a [parseable combined latitude/longitude](parseable-location-formats.md) value|
 |`Location.Offset`|`string`|"0,0"|the horizontal and vertical offsets, in pixels, to apply to `MapPin` when it is positioned on the map control. See below for details.|
+
+If `Location.Latitude` and `Location.Longitude` are both defined and valid, they override anything specified for `Location.LatLong` (even if it's valid).
 
 The `Location.Offset` property must be in the following format:
 

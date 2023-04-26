@@ -42,9 +42,9 @@ Each `FrameworkElement` must be tagged with the attached property `Location.LatL
 
 |Property|Type|Comments|
 |--------|----|--------|
-|`Latitude`|`string`|a parseable latitude value (e.g., 10, -10, 10N, 10S)|
-|`Longitude`|`string`|a parseable longitude value (e.g., 10, -10, 10E, 10W)|
-|`LatLong`|`string`|a parseable latitude/longitude value (e.g., "-10, 10", "10S, 10W")|
+|`Latitude`|`string`|a [parseable latitude value](parseable-location-formats.md)|
+|`Longitude`|`string`|a [parseable longitude value](parseable-location-formats.md)|
+|`LatLong`|`string`|a [parseable latitude/longitude value](parseable-location-formats.md)|
 |`Offset`|`string`|a parseable offset string defining how many pixels the visual element should be offset from the latitude/longitude position (e.g., "5, -5")|
 
 If `Latitude` and `Longitude` are both valid values they will override any value assigned to `LatLong`.
@@ -62,9 +62,9 @@ Templated annotations are defined by setting several properties on the map contr
 |Property|Type|Comments|
 |--------|----|--------|
 |`PoIDataSource`|object|an enumerable holding items defining the templated items to be constructed. Each record must at least contain location data.|
-|`PoILatitude`|`string`|the name of the property in the data source which holds  parseable latitude values (e.g., 10, -10, 10N, 10S)|
-|`PoILongitude`|`string`|the name of the property in the data source which holds parseable longitude values (e.g., 10, -10, 10E, 10W)|
-|`PoILatLong`|`string`|the name of the property in the data source which holds  parseable latitude/longitude values (e.g., "-10, 10", "10S, 10W")|
+|`PoILatitude`|`string`|the name of the property in the data source which holds [parseable latitude values](parseable-location-formats.md)|
+|`PoILongitude`|`string`|the name of the property in the data source which holds [parseable longitude values](parseable-location-formats.md)|
+|`PoILatLong`|`string`|the name of the property in the data source which holds [parseable latitude/longitude values](parseable-location-formats.md)|
 
 If `PoIDataSource` is not an `IEnumerable` it will be ignored and no templated annotations will be created. The UI will update to reflect changes to the collection `PoIDataSource` points to.
 
