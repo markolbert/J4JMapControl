@@ -1,4 +1,5 @@
 using System;
+using Windows.UI.Xaml.Interop;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -135,22 +136,6 @@ public class MapRoute : DependencyObject
     }
 
     public DataTemplate? PointTemplate { get; set; }
-
-    public static readonly DependencyProperty MarkerProperty = DependencyProperty.Register( nameof( Marker ),
-        typeof( Shape ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( new Ellipse
-        {
-            Height = DefaultMarkerHeightWidth,
-            Width = DefaultMarkerHeightWidth,
-            Fill = new SolidColorBrush( Colors.Black )
-        } ) );
-
-    public Shape Marker
-    {
-        get => (Shape) GetValue( MarkerProperty );
-        set => SetValue( MarkerProperty, value );
-    }
 
     public static readonly DependencyProperty StrokeProperty = DependencyProperty.Register( nameof( Stroke ),
         typeof( Brush ),
