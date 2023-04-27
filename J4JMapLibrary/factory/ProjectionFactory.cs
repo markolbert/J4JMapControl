@@ -56,7 +56,6 @@ public class ProjectionFactory
     public ProjectionFactory ScanAssemblies( params Type[] types ) =>
         ScanAssemblies( types.Distinct().Select( t => t.Assembly ).ToArray() );
 
-    public ProjectionFactory ScanAssemblies() => ScanAssemblies( Enumerable.Empty<Assembly>().ToArray() );
     public ProjectionFactory ScanAssemblies( params Assembly[] assemblies )
     {
         _assemblies.AddRange( assemblies );
