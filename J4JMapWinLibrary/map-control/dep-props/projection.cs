@@ -22,14 +22,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Type = System.Type;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -43,36 +41,21 @@ public sealed partial class J4JMapControl
     private IProjection? _projection;
     private ProjectionFactory? _projFactory;
 
-    public static readonly DependencyProperty MapProjectionTypesProperty =
-        DependencyProperty.Register( nameof( MapProjectionTypes ),
-                                     typeof( List<string> ),
-                                     typeof( J4JMapControl ),
-                                     new PropertyMetadata( null ) );
-
-    public List<string>? MapProjectionTypes
-    {
-        get => (List<string>?) GetValue( MapProjectionTypesProperty );
-        set => SetValue( MapProjectionTypesProperty, value );
-    }
-
-    public ProjectionFactory? ProjectionFactory
+    public ProjectionFactory? MapProjectionFactory
     {
         get => _projFactory;
 
         set
         {
+            if( _projFactory != null ) 
+                _projFactory.CredentialsNeeded -= ProjFactoryOnCredentialsNeeded;
+
             _projFactory = value;
 
             if( _projFactory == null )
                 return;
 
-            foreach( var fqn in MapProjectionTypes ?? Enumerable.Empty<string>() )
-            {
-                var projType = Type.GetType( fqn );
-                if( projType != null )
-                    _projFactory.ScanAssemblies( projType );
-                else _logger?.LogWarning( "Could not create map projection type from '{fqn}'", fqn );
-            }
+            _projFactory.CredentialsNeeded += ProjFactoryOnCredentialsNeeded;
 
             if( _projFactory.InitializeFactory() )
             {
@@ -84,6 +67,9 @@ public sealed partial class J4JMapControl
             else _logger?.LogError( "Projection factory failed to find projection classes" );
         }
     }
+
+    private void ProjFactoryOnCredentialsNeeded( object? sender, CredentialsNeededEventArgs e ) =>
+        CredentialsNeeded?.Invoke( this, e );
 
     public DependencyProperty MapProjectionsProperty = DependencyProperty.Register(
         nameof( MapProjections ),
@@ -108,16 +94,16 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if( ProjectionFactory != null )
+            if( MapProjectionFactory != null )
             {
-                if (!ProjectionFactory.HasProjection(value))
+                if (!MapProjectionFactory.HasProjection(value))
                     _logger?.LogWarning("'{proj}' is not an available map projection", value);
             }
             else _logger?.LogWarning("Projection factory undefined, cannot create map projection");
 
             SetValue( MapProjectionProperty, value );
 
-            if( ProjectionFactory != null )
+            if( MapProjectionFactory != null )
                 InitializeProjection( value! );
         }
     }
@@ -125,15 +111,20 @@ public sealed partial class J4JMapControl
     private void InitializeProjection( string mapProjection )
     {
         // should never happen, but...
-        if( ProjectionFactory == null )
+        if( MapProjectionFactory == null )
             return;
 
         ProjectionFactoryResult projResult;
-        var cancelOnFailure = false;
+
+        if( _projection != null )
+        {
+            _projection.LoadComplete -= ProjectionOnLoadComplete;
+            _projection = null;
+        }
 
         while ( true )
         {
-            projResult = ProjectionFactory.CreateProjection( mapProjection );
+            projResult = MapProjectionFactory.CreateProjection( mapProjection );
             if( !projResult.ProjectionTypeFound )
             {
                 _logger?.LogCritical( "Could not create projection '{proj}'", mapProjection );
@@ -143,20 +134,9 @@ public sealed partial class J4JMapControl
             if( projResult.Authenticated )
                 break;
 
-            _logger?.LogError( "Could not authenticate projection '{proj}'", mapProjection );
-
-            var eventArgs = new CredentialsNeededEventArgs( mapProjection );
-            CredentialsNeeded?.Invoke(this, eventArgs);
-
-            if (eventArgs.CancelImmediately || cancelOnFailure)
-                break;
-
-            cancelOnFailure = eventArgs.CancelOnFailure;
-            //credentials = eventArgs.Credentials;
+            _logger?.LogError( "Projection {projName} could not be authenticated", mapProjection );
+            return;
         }
-
-        if ( _projection != null )
-            _projection.LoadComplete -= ProjectionOnLoadComplete;
 
         _projection = projResult.Projection!;
         _projection.LoadComplete += ProjectionOnLoadComplete;
