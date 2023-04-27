@@ -63,7 +63,8 @@ public interface IProjection : IEquatable<IProjection>
     int GetNumTiles( int scale );
 
     bool SetCredentials( object credentials );
-    Task<bool> SetCredentialsAsync( object credentials, CancellationToken ctx = default );
+    bool Authenticate();
+    Task<bool> AuthenticateAsync( CancellationToken ctx = default );
 
     Task<MapTile> GetMapTileWraparoundAsync( int x, int y, int scale, CancellationToken ctx = default );
     Task<MapTile> GetMapTileAbsoluteAsync( int x, int y, int scale, CancellationToken ctx = default );
@@ -73,7 +74,6 @@ public interface IProjection : IEquatable<IProjection>
         CancellationToken ctx = default
     );
 
-    //byte[]? GetImage( MapTile mapTile );
     Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default );
 
     Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default );

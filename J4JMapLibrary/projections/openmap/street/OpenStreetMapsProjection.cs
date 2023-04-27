@@ -25,7 +25,7 @@ using Microsoft.Extensions.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "OpenStreetMaps" ) ]
-public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredentials>
+public sealed class OpenStreetMapsProjection : TiledProjection
 {
     public OpenStreetMapsProjection(
         ILoggerFactory? loggerFactory = null
@@ -44,14 +44,26 @@ public sealed class OpenStreetMapsProjection : TiledProjection<OpenStreetCredent
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
-    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+    protected override bool ValidateCredentials(object credentials)
+    {
+        if (credentials is OpenStreetCredentials)
+            return true;
+
+        Logger?.LogError("Expected a {correct} but got a {incorrect} instead",
+                         typeof(OpenStreetCredentials),
+                         credentials.GetType());
+
+        return false;
+    }
+
+    public override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
     {
         if( !await base.AuthenticateAsync( ctx ) )
             return false;
 
         Initialized = false;
 
-        UserAgent = Credentials!.UserAgent;
+        UserAgent = ( (OpenStreetCredentials) Credentials! ).UserAgent;
 
         Initialized = true;
         return Initialized;

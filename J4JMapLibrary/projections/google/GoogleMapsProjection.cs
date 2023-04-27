@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "GoogleMaps" ) ]
-public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
+public sealed class GoogleMapsProjection : StaticProjection
 {
     public GoogleMapsProjection(
         ILoggerFactory? loggerFactory = null
@@ -73,15 +73,27 @@ public sealed class GoogleMapsProjection : StaticProjection<GoogleCredentials>
         GoogleMapStyle = result;
     }
 
-    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+    protected override bool ValidateCredentials( object credentials )
+    {
+        if( credentials is GoogleCredentials )
+            return true;
+
+        Logger?.LogError( "Expected a {correct} but got a {incorrect} instead",
+                          typeof( GoogleCredentials ),
+                          credentials.GetType() );
+
+        return false;
+    }
+
+    public override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
     {
         if( !await base.AuthenticateAsync( ctx ) )
             return false;
 
         Initialized = false;
 
-        ApiKey = Credentials!.ApiKey;
-        Signature = Credentials.SignatureSecret;
+        ApiKey = ((GoogleCredentials) Credentials!).ApiKey;
+        Signature = ((GoogleCredentials)Credentials).SignatureSecret;
 
         Initialized = true;
 

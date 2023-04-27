@@ -24,8 +24,7 @@ using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjection
-    where TAuth : class, new()
+public abstract class TiledProjection : Projection, ITiledProjection
 {
     protected TiledProjection(
         IEnumerable<string>? mapStyles = null,
@@ -93,7 +92,7 @@ public abstract class TiledProjection<TAuth> : Projection<TAuth>, ITiledProjecti
     }
 
 #pragma warning disable CS1998
-    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+    public override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
         return !string.IsNullOrEmpty( Name );

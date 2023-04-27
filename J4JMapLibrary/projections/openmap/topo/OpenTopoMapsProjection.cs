@@ -25,7 +25,7 @@ using Microsoft.Extensions.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "OpenTopoMaps" ) ]
-public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials>
+public sealed class OpenTopoMapsProjection : TiledProjection
 {
     public OpenTopoMapsProjection(
         ILoggerFactory? loggerFactory = null
@@ -45,14 +45,26 @@ public sealed class OpenTopoMapsProjection : TiledProjection<OpenTopoCredentials
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
-    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+    protected override bool ValidateCredentials(object credentials)
+    {
+        if (credentials is OpenTopoCredentials)
+            return true;
+
+        Logger?.LogError("Expected a {correct} but got a {incorrect} instead",
+                         typeof(OpenTopoCredentials),
+                         credentials.GetType());
+
+        return false;
+    }
+
+    public override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
     {
         if( !await base.AuthenticateAsync( ctx ) )
             return false;
 
         Initialized = false;
 
-        UserAgent = Credentials!.UserAgent;
+        UserAgent = ( (OpenTopoCredentials) Credentials! ).UserAgent;
 
         Initialized = true;
         return Initialized;

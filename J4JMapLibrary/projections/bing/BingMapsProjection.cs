@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging;
 namespace J4JSoftware.J4JMapLibrary;
 
 [ Projection( "BingMaps" ) ]
-public sealed class BingMapsProjection : TiledProjection<BingCredentials>
+public sealed class BingMapsProjection : TiledProjection
 {
     public const string MetadataUrl =
         "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/{mode}?output=json&key={apikey}";
@@ -85,7 +85,19 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
             Authenticate();
     }
 
-    protected override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+    protected override bool ValidateCredentials( object credentials )
+    {
+        if (credentials is BingCredentials)
+            return true;
+
+        Logger?.LogError("Expected a {correct} but got a {incorrect} instead",
+                         typeof(BingCredentials),
+                         credentials.GetType());
+
+        return false;
+    }
+
+    public override async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
     {
         // make sure we are decorated with a ProjectionAttribute, set up monitoring scale changes
         if( !await base.AuthenticateAsync( ctx ) )
@@ -93,7 +105,7 @@ public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 
         Initialized = false;
 
-        ApiKey = Credentials!.ApiKey;
+        ApiKey = ((BingCredentials)Credentials!).ApiKey;
 
         var replacements = new Dictionary<string, string>
         {

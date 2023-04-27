@@ -24,8 +24,7 @@ using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class StaticProjection<TAuth> : Projection<TAuth>
-    where TAuth : class, new()
+public abstract class StaticProjection : Projection
 {
     protected StaticProjection(
         IEnumerable<string>? mapStyles = null,

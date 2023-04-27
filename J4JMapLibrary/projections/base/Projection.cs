@@ -27,8 +27,7 @@ using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class Projection<TAuth> : IProjection
-    where TAuth : class, new()
+public abstract class Projection : IProjection
 {
     public const int DefaultMaxRequestLatency = 500;
     
@@ -68,7 +67,7 @@ public abstract class Projection<TAuth> : IProjection
     protected ILogger? Logger { get; }
     protected ILoggerFactory? LoggerFactory { get; }
 
-    protected TAuth? Credentials { get; private set; }
+    protected object? Credentials { get; private set; }
 
     public event EventHandler<bool>? LoadComplete;
 
@@ -159,40 +158,20 @@ public abstract class Projection<TAuth> : IProjection
         CancellationToken ctx = default
     );
 
-    bool IProjection.SetCredentials( object credentials )
-    {
-        if( credentials is TAuth castCredentials )
-            return SetCredentials( castCredentials );
+    protected abstract bool ValidateCredentials( object credentials );
 
-        Logger?.LogError( "Expected a {credType} but received a {actualType}", typeof( TAuth ), credentials.GetType() );
-        return false;
+    public bool SetCredentials( object credentials )
+    {
+        if( ValidateCredentials( credentials ) )
+            Credentials = credentials;
+
+        return Credentials != null;
     }
 
-    async Task<bool> IProjection.SetCredentialsAsync( object credentials, CancellationToken ctx )
-    {
-        if( credentials is TAuth castCredentials )
-            return await SetCredentialsAsync( castCredentials, ctx );
-
-        Logger?.LogError( "Expected a {credType} but received a {actualType}", typeof( TAuth ), credentials.GetType() );
-        return false;
-    }
-
-    public bool SetCredentials( TAuth credentials )
-    {
-        Credentials = credentials;
-        return Authenticate();
-    }
-
-    public async Task<bool> SetCredentialsAsync( TAuth credentials, CancellationToken ctx = default )
-    {
-        Credentials = credentials;
-        return await AuthenticateAsync( ctx );
-    }
-
-    protected bool Authenticate() => Task.Run( async () => await AuthenticateAsync() ).Result;
+    public bool Authenticate() => Task.Run( async () => await AuthenticateAsync() ).Result;
 
 #pragma warning disable CS1998
-    protected virtual async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
+    public virtual async Task<bool> AuthenticateAsync( CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
         if( Credentials != null )
@@ -223,11 +202,6 @@ public abstract class Projection<TAuth> : IProjection
         MapRegion.MapRegion region,
         CancellationToken ctx = default
     );
-
-    //public byte[]? GetImage( MapTile mapTile )
-    //{
-    //    return Task.Run( async () => await GetImageAsync( mapTile ) ).Result;
-    //}
 
     public async Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default )
     {
@@ -401,9 +375,9 @@ public abstract class Projection<TAuth> : IProjection
 
     #region IEquatable
 
-    public static bool operator==( Projection<TAuth>? left, Projection<TAuth>? right ) => Equals( left, right );
+    public static bool operator==( Projection? left, Projection? right ) => Equals( left, right );
 
-    public static bool operator!=( Projection<TAuth>? left, Projection<TAuth>? right ) => !Equals( left, right );
+    public static bool operator!=(Projection? left, Projection? right) => !Equals( left, right );
 
     public bool Equals( IProjection? other ) =>
         other != null
