@@ -19,6 +19,7 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
@@ -28,12 +29,12 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class ProjectionFactory
 {
-    public event EventHandler<CredentialsNeedEventArgs>? CredentialsNeeded;
+    public event EventHandler<CredentialsNeededEventArgs>? CredentialsNeeded;
 
     private readonly IConfiguration _config;
     private readonly List<Assembly> _assemblies = new();
     private readonly List<ProjectionTypeInfo> _projTypes = new();
-    private readonly List<CredentialsTypeInfo> _credTypes = new();
+    private readonly List<ICredentials> _credentials = new();
     private readonly bool _includeDefaults;
     private readonly ILogger? _logger;
     private readonly ILoggerFactory? _loggerFactory;
@@ -110,7 +111,7 @@ public class ProjectionFactory
         var types = toScan
                    .SelectMany( a => a.GetTypes()
                                       .Where( t => !t.IsAbstract
-                                               && t.GetCustomAttribute<MapCredentialsAttribute>( false ) != null
+                                               && t.IsAssignableTo( typeof( ICredentials ) )
                                                && t.GetConstructors()
                                                    .Any( c => c.GetParameters().Length == 0 ) ) )
                    .ToList();
@@ -121,7 +122,17 @@ public class ProjectionFactory
             return;
         }
 
-        _credTypes.AddRange( types.Select( t => new CredentialsTypeInfo( t ) ) );
+        _credentials.Clear();
+
+        foreach( var t in types )
+        {
+            var credentials = (ICredentials) Activator.CreateInstance( t )!;
+
+            var configSection = _config.GetSection( $"Credentials:{credentials.ProjectionName}" );
+            configSection.Bind( credentials );
+
+            _credentials.Add( (ICredentials) credentials );
+        }
     }
 
     public IEnumerable<string> ProjectionNames => _projTypes.Select( x => x.Name );
@@ -132,22 +143,27 @@ public class ProjectionFactory
     public bool HasProjection<TProj>() => HasProjection( typeof( TProj ) );
     public bool HasProjection( Type projectionType ) => _projTypes.Any( x => x.ProjectionType == projectionType );
 
-    public bool UseFirstCredentialsAsDefault { get; set; } = true;
+    public ReadOnlyCollection<ICredentials> Credentials => _credentials.AsReadOnly();
 
     public ProjectionFactoryResult CreateProjection(
         string projName,
-        string? credentialsName = null,
+        object? credentials = null,
+        bool useDiscoveredCredentials = true,
         bool authenticate = true
     )
     {
         return Task.Run( async () =>
-                             await CreateProjectionAsync( projName, credentialsName, authenticate ) )
+                             await CreateProjectionAsync( projName,
+                                                          credentials,
+                                                          useDiscoveredCredentials,
+                                                          authenticate ) )
                    .Result;
     }
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         string projName,
-        string? credentialsName = null,
+        object? credentials = null,
+        bool useDiscoveredCredentials = true,
         bool authenticate = true,
         CancellationToken ctx = default
     )
@@ -165,40 +181,51 @@ public class ProjectionFactory
         if( projection == null || !authenticate )
             return new ProjectionFactoryResult( projection, projection != null );
 
-        return new ProjectionFactoryResult( projection, true )
+        if (!SetCredentials(projection, projInfo, credentials, useDiscoveredCredentials))
+            return new ProjectionFactoryResult(projection, true);
+
+        return new ProjectionFactoryResult(projection, true)
         {
-            Authenticated = await AuthenticateProjection( projection, projInfo, credentialsName, ctx )
+            Authenticated = await projection.AuthenticateAsync(ctx)
         };
     }
 
     public ProjectionFactoryResult CreateProjection<TProj>(
-        string? credentialsName = null,
+        object? credentials = null,
+        bool useDiscoveredCredentials = true,
         bool authenticate = true
     )
         where TProj : IProjection =>
-        CreateProjection( typeof( TProj ), credentialsName, authenticate );
+        CreateProjection( typeof( TProj ), credentials, useDiscoveredCredentials, authenticate );
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync<TProj>(
-        string? credentialsName = null,
+        object? credentials = null,
+        bool useDiscoveredCredentials = true,
         bool authenticate = true
     )
         where TProj : IProjection =>
         await CreateProjectionAsync( typeof( TProj ),
-                                     credentialsName,
+                                     credentials,
+                                     useDiscoveredCredentials,
                                      authenticate );
 
     public ProjectionFactoryResult CreateProjection(
         Type projType,
-        string? credentialsName = null,
+        object? credentials = null,
+        bool useDiscoveredCredentials = true,
         bool authenticate = true
     ) =>
         Task.Run( async () =>
-                      await CreateProjectionAsync( projType, credentialsName, authenticate ) )
+                      await CreateProjectionAsync( projType,
+                                                   credentials,
+                                                   useDiscoveredCredentials,
+                                                   authenticate ) )
             .Result;
 
     public async Task<ProjectionFactoryResult> CreateProjectionAsync(
         Type projType,
-        string? credentialsName = null,
+        object? credentials = null,
+        bool useDiscoveredCredentials = true,
         bool authenticate = true,
         CancellationToken ctx = default
     )
@@ -219,9 +246,12 @@ public class ProjectionFactory
         if( projection == null || !authenticate )
             return new ProjectionFactoryResult( projection, projection != null );
 
+        if( !SetCredentials(projection,projInfo,credentials, useDiscoveredCredentials))
+            return new ProjectionFactoryResult(projection, true);
+
         return new ProjectionFactoryResult(projection, true)
         {
-            Authenticated = await AuthenticateProjection(projection, projInfo, credentialsName, ctx)
+            Authenticated = await projection.AuthenticateAsync(ctx)
         };
     }
 
@@ -268,26 +298,40 @@ public class ProjectionFactory
         return projection;
     }
 
-    private async Task<bool> AuthenticateProjection(
+    private bool SetCredentials(
         IProjection projection,
         ProjectionTypeInfo projInfo,
-        string? credentialsName,
-        CancellationToken ctx = default
+        object? credentials,
+        bool useDiscoveredCredentials
     )
     {
-        var credentials = CreateCredentials( projInfo, credentialsName );
         var cancelOnFailure = false;
         var retVal = false;
+
+        if( credentials == null && useDiscoveredCredentials )
+        {
+            var projType = projection.GetType();
+
+            var knownCredentials = _credentials.Where( x => x.ProjectionType == projType )
+                                               .ToList();
+
+            if( knownCredentials.Any() )
+                credentials = knownCredentials[0];
+
+            if( knownCredentials.Count > 1 )
+                _logger?.LogWarning( "Found multiple credentials for projection {projType}, using the first one",
+                                     projType );
+        }
 
         while( true )
         {
             if( credentials != null )
-                retVal = await projection.SetCredentialsAsync( credentials, ctx );
+                retVal = projection.SetCredentials( credentials );
 
             if( retVal )
                 break;
 
-            var eventArgs = new CredentialsNeedEventArgs( projInfo.Name );
+            var eventArgs = new CredentialsNeededEventArgs( projInfo.Name );
             CredentialsNeeded?.Invoke( this, eventArgs );
 
             if( eventArgs.CancelImmediately || cancelOnFailure )
@@ -298,64 +342,5 @@ public class ProjectionFactory
         }
 
         return retVal;
-    }
-
-    private object? CreateCredentials( ProjectionTypeInfo projInfo, string? credentialsName )
-    {
-        var credTypes = _credTypes
-                       .Where( x => x.ProjectionType == projInfo.ProjectionType )
-                       .ToList();
-
-        var credType = string.IsNullOrEmpty( credentialsName )
-            ? null
-            : credTypes.FirstOrDefault( x => x.Name.Equals( credentialsName, StringComparison.OrdinalIgnoreCase ) );
-
-        // it's possible the search on serverName failed, so we need a fallback
-        if( UseFirstCredentialsAsDefault && credType == null )
-            credType = credTypes.FirstOrDefault();
-
-        if( credType == null )
-        {
-            if( string.IsNullOrEmpty( credentialsName ) )
-                _logger?.LogWarning( "No valid credentials type supporting '{name}' projection found", projInfo.Name );
-            else
-            {
-                _logger?.LogWarning(
-                    "No credentials type named '{credName}' found, and no other credentials supporting '{projName}' projection found",
-                    credentialsName,
-                    projInfo.Name );
-            }
-        }
-
-        if( credTypes.Count > 1 )
-        {
-            _logger?.LogWarning(
-                "Multiple credentials types supporting '{name}' projection found, using {credType} credentials type",
-                projInfo.Name,
-                credType?.Name ?? "Default" );
-        }
-
-        if( credType == null )
-        {
-            _logger?.LogError( "Could not find a credentials type supporting projection {name}", projInfo.Name );
-            return null;
-        }
-
-        try
-        {
-            var retVal = Activator.CreateInstance( credType.CredentialsType )!;
-
-            var section = _config.GetSection($"Credentials:{credType.Name}");
-            section.Bind( retVal );
-
-            return retVal;
-        }
-        catch( Exception ex )
-        {
-            _logger?.LogError( "Could not create an instance of credentials type {credType}, message was {mesg}",
-                            credType.CredentialsType,
-                            ex.Message );
-            return null;
-        }
     }
 }
