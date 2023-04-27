@@ -19,8 +19,10 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
@@ -33,6 +35,8 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    public event EventHandler<CredentialsNeededEventArgs>? CredentialsNeeded;
+
     private readonly DispatcherQueue _dispatcherQueue;
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
 
@@ -124,20 +128,34 @@ public sealed partial class J4JMapControl
         if( ProjectionFactory == null )
             return;
 
-        var projResult = ProjectionFactory.CreateProjection(mapProjection);
-        if (!projResult.ProjectionTypeFound)
+        ProjectionFactoryResult projResult;
+        var cancelOnFailure = false;
+
+        while ( true )
         {
-            _logger?.LogCritical("Could not create projection '{proj}'", mapProjection);
-            return;
+            projResult = ProjectionFactory.CreateProjection( mapProjection );
+            if( !projResult.ProjectionTypeFound )
+            {
+                _logger?.LogCritical( "Could not create projection '{proj}'", mapProjection );
+                return;
+            }
+
+            if( projResult.Authenticated )
+                break;
+
+            _logger?.LogError( "Could not authenticate projection '{proj}'", mapProjection );
+
+            var eventArgs = new CredentialsNeededEventArgs( mapProjection );
+            CredentialsNeeded?.Invoke(this, eventArgs);
+
+            if (eventArgs.CancelImmediately || cancelOnFailure)
+                break;
+
+            cancelOnFailure = eventArgs.CancelOnFailure;
+            //credentials = eventArgs.Credentials;
         }
 
-        if (!projResult.Authenticated)
-        {
-            _logger?.LogCritical("Could not authenticate projection '{proj}'", mapProjection);
-            return;
-        }
-
-        if( _projection != null )
+        if ( _projection != null )
             _projection.LoadComplete -= ProjectionOnLoadComplete;
 
         _projection = projResult.Projection!;
