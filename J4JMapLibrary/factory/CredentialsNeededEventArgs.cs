@@ -1,8 +1,8 @@
 ﻿namespace J4JSoftware.J4JMapLibrary;
 
-public class CredentialsNeedEventArgs
+public class CredentialsNeededEventArgs
 {
-    public CredentialsNeedEventArgs(
+    public CredentialsNeededEventArgs(
         string projectionName
     )
     {
