@@ -50,8 +50,8 @@ public sealed partial class MainWindow
         _logger = loggerFactory?.CreateLogger<MainWindow>();
         mapControl.LoggerFactory = loggerFactory;
 
-        mapControl.ProjectionFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        if( mapControl.ProjectionFactory == null )
+        mapControl.MapProjectionFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
+        if( mapControl.MapProjectionFactory == null )
             _logger?.LogCritical( "ProjectionFactory is not defined" );
 
         var hWnd = WindowNative.GetWindowHandle( this );
