@@ -81,15 +81,14 @@ public class FactoryTests : TestBase
     {
         var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
         factory.Should().NotBeNull();
-        factory!.UseFirstCredentialsAsDefault = false;
-        factory.CredentialsNeeded += CredentialsNeeded;
+        factory!.CredentialsNeeded += CredentialsNeeded;
 
-        var result = await factory!.CreateProjectionAsync(projType);
+        var result = await factory!.CreateProjectionAsync(projType, null, false);
         result.ProjectionTypeFound.Should().Be(projCreated);
         result.Authenticated.Should().Be(authenticated);
     }
 
-    private void CredentialsNeeded( object? sender, CredentialsNeedEventArgs e )
+    private void CredentialsNeeded( object? sender, CredentialsNeededEventArgs e )
     {
         e.Credentials = GetCredentials( e.ProjectionName );
         e.CancelOnFailure = true;
