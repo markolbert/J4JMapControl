@@ -39,13 +39,15 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.MaxRequestLatency = maxLatency;
 
-        if( maxLatency is > 0 and < 10 )
+        projection.SetCredentials( credentials! ).Should().Be( true );
+
+        if ( maxLatency is > 0 and < 10 )
         {
-            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.SetCredentialsAsync( credentials! ) );
+            await Assert.ThrowsAsync<TimeoutException>( async () => await projection.AuthenticateAsync() );
         }
         else
         {
-            var initialized = await projection.SetCredentialsAsync( credentials! );
+            var initialized = await projection.AuthenticateAsync();
             initialized.Should().Be( testResult );
         }
     }

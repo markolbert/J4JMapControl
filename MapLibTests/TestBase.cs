@@ -37,7 +37,7 @@ public class TestBase
         if( credentials != null )
             return await CreateProjectionWithSuppliedCredentials( projName, credentials);
 
-        return await CreateProjectionUsingBuiltInCredentials(projName);
+        return await CreateProjectionUsingDiscoveredCredentials(projName);
     }
 
     private async Task<IProjection?> CreateProjectionWithSuppliedCredentials(
@@ -60,13 +60,14 @@ public class TestBase
             return null;
         }
 
-        var authenticated = await retVal.SetCredentialsAsync(credentials);
+        retVal.SetCredentials(credentials).Should().BeTrue();
+        var authenticated = await retVal.AuthenticateAsync();
         authenticated.Should().BeTrue();
 
         return retVal;
     }
 
-    private async Task<IProjection?> CreateProjectionUsingBuiltInCredentials( string projName )
+    private async Task<IProjection?> CreateProjectionUsingDiscoveredCredentials( string projName )
     {
         var retVal = projName switch
         {
@@ -87,15 +88,16 @@ public class TestBase
         if( credentials == null )
             return null;
 
-        var authenticated = await retVal.SetCredentialsAsync( credentials );
+        retVal.SetCredentials(credentials).Should().BeTrue();
+        var authenticated = await retVal.AuthenticateAsync();
         authenticated.Should().BeTrue();
 
         return retVal;
     }
 
-    protected object? GetCredentials( string credentialName )
+    protected object? GetCredentials( string projectionName )
     {
-        var retVal = credentialName switch
+        var retVal = projectionName switch
         {
             "BingMaps" => (object)new BingCredentials(),
             "OpenStreetMaps" => new OpenStreetCredentials(),
@@ -106,11 +108,11 @@ public class TestBase
 
         if (retVal == null)
         {
-            Logger.LogError("Unknown credentials type {credName}", credentialName);
+            Logger.LogError("Unknown projection name {projName}", projectionName);
             return null;
         }
 
-        var section = _config.GetSection($"Credentials:{credentialName}");
+        var section = _config.GetSection($"Credentials:{projectionName}");
         section.Bind(retVal);
 
         return retVal;
