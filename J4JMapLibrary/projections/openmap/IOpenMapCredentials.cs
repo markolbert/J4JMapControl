@@ -21,7 +21,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface IOpenMapCredentials
+public interface IOpenMapCredentials : ICredentials
 {
     string UserAgent { get; set; }
 }

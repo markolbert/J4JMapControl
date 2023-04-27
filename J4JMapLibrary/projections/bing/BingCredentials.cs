@@ -21,11 +21,12 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-[ MapCredentials( "BingMaps", typeof( BingMapsProjection ) ) ]
-public record BingCredentials( string ApiKey )
+public class BingCredentials : CredentialsBase
 {
     public BingCredentials()
-        : this( string.Empty )
+        : base( typeof( BingMapsProjection ) )
     {
     }
+
+    public string ApiKey { get; set; } = string.Empty;
 }
