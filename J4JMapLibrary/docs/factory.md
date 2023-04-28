@@ -5,11 +5,21 @@
 - [Ensuring Your Credentials Can Be Found](#ensuring-your-credentials-can-be-found)
 - [Creating the Factory](#creating-the-factory)
 - [Creating a Projection](#creating-a-projection)
+- [Authentication](#authentication)
 - Custom Projections and Credentials
   - [Scanning for Custom Projections and Credentials](#scanning-for-custom-projections-and-credentials)
-  - [Ensuring Custom Projections Can Be Found](#ensuring-custom-projections-can-be-found)
+  - [Ensuring Custom Projections Can Be Found](#ensuring-custom-projections-and-credentials-can-be-found)
   
 While it's fairly straightforward to create a projection, in order to make it possible to do so by choosing one of the caches at run time inspired me to write `ProjectionFactory`.
+
+The basic process for using it is:
+
+- create and instance of `ProjectionFactory`
+- tell it whatever custom projection/credentials assemblies you want it to search (by default, it automatically searches the `J4JMapLibrary` assembly, although you can keep it from doing so by specifying a flag when you create the instance)
+- call the `InitializeFactory()` method
+- use one of the `Create...` methods to create a projection
+
+The factory will attempt to authenticate a projection when it is created. See the [Authentication](#authentication) section for details.
 
 In order for the factory to work, however, two things are necessary:
 
@@ -20,23 +30,25 @@ This is covered in more detail below.
 
 ## Ensuring Your Credentials Can Be Found
 
-To make a projection's credential information available through the `IConfiguration` system, it must be organized in a configuration section called **Credentails**, further identified by the credentials's name. That's so the following code can work:
+To make a projection's credential information available through the `IConfiguration` system, it must be organized in a configuration section called **Credentials**, further identified by the corresponding projection's name. That's so the following code can work:
 
 ```csharp
-var retVal = Activator.CreateInstance( credType.CredentialsType )!;
+var credentials = (ICredentials) Activator.CreateInstance( t )!;
 
-var section = _config.GetSection( $"Credentials:{credType.Name}" );
-section.Bind( retVal );
+var configSection = _config.GetSection( $"Credentials:{credentials.ProjectionName}" );
+configSection.Bind( credentials );
+
+_credentials.Add( (ICredentials) credentials );
 ```
 
-The built-in credentials have the following names:
+The built-in projections have the following names:
 
-|Credential Class|Name|
+|Projection Class|Name|
 |----------|----|
-|`BingCredentials`|BingMaps|
-|`GoogleCredentials`|GoogleMaps|
-|`OpenStreetCredentials`|OpenStreetMaps|
-|`OpenTopoCredentials`|OpenTopoMaps|
+|`BingMapsProjection`|BingMaps|
+|`GoogleMapsProjection`|GoogleMaps|
+|`OpenStreetMapsProjection`|OpenStreetMaps|
+|`OpenTopoMapsProjection`|OpenTopoMaps|
 
 For more details on custom credentials and projections, consult the [documentation on how to create custom projections and credentials](custom-projections.md).
 
@@ -69,8 +81,8 @@ Once you've initialized the factory you can call one of its creation methods to 
 |Parameter|Parameter Description|
 |---------|---------------------|
 |`string` projName|the name of the projection (see below)|
-|`ITileCache?` cache = null|the cache to use (optional); ignored for projections which don't support caching|
-|`string?` credentialsName = null|the name of the credentials class (optional)|
+|`object?` credentials = null|the credentials to use to authenticate the projection (optional)|
+|`bool` useDiscoveredCredentials = true|a flag indicating whether credentials from the `IConfiguration` system should be used if `credentials` is null (optional)|
 |`bool` authenticate = true|controls whether or not to authenticate the projection after it's created (default: true)|
 
 ### Generic CreateProjection&lt;TProj&gt;(), CreateProjectionAsync&lt;TProj&gt;()
@@ -78,8 +90,8 @@ Once you've initialized the factory you can call one of its creation methods to 
 |Parameter|Parameter Description|
 |---------|---------------------|
 |`TProj`|the projection type (e.g., `BingMapsProjection`)|
-|`ITileCache?` cache = null|the cache to use (optional); ignored for projections which don't support caching|
-|`string?` credentialsName = null|the name of the credentials class (optional)|
+|`object?` credentials = null|the credentials to use to authenticate the projection (optional)|
+|`bool` useDiscoveredCredentials = true|a flag indicating whether credentials from the `IConfiguration` system should be used if `credentials` is null (optional)|
 |`bool` authenticate = true|controls whether or not to authenticate the projection after it's created (default: true)|
 
 ### Type-based CreateProjection(), CreateProjectionAsync()
@@ -87,20 +99,44 @@ Once you've initialized the factory you can call one of its creation methods to 
 |Parameter|Parameter Description|
 |---------|---------------------|
 |`Type` projType|the projection type (e.g., `typeof(BingMapsProjection)`)|
-|`ITileCache?` cache = null|the cache to use (optional); ignored for projections which don't support caching|
-|`string?` credentialsName = null|the name of the credentials class (optional)|
+|`object?` credentials = null|the credentials to use to authenticate the projection (optional)|
+|`bool` useDiscoveredCredentials = true|a flag indicating whether credentials from the `IConfiguration` system should be used if `credentials` is null (optional)|
 |`bool` authenticate = true|controls whether or not to authenticate the projection after it's created (default: true)|
 
-The names of the built-in projections are as follows:
-
-|Projection Class|Name|
-|----------|----|
-|`BingMapsProjection`|BingMaps|
-|`GoogleMapsProjection`|GoogleMaps|
-|`OpenStreetMapsProjection`|OpenStreetMaps|
-|`OpenTopoMapsProjection`|OpenTopoMaps|
+The names of the built-in projections are listed in the [Ensuring Your Credentials Can Be Found](#ensuring-your-credentials-can-be-found) section.
 
 [return to table of contents](#overview)
+
+[return to usage table of contents](usage.md#overview)
+
+## Authentication
+
+When a projection is created the factory attempts to authenticate it. It does so by trying credentials from various sources until one succeeds, the user fails to provide additional credentials, or cancels the authentication process.
+
+Requests for credentials are made through the `CredentialsNeeded` event, whose event argument is an instance of `CredentialsNeededEventArgs`, which contains the following properties:
+
+|Property|Type|Nature|Comments|
+|--------|----|------|--------|
+|`ProjectionName`|`string`|read-only|specifies the projection for which credentials are being requested|
+|`Credentials`|`object?`|read/write|set this to user-supplied credentials (defaults to `null`)|
+|`CancelImmediately`|`bool`|read/write|set to `true` to cancel authentication (defaults to `false`)|
+|`CancelOnFailure`|`bool`|read/write|set to `true` to cancel if the next authentication attempt fails (defaults to `false`)|
+
+How you respond to a `CredentialsNeeded` request, or whether you respond at all, is up to you in designing the app using `J4JMapLibrary`.
+
+The overall flow of the credentialing process is somewhat involved. Here's a picture detailing it:
+
+![credentialing flow chart](assets/credentials.png)
+
+If authentication succeeds based on a response to the `CredentialsNeeded` event, a second event, `CredentialsSucceeded`, is raised so you can save the new/revised credentials for future use. Its event argument contains the successful credentials object:
+
+|Property|Type|Comments|
+|--------|----|--------|
+|`ProjectionName`|`string`|specifies the projection for which credentials are being requested|
+|`Credentials`|`object?`|the successful credentials|
+
+[return to table of contents](#overview)
+
 [return to usage table of contents](usage.md#overview)
 
 ## Scanning for Custom Projections and Credentials
@@ -111,7 +147,7 @@ To have the factory include custom projection and credential classes you may hav
 
 [return to usage table of contents](usage.md#overview)
 
-## Ensuring Custom Projections Can Be Found
+## Ensuring Custom Projections and Credentials Can Be Found
 
 If you create a custom projection class you must deocrate it with a `ProjectionAttribute` in order for the factory to find it when it scans the assembly where it's defined. Here's an example of how the built-in `BingMapsProjection` class is named:
 
@@ -120,14 +156,54 @@ If you create a custom projection class you must deocrate it with a `ProjectionA
 public sealed class BingMapsProjection : TiledProjection<BingCredentials>
 ```
 
-Projection names must be unique within the application's environment, so be sure not to duplicate any of the built-in names:
+Projection names must be unique within the application's environment, so be sure not to duplicate any of the built-in names.
 
-|Projection Class|Name|
-|----------|----|
-|`BingMapsProjection`|BingMaps|
-|`GoogleMapsProjection`|GoogleMaps|
-|`OpenStreetMapsProjection`|OpenStreetMaps|
-|`OpenTopoMapsProjection`|OpenTopoMaps|
+Custom credentials for a custom projection/map service must implement the `ICredentials` interface:
+
+```csharp
+public interface ICredentials
+{
+    Type ProjectionType { get; }
+    string ProjectionName { get; }
+}
+```
+
+To simplify doing this you can derive your custom credentials class from `CredentialsBase`:
+
+```csharp
+public class CredentialsBase : ICredentials
+{
+    protected CredentialsBase(
+        Type projectionType
+    )
+    {
+        ProjectionType = projectionType;
+
+        var attribute = projectionType.GetCustomAttribute<ProjectionAttribute>();
+        ProjectionName = attribute?.ProjectionName ?? string.Empty;
+    }
+
+    public Type ProjectionType { get; }
+    public string ProjectionName { get; }
+}
+```
+
+`CredentialsBase` assumes your custom projection class is decorated with a `ProjectionAttribute`, which it uses to look up the unique name of the projection.
+
+Custom credentials classes can implement whatever properties they need to for that projection's authentication. Here's what `GoogleCredentials` looks like:
+
+```csharp
+public class GoogleCredentials : CredentialsBase
+{
+    public GoogleCredentials()
+        : base( typeof( GoogleMapsProjection ) )
+    {
+    }
+
+    public string ApiKey { get; set; } = string.Empty;
+    public string SignatureSecret { get; set; } = string.Empty;
+}
+```
 
 For more details on custom credentials and projections, consult the [documentation on how to create custom projections and credentials](custom-projections.md).
 
