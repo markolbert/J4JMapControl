@@ -30,6 +30,7 @@ namespace J4JSoftware.J4JMapLibrary;
 public class ProjectionFactory
 {
     public event EventHandler<CredentialsNeededEventArgs>? CredentialsNeeded;
+    public event EventHandler<CredentialsSucceededEventArgs>? CredentialsSucceeded;
 
     private readonly IConfiguration _config;
     private readonly List<Assembly> _assemblies = new();
@@ -322,6 +323,8 @@ public class ProjectionFactory
                                      projType );
         }
 
+        var credentialsRequested = false;
+
         while( true )
         {
             if( credentials != null )
@@ -331,6 +334,7 @@ public class ProjectionFactory
                 break;
 
             var eventArgs = new CredentialsNeededEventArgs( projInfo.Name );
+            credentialsRequested = true;
             CredentialsNeeded?.Invoke( this, eventArgs );
 
             if( eventArgs.CancelImmediately || cancelOnFailure )
@@ -339,6 +343,9 @@ public class ProjectionFactory
             cancelOnFailure = eventArgs.CancelOnFailure;
             credentials = eventArgs.Credentials;
         }
+
+        if( credentialsRequested && retVal )
+            CredentialsSucceeded?.Invoke( this, new CredentialsSucceededEventArgs( projInfo.Name, credentials! ) );
 
         return retVal;
     }
