@@ -25,6 +25,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 using Windows.Storage;
+using J4JSoftware.J4JMapWinLibrary;
+using Microsoft.Extensions.Configuration;
 
 namespace WinAppTest;
 
@@ -33,7 +35,6 @@ namespace WinAppTest;
 /// </summary>
 public sealed partial class MainWindow
 {
-    private readonly IJ4JHost _j4jHost;
     private readonly ILogger? _logger;
     private readonly PointOfInterest _sanCarlos;
 
@@ -44,15 +45,25 @@ public sealed partial class MainWindow
 
     public MainWindow()
     {
-        this.InitializeComponent();
+        var config = J4JDeusEx.ServiceProvider.GetService<IConfiguration>();
+        if (config == null)
+        {
+            _logger?.LogCritical("IConfiguration is not defined");
+            throw new ApplicationException("IConfiguration is not defined");
+        }
 
-        var loggerFactory = ( (App) Application.Current ).LoggerFactory;
+        var loggerFactory = J4JDeusEx.ServiceProvider.GetService<ILoggerFactory>();
+        if( loggerFactory == null )
+        {
+            _logger?.LogCritical("ILoggerFactory is not defined");
+            throw new ApplicationException("ILoggerFactory is not defined");
+        }
+
         _logger = loggerFactory?.CreateLogger<MainWindow>();
-        mapControl.LoggerFactory = loggerFactory;
 
-        mapControl.MapProjectionFactory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        if( mapControl.MapProjectionFactory == null )
-            _logger?.LogCritical( "ProjectionFactory is not defined" );
+        MapControlViewModelLocator.Initialize(config, loggerFactory);
+
+        this.InitializeComponent();
 
         var hWnd = WindowNative.GetWindowHandle( this );
         var windowId = Win32Interop.GetWindowIdFromWindow( hWnd );
@@ -60,8 +71,8 @@ public sealed partial class MainWindow
 
         appWindow.Resize( new SizeInt32( 800, 1000 ) );
 
-        _j4jHost = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>()
-         ?? throw new NullReferenceException( $"Could not load {typeof( IJ4JHost )}" );
+        //_j4jHost = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>()
+        // ?? throw new NullReferenceException( $"Could not load {typeof( IJ4JHost )}" );
 
         _ptsOfInterest = new ObservableCollection<PointOfInterest>
         {

@@ -22,18 +22,12 @@ public partial class App : Application
         this.InitializeComponent();
 
         var deusEx = new DeusEx();
+        if( deusEx.Initialize() )
+            return;
 
-        if( !deusEx.Initialize() )
-        {
-            J4JDeusEx.OutputFatalMessage("Could not initialize J4JDeusEx", null);
-            throw new InvalidOperationException("Could not initialize J4JDeusEx");
-        }
-
-        LoggerFactory = J4JDeusEx.ServiceProvider.GetService<ILoggerFactory>();
-        //test = Type.GetType( "J4JSoftware.J4JMapLibrary.BingMapsProjection, J4JSoftware.J4JMapLibrary" );
+        J4JDeusEx.OutputFatalMessage("Could not initialize J4JDeusEx", null);
+        throw new InvalidOperationException("Could not initialize J4JDeusEx");
     }
-
-    public ILoggerFactory? LoggerFactory { get; }
 
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
