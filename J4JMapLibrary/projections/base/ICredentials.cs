@@ -1,6 +1,8 @@
-﻿namespace J4JSoftware.J4JMapLibrary;
+﻿using System.ComponentModel;
 
-public interface ICredentials
+namespace J4JSoftware.J4JMapLibrary;
+
+public interface ICredentials : INotifyPropertyChanged
 {
     Type ProjectionType { get; }
     string ProjectionName { get; }
