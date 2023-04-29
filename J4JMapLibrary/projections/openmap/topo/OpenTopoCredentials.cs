@@ -21,12 +21,18 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class OpenTopoCredentials : CredentialsBase
+public class OpenTopoCredentials : Credentials
 {
+    private string _userAgent = string.Empty;
+
     public OpenTopoCredentials()
         : base( typeof( OpenTopoMapsProjection ) )
     {
     }
 
-    public string UserAgent { get; init; } = string.Empty;
+    public string UserAgent
+    {
+        get => _userAgent;
+        set => SetField(ref _userAgent, value);
+    }
 }

@@ -21,13 +21,25 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class GoogleCredentials : CredentialsBase
+public class GoogleCredentials : Credentials
 {
+    private string _apiKey = string.Empty;
+    private string _sigSecret = string.Empty;
+
     public GoogleCredentials()
         : base( typeof( GoogleMapsProjection ) )
     {
     }
 
-    public string ApiKey { get; set; } = string.Empty;
-    public string SignatureSecret { get; set; } = string.Empty;
+    public string ApiKey
+    {
+        get => _apiKey;
+        set => SetField(ref _apiKey, value);
+    }
+
+    public string SignatureSecret
+    {
+        get => _sigSecret;
+        set => SetField( ref _sigSecret, value );
+    }
 }

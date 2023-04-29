@@ -21,12 +21,18 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class OpenStreetCredentials : CredentialsBase
+public class OpenStreetCredentials : Credentials
 {
+    private string _userAgent = string.Empty;
+
     public OpenStreetCredentials()
         : base(typeof( OpenStreetMapsProjection ))
     {
     }
 
-    public string UserAgent { get; set; } = string.Empty;
+    public string UserAgent
+    {
+        get => _userAgent;
+        set => SetField(ref _userAgent, value);
+    }
 }

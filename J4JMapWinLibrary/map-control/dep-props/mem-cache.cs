@@ -87,7 +87,7 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if( !TimeSpan.TryParse( value, out var retention ) )
+            if( !TimeSpan.TryParse( value, out _ ) )
             {
                 _logger?.LogWarning(
                     "Invalid memory cache retention period '{period}', defaulting to {default}",
@@ -145,7 +145,7 @@ public sealed partial class J4JMapControl
             if (!TimeSpan.TryParse(MemoryCacheRetention, out var memRetention))
                 memRetention = DefaultMemoryCacheRetention;
 
-            var memCache = new MemoryCache("In Memory", LoggerFactory)
+            var memCache = new MemoryCache("In Memory", MapControlViewModelLocator.Instance!.LoggerFactory)
             {
                 MaxBytes = MemoryCacheSize,
                 MaxEntries = MemoryCacheEntries,
@@ -167,7 +167,7 @@ public sealed partial class J4JMapControl
         if (!TimeSpan.TryParse(FileSystemCacheRetention, out var fileRetention))
             fileRetention = TimeSpan.FromDays(1);
 
-        var fileCache = new FileSystemCache("File System", LoggerFactory)
+        var fileCache = new FileSystemCache("File System", MapControlViewModelLocator.Instance!.LoggerFactory)
         {
             CacheDirectory = FileSystemCachePath,
             MaxBytes = FileSystemCacheSize,

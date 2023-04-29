@@ -21,12 +21,18 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class BingCredentials : CredentialsBase
+public class BingCredentials : Credentials
 {
+    private string _apiKey = string.Empty;
+
     public BingCredentials()
         : base( typeof( BingMapsProjection ) )
     {
     }
 
-    public string ApiKey { get; set; } = string.Empty;
+    public string ApiKey
+    {
+        get => _apiKey;
+        set => SetField( ref _apiKey, value );
+    }
 }
