@@ -49,16 +49,20 @@ public sealed partial class J4JMapControl : Control
     private static readonly TimeSpan DefaultMemoryCacheRetention = new( 1, 0, 0 );
     private static readonly TimeSpan DefaultFileSystemCacheRetention = new( 1, 0, 0, 0 );
 
+    private readonly ILogger? _logger;
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
     private readonly ThrottleDispatcher _throttleSizeChanges = new();
 
     private Grid? _mapGrid;
-    private ILoggerFactory? _loggerFactory;
-    private ILogger? _logger;
     private int _updateInterval = DefaultUpdateEventInterval;
 
     public J4JMapControl()
     {
+        if( MapControlViewModelLocator.Instance == null )
+            throw new NullReferenceException( $"{typeof( MapControlViewModelLocator )} was not initialized" );
+
+        _logger = MapControlViewModelLocator.Instance.LoggerFactory?.CreateLogger<J4JMapControl>();
+
         DefaultStyleKey = typeof( J4JMapControl );
 
         _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -75,17 +79,6 @@ public sealed partial class J4JMapControl : Control
 
         _pointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
         _pointsOfInterest.SourceUpdated += PointsOfInterestSourceUpdated;
-    }
-
-    public ILoggerFactory? LoggerFactory
-    {
-        get => _loggerFactory;
-
-        set
-        {
-            _loggerFactory = value;
-            _logger = _loggerFactory?.CreateLogger<J4JMapControl>();
-        }
     }
 
     public int UpdateEventInterval
