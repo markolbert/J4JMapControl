@@ -39,34 +39,6 @@ public sealed partial class J4JMapControl
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
 
     private IProjection? _projection;
-    private ProjectionFactory? _projFactory;
-
-    public ProjectionFactory? MapProjectionFactory
-    {
-        get => _projFactory;
-
-        set
-        {
-            if( _projFactory != null ) 
-                _projFactory.CredentialsNeeded -= ProjFactoryOnCredentialsNeeded;
-
-            _projFactory = value;
-
-            if( _projFactory == null )
-                return;
-
-            _projFactory.CredentialsNeeded += ProjFactoryOnCredentialsNeeded;
-
-            if( _projFactory.InitializeFactory() )
-            {
-                MapProjections = _projFactory.ProjectionNames.OrderBy(x => x).ToList();
-
-                if ( !string.IsNullOrEmpty( MapProjection ) )
-                    InitializeProjection( MapProjection );
-            }
-            else _logger?.LogError( "Projection factory failed to find projection classes" );
-        }
-    }
 
     private void ProjFactoryOnCredentialsNeeded( object? sender, CredentialsNeededEventArgs e ) =>
         CredentialsNeeded?.Invoke( this, e );
@@ -94,26 +66,17 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if( MapProjectionFactory != null )
-            {
-                if (!MapProjectionFactory.HasProjection(value))
-                    _logger?.LogWarning("'{proj}' is not an available map projection", value);
-            }
-            else _logger?.LogWarning("Projection factory undefined, cannot create map projection");
+            if( !MapControlViewModelLocator.Instance!.ProjectionFactory.HasProjection( value ) )
+                _logger?.LogWarning( "'{proj}' is not an available map projection", value );
 
             SetValue( MapProjectionProperty, value );
 
-            if( MapProjectionFactory != null )
-                InitializeProjection( value! );
+            InitializeProjection( value! );
         }
     }
 
     private void InitializeProjection( string mapProjection )
     {
-        // should never happen, but...
-        if( MapProjectionFactory == null )
-            return;
-
         ProjectionFactoryResult projResult;
 
         if( _projection != null )
@@ -124,7 +87,7 @@ public sealed partial class J4JMapControl
 
         while ( true )
         {
-            projResult = MapProjectionFactory.CreateProjection( mapProjection );
+            projResult = MapControlViewModelLocator.Instance!.ProjectionFactory.CreateProjection( mapProjection );
             if( !projResult.ProjectionTypeFound )
             {
                 _logger?.LogCritical( "Could not create projection '{proj}'", mapProjection );
@@ -161,7 +124,7 @@ public sealed partial class J4JMapControl
             width = MapRegion.RequestedWidth;
         }
 
-        MapRegion = new MapRegion(_projection, LoggerFactory)
+        MapRegion = new MapRegion(_projection, MapControlViewModelLocator.Instance!.LoggerFactory)
                    .Center(latitude, longitude)
                    .Scale((int)MapScale)
                    .Heading((float)Heading)
