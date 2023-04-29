@@ -54,6 +54,8 @@ public class ProjectionFactory
         _includeDefaults = includeDefaults;
     }
 
+    #region Initialization
+
     public ProjectionFactory ScanAssemblies( params Type[] types ) =>
         ScanAssemblies( types.Distinct().Select( t => t.Assembly ).ToArray() );
 
@@ -135,15 +137,60 @@ public class ProjectionFactory
         }
     }
 
-    public IEnumerable<string> ProjectionNames => _projTypes.Select( x => x.Name );
-    public IEnumerable<Type> ProjectionTypes => _projTypes.Select( x => x.ProjectionType );
+    #endregion
 
-    public bool HasProjection( string? projectionName ) =>
-        _projTypes.Any( x => x.Name.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
-    public bool HasProjection<TProj>() => HasProjection( typeof( TProj ) );
-    public bool HasProjection( Type projectionType ) => _projTypes.Any( x => x.ProjectionType == projectionType );
+    #region Credentials
 
     public ReadOnlyCollection<ICredentials> Credentials => _credentials.AsReadOnly();
+
+    public ICredentials? CreateCredentials(string projectionName)
+    {
+        var credentials = _credentials.FirstOrDefault(
+            x => x.ProjectionName.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
+
+        if( credentials == null )
+            return null;
+
+        return Activator.CreateInstance(credentials.GetType()) as ICredentials;
+    }
+
+    public ICredentials? CreateCredentialsFromProjectionType<TProj>() =>
+        CreateCredentialsFromProjectionType( typeof( TProj ) );
+
+    public ICredentials? CreateCredentialsFromProjectionType(Type projectionType)
+    {
+        var credentials = _credentials.FirstOrDefault(
+            x => x.ProjectionType == projectionType);
+
+        if (credentials == null)
+            return null;
+
+        return Activator.CreateInstance(credentials.GetType()) as ICredentials;
+    }
+
+    public ICredentials? CreateCredentialsFromType(Type credentialsType)
+    {
+        var credentials = _credentials.FirstOrDefault(x => x.GetType() == credentialsType);
+
+        if (credentials == null)
+            return null;
+
+        return Activator.CreateInstance(credentials.GetType()) as ICredentials;
+    }
+
+    public ICredentials? CreateCredentialsFromType<TCred>() => CreateCredentialsFromType( typeof( TCred ) );
+
+    #endregion
+
+    #region Projections
+
+    public IEnumerable<string> ProjectionNames => _projTypes.Select(x => x.Name);
+    public IEnumerable<Type> ProjectionTypes => _projTypes.Select(x => x.ProjectionType);
+
+    public bool HasProjection(string? projectionName) =>
+        _projTypes.Any(x => x.Name.Equals(projectionName, StringComparison.OrdinalIgnoreCase));
+    public bool HasProjection<TProj>() => HasProjection(typeof(TProj));
+    public bool HasProjection(Type projectionType) => _projTypes.Any(x => x.ProjectionType == projectionType);
 
     public ProjectionFactoryResult CreateProjection(
         string projName,
@@ -349,4 +396,6 @@ public class ProjectionFactory
 
         return retVal;
     }
+
+    #endregion
 }
