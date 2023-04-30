@@ -13,14 +13,25 @@ public class FactoryTests : TestBase
     [InlineData("OpenTopoMaps", true, true)]
     [InlineData("GoogleMaps", true, true)]
     [InlineData("UnknownMaps", false, false)]
-    public void CreateProjectionFromName( string projectionName, bool projFound, bool authenticated )
+    public void CreateProjectionFromName( string projectionName, bool projCreated, bool authenticated )
     {
-        var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        factory.Should().NotBeNull();
+        var projection = ProjectionFactory.CreateProjection( projectionName );
 
-        var result = factory!.CreateProjection( projectionName );
-        result.ProjectionTypeFound.Should().Be( projFound );
-        result.Authenticated.Should().Be(authenticated);
+        if( !projCreated )
+        {
+            projection.Should().BeNull();
+            return;
+        }
+
+        projection.Should().NotBeNull();
+
+        var credentials = CredentialsFactory[ projectionName, true ];
+        credentials.Should().NotBeNull();
+
+        projection!.SetCredentials( credentials! ).Should().Be( authenticated );
+
+        if( authenticated )
+            projection.Authenticate().Should().BeTrue();
     }
 
     [Theory]
@@ -31,12 +42,26 @@ public class FactoryTests : TestBase
     [InlineData("UnknownMaps", false, false)]
     public async Task CreateProjectionFromNameAsync(string projectionName, bool projCreated, bool authenticated )
     {
-        var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        factory.Should().NotBeNull();
+        var projection = ProjectionFactory.CreateProjection(projectionName);
 
-        var result = await factory!.CreateProjectionAsync(projectionName);
-        result.ProjectionTypeFound.Should().Be(projCreated);
-        result.Authenticated.Should().Be( authenticated );
+        if (!projCreated)
+        {
+            projection.Should().BeNull();
+            return;
+        }
+
+        projection.Should().NotBeNull();
+
+        var credentials = CredentialsFactory[projectionName, true];
+        credentials.Should().NotBeNull();
+
+        projection!.SetCredentials(credentials!).Should().Be(authenticated);
+
+        if( !authenticated )
+            return;
+
+        var authResult = await projection.AuthenticateAsync();
+        authResult.Should().Be( authenticated );
     }
 
     [Theory]
@@ -45,14 +70,25 @@ public class FactoryTests : TestBase
     [InlineData(typeof(OpenTopoMapsProjection), true, true)]
     [InlineData(typeof(GoogleMapsProjection), true, true)]
     [InlineData(typeof(string), false, false)]
-    public void CreateProjectionFromType(Type projType, bool projFound, bool authenticated)
+    public void CreateProjectionFromType(Type projType, bool projCreated, bool authenticated)
     {
-        var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        factory.Should().NotBeNull();
+        var projection = ProjectionFactory.CreateProjection(projType);
 
-        var result = factory!.CreateProjection(projType);
-        result.ProjectionTypeFound.Should().Be(projFound);
-        result.Authenticated.Should().Be(authenticated);
+        if (!projCreated)
+        {
+            projection.Should().BeNull();
+            return;
+        }
+
+        projection.Should().NotBeNull();
+
+        var credentials = CredentialsFactory[projType, true];
+        credentials.Should().NotBeNull();
+
+        projection!.SetCredentials(credentials!).Should().Be(authenticated);
+
+        if (authenticated)
+            projection.Authenticate().Should().BeTrue();
     }
 
     [Theory]
@@ -63,35 +99,26 @@ public class FactoryTests : TestBase
     [InlineData(typeof(string), false, false)]
     public async Task CreateProjectionFromTypeAsync(Type projType, bool projCreated, bool authenticated)
     {
-        var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        factory.Should().NotBeNull();
+        var projection = ProjectionFactory.CreateProjection(projType);
 
-        var result = await factory!.CreateProjectionAsync(projType);
-        result.ProjectionTypeFound.Should().Be(projCreated);
-        result.Authenticated.Should().Be(authenticated);
-    }
+        if (!projCreated)
+        {
+            projection.Should().BeNull();
+            return;
+        }
 
-    [ Theory ]
-    [InlineData(typeof(BingMapsProjection), true, true)]
-    [InlineData(typeof(OpenStreetMapsProjection), true, true)]
-    [InlineData(typeof(OpenTopoMapsProjection), true, true)]
-    [InlineData(typeof(GoogleMapsProjection), true, true)]
-    [InlineData(typeof(string), false, false)]
-    public async Task CheckDynamicCredentials( Type projType, bool projCreated, bool authenticated )
-    {
-        var factory = J4JDeusEx.ServiceProvider.GetService<ProjectionFactory>();
-        factory.Should().NotBeNull();
-        factory!.CredentialsNeeded += CredentialsNeeded;
+        projection.Should().NotBeNull();
 
-        var result = await factory!.CreateProjectionAsync(projType, null, false);
-        result.ProjectionTypeFound.Should().Be(projCreated);
-        result.Authenticated.Should().Be(authenticated);
-    }
+        var credentials = CredentialsFactory[projType, true];
+        credentials.Should().NotBeNull();
 
-    private void CredentialsNeeded( object? sender, CredentialsNeededEventArgs e )
-    {
-        e.Credentials = GetCredentials( e.ProjectionName );
-        e.CancelOnFailure = true;
+        projection!.SetCredentials(credentials!).Should().Be(authenticated);
+
+        if (!authenticated)
+            return;
+
+        var authResult = await projection.AuthenticateAsync();
+        authResult.Should().Be(authenticated);
     }
 
     [Theory]

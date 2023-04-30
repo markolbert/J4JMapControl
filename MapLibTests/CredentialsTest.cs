@@ -10,7 +10,7 @@ public class CredentialsTest : TestBase
     [ Fact ]
     public void Bing()
     {
-        var credentials = GetCredentials( "BingMaps" ) as BingCredentials;
+        var credentials = CredentialsFactory["BingMaps", true] as BingCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.ApiKey.Should().NotBeEmpty();
@@ -19,7 +19,7 @@ public class CredentialsTest : TestBase
     [Fact]
     public void Google()
     {
-        var credentials = GetCredentials("GoogleMaps") as GoogleCredentials;
+        var credentials = CredentialsFactory["GoogleMaps", true] as GoogleCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.ApiKey.Should().NotBeEmpty();
@@ -29,7 +29,7 @@ public class CredentialsTest : TestBase
     [Fact]
     public void OpenStreetMaps()
     {
-        var credentials = GetCredentials( "OpenStreetMaps" ) as OpenStreetCredentials;
+        var credentials = CredentialsFactory["OpenStreetMaps", true] as OpenStreetCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.UserAgent.Should().NotBeEmpty();
@@ -38,7 +38,7 @@ public class CredentialsTest : TestBase
     [Fact]
     public void OpenTopoMaps()
     {
-        var credentials = GetCredentials("OpenTopoMaps") as OpenTopoCredentials;
+        var credentials = CredentialsFactory["OpenTopoMaps", true] as OpenTopoCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.UserAgent.Should().NotBeEmpty();

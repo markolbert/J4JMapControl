@@ -19,7 +19,6 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using J4JSoftware.J4JMapLibrary;
@@ -33,15 +32,10 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public event EventHandler<CredentialsNeededEventArgs>? CredentialsNeeded;
-
-    private readonly DispatcherQueue _dispatcherQueue;
+    private readonly DispatcherQueue _dispatcherLoadImages = DispatcherQueue.GetForCurrentThread();
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
 
     private IProjection? _projection;
-
-    private void ProjFactoryOnCredentialsNeeded( object? sender, CredentialsNeededEventArgs e ) =>
-        CredentialsNeeded?.Invoke( this, e );
 
     public DependencyProperty MapProjectionsProperty = DependencyProperty.Register(
         nameof( MapProjections ),
@@ -70,38 +64,49 @@ public sealed partial class J4JMapControl
                 _logger?.LogWarning( "'{proj}' is not an available map projection", value );
 
             SetValue( MapProjectionProperty, value );
-
-            InitializeProjection( value! );
+            InitializeProjection();
         }
     }
 
-    private void InitializeProjection( string mapProjection )
+    private void InitializeProjection()
     {
-        ProjectionFactoryResult projResult;
+        if( string.IsNullOrEmpty( MapProjection ) || !IsLoaded )
+            return;
 
-        if( _projection != null )
+        var newProjection = MapControlViewModelLocator
+                           .Instance!
+                           .ProjectionFactory
+                           .CreateProjection( MapProjection );
+
+        if (newProjection == null )
+        {
+            _logger?.LogCritical("Could not create projection '{proj}'", MapProjection);
+            return;
+        }
+
+        var credentials = MapControlViewModelLocator.Instance.CredentialsFactory[ MapProjection, true ];
+        if( credentials == null )
+        {
+            _logger?.LogCritical("Could not find credentials for projection '{proj}'", MapProjection);
+            return;
+        }
+
+        if( !newProjection.SetCredentials(credentials))
+            return;
+
+        if( !newProjection.Authenticate() )
+        {
+            _logger?.LogError( "Projection {projName} could not be authenticated", MapProjection );
+            return;
+        }
+
+        if (_projection != null)
         {
             _projection.LoadComplete -= ProjectionOnLoadComplete;
             _projection = null;
         }
 
-        while ( true )
-        {
-            projResult = MapControlViewModelLocator.Instance!.ProjectionFactory.CreateProjection( mapProjection );
-            if( !projResult.ProjectionTypeFound )
-            {
-                _logger?.LogCritical( "Could not create projection '{proj}'", mapProjection );
-                return;
-            }
-
-            if( projResult.Authenticated )
-                break;
-
-            _logger?.LogError( "Projection {projName} could not be authenticated", mapProjection );
-            return;
-        }
-
-        _projection = projResult.Projection!;
+        _projection = newProjection;
         _projection.LoadComplete += ProjectionOnLoadComplete;
 
         InitializeCaching();
@@ -124,7 +129,7 @@ public sealed partial class J4JMapControl
             width = MapRegion.RequestedWidth;
         }
 
-        MapRegion = new MapRegion(_projection, MapControlViewModelLocator.Instance!.LoggerFactory)
+        MapRegion = new MapRegion(_projection, MapControlViewModelLocator.Instance.LoggerFactory)
                    .Center(latitude, longitude)
                    .Scale((int)MapScale)
                    .Heading((float)Heading)
@@ -139,7 +144,7 @@ public sealed partial class J4JMapControl
         MapRegion.Update();
     }
 
-    private void ProjectionOnLoadComplete( object? sender, bool e ) => _dispatcherQueue.TryEnqueue(LoadMapImages);
+    private void ProjectionOnLoadComplete( object? sender, bool e ) => _dispatcherLoadImages.TryEnqueue(LoadMapImages);
 
     public DependencyProperty MapStylesProperty = DependencyProperty.Register(nameof(MapStyles),
                                                                               typeof(List<string>),

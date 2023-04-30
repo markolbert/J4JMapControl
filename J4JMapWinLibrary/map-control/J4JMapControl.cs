@@ -24,11 +24,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -65,8 +65,6 @@ public sealed partial class J4JMapControl : Control
 
         DefaultStyleKey = typeof( J4JMapControl );
 
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
         _movementProcessor = new MovementProcessor();
         _movementProcessor.Moved += MovementProcessorOnMoved;
         _movementProcessor.MovementsEnded += MovementProcessorOnMovementsEnded;
@@ -79,6 +77,8 @@ public sealed partial class J4JMapControl : Control
 
         _pointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
         _pointsOfInterest.SourceUpdated += PointsOfInterestSourceUpdated;
+
+        Loaded += ( _, _ ) => InitializeProjection();
     }
 
     public int UpdateEventInterval
@@ -372,5 +372,17 @@ public sealed partial class J4JMapControl : Control
 
             element.PositionRelativeToPoint( MapRegion.GetDisplayPosition( latitude, longitude ) );
         }
+    }
+
+    private void ShowMessage( string message, string title )
+    {
+        var mesgBox = new MessageBox
+        {
+            Title = title,
+            Text = message,
+            XamlRoot = XamlRoot
+        };
+
+        //mesgBox.ShowAsync();
     }
 }

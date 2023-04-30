@@ -16,21 +16,31 @@ public class MapControlViewModelLocator
         params Assembly[] assembliesToSearch
     )
     {
-        Instance = new MapControlViewModelLocator( config, loggerFactory, inclDefaults );
-        Instance.ProjectionFactory.ScanAssemblies( assembliesToSearch );
-        Instance.ProjectionFactory.InitializeFactory();
+        Instance = new MapControlViewModelLocator(config, loggerFactory, inclDefaults, assembliesToSearch );
     }
 
     private MapControlViewModelLocator(
         IConfiguration config,
         ILoggerFactory? loggerFactory = null,
-        bool inclDefaults = true
+        bool inclDefaults = true,
+        params Assembly[] assembliesToSearch
         )
     {
         LoggerFactory = loggerFactory;
-        ProjectionFactory = new ProjectionFactory( config, loggerFactory, inclDefaults );
+
+        ProjectionFactory = new ProjectionFactory( loggerFactory, inclDefaults );
+        ProjectionFactory.ScanAssemblies( assembliesToSearch );
+        ProjectionFactory.InitializeFactory();
+
+        CredentialsFactory = new CredentialsFactory( config, loggerFactory, inclDefaults );
+        CredentialsFactory.ScanAssemblies( assembliesToSearch );
+        CredentialsFactory.InitializeFactory();
+
+        CredentialsDialogFactory = new CredentialsDialogFactory( loggerFactory, assembliesToSearch );
     }
 
     public ProjectionFactory ProjectionFactory { get; }
+    public CredentialsFactory CredentialsFactory { get; }
+    public CredentialsDialogFactory CredentialsDialogFactory { get; }
     public ILoggerFactory? LoggerFactory { get; }
 }

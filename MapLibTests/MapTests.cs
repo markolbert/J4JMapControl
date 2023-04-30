@@ -32,7 +32,7 @@ public class MapTests : TestBase
     [ InlineData( 1, false ) ]
     public async Task BingApiKeyLatency( int maxLatency, bool testResult )
     {
-        var credentials = GetCredentials( "BingMaps" ) as BingCredentials;
+        var credentials = CredentialsFactory["BingMaps", true] as BingCredentials;
         credentials.Should().NotBeNull();
         
         var projection = await CreateProjection( "BingMaps", credentials ) as BingMapsProjection;
