@@ -32,7 +32,7 @@ public sealed partial class BingCredentialsDialog : ContentDialog, ICredentialsD
         if (MapControlViewModelLocator.Instance == null)
             throw new NullReferenceException($"{typeof(MapControlViewModelLocator)} was not initialized");
 
-        var temp = MapControlViewModelLocator.Instance.CredentialsFactory[ typeof( BingCredentials ), false ];
+        var temp = MapControlViewModelLocator.Instance.CredentialsFactory[ typeof( BingMapsProjection ), false ];
         if( temp is not BingCredentials bingCred )
             throw new NullReferenceException($"{typeof(BingCredentials)} could not be created");
 
