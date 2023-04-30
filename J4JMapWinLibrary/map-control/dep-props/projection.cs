@@ -19,14 +19,18 @@
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -34,6 +38,7 @@ public sealed partial class J4JMapControl
 {
     private readonly DispatcherQueue _dispatcherLoadImages = DispatcherQueue.GetForCurrentThread();
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
+    private readonly ThrottleDispatcher _throttleProjChanges = new();
 
     private IProjection? _projection;
 
@@ -64,11 +69,13 @@ public sealed partial class J4JMapControl
                 _logger?.LogWarning( "'{proj}' is not an available map projection", value );
 
             SetValue( MapProjectionProperty, value );
-            InitializeProjection();
+
+            _throttleProjChanges.Throttle( UpdateEventInterval,
+                                           _ => Task.Run( async () => await InitializeProjection() ) );
         }
     }
 
-    private void InitializeProjection()
+    private async Task InitializeProjection(CancellationToken ctx = default)
     {
         if( string.IsNullOrEmpty( MapProjection ) || !IsLoaded )
             return;
@@ -84,19 +91,13 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        var credentials = MapControlViewModelLocator.Instance.CredentialsFactory[ MapProjection, true ];
-        if( credentials == null )
+        if( !await AuthenticateProjection( newProjection,
+                                           MapControlViewModelLocator.Instance.CredentialsFactory[
+                                               MapProjection,
+                                               false ],
+                                           ctx ) )
         {
-            _logger?.LogCritical("Could not find credentials for projection '{proj}'", MapProjection);
-            return;
-        }
-
-        if( !newProjection.SetCredentials(credentials))
-            return;
-
-        if( !newProjection.Authenticate() )
-        {
-            _logger?.LogError( "Projection {projName} could not be authenticated", MapProjection );
+            await ShowMessageAsync( $"Failed to authenticate {MapProjection}", "Authentication Failure" );
             return;
         }
 
@@ -142,6 +143,69 @@ public sealed partial class J4JMapControl
         MaxMapScale = _projection.MaxScale;
 
         MapRegion.Update();
+    }
+
+    private async Task<bool> AuthenticateProjection(
+        IProjection projection,
+        object? credentials,
+        CancellationToken ctx = default
+    )
+    {
+        var credDialogType = MapControlViewModelLocator.Instance!.CredentialsDialogFactory[MapProjection!];
+
+        switch( credentials )
+        {
+            case null when credDialogType == null:
+                _logger?.LogError( "Could not find credentials dialog for {projection}", MapProjection );
+                return false;
+
+            case null:
+            {
+                var credDialog = await GetCredentialsFromUserAsync( credDialogType );
+                credentials = credDialog?.Credentials;
+
+                if( credentials == null )
+                    return false;
+
+                break;
+            }
+        }
+
+        var cancelOnFailure = false;
+
+        while( true )
+        {
+            if( projection.SetCredentials( credentials ) && await projection.AuthenticateAsync( ctx ) )
+                return true;
+
+            if( cancelOnFailure )
+                return false;
+
+            var credDialog = await GetCredentialsFromUserAsync( credDialogType! );
+            credentials = credDialog?.Credentials;
+
+            if( credentials == null )
+                return false;
+
+            cancelOnFailure = credDialog?.CancelOnFailure ?? false;
+        }
+    }
+
+    private async Task<ICredentialsDialog?> GetCredentialsFromUserAsync( Type credDialogType )
+    {
+        var credDialog = Activator.CreateInstance( credDialogType ) as ContentDialog;
+        if( credDialog == null )
+        {
+            _logger?.LogError( "{dlgType} is not a {correct}", credDialogType, typeof( ContentDialog ) );
+            return null;
+        }
+
+        credDialog.XamlRoot = XamlRoot;
+
+        if( await credDialog.ShowAsync() != ContentDialogResult.Primary )
+            return null;
+
+        return (ICredentialsDialog) credDialog;
     }
 
     private void ProjectionOnLoadComplete( object? sender, bool e ) => _dispatcherLoadImages.TryEnqueue(LoadMapImages);
