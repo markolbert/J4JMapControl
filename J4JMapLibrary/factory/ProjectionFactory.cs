@@ -19,35 +19,25 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public class ProjectionFactory
 {
-    public event EventHandler<CredentialsNeededEventArgs>? CredentialsNeeded;
-    public event EventHandler<CredentialsSucceededEventArgs>? CredentialsSucceeded;
-
-    private readonly IConfiguration _config;
     private readonly List<Assembly> _assemblies = new();
     private readonly List<ProjectionTypeInfo> _projTypes = new();
-    private readonly List<ICredentials> _credentials = new();
     private readonly bool _includeDefaults;
     private readonly ILogger? _logger;
     private readonly ILoggerFactory? _loggerFactory;
 
     public ProjectionFactory(
-        IConfiguration config,
         ILoggerFactory? loggerFactory = null,
         bool includeDefaults = true
     )
     {
-        _config = config;
-
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<ProjectionFactory>();
 
@@ -67,13 +57,12 @@ public class ProjectionFactory
 
     public bool InitializeFactory()
     {
-        if (_includeDefaults)
-            _assemblies.Add(typeof(ProjectionFactory).Assembly);
+        if( _includeDefaults )
+            _assemblies.Add( typeof( ProjectionFactory ).Assembly );
 
         var toScan = _assemblies.Distinct().ToList();
 
-        ProcessProjectionTypes(toScan);
-        ProcessCredentialTypes(toScan);
+        ProcessProjectionTypes( toScan );
 
         return _projTypes.Any();
     }
@@ -93,7 +82,8 @@ public class ProjectionFactory
                                                        var ctorParams = c.GetParameters();
 
                                                        return ctorParams.Any(
-                                                           p => p.ParameterType.IsAssignableTo( typeof( ILoggerFactory ) ) );
+                                                           p => p.ParameterType.IsAssignableTo(
+                                                               typeof( ILoggerFactory ) ) );
                                                    } )
                                               && t.GetInterface( typeof( IProjection ).FullName ?? string.Empty )
                                               != null ) )
@@ -108,198 +98,48 @@ public class ProjectionFactory
         _projTypes.AddRange( types.Select( t => new ProjectionTypeInfo( t, _loggerFactory ) ) );
     }
 
-    private void ProcessCredentialTypes( List<Assembly> toScan )
-    {
-        var types = toScan
-                   .SelectMany( a => a.GetTypes()
-                                      .Where( t => !t.IsAbstract
-                                               && t.IsAssignableTo( typeof( ICredentials ) )
-                                               && t.GetConstructors()
-                                                   .Any( c => c.GetParameters().Length == 0 ) ) )
-                   .ToList();
-
-        if( !types.Any() )
-        {
-            _logger?.LogWarning( "No map credentials types found" );
-            return;
-        }
-
-        _credentials.Clear();
-
-        foreach( var t in types )
-        {
-            var credentials = (ICredentials) Activator.CreateInstance( t )!;
-
-            var configSection = _config.GetSection( $"Credentials:{credentials.ProjectionName}" );
-            configSection.Bind( credentials );
-
-            _credentials.Add( (ICredentials) credentials );
-        }
-    }
-
-    #endregion
-
-    #region Credentials
-
-    public ReadOnlyCollection<ICredentials> Credentials => _credentials.AsReadOnly();
-
-    public ICredentials? CreateCredentials(string projectionName)
-    {
-        var credentials = _credentials.FirstOrDefault(
-            x => x.ProjectionName.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
-
-        if( credentials == null )
-            return null;
-
-        return Activator.CreateInstance(credentials.GetType()) as ICredentials;
-    }
-
-    public ICredentials? CreateCredentialsFromProjectionType<TProj>() =>
-        CreateCredentialsFromProjectionType( typeof( TProj ) );
-
-    public ICredentials? CreateCredentialsFromProjectionType(Type projectionType)
-    {
-        var credentials = _credentials.FirstOrDefault(
-            x => x.ProjectionType == projectionType);
-
-        if (credentials == null)
-            return null;
-
-        return Activator.CreateInstance(credentials.GetType()) as ICredentials;
-    }
-
-    public ICredentials? CreateCredentialsFromType(Type credentialsType)
-    {
-        var credentials = _credentials.FirstOrDefault(x => x.GetType() == credentialsType);
-
-        if (credentials == null)
-            return null;
-
-        return Activator.CreateInstance(credentials.GetType()) as ICredentials;
-    }
-
-    public ICredentials? CreateCredentialsFromType<TCred>() => CreateCredentialsFromType( typeof( TCred ) );
-
     #endregion
 
     #region Projections
 
-    public IEnumerable<string> ProjectionNames => _projTypes.Select(x => x.Name);
-    public IEnumerable<Type> ProjectionTypes => _projTypes.Select(x => x.ProjectionType);
+    public IEnumerable<string> ProjectionNames => _projTypes.Select( x => x.Name );
+    public IEnumerable<Type> ProjectionTypes => _projTypes.Select( x => x.ProjectionType );
 
-    public bool HasProjection(string? projectionName) =>
-        _projTypes.Any(x => x.Name.Equals(projectionName, StringComparison.OrdinalIgnoreCase));
-    public bool HasProjection<TProj>() => HasProjection(typeof(TProj));
-    public bool HasProjection(Type projectionType) => _projTypes.Any(x => x.ProjectionType == projectionType);
+    public bool HasProjection( string? projectionName ) =>
+        _projTypes.Any( x => x.Name.Equals( projectionName, StringComparison.OrdinalIgnoreCase ) );
 
-    public ProjectionFactoryResult CreateProjection(
-        string projName,
-        object? credentials = null,
-        bool useDiscoveredCredentials = true,
-        bool authenticate = true
-    )
-    {
-        return Task.Run( async () =>
-                             await CreateProjectionAsync( projName,
-                                                          credentials,
-                                                          useDiscoveredCredentials,
-                                                          authenticate ) )
-                   .Result;
-    }
+    public bool HasProjection<TProj>() => HasProjection( typeof( TProj ) );
+    public bool HasProjection( Type projectionType ) => _projTypes.Any( x => x.ProjectionType == projectionType );
 
-    public async Task<ProjectionFactoryResult> CreateProjectionAsync(
-        string projName,
-        object? credentials = null,
-        bool useDiscoveredCredentials = true,
-        bool authenticate = true,
-        CancellationToken ctx = default
-    )
+    public IProjection? CreateProjection( string projName )
     {
         var projInfo = _projTypes
            .FirstOrDefault( x => x.Name.Equals( projName, StringComparison.OrdinalIgnoreCase ) );
 
-        if( projInfo == null )
-        {
-            _logger?.LogError( "Could not find IProjection type named '{projName}'", projName );
-            return ProjectionFactoryResult.NotFound;
-        }
+        if( projInfo != null )
+            return CreateProjectionInternal( projInfo );
 
-        var projection = CreateProjectionInternal( projInfo );
-        if( projection == null || !authenticate )
-            return new ProjectionFactoryResult( projection, projection != null );
-
-        if (!SetCredentials(projection, projInfo, credentials, useDiscoveredCredentials))
-            return new ProjectionFactoryResult(projection, true);
-
-        return new ProjectionFactoryResult(projection, true)
-        {
-            Authenticated = await projection.AuthenticateAsync(ctx)
-        };
+        _logger?.LogError( "Could not find IProjection type named '{projName}'", projName );
+        return null;
     }
 
-    public ProjectionFactoryResult CreateProjection<TProj>(
-        object? credentials = null,
-        bool useDiscoveredCredentials = true,
-        bool authenticate = true
-    )
+    public IProjection? CreateProjection<TProj>()
         where TProj : IProjection =>
-        CreateProjection( typeof( TProj ), credentials, useDiscoveredCredentials, authenticate );
+        CreateProjection( typeof( TProj ) );
 
-    public async Task<ProjectionFactoryResult> CreateProjectionAsync<TProj>(
-        object? credentials = null,
-        bool useDiscoveredCredentials = true,
-        bool authenticate = true
-    )
-        where TProj : IProjection =>
-        await CreateProjectionAsync( typeof( TProj ),
-                                     credentials,
-                                     useDiscoveredCredentials,
-                                     authenticate );
-
-    public ProjectionFactoryResult CreateProjection(
-        Type projType,
-        object? credentials = null,
-        bool useDiscoveredCredentials = true,
-        bool authenticate = true
-    ) =>
-        Task.Run( async () =>
-                      await CreateProjectionAsync( projType,
-                                                   credentials,
-                                                   useDiscoveredCredentials,
-                                                   authenticate ) )
-            .Result;
-
-    public async Task<ProjectionFactoryResult> CreateProjectionAsync(
-        Type projType,
-        object? credentials = null,
-        bool useDiscoveredCredentials = true,
-        bool authenticate = true,
-        CancellationToken ctx = default
-    )
+    public IProjection? CreateProjection( Type projType )
     {
         if( !projType.IsAssignableTo( typeof( IProjection ) ) )
-            return ProjectionFactoryResult.NotFound;
+            return null;
 
         var projInfo = _projTypes
            .FirstOrDefault( x => x.ProjectionType == projType );
 
-        if( projInfo == null )
-        {
-            _logger?.LogError( "Could not find IProjection type '{projType}'", projType );
-            return ProjectionFactoryResult.NotFound;
-        }
+        if( projInfo != null )
+            return CreateProjectionInternal( projInfo );
 
-        var projection = CreateProjectionInternal( projInfo );
-        if( projection == null || !authenticate )
-            return new ProjectionFactoryResult( projection, projection != null );
-
-        if( !SetCredentials(projection,projInfo,credentials, useDiscoveredCredentials))
-            return new ProjectionFactoryResult(projection, true);
-
-        return new ProjectionFactoryResult(projection, true)
-        {
-            Authenticated = await projection.AuthenticateAsync(ctx)
-        };
+        _logger?.LogError( "Could not find IProjection type '{projType}'", projType );
+        return null;
     }
 
     private IProjection? CreateProjectionInternal( ProjectionTypeInfo projInfo )
@@ -343,58 +183,6 @@ public class ProjectionFactory
         }
 
         return projection;
-    }
-
-    private bool SetCredentials(
-        IProjection projection,
-        ProjectionTypeInfo projInfo,
-        object? credentials,
-        bool useDiscoveredCredentials
-    )
-    {
-        var cancelOnFailure = false;
-        var retVal = false;
-
-        if( credentials == null && useDiscoveredCredentials )
-        {
-            var projType = projection.GetType();
-
-            var knownCredentials = _credentials.Where( x => x.ProjectionType == projType )
-                                               .ToList();
-
-            if( knownCredentials.Any() )
-                credentials = knownCredentials[0];
-
-            if( knownCredentials.Count > 1 )
-                _logger?.LogWarning( "Found multiple credentials for projection {projType}, using the first one",
-                                     projType );
-        }
-
-        var credentialsRequested = false;
-
-        while( true )
-        {
-            if( credentials != null )
-                retVal = projection.SetCredentials( credentials );
-
-            if( retVal )
-                break;
-
-            var eventArgs = new CredentialsNeededEventArgs( projInfo.Name );
-            credentialsRequested = true;
-            CredentialsNeeded?.Invoke( this, eventArgs );
-
-            if( eventArgs.CancelImmediately || cancelOnFailure )
-                break;
-
-            cancelOnFailure = eventArgs.CancelOnFailure;
-            credentials = eventArgs.Credentials;
-        }
-
-        if( credentialsRequested && retVal )
-            CredentialsSucceeded?.Invoke( this, new CredentialsSucceededEventArgs( projInfo.Name, credentials! ) );
-
-        return retVal;
     }
 
     #endregion
