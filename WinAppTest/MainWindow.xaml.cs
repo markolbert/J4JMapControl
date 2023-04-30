@@ -27,6 +27,7 @@ using WinRT.Interop;
 using Windows.Storage;
 using J4JSoftware.J4JMapWinLibrary;
 using Microsoft.Extensions.Configuration;
+using Microsoft.UI.Xaml.Controls;
 
 namespace WinAppTest;
 
@@ -233,5 +234,11 @@ public sealed partial class MainWindow
             _scIncluded = true;
             addDeleteButton.Content = "Hide San Carlos";
         }
+    }
+
+    private async void ShowCredentialsDialog( object sender, RoutedEventArgs e )
+    {
+        var bingDlg = new BingCredentialsDialog { XamlRoot = this.Content.XamlRoot };
+        var result = await bingDlg.ShowAsync();
     }
 }

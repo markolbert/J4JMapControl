@@ -44,7 +44,18 @@ internal class DeusEx : J4JDeusExWinApp
     {
         builder.Register(c =>
                 {
-                    var retVal = new ProjectionFactory( c.Resolve<IConfiguration>(), c.Resolve<ILoggerFactory>() );
+                    var retVal = new ProjectionFactory( c.Resolve<ILoggerFactory>() );
+
+                    retVal.InitializeFactory();
+
+                    return retVal;
+                })
+               .AsSelf()
+               .SingleInstance();
+
+        builder.Register(c =>
+                {
+                    var retVal = new CredentialsFactory( c.Resolve<IConfiguration>(), c.Resolve<ILoggerFactory>() );
 
                     retVal.InitializeFactory();
 
