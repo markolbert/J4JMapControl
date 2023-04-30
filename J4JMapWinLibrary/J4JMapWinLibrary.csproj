@@ -17,6 +17,10 @@
 		<VersionPrefix>0.9</VersionPrefix>
 		<AppDesignerFolder>dep-props</AppDesignerFolder>
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="credential-dialogs\BingCredentialsDialog.xaml" />
+	  <None Remove="MessageBox.xaml" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
@@ -34,6 +38,18 @@
 	  <Content Update="media\rose.png">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Update="MessageBox.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Update="credential-dialogs\BingCredentialsDialog.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 
 </Project>
