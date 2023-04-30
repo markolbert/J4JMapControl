@@ -374,15 +374,15 @@ public sealed partial class J4JMapControl : Control
         }
     }
 
-    private void ShowMessage( string message, string title )
+    private async Task ShowMessageAsync( string message, string title )
     {
         var mesgBox = new MessageBox
         {
-            Title = title,
+            TitleText = title,
             Text = message,
             XamlRoot = XamlRoot
         };
 
-        //mesgBox.ShowAsync();
+        await mesgBox.ShowAsync();
     }
 }

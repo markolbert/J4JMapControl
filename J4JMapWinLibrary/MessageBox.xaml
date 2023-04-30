@@ -11,14 +11,12 @@
     mc:Ignorable="d"
     PrimaryButtonText="Okay">
 
-    <ContentDialog.TitleTemplate>
-        <DataTemplate x:DataType="local:MessageBox">
-            <TextBlock Text="{x:Bind Title}"
-                       HorizontalAlignment="Center"
-                       Margin="5"
-                       FontWeight="Bold"/>
-        </DataTemplate>
-    </ContentDialog.TitleTemplate>
+    <ContentDialog.Title>
+        <TextBlock Text="{x:Bind TitleText}"
+                   HorizontalAlignment="Center"
+                   Margin="5"
+                   FontWeight="Bold"/>
+    </ContentDialog.Title>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" 
           Margin="0,20">
