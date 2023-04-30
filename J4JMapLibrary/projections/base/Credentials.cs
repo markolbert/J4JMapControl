@@ -9,6 +9,8 @@ public class Credentials : ICredentials
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private bool _cancelOnFailure;
+
     protected Credentials(
         Type projectionType
     )
@@ -21,6 +23,12 @@ public class Credentials : ICredentials
 
     public Type ProjectionType { get; }
     public string ProjectionName { get; }
+
+    public bool CancelOnFailure
+    {
+        get => _cancelOnFailure;
+        set => SetField( ref _cancelOnFailure, value );
+    }
 
     protected virtual void OnPropertyChanged( [ CallerMemberName ] string? propertyName = null )
     {
