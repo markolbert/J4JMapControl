@@ -23,7 +23,7 @@ internal class DeusEx : J4JDeusExWinApp
 
     private void SetupConfiguration(IConfigurationBuilder builder)
     {
-        builder.AddUserSecrets<DeusEx>();
+        //builder.AddUserSecrets<DeusEx>();
     }
 
     private ILogger SetupLogger(
