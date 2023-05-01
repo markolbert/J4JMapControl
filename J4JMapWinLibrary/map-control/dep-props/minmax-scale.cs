@@ -25,11 +25,6 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register( nameof( MaxMapScale ),
-        typeof( double ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( 0.0 ) );
-
     public DependencyProperty MinMapScaleProperty = DependencyProperty.Register( nameof( MinMapScale ),
         typeof( double ),
         typeof( J4JMapControl ),
@@ -50,6 +45,11 @@ public sealed partial class J4JMapControl
                 MapScale = value;
         }
     }
+
+    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register(nameof(MaxMapScale),
+        typeof(double),
+        typeof(J4JMapControl),
+        new PropertyMetadata(20.0));
 
     public double MaxMapScale
     {
