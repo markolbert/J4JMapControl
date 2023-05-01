@@ -118,23 +118,17 @@ public sealed partial class J4JMapControl
         if (!MapExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
             _logger?.LogError("Could not parse Center ('{center}') to latitude/longitude, defaulting to 0/0", Center);
 
-        var height = (float)Height;
-        var width = (float)Width;
-
         if (MapRegion != null)
         {
             MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
             MapRegion.BuildUpdated -= MapRegionBuildUpdated;
-
-            height = MapRegion.RequestedHeight;
-            width = MapRegion.RequestedWidth;
         }
 
         MapRegion = new MapRegion(_projection, MapControlViewModelLocator.Instance.LoggerFactory)
                    .Center(latitude, longitude)
                    .Scale((int)MapScale)
                    .Heading((float)Heading)
-                   .Size(height, width);
+                   .Size( ( float) ActualHeight , ( float) ActualWidth );
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
