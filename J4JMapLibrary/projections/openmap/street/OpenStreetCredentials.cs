@@ -30,6 +30,7 @@ public class OpenStreetCredentials : Credentials
     {
     }
 
+    [CredentialProperty]
     public string UserAgent
     {
         get => _userAgent;

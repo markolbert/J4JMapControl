@@ -1,5 +1,5 @@
-﻿using System.ComponentModel;
-using System.Linq.Expressions;
+﻿using System.Collections;
+using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -7,7 +7,11 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class Credentials : ICredentials
 {
+    public record CredentialProperty( string PropertyName, Type PropertyType, object? Value );
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private readonly List<PropertyInfo> _credProps = new();
 
     private bool _cancelOnFailure;
 
@@ -19,6 +23,15 @@ public class Credentials : ICredentials
 
         var attribute = projectionType.GetCustomAttribute<ProjectionAttribute>();
         ProjectionName = attribute?.ProjectionName ?? string.Empty;
+
+        foreach( var propInfo in this.GetType().GetProperties() )
+        {
+            var attr = propInfo.GetCustomAttribute<CredentialPropertyAttribute>();
+            if( attr == null )
+                continue;
+
+            _credProps.Add( propInfo );
+        }
     }
 
     public Type ProjectionType { get; }
@@ -44,4 +57,14 @@ public class Credentials : ICredentials
         OnPropertyChanged( propertyName );
         return true;
     }
+
+    public IEnumerator<CredentialProperty> GetEnumerator()
+    {
+        foreach( var propInfo in _credProps )
+        {
+            yield return new CredentialProperty( propInfo.Name, propInfo.PropertyType, propInfo.GetValue( this ) );
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

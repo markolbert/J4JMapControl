@@ -31,12 +31,14 @@ public class GoogleCredentials : Credentials
     {
     }
 
+    [CredentialProperty]
     public string ApiKey
     {
         get => _apiKey;
         set => SetField(ref _apiKey, value);
     }
 
+    [CredentialProperty]
     public string SignatureSecret
     {
         get => _sigSecret;

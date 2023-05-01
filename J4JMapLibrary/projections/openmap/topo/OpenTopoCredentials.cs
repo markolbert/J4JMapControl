@@ -30,6 +30,7 @@ public class OpenTopoCredentials : Credentials
     {
     }
 
+    [CredentialProperty]
     public string UserAgent
     {
         get => _userAgent;

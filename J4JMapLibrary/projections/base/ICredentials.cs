@@ -2,7 +2,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface ICredentials : INotifyPropertyChanged
+public interface ICredentials : INotifyPropertyChanged, IEnumerable<Credentials.CredentialProperty>
 {
     Type ProjectionType { get; }
     string ProjectionName { get; }

@@ -30,6 +30,7 @@ public class BingCredentials : Credentials
     {
     }
 
+    [CredentialProperty]
     public string ApiKey
     {
         get => _apiKey;
