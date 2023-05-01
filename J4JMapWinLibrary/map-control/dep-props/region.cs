@@ -85,18 +85,20 @@ public sealed partial class J4JMapControl
 
     public double MapScale
     {
-        get => (double) GetValue( MapScaleProperty );
+        get
+        {
+            var retVal = (double) GetValue( MapScaleProperty );
+
+            return retVal < MinMapScale
+                ? MinMapScale
+                : retVal > MaxMapScale
+                    ? MaxMapScale
+                    : retVal;
+        }
 
         set
         {
-            value = value < MinMapScale
-                ? MinMapScale
-                : value > MaxMapScale
-                    ? MaxMapScale
-                    : value;
-
             SetValue( MapScaleProperty, value );
-
             MapRegion?.Scale( (int) value );
         }
     }
