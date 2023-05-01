@@ -36,6 +36,8 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
+    public event EventHandler<NewCredentialsEventArgs>? NewCredentials;
+
     private readonly DispatcherQueue _dispatcherLoadImages = DispatcherQueue.GetForCurrentThread();
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
     private readonly ThrottleDispatcher _throttleProjChanges = new();
@@ -141,7 +143,7 @@ public sealed partial class J4JMapControl
 
     private async Task<bool> AuthenticateProjection(
         IProjection projection,
-        object? credentials,
+        ICredentials? credentials,
         CancellationToken ctx = default
     )
     {
@@ -166,17 +168,24 @@ public sealed partial class J4JMapControl
         }
 
         var cancelOnFailure = false;
+        var userSuppliedCred = false;
 
         while( true )
         {
             if( projection.SetCredentials( credentials ) && await projection.AuthenticateAsync( ctx ) )
+            {
+                if( userSuppliedCred )
+                    NewCredentials?.Invoke( this, new NewCredentialsEventArgs( projection.Name, credentials ) );
+
                 return true;
+            }
 
             if( cancelOnFailure )
                 return false;
 
             var credDialog = await GetCredentialsFromUserAsync( credDialogType! );
             credentials = credDialog?.Credentials;
+            userSuppliedCred = true;
 
             if( credentials == null )
                 return false;
