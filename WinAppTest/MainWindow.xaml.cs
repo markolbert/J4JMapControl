@@ -36,6 +36,7 @@ namespace WinAppTest;
 /// </summary>
 public sealed partial class MainWindow
 {
+    private readonly IJ4JProtection _protection;
     private readonly ILogger? _logger;
     private readonly PointOfInterest _sanCarlos;
 
@@ -46,19 +47,9 @@ public sealed partial class MainWindow
 
     public MainWindow()
     {
-        var config = J4JDeusEx.ServiceProvider.GetService<IConfiguration>();
-        if (config == null)
-        {
-            _logger?.LogCritical("IConfiguration is not defined");
-            throw new ApplicationException("IConfiguration is not defined");
-        }
-
-        var loggerFactory = J4JDeusEx.ServiceProvider.GetService<ILoggerFactory>();
-        if( loggerFactory == null )
-        {
-            _logger?.LogCritical("ILoggerFactory is not defined");
-            throw new ApplicationException("ILoggerFactory is not defined");
-        }
+        var config = GetRequiredService<IConfiguration>();
+        var loggerFactory = GetRequiredService<ILoggerFactory>();
+        _protection = GetRequiredService<IJ4JProtection>();
 
         _logger = loggerFactory?.CreateLogger<MainWindow>();
 
@@ -71,9 +62,6 @@ public sealed partial class MainWindow
         var appWindow = AppWindow.GetFromWindowId( windowId );
 
         appWindow.Resize( new SizeInt32( 800, 1000 ) );
-
-        //_j4jHost = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>()
-        // ?? throw new NullReferenceException( $"Could not load {typeof( IJ4JHost )}" );
 
         _ptsOfInterest = new ObservableCollection<PointOfInterest>
         {
@@ -105,6 +93,27 @@ public sealed partial class MainWindow
 
         SetFileSystemCachePath();
         UpdateStats();
+
+        mapControl.NewCredentials += MapControlOnNewCredentials;
+    }
+
+    private T GetRequiredService<T>()
+        where T : class
+    {
+        var retVal = J4JDeusEx.ServiceProvider.GetService<T>();
+        if( retVal != null )
+            return retVal;
+
+        _logger?.LogCritical( "{service} is not available", typeof( T ) );
+        throw new ApplicationException($"Service {typeof(T)} is not available");
+    }
+
+    private void MapControlOnNewCredentials( object? sender, NewCredentialsEventArgs e )
+    {
+        foreach( var credProp in e.Credentials.Where(x=>x.Value?.ToString() != null) )
+        {
+            _protection.Protect( credProp.Value!.ToString()!, out var encrypted );
+        }
     }
 
     private async Task LoadRouteFileAsync( string fileName, ObservableCollection<RoutePoint> routePoints )
