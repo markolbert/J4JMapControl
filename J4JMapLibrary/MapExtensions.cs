@@ -21,13 +21,14 @@
 
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public static class MapExtensions
 {
     private static readonly char[] ValidQuadKeyCharacters = { '0', '1', '2', '3' };
-    private static readonly Regex LatLongRegEx = new("^\\s*((-?[0-9]*\\.?)?[0-9]+)(\\D*)$", RegexOptions.Compiled);
+    private static readonly Regex LatLongRegEx = new( "^\\s*((-?[0-9]*\\.?)?[0-9]+)(\\D*)$", RegexOptions.Compiled );
     private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
 
     public static ProjectionType GetProjectionType( this IProjection projection ) =>
@@ -114,7 +115,7 @@ public static class MapExtensions
         return ( whole, fraction[ ( decLog + 1 ).. ] );
     }
 
-    public static bool TryParseLatitudeDirection(string? text, out int sign)
+    public static bool TryParseLatitudeDirection( string? text, out int sign )
     {
         if( !string.IsNullOrEmpty( text ) )
             text = text.Trim().ToUpper();
@@ -131,9 +132,9 @@ public static class MapExtensions
         return sign != 0;
     }
 
-    public static bool TryParseLongitudeDirection(string? text, out int sign)
+    public static bool TryParseLongitudeDirection( string? text, out int sign )
     {
-        if (!string.IsNullOrEmpty(text))
+        if( !string.IsNullOrEmpty( text ) )
             text = text.Trim().ToUpper();
 
         sign = text switch
@@ -159,12 +160,12 @@ public static class MapExtensions
         if( !results.Any() )
             return false;
 
-        if( !float.TryParse( results[ 0].Groups[1].Value, out latitude ) )
+        if( !float.TryParse( results[ 0 ].Groups[ 1 ].Value, out latitude ) )
             return false;
 
         latitude = MapConstants.Wgs84LatitudeRange.ConformValueToRange( latitude, "TryParseToLatitude" );
 
-        if( latitude <= 0 || results[0].Groups.Count < 4 )
+        if( latitude <= 0 || results[ 0 ].Groups.Count < 4 )
             return true;
 
         if( !TryParseLatitudeDirection( results[ 0 ].Groups[ 3 ].Value, out var sign ) )
@@ -174,54 +175,54 @@ public static class MapExtensions
         return true;
     }
 
-    public static bool TryParseToLongitude(string? text, out float longitude)
+    public static bool TryParseToLongitude( string? text, out float longitude )
     {
         longitude = 0;
 
-        if (string.IsNullOrEmpty(text))
+        if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var results = LatLongRegEx.Matches(text);
-        if (!results.Any())
+        var results = LatLongRegEx.Matches( text );
+        if( !results.Any() )
             return false;
 
-        if (!float.TryParse(results[0].Groups[1].Value, out longitude))
+        if( !float.TryParse( results[ 0 ].Groups[ 1 ].Value, out longitude ) )
             return false;
 
-        longitude = MapConstants.LongitudeRange.ConformValueToRange(longitude, "TryParseToLongitude");
+        longitude = MapConstants.LongitudeRange.ConformValueToRange( longitude, "TryParseToLongitude" );
 
-        if (longitude <= 0 || results[0].Groups.Count < 4)
+        if( longitude <= 0 || results[ 0 ].Groups.Count < 4 )
             return true;
 
-        if (!TryParseLongitudeDirection(results[0].Groups[3].Value, out var sign))
-            return string.IsNullOrEmpty(results[0].Groups[3].Value);
+        if( !TryParseLongitudeDirection( results[ 0 ].Groups[ 3 ].Value, out var sign ) )
+            return string.IsNullOrEmpty( results[ 0 ].Groups[ 3 ].Value );
 
         longitude *= sign;
         return true;
     }
 
-    public static bool TryParseToLatLong(string? text, out float latitude, out float longitude)
+    public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
     {
         latitude = 0;
         longitude = 0;
 
-        if (string.IsNullOrEmpty(text))
+        if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var parts = text.Split(new[] { ',' });
-        if (parts.Length != 2)
+        var parts = text.Split( new[] { ',' } );
+        if( parts.Length != 2 )
             return false;
 
         return TryParseToLatitude( parts[ 0 ], out latitude ) && TryParseToLongitude( parts[ 1 ], out longitude );
     }
 
-    public static string ConvertToLatLongText(float latitude, float longitude)
+    public static string ConvertToLatLongText( float latitude, float longitude )
     {
         var sb = new StringBuilder();
-        sb.Append(latitude);
-        sb.Append(latitude < 0 ? "S, " : "N, ");
-        sb.Append(longitude);
-        sb.Append(longitude < 0 ? "W" : "E");
+        sb.Append( latitude );
+        sb.Append( latitude < 0 ? "S, " : "N, " );
+        sb.Append( longitude );
+        sb.Append( longitude < 0 ? "W" : "E" );
 
         return sb.ToString();
     }
@@ -251,4 +252,11 @@ public static class MapExtensions
 
         return !double.IsNaN( heading );
     }
+
+    public static IEnumerable<KeyValuePair<string, string?>> ToKeyValuePairs( this ICredentials credentials ) =>
+        credentials.CredentialProperties
+                   .Where( x => x.Value != null )
+                   .Select( x => new KeyValuePair<string, string?>(
+                                $"{CredentialsFactory.RootCredentialsPropertyName}:{credentials.ProjectionName}:{x.PropertyName}",
+                                x.Value!.ToString() ) );
 }
