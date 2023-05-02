@@ -1,7 +1,7 @@
 ﻿#region copyright
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
-// OpenStreetCredentials.cs
+// BingCredentials.cs
 //
 // This file is part of JumpForJoy Software's J4JMapLibrary.
 // 
@@ -19,21 +19,29 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Microsoft.AspNetCore.DataProtection;
+
 namespace J4JSoftware.J4JMapLibrary;
 
-public class OpenStreetCredentials : Credentials
+public class BingCredentials : Credentials
 {
-    private string _userAgent = string.Empty;
+    private string _apiKey = string.Empty;
 
-    public OpenStreetCredentials()
-        : base(typeof( OpenStreetMapsProjection ))
+    public BingCredentials()
+        : base( typeof( BingMapsProjection ) )
     {
     }
 
-    [CredentialProperty]
-    public string UserAgent
+    [ CredentialProperty ]
+    public string ApiKey
     {
-        get => _userAgent;
-        set => SetField(ref _userAgent, value);
+        get => _apiKey;
+        set => SetField( ref _apiKey, value );
     }
+
+    public override ICredentials Encrypt( IDataProtector protector ) =>
+        new BingCredentials { ApiKey = protector.Protect( ApiKey ) };
+
+    public override ICredentials Decrypt( IDataProtector protector ) =>
+        new BingCredentials { ApiKey = protector.Unprotect( ApiKey ) };
 }
