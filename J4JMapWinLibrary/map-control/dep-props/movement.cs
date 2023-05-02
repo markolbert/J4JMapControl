@@ -166,6 +166,9 @@ public sealed partial class J4JMapControl
 
         MapRegion!.Offset( (float) xDelta, (float) yDelta );
         MapRegion!.Update();
+
+        SetValue( CenterProperty,
+                  MapExtensions.ConvertToLatLongText( MapRegion.CenterLatitude, MapRegion.CenterLongitude ) );
     }
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
