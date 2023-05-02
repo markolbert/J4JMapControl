@@ -35,6 +35,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
+using System.Collections.Generic;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -65,6 +66,13 @@ public sealed partial class J4JMapControl : Control
 
         DefaultStyleKey = typeof( J4JMapControl );
 
+        MapProjections = MapControlViewModelLocator.Instance
+                                                  ?.ProjectionFactory
+                                                   .ProjectionNames
+                                                   .ToList() ?? new List<string>();
+
+        MapProjection = MapProjections.FirstOrDefault();
+
         _movementProcessor = new MovementProcessor();
         _movementProcessor.Moved += MovementProcessorOnMoved;
         _movementProcessor.MovementsEnded += MovementProcessorOnMovementsEnded;
@@ -78,7 +86,12 @@ public sealed partial class J4JMapControl : Control
         _pointsOfInterest = new PointsOfInterestPositions( this, x => x.PointsOfInterestTemplate );
         _pointsOfInterest.SourceUpdated += PointsOfInterestSourceUpdated;
 
-        Loaded += ( _, _ ) => InitializeProjection();
+        Loaded += OnLoaded;
+    }
+
+    private async void OnLoaded( object sender, RoutedEventArgs e )
+    {
+        await InitializeProjectionAsync();
     }
 
     public int UpdateEventInterval

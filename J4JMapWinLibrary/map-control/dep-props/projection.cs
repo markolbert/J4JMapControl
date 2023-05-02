@@ -44,22 +44,12 @@ public sealed partial class J4JMapControl
 
     private IProjection? _projection;
 
-    public DependencyProperty MapProjectionsProperty = DependencyProperty.Register(
-        nameof( MapProjections ),
-        typeof( List<string> ),
-        typeof( J4JMapControl ),
-        new PropertyMetadata( new List<string>() ) );
-
-    public List<string> MapProjections
-    {
-        get => (List<string>) GetValue( MapProjectionsProperty );
-        set => SetValue( MapProjectionsProperty, value );
-    }
+    public List<string> MapProjections { get; }
 
     public DependencyProperty MapProjectionProperty = DependencyProperty.Register( nameof( MapProjection ),
-                                                                               typeof( string ),
-                                                                               typeof( J4JMapControl ),
-                                                                               new PropertyMetadata( null ) );
+        typeof( string ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( null ) );
 
     public string? MapProjection
     {
@@ -67,17 +57,30 @@ public sealed partial class J4JMapControl
 
         set
         {
+            // don't let null values overwrite non-null values
+            if( GetValue( MapProjectionProperty ) != null && value == null )
+            {
+                _logger?.LogWarning( "Trying to overwrite non-null {prop} with null value, rejecting change",
+                                    nameof( MapProjection ) );
+                return;
+            }
+
             if( !MapControlViewModelLocator.Instance!.ProjectionFactory.HasProjection( value ) )
                 _logger?.LogWarning( "'{proj}' is not an available map projection", value );
 
             SetValue( MapProjectionProperty, value );
 
+            // don't initialize projection if we haven't loaded yet -- the ctor
+            // calls the initializer via the Loaded event
+            if( !IsLoaded )
+                return;
+
             _throttleProjChanges.Throttle( UpdateEventInterval,
-                                           _ => Task.Run( async () => await InitializeProjection() ) );
+                                           _ => Task.Run( async () => await InitializeProjectionAsync() ) );
         }
     }
 
-    private async Task InitializeProjection(CancellationToken ctx = default)
+    private async Task InitializeProjectionAsync(CancellationToken ctx = default)
     {
         if( string.IsNullOrEmpty( MapProjection ) || !IsLoaded )
             return;
@@ -94,9 +97,7 @@ public sealed partial class J4JMapControl
         }
 
         if( !await AuthenticateProjection( newProjection,
-                                           MapControlViewModelLocator.Instance.CredentialsFactory[
-                                               MapProjection,
-                                               false ],
+                                           MapControlViewModelLocator.Instance.CredentialsFactory[ MapProjection ],
                                            ctx ) )
         {
             await ShowMessageAsync( $"Failed to authenticate {MapProjection}", "Authentication Failure" );
