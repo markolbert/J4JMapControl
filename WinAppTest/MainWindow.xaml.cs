@@ -134,10 +134,7 @@ public sealed partial class MainWindow
 
     private void MapControlOnNewCredentials( object? sender, NewCredentialsEventArgs e )
     {
-        // should never happen, but...
-        if( _appConfiguration.Credentials == null )
-            return;
-
+        _appConfiguration.Credentials ??= new MapCredentials();
         _appConfiguration.MapProjection = e.ProjectionName;
 
         foreach ( var credProp in e.Credentials
