@@ -20,6 +20,7 @@
 #endregion
 
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
