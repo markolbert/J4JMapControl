@@ -9,7 +9,7 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task BingMaps( TileImageData.Tile data )
     {
-        var projection = await CreateProjection( "BingMaps" ) as BingMapsProjection;
+        var projection = CreateAndAuthenticateProjection( "BingMaps" ) as BingMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -28,7 +28,7 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task OpenStreetMaps( TileImageData.Tile data )
     {
-        var projection = await CreateProjection( "OpenStreetMaps" ) as OpenStreetMapsProjection;
+        var projection = CreateAndAuthenticateProjection( "OpenStreetMaps" ) as OpenStreetMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -47,7 +47,7 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task OpenTopoMaps( TileImageData.Tile data )
     {
-        var projection = await CreateProjection( "OpenTopoMaps" ) as OpenTopoMapsProjection;
+        var projection = CreateAndAuthenticateProjection( "OpenTopoMaps" ) as OpenTopoMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -66,7 +66,7 @@ public class CheckImages : TestBase
     [ ClassData( typeof( TileImageData ) ) ]
     public async Task GoogleMaps( TileImageData.Tile data )
     {
-        var projection = await CreateProjection( "GoogleMaps" ) as GoogleMapsProjection;
+        var projection = CreateAndAuthenticateProjection( "GoogleMaps" ) as GoogleMapsProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 

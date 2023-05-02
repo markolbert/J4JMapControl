@@ -126,9 +126,9 @@ public class FactoryTests : TestBase
     [InlineData("OpenStreetMaps", ".png")]
     [InlineData("OpenTopoMaps", ".png")]
     [InlineData("GoogleMaps", ".png")]
-    public async Task CheckImageFileExtension(string projectionName, string fileExtension)
+    public void CheckImageFileExtension(string projectionName, string fileExtension)
     {
-        var projection = await CreateProjection(projectionName);
+        var projection = CreateAndAuthenticateProjection(projectionName);
         projection.Should().NotBeNull();
         projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }

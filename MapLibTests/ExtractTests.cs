@@ -38,7 +38,7 @@ public class ExtractTests : TestBase
         int numFragments
     )
     {
-        var projection = await CreateProjection(projectionName);
+        var projection = CreateAndAuthenticateProjection( projectionName );
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
         projection.MaxRequestLatency = 0;

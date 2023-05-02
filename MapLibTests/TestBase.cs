@@ -39,32 +39,18 @@ public class TestBase
     protected ProjectionFactory ProjectionFactory { get; }
     protected CredentialsFactory CredentialsFactory { get; }
 
-    protected async Task<IProjection?> CreateProjection(
-        string projName,
-        object? credentials = null
-    )
+    protected IProjection? CreateAndAuthenticateProjection( string projName )
     {
-        credentials ??= CredentialsFactory[ projName, true ];
-        credentials.Should().NotBeNull();
+        var retVal = ProjectionFactory.CreateProjection(projName);
+        if ( retVal == null )
+            return retVal;
 
-        var retVal = projName switch
-        {
-            "BingMaps" => (IProjection)new BingMapsProjection(LoggerFactory),
-            "OpenStreetMaps" => new OpenStreetMapsProjection(LoggerFactory),
-            "OpenTopoMaps" => new OpenTopoMapsProjection(LoggerFactory),
-            "GoogleMaps" => new GoogleMapsProjection(LoggerFactory),
-            _ => null
-        };
+        var credentials = CredentialsFactory[projName];
+        if( credentials == null )
+            return retVal;
 
-        if (retVal == null)
-        {
-            Logger.LogError("Unknown projection {projName}", projName);
-            return null;
-        }
-
-        retVal.SetCredentials(credentials!).Should().BeTrue();
-        var authenticated = await retVal.AuthenticateAsync();
-        authenticated.Should().BeTrue();
+        retVal!.SetCredentials(credentials!);
+        retVal.Authenticate();
 
         return retVal;
     }

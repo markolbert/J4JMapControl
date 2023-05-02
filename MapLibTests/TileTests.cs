@@ -30,7 +30,7 @@ public class TileTests : TestBase
         int maxTileY
     )
     {
-        var projection = await CreateProjection( projectionName );
+        var projection = CreateAndAuthenticateProjection( projectionName );
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
@@ -67,9 +67,9 @@ public class TileTests : TestBase
     [ InlineData( 0, 4, 2, 15, -1 ) ]
     [ InlineData( 0, 3, 2, 15, -1 ) ]
     [ InlineData( 1, 2, 2, -15, -1 ) ]
-    public async Task AbsoluteTile( int regionStart, int regionWidth, int scale, int relativeX, int absoluteX )
+    public void AbsoluteTile( int regionStart, int regionWidth, int scale, int relativeX, int absoluteX )
     {
-        var projection = await CreateProjection( "BingMaps" );
+        var projection = CreateAndAuthenticateProjection( "BingMaps" );
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 

@@ -13,7 +13,7 @@ public class CacheTests : TestBase
     [ InlineData( 4, 30 ) ]
     public async Task MemoryCacheCount( int scale, int maxCached )
     {
-        var projection = await CreateProjection( "BingMaps" ) as BingMapsProjection;
+        var projection = CreateAndAuthenticateProjection( "BingMaps" ) as BingMapsProjection;
         projection.Should().NotBeNull();
 
         var cache = J4JDeusEx.ServiceProvider.GetService<MemoryCache>();
@@ -57,7 +57,7 @@ public class CacheTests : TestBase
             File.Delete( fileName );
         }
 
-        var projection = await CreateProjection("BingMaps") as BingMapsProjection;
+        var projection = CreateAndAuthenticateProjection("BingMaps") as BingMapsProjection;
         projection.Should().NotBeNull();
 
         projection!.TileCaching.AddCache(cache);
