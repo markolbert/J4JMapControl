@@ -162,8 +162,10 @@ The structure of a credential type reflects the information needed to authentica
 |`BingCredentials`|`ApiKey`|`string`||
 |`GoogleCredentials`|`ApiKey`|`string`||
 ||`SignatureSecret`|`string`|used to encrypt each web request|
-|`OpenStreetCredentials`|`UserAgent`|chosen by you, but must uniquely identify your application. Consult the online documentation for details|
-|`OpenTopoCredentials`|`UserAgent`|chosen by you, but must uniquely identify your application. Consult the online documentation for details|
+|`OpenStreetCredentials`|`UserAgent`|chosen by you, but must uniquely identify your application. Consult the service's documentation for details|
+|`OpenTopoCredentials`|`UserAgent`|chosen by you, but must uniquely identify your application. Consult the service's documentation for details|
+
+For more information on creating/retrieving credential objects and the authentication process, please review the [authentication documentation](authentication.md).
 
 [return to top](#overview)
 

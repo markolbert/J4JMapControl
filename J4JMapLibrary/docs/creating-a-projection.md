@@ -6,16 +6,14 @@ Each service has its own unique projection class:
 
 |Service|Projection Class|Constructor Parameters|
 |-------|----------------|----------------------|
-|Bing Maps|`BingMapsProjection`|`ILoggerFactory?` loggerFactory = null<br>`ITileCache?` tileCache = null|
+|Bing Maps|`BingMapsProjection`|`ILoggerFactory?` loggerFactory = null|
 |Google Maps|`GoogleMapsProjection`|`ILoggerFactory?` loggerFactory = null|
-|Open Street Maps|`OpenStreetMapsProjection`|`ILoggerFactory?` loggerFactory = null<br>`ITileCache?` tileCache = null|
-|Open Topo Maps|`OpenTopoMapsProjection`|`ILoggerFactory?` loggerFactory = null<br>`ITileCache?` tileCache = null|
+|Open Street Maps|`OpenStreetMapsProjection`|`ILoggerFactory?` loggerFactory = null|
+|Open Topo Maps|`OpenTopoMapsProjection`|`ILoggerFactory?` loggerFactory = null|
 
-Three of the projections accept optional instances of `ITileCache` and `ILoggerFactory`. The `GoogleMapsProjection` constructor, however, only accepts an optional `ILoggerFactory`. That's because *the Google Maps Static API terms of use forbid caching the retrieved imagery.*
+`ILoggerFactory` is simply an instance you obtain from Microsoft's logging service. Consult their documentation for details. If you do not specify an `ILoggerFactory` instance you will not get logging events.
 
-`ILoggerFactory` is simply an instance you obtain from Microsoft's logging service. Consult their documentation for details.
-
-`ITileCache` is an instance of one or more classes that implement caching. For details, [consult the caching documentation](caching.md).
+Three of the supported projections also support caching. `GoogleMapsProjection` does not, because *the Google Maps Static API terms of use forbid caching the retrieved imagery.* For details on enabling caching, [consult the caching documentation](caching.md).
 
 [return to creating a projection](creating-a-projection.md)
 
