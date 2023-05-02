@@ -16,7 +16,7 @@ public class CredentialsFactory
 
     public CredentialsFactory(
         IConfiguration config,
-        ILoggerFactory? loggerFactory,
+        ILoggerFactory? loggerFactory = null,
         bool includeDefaults = true
     )
     {
