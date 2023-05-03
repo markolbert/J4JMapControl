@@ -185,11 +185,21 @@ public class FileSystemCache : CacheBase
             Logger?.LogWarning("Replacing file system cache entry '{0}'", mapTile.FragmentId);
         else Logger?.LogTrace("Added file system cache entry '{fragmentId}'", mapTile.FragmentId);
 
-        await using var imgFile = File.Create( filePath );
-        await imgFile.WriteAsync( mapTile.ImageData, ctx );
-        imgFile.Close();
+        try
+        {
+            await using var imgFile = File.Create( filePath );
+            await imgFile.WriteAsync( mapTile.ImageData, ctx );
+            imgFile.Close();
 
-        Stats.RecordEntry( mapTile.ImageData );
+            Stats.RecordEntry( mapTile.ImageData );
+        }
+        catch( Exception ex )
+        {
+            Logger?.LogError( "Problem updating {cache} re: image file '{file}', message was {mesg}",
+                              typeof( FileSystemCache ),
+                              filePath,
+                              ex.Message );
+        }
 
         if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
