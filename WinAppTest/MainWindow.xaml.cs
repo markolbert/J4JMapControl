@@ -30,6 +30,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Graphics;
+using Windows.Graphics.Display;
 using Windows.System;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,7 +85,24 @@ public sealed partial class MainWindow
         var windowId = Win32Interop.GetWindowIdFromWindow( hWnd );
         var appWindow = AppWindow.GetFromWindowId( windowId );
 
-        appWindow.Resize( new SizeInt32( 800, 1000 ) );
+        //var displayInformation = DisplayInformation.GetForCurrentView();
+        //var windowSize = new SizeInt32(
+        //    (int) displayInformation.ScreenWidthInRawPixels,
+        //    (int) displayInformation.ScreenHeightInRawPixels);
+        
+        //windowSize.Height = windowSize.Height < 800 
+        //    ? 800 
+        //    : windowSize.Height > 2000 
+        //        ? 1800 
+        //        : windowSize.Height;
+
+        //windowSize.Width = windowSize.Width < 600
+        //    ? 600
+        //    : windowSize.Width > 2000
+        //        ? 1800
+        //        : windowSize.Width * 4 / 5;
+
+        //appWindow.Resize( windowSize );
 
         this.Closed += ( _, _ ) => SaveConfiguration();
 

@@ -31,6 +31,8 @@ using Serilog;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text.Json;
+using Windows.Graphics.Display;
+using Windows.UI.ViewManagement;
 using Microsoft.Extensions.Hosting;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -41,6 +43,7 @@ public partial class App
 #pragma warning disable CS8618
     public new static App Current => (App)Application.Current;
 
+    private Window _mainWin;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly IDataProtector _dataProtector;
@@ -146,6 +149,4 @@ public partial class App
         _mainWin = new MainWindow();
         _mainWin.Activate();
     }
-
-    private Window _mainWin;
 }
