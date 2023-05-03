@@ -36,6 +36,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System.Collections.Generic;
+using Microsoft.UI.Xaml.Input;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -80,6 +81,8 @@ public sealed partial class J4JMapControl : Control
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
+
+        DoubleTapped += OnDoubleTapped;
 
         SizeChanged += OnSizeChanged;
 

@@ -26,6 +26,7 @@ using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
@@ -39,6 +40,8 @@ namespace J4JSoftware.J4JMapWinLibrary;
 public sealed partial class J4JMapControl
 {
     private readonly MovementProcessor _movementProcessor;
+    private readonly ThrottleDispatcher _throttleDoubleTap = new();
+
     private Line? _baseLine;
     private Image? _compassRose;
     private float? _firstRotationAngle;
@@ -208,6 +211,20 @@ public sealed partial class J4JMapControl
         e.Handled = true;
         var point = e.GetCurrentPoint(this);
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
+    }
+
+    private void OnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        _throttleDoubleTap.Throttle( UpdateEventInterval, _ => CenterOnDoubleTap( e.GetPosition( this ) ) );
+        e.Handled = true;
+    }
+
+    private void CenterOnDoubleTap( Point point )
+    {
+        var xOffset = point.X - ActualWidth / 2;
+        var yOffset = point.Y - ActualHeight / 2;
+
+        MapRegion!.Offset((float)xOffset, (float)yOffset);
     }
 
     public bool SetHeadingByText( string text )
