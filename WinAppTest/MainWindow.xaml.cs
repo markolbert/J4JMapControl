@@ -176,7 +176,7 @@ public sealed partial class MainWindow
                             break;
 
                         case nameof(GoogleCredentials.SignatureSecret):
-                            _appConfiguration.Credentials.GoogleCredentials.ApiKey = (string)credProp.Value!;
+                            _appConfiguration.Credentials.GoogleCredentials.SignatureSecret = (string)credProp.Value!;
                             break;
                     }
 
