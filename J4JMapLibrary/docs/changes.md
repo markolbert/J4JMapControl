@@ -2,6 +2,7 @@
 
 |Version|Comments|
 |:-----:|--------|
+|0.9.2|fixed authentication problems|
 |0.9.0|**breaking changes**, [see details below](#v090)|
 |0.8.4|bumped to align with J4JMapWinLibrary|
 |0.8.3|fixed problems with various mapping services|

@@ -13,7 +13,7 @@
 		<Copyright>© Mark A. Olbert all rights reserved</Copyright>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/markolbert/ProgrammingUtilities</RepositoryUrl>
-		<VersionPrefix>0.9.1</VersionPrefix>
+		<VersionPrefix>0.9.2</VersionPrefix>
 	</PropertyGroup>
 
 	<ItemGroup>
