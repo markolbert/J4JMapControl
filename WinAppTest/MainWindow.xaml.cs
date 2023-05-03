@@ -29,8 +29,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Windows.Devices.Display;
+using Windows.Devices.Enumeration;
 using Windows.Graphics;
-using Windows.Graphics.Display;
 using Windows.System;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,7 +76,7 @@ public sealed partial class MainWindow
 
         _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 
-        _logger = loggerFactory?.CreateLogger<MainWindow>();
+        _logger = loggerFactory.CreateLogger<MainWindow>();
 
         MapControlViewModelLocator.Initialize(config, loggerFactory);
 
@@ -85,24 +86,7 @@ public sealed partial class MainWindow
         var windowId = Win32Interop.GetWindowIdFromWindow( hWnd );
         var appWindow = AppWindow.GetFromWindowId( windowId );
 
-        //var displayInformation = DisplayInformation.GetForCurrentView();
-        //var windowSize = new SizeInt32(
-        //    (int) displayInformation.ScreenWidthInRawPixels,
-        //    (int) displayInformation.ScreenHeightInRawPixels);
-        
-        //windowSize.Height = windowSize.Height < 800 
-        //    ? 800 
-        //    : windowSize.Height > 2000 
-        //        ? 1800 
-        //        : windowSize.Height;
-
-        //windowSize.Width = windowSize.Width < 600
-        //    ? 600
-        //    : windowSize.Width > 2000
-        //        ? 1800
-        //        : windowSize.Width * 4 / 5;
-
-        //appWindow.Resize( windowSize );
+        Task.Run( async () => await SizeWindow( appWindow ) );
 
         this.Closed += ( _, _ ) => SaveConfiguration();
 
@@ -153,6 +137,37 @@ public sealed partial class MainWindow
             numberBoxHeading.Value = 0;
             numberBoxScale.Value = 16;
         }
+    }
+
+    private async Task SizeWindow( AppWindow appWindow )
+    {
+        var displayList = await DeviceInformation.FindAllAsync( DisplayMonitor.GetDeviceSelector() );
+
+        if( !displayList.Any() )
+            return;
+
+        var monitorInfo = await DisplayMonitor.FromInterfaceIdAsync( displayList[ 0 ].Id );
+
+        var winSize = new SizeInt32();
+
+        if( monitorInfo == null )
+        {
+            winSize.Width = 800;
+            winSize.Height = 1200;
+        }
+        else
+        {
+            var widthInInches = Convert.ToInt32( 8 * monitorInfo.RawDpiX );
+            var heightInInches = Convert.ToInt32( 12 * monitorInfo.RawDpiY );
+
+            winSize.Height = monitorInfo.NativeResolutionInRawPixels.Height;
+            winSize.Width = monitorInfo.NativeResolutionInRawPixels.Width;
+
+            winSize.Height = winSize.Height > heightInInches? heightInInches: winSize.Height;
+            winSize.Width = winSize.Width > widthInInches ? widthInInches: winSize.Width;
+        }
+
+        appWindow.Resize( winSize );
     }
 
     private T GetRequiredService<T>()
