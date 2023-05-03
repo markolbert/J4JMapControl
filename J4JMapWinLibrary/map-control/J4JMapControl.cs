@@ -107,18 +107,18 @@ public sealed partial class J4JMapControl : Control
     {
         base.OnApplyTemplate();
 
-        _mapGrid = FindUIElement<Grid>( "MapGrid", x => x.PointerWheelChanged += MapGridOnPointerWheelChanged );
-        _controlGrid = FindUIElement<Grid>( "ControlGrid" );
-        _annotationsCanvas = FindUIElement<Canvas>( "AnnotationsCanvas" );
-        _poiCanvas = FindUIElement<Canvas>( "PoICanvas" );
-        _routesCanvas = FindUIElement<Canvas>("RoutesCanvas");
+        _mapGrid = FindUiElement<Grid>( "MapGrid", x => x.PointerWheelChanged += MapGridOnPointerWheelChanged );
+        _controlGrid = FindUiElement<Grid>( "ControlGrid" );
+        _annotationsCanvas = FindUiElement<Canvas>( "AnnotationsCanvas" );
+        _poiCanvas = FindUiElement<Canvas>( "PoICanvas" );
+        _routesCanvas = FindUiElement<Canvas>("RoutesCanvas");
 
-        _rotationCanvas = FindUIElement<Canvas>( "RotationCanvas" );
-        _rotationPanel = FindUIElement<StackPanel>( "RotationPanel" );
-        _rotationText = FindUIElement<TextBlock>( "RotationText" );
-        _headingText = FindUIElement<TextBlock>( "HeadingText" );
-        _rotationLine = FindUIElement<Line>( "RotationLine" );
-        _baseLine = FindUIElement<Line>( "BaseLine" );
+        _rotationCanvas = FindUiElement<Canvas>( "RotationCanvas" );
+        _rotationPanel = FindUiElement<StackPanel>( "RotationPanel" );
+        _rotationText = FindUiElement<TextBlock>( "RotationText" );
+        _headingText = FindUiElement<TextBlock>( "HeadingText" );
+        _rotationLine = FindUiElement<Line>( "RotationLine" );
+        _baseLine = FindUiElement<Line>( "BaseLine" );
 
         _rotationHintsDefined = _rotationCanvas != null
          && _rotationPanel != null
@@ -127,8 +127,8 @@ public sealed partial class J4JMapControl : Control
          && _rotationLine != null
          && _baseLine != null;
 
-        _compassRose = FindUIElement<Image>( "CompassRose" );
-        _scaleSlider = FindUIElement<Slider>( "ScaleSlider", x => x.ValueChanged += ScaleSliderOnValueChanged );
+        _compassRose = FindUiElement<Image>( "CompassRose" );
+        _scaleSlider = FindUiElement<Slider>( "ScaleSlider", x => x.ValueChanged += ScaleSliderOnValueChanged );
 
         SetMapControlMargins( ControlVerticalMargin );
     }
@@ -138,7 +138,7 @@ public sealed partial class J4JMapControl : Control
         _throttleScaleChanges.Throttle( UpdateEventInterval, _ => MapScale = e.NewValue );
     }
 
-    private T? FindUIElement<T>( string name, Action<T>? postProcessor = null )
+    private T? FindUiElement<T>( string name, Action<T>? postProcessor = null )
         where T : UIElement
     {
         var retVal = GetTemplateChild( name ) as T;
@@ -151,6 +151,9 @@ public sealed partial class J4JMapControl : Control
 
     private void OnSizeChanged( object sender, SizeChangedEventArgs e )
     {
+        if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0)
+            return;
+
         _throttleSizeChanges.Throttle( UpdateEventInterval,
                                        _ => MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width ) );
 
