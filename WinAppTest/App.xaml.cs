@@ -31,8 +31,6 @@ using Serilog;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Windows.Graphics.Display;
-using Windows.UI.ViewManagement;
 using Microsoft.Extensions.Hosting;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
