@@ -2,6 +2,7 @@
 
 |Version|Comments|
 |:-----:|--------|
+|0.9.3|fixed problem with scale slider size, adjusted startup window size|
 |0.9.2|added double-tap support, additional credentials dialogs|
 |0.9.0|added routes, fixed problem about how slider control was displaying|
 |0.8.4|added points of interest|
