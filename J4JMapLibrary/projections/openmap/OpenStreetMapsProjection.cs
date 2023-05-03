@@ -65,7 +65,12 @@ public sealed class OpenStreetMapsProjection : TiledProjection
 
         UserAgent = ( (OpenStreetCredentials) Credentials! ).UserAgent;
 
-        Initialized = true;
+        // user agent must be unique, but this is all we can do to check it
+        Initialized = !string.IsNullOrEmpty( UserAgent );
+
+        if( !Initialized )
+            Logger?.LogError("Empty or undefined user agent value");
+
         return Initialized;
     }
 

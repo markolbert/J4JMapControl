@@ -29,6 +29,8 @@ namespace J4JSoftware.J4JMapLibrary;
 [ Projection( "GoogleMaps" ) ]
 public sealed class GoogleMapsProjection : StaticProjection
 {
+    private bool _pendingInitializtion;
+
     public GoogleMapsProjection(
         ILoggerFactory? loggerFactory = null
     )
@@ -92,17 +94,28 @@ public sealed class GoogleMapsProjection : StaticProjection
 
         Initialized = false;
 
-        ApiKey = ((GoogleCredentials) Credentials!).ApiKey;
-        Signature = ((GoogleCredentials)Credentials).SignatureSecret;
+        ApiKey = ( (GoogleCredentials) Credentials! ).ApiKey;
+        Signature = ( (GoogleCredentials) Credentials ).SignatureSecret;
 
-        Initialized = true;
+        // the only way to check Google credentials is to try and retrieve a map image
+        // sadly, that can fail for reasons other than invalid credentials
+        // we also have to temporarily override the initialized check
+        _pendingInitializtion = true;
+        
+        var testBytes = await GetImageAsync( MapTile.CreateStaticMapTile( this, 0, 0, 0, LoggerFactory ), ctx );
+        Initialized = testBytes != null;
+        
+        _pendingInitializtion = false;
 
-        return true;
+        if( !Initialized )
+            Logger?.LogError( "Failed to retrieve map image, Google credentials may be invalid" );
+
+        return Initialized;
     }
 
     protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
     {
-        if( !Initialized )
+        if( !_pendingInitializtion && !Initialized )
         {
             Logger?.LogError( "Trying to create image retrieval HttpRequestMessage when uninitialized" );
             return null;
