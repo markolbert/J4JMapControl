@@ -19,6 +19,9 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="credential-dialogs\BingCredentialsDialog.xaml" />
+	  <None Remove="credential-dialogs\GoogleCredentialsDialog.xaml" />
+	  <None Remove="credential-dialogs\OpenStreetCredentialsDialog.xaml" />
+	  <None Remove="credential-dialogs\OpenTopoCredentialsDialog.xaml" />
 	  <None Remove="MessageBox.xaml" />
 	</ItemGroup>
 	
@@ -41,6 +44,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Page Update="credential-dialogs\OpenTopoCredentialsDialog.xaml">
+	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	    <SubType>Designer</SubType>
+	  </Page>
+	  <Page Update="credential-dialogs\OpenStreetCredentialsDialog.xaml">
+	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	    <SubType>Designer</SubType>
+	  </Page>
+	  <Page Update="credential-dialogs\GoogleCredentialsDialog.xaml">
+	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	    <SubType>Designer</SubType>
+	  </Page>
 	  <Page Update="MessageBox.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </Page>
