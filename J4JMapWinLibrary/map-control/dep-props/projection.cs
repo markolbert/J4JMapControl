@@ -39,6 +39,7 @@ public sealed partial class J4JMapControl
     public event EventHandler<NewCredentialsEventArgs>? NewCredentials;
 
     private readonly DispatcherQueue _dispatcherLoadImages = DispatcherQueue.GetForCurrentThread();
+    private readonly DispatcherQueue _dispatcherChangeProjection = DispatcherQueue.GetForCurrentThread();
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
     private readonly ThrottleDispatcher _throttleProjChanges = new();
 
@@ -75,8 +76,7 @@ public sealed partial class J4JMapControl
             if( !IsLoaded )
                 return;
 
-            _throttleProjChanges.Throttle( UpdateEventInterval,
-                                           _ => Task.Run( async () => await InitializeProjectionAsync() ) );
+            _dispatcherChangeProjection.TryEnqueue( async () => await InitializeProjectionAsync() );
         }
     }
 
