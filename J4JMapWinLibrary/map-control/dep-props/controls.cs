@@ -26,6 +26,7 @@ using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using WinRT;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -191,9 +192,9 @@ public sealed partial class J4JMapControl
         if( _scaleSlider == null )
             return;
 
-        var sliderHeight = _compassRose!= null 
-            ? _scaleSlider.Height -= _compassRose.Height + _compassRose.Margin.Top + _compassRose.Margin.Bottom
-            : _scaleSlider.Height = mapSize.Height - _scaleSlider.Margin.Top - _scaleSlider.Margin.Bottom;
+        var sliderHeight = _compassRose != null
+            ? mapSize.Height - _compassRose.Height + _compassRose.Margin.Top + _compassRose.Margin.Bottom
+            : mapSize.Height - _scaleSlider.Margin.Top - _scaleSlider.Margin.Bottom;
 
         if( sliderHeight < 20 )
             sliderHeight = 20;
