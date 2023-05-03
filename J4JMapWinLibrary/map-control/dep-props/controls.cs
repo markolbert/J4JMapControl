@@ -191,9 +191,13 @@ public sealed partial class J4JMapControl
         if( _scaleSlider == null )
             return;
 
-        _scaleSlider.Height = mapSize.Height - _scaleSlider.Margin.Top - _scaleSlider.Margin.Bottom;
+        var sliderHeight = _compassRose!= null 
+            ? _scaleSlider.Height -= _compassRose.Height + _compassRose.Margin.Top + _compassRose.Margin.Bottom
+            : _scaleSlider.Height = mapSize.Height - _scaleSlider.Margin.Top - _scaleSlider.Margin.Bottom;
 
-        if( _compassRose != null )
-            _scaleSlider.Height -= _compassRose.Height + _compassRose.Margin.Top + _compassRose.Margin.Bottom;
+        if( sliderHeight < 20 )
+            sliderHeight = 20;
+
+        _scaleSlider.Height = sliderHeight;
     }
 }
