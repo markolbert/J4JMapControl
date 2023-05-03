@@ -1,5 +1,23 @@
-// Copyright (c) Microsoft Corporation and Contributors.
-// Licensed under the MIT License.
+#region copyright
+// Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
+// https://www.JumpForJoySoftware.com
+// MainWindow.xaml.cs
+//
+// This file is part of JumpForJoy Software's WinAppTest.
+// 
+// WinAppTest is free software: you can redistribute it and/or modify it 
+// under the terms of the GNU General Public License as published by the 
+// Free Software Foundation, either version 3 of the License, or 
+// (at your option) any later version.
+// 
+// WinAppTest is distributed in the hope that it will be useful, but 
+// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+// for more details.
+// 
+// You should have received a copy of the GNU General Public License along 
+// with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
+#endregion
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -13,8 +31,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Graphics;
 using Windows.System;
-using J4JSoftware.DependencyInjection;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -100,7 +116,7 @@ public sealed partial class MainWindow
         _sanCarlos = _ptsOfInterest[ 1 ];
         _scIncluded = true;
 
-        SetFileSystemCachePath();
+        mapControl.FileSystemCachePath = Path.Combine(AppConfiguration.UserFolder, "map-cache");
         UpdateStats();
 
         mapControl.NewCredentials += MapControlOnNewCredentials;
@@ -124,7 +140,8 @@ public sealed partial class MainWindow
     private T GetRequiredService<T>()
         where T : class
     {
-        var retVal = J4JDeusEx.ServiceProvider.GetService<T>();
+        //var retVal = J4JDeusEx.ServiceProvider.GetService<T>();
+        var retVal = App.Current.Services.GetService<T>();
         if( retVal != null )
             return retVal;
 
@@ -252,15 +269,6 @@ public sealed partial class MainWindow
 
         mapControl.SetHeadingByText( headingText.Text );
         headingText.Text = string.Empty;
-    }
-
-    private void SetFileSystemCachePath()
-    {
-        var hostConfig = J4JDeusEx.ServiceProvider.GetService<IJ4JHost>();
-
-        if( hostConfig == null )
-            _logger?.LogError("Could not retrieve instance of IJ4JHost");
-        else mapControl.FileSystemCachePath = Path.Combine( hostConfig.ApplicationConfigurationFolder, "map-cache" );
     }
 
     private void PurgeCache( object sender, RoutedEventArgs e )
