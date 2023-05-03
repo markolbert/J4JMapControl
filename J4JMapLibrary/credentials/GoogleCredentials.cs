@@ -57,6 +57,6 @@ public class GoogleCredentials : Credentials
     public override ICredentials Decrypt( IDataProtector protector ) =>
         new GoogleCredentials
         {
-            ApiKey = protector.Unprotect( ApiKey ), SignatureSecret = protector.Unprotect( ApiKey )
+            ApiKey = protector.Unprotect( ApiKey ), SignatureSecret = protector.Unprotect( SignatureSecret )
         };
 }
