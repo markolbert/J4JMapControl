@@ -8,8 +8,10 @@ The WinUI 3 demo app, **WinAppTest**, is now decoupled from my hosting/dependenc
 
 You can find the latest NuGet packages here:
 
-- [J4JMapLibrary](https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/)
-- [J4JMapWinLibrary](https://www.nuget.org/packages/J4JSoftware.J4JMapWinLibrary/)
+|Library|NuGet|
+|-------|-----|
+|J4JMapLibrary|![https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapLibrary?style=flat-square)|
+|J4JMapWinLibrary|![https://www.nuget.org/packages/J4JSoftware.J4JMapWinLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapWinLibrary?style=flat-square)|
 
 ## Components
 
