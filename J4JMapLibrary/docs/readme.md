@@ -1,6 +1,6 @@
 # J4JMapLibrary
 
-![https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapLibrary?style=flat-square)
+[![J4JMapLibrary](https://img.shields.io/nuget/v/J4JSoftware.J4JMapLibrary?style=flat-square)](https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/)
 
 A Net7 library for retrieving map images from online services. The supported services are currently:
 

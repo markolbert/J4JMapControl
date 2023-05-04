@@ -10,8 +10,8 @@ You can find the latest NuGet packages here:
 
 |Library|NuGet|
 |-------|-----|
-|J4JMapLibrary|![https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapLibrary?style=flat-square)|
-|J4JMapWinLibrary|![https://www.nuget.org/packages/J4JSoftware.J4JMapWinLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapWinLibrary?style=flat-square)|
+|J4JMapLibrary|[![J4JMapLibrary](https://img.shields.io/nuget/v/J4JSoftware.J4JMapLibrary?style=flat-square)](https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/)|
+|J4JMapWinLibrary|[![J4JMapWinLibrary](https://img.shields.io/nuget/v/J4JSoftware.J4JMapWinLibrary?style=flat-square)](https://www.nuget.org/packages/J4JSoftware.J4JMapWinLibrary/)|
 
 ## Components
 

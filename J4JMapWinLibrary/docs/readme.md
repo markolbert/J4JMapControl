@@ -1,6 +1,6 @@
 # J4JMapWinLibrary
 
-![https://www.nuget.org/packages/J4JSoftware.J4JMapWinLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapWinLibrary?style=flat-square)
+[![J4JMapWinLibrary](https://img.shields.io/nuget/v/J4JSoftware.J4JMapWinLibrary?style=flat-square)](https://www.nuget.org/packages/J4JSoftware.J4JMapWinLibrary/)
 
 WinUI 3/WinApp controls for displaying maps from online mapping services, with optional annotations.
 
