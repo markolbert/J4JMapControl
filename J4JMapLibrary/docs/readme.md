@@ -1,5 +1,7 @@
 # J4JMapLibrary
 
+![https://www.nuget.org/packages/J4JSoftware.J4JMapLibrary/](https://img.shields.io/nuget/v/J4JSoftware.J4JMapLibrary?style=flat-square)
+
 A Net7 library for retrieving map images from online services. The supported services are currently:
 
 - [Bing Maps](https://www.bingmapsportal.com/)
