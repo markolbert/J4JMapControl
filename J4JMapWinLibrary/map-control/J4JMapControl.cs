@@ -36,7 +36,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using System.Collections.Generic;
-using Microsoft.UI.Xaml.Input;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -355,7 +354,9 @@ public sealed partial class J4JMapControl : Control
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        if( MapRegion == null || _projection == null )
+        availableSize = SizeIsValid(availableSize) ? availableSize : new Size(100,100);
+
+        if ( MapRegion == null || _projection == null )
             return availableSize;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
@@ -364,13 +365,19 @@ public sealed partial class J4JMapControl : Control
         return new Size( width, height );
     }
 
+    private bool SizeIsValid( Size toCheck ) =>
+        toCheck.Width != 0
+     && toCheck.Height != 0
+     && !double.IsPositiveInfinity( toCheck.Height )
+     && !double.IsPositiveInfinity( toCheck.Width );
+
     protected override Size ArrangeOverride( Size finalSize )
     {
-        base.ArrangeOverride( finalSize );
+        finalSize = base.ArrangeOverride( finalSize );
 
         Clip = new RectangleGeometry()
         {
-            Rect = new Rect( new Point(), new Size( this.ActualWidth, this.ActualHeight ) )
+            Rect = new Rect( new Point(), new Size( finalSize.Width, finalSize.Height ) )
         };
 
         ArrangeAnnotations();
