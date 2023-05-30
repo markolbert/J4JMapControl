@@ -21,26 +21,6 @@ public class MapControlViewModelLocator
         Instance = new MapControlViewModelLocator(config, loggerFactory, inclDefaults, assembliesToSearch );
     }
 
-    private MapControlViewModelLocator(
-        IConfiguration config,
-        ILoggerFactory? loggerFactory = null,
-        bool inclDefaults = true,
-        params Assembly[] assembliesToSearch
-        )
-    {
-        LoggerFactory = loggerFactory;
-
-        ProjectionFactory = new ProjectionFactory( loggerFactory, inclDefaults );
-        ProjectionFactory.ScanAssemblies( assembliesToSearch );
-        ProjectionFactory.InitializeFactory();
-
-        CredentialsFactory = new CredentialsFactory( config, loggerFactory, inclDefaults );
-        CredentialsFactory.ScanAssemblies( assembliesToSearch );
-        CredentialsFactory.InitializeFactory();
-
-        CredentialsDialogFactory = new CredentialsDialogFactory( loggerFactory, assembliesToSearch );
-    }
-
     public static void Initialize( IServiceProvider svcProvider )
     {
         var loggerFactory = svcProvider.GetService<ILoggerFactory>();
@@ -65,6 +45,26 @@ public class MapControlViewModelLocator
     }
 
     private MapControlViewModelLocator(
+        IConfiguration config,
+        ILoggerFactory? loggerFactory = null,
+        bool inclDefaults = true,
+        params Assembly[] assembliesToSearch
+    )
+    {
+        LoggerFactory = loggerFactory;
+
+        ProjectionFactory = new ProjectionFactory(loggerFactory, inclDefaults);
+        ProjectionFactory.ScanAssemblies(assembliesToSearch);
+        ProjectionFactory.InitializeFactory();
+
+        CredentialsFactory = new CredentialsFactory(config, loggerFactory, inclDefaults);
+        CredentialsFactory.ScanAssemblies(assembliesToSearch);
+        CredentialsFactory.InitializeFactory();
+
+        CredentialsDialogFactory = new CredentialsDialogFactory(loggerFactory, assembliesToSearch);
+    }
+
+    private MapControlViewModelLocator(
         ProjectionFactory projFactory,
         CredentialsFactory credFactory,
         CredentialsDialogFactory credDlgFactory,
@@ -72,7 +72,11 @@ public class MapControlViewModelLocator
     )
     {
         ProjectionFactory = projFactory;
+        ProjectionFactory.InitializeFactory();
+
         CredentialsFactory = credFactory;
+        CredentialsFactory.InitializeFactory();
+
         CredentialsDialogFactory = credDlgFactory;
         LoggerFactory = loggerFactory;
     }
