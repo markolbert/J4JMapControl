@@ -21,7 +21,6 @@
 
 using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.DeusEx;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MapLibTests;
@@ -37,7 +36,7 @@ public class CacheTests : TestBase
         var projection = CreateAndAuthenticateProjection( "BingMaps" ) as BingMapsProjection;
         projection.Should().NotBeNull();
 
-        var cache = J4JDeusEx.ServiceProvider.GetService<MemoryCache>();
+        var cache = Host.Services.GetService<MemoryCache>();
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
 
@@ -62,7 +61,7 @@ public class CacheTests : TestBase
     [InlineData(4, 30 )]
     public async Task FileSystemCacheCount( int scale, int maxCached )
     {
-        var cache = J4JDeusEx.ServiceProvider.GetService<FileSystemCache>();
+        var cache = Host.Services.GetService<FileSystemCache>();
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
         cache.CacheDirectory = Path.Combine( Environment.CurrentDirectory, "image-cache" );
