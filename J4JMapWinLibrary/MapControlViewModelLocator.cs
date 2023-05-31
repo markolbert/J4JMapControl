@@ -41,7 +41,7 @@ public class MapControlViewModelLocator
             logger?.LogCritical( "Could not create {type}, aborting", typeof( CredentialsDialogFactory ) );
 
         if( projFactory == null || credFactory == null || credDlgFactory == null )
-            throw new ArgumentException( $"Could not create instance of {typeof( MapControlViewModelLocator )}" );
+            throw new ArgumentException( $"Could not initialize {typeof( MapControlViewModelLocator )}" );
 
         Instance = new MapControlViewModelLocator( projFactory, credFactory, credDlgFactory, loggerFactory );
     }
