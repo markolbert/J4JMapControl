@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using J4JSoftware.J4JMapLibrary;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -12,13 +11,16 @@ public class MapControlViewModelLocator
     public static MapControlViewModelLocator? Instance { get; private set; }
 
     public static void Initialize(
-        IConfiguration config,
+        ICredentialsFactory credentialsFactory,
         ILoggerFactory? loggerFactory = null,
         bool inclDefaults = true,
         params Assembly[] assembliesToSearch
     )
     {
-        Instance = new MapControlViewModelLocator(config, loggerFactory, inclDefaults, assembliesToSearch );
+        Instance = new MapControlViewModelLocator( credentialsFactory,
+                                                   loggerFactory,
+                                                   inclDefaults,
+                                                   assembliesToSearch );
     }
 
     public static void Initialize( IServiceProvider svcProvider )
@@ -30,9 +32,9 @@ public class MapControlViewModelLocator
         if( projFactory == null )
             logger?.LogCritical( "Could not create {type}, aborting", typeof( ProjectionFactory ) );
 
-        var credFactory = svcProvider.GetService<CredentialsFactory>();
+        var credFactory = svcProvider.GetService<ICredentialsFactory>();
         if( credFactory == null )
-            logger?.LogCritical( "Could not create {type}, aborting", typeof( CredentialsFactory ) );
+            logger?.LogCritical( "Could not create {type}, aborting", typeof( ICredentialsFactory ) );
 
         var credDlgFactory = svcProvider.GetService<CredentialsDialogFactory>();
         if( credDlgFactory == null )
@@ -45,7 +47,7 @@ public class MapControlViewModelLocator
     }
 
     private MapControlViewModelLocator(
-        IConfiguration config,
+        ICredentialsFactory credentialsFactory,
         ILoggerFactory? loggerFactory = null,
         bool inclDefaults = true,
         params Assembly[] assembliesToSearch
@@ -57,7 +59,7 @@ public class MapControlViewModelLocator
         ProjectionFactory.ScanAssemblies(assembliesToSearch);
         ProjectionFactory.InitializeFactory();
 
-        CredentialsFactory = new CredentialsFactory(config, loggerFactory, inclDefaults);
+        CredentialsFactory = credentialsFactory;
         CredentialsFactory.ScanAssemblies(assembliesToSearch);
         CredentialsFactory.InitializeFactory();
 
@@ -66,7 +68,7 @@ public class MapControlViewModelLocator
 
     private MapControlViewModelLocator(
         ProjectionFactory projFactory,
-        CredentialsFactory credFactory,
+        ICredentialsFactory credFactory,
         CredentialsDialogFactory credDlgFactory,
         ILoggerFactory? loggerFactory
     )
@@ -82,7 +84,7 @@ public class MapControlViewModelLocator
     }
 
     public ProjectionFactory ProjectionFactory { get; }
-    public CredentialsFactory CredentialsFactory { get; }
+    public ICredentialsFactory CredentialsFactory { get; }
     public CredentialsDialogFactory CredentialsDialogFactory { get; }
     public ILoggerFactory? LoggerFactory { get; }
 }
