@@ -19,7 +19,7 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Microsoft.AspNetCore.DataProtection;
+using J4JSoftware.EncryptedConfiguration;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -33,30 +33,17 @@ public class GoogleCredentials : Credentials
     {
     }
 
-    [ CredentialProperty ]
+    [ EncryptedProperty ]
     public string ApiKey
     {
         get => _apiKey;
         set => SetField( ref _apiKey, value );
     }
 
-    [ CredentialProperty ]
+    [EncryptedProperty]
     public string SignatureSecret
     {
         get => _sigSecret;
         set => SetField( ref _sigSecret, value );
     }
-
-
-    public override ICredentials Encrypt( IDataProtector protector ) =>
-        new GoogleCredentials()
-        {
-            ApiKey = protector.Protect( ApiKey ), SignatureSecret = protector.Protect( SignatureSecret )
-        };
-
-    public override ICredentials Decrypt( IDataProtector protector ) =>
-        new GoogleCredentials
-        {
-            ApiKey = protector.Unprotect( ApiKey ), SignatureSecret = protector.Unprotect( SignatureSecret )
-        };
 }

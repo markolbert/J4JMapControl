@@ -19,8 +19,6 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Microsoft.AspNetCore.DataProtection;
-
 namespace J4JSoftware.J4JMapLibrary;
 
 public class OpenStreetCredentials : Credentials
@@ -32,16 +30,9 @@ public class OpenStreetCredentials : Credentials
     {
     }
 
-    [CredentialProperty]
     public string UserAgent
     {
         get => _userAgent;
         set => SetField(ref _userAgent, value);
     }
-
-    public override ICredentials Encrypt(IDataProtector protector) =>
-        new OpenStreetCredentials { UserAgent = protector.Protect(UserAgent) };
-
-    public override ICredentials Decrypt(IDataProtector protector) =>
-        new OpenStreetCredentials() { UserAgent= protector.Unprotect(UserAgent) };
 }

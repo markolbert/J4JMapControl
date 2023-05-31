@@ -19,7 +19,7 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Microsoft.AspNetCore.DataProtection;
+using J4JSoftware.EncryptedConfiguration;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -32,16 +32,10 @@ public class BingCredentials : Credentials
     {
     }
 
-    [ CredentialProperty ]
+    [EncryptedProperty]
     public string ApiKey
     {
         get => _apiKey;
         set => SetField( ref _apiKey, value );
     }
-
-    public override ICredentials Encrypt( IDataProtector protector ) =>
-        new BingCredentials { ApiKey = protector.Protect( ApiKey ) };
-
-    public override ICredentials Decrypt( IDataProtector protector ) =>
-        new BingCredentials { ApiKey = protector.Unprotect( ApiKey ) };
 }

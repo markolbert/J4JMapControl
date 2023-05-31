@@ -19,8 +19,6 @@
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Microsoft.AspNetCore.DataProtection;
-
 namespace J4JSoftware.J4JMapLibrary;
 
 public class OpenTopoCredentials : Credentials
@@ -32,16 +30,9 @@ public class OpenTopoCredentials : Credentials
     {
     }
 
-    [CredentialProperty]
     public string UserAgent
     {
         get => _userAgent;
         set => SetField(ref _userAgent, value);
     }
-
-    public override ICredentials Encrypt(IDataProtector protector) =>
-        new OpenTopoCredentials { UserAgent = protector.Protect(UserAgent) };
-
-    public override ICredentials Decrypt(IDataProtector protector) =>
-        new OpenTopoCredentials() { UserAgent = protector.Unprotect(UserAgent) };
 }
