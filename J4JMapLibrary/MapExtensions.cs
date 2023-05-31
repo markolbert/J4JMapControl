@@ -252,11 +252,4 @@ public static class MapExtensions
 
         return !double.IsNaN( heading );
     }
-
-    public static IEnumerable<KeyValuePair<string, string?>> ToKeyValuePairs( this ICredentials credentials ) =>
-        credentials.CredentialProperties
-                   .Where( x => x.Value != null )
-                   .Select( x => new KeyValuePair<string, string?>(
-                                $"{CredentialsFactory.RootCredentialsPropertyName}:{credentials.ProjectionName}:{x.PropertyName}",
-                                x.Value!.ToString() ) );
 }
