@@ -21,130 +21,43 @@
 
 using Microsoft.UI.Xaml;
 using System;
-using System.IO;
-using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapWinLibrary;
+using J4JSoftware.WindowsUtilities;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using Microsoft.Extensions.Configuration;
-using System.Security.Cryptography;
-using System.Text.Json;
-using Microsoft.Extensions.Hosting;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace WinAppTest;
 
-public partial class App
+public partial class App : IWinApp
 {
-#pragma warning disable CS8618
     public new static App Current => (App)Application.Current;
 
-    private Window _mainWin;
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly ILogger _logger;
-    private readonly IDataProtector _dataProtector;
-    private AppConfiguration? _appConfig;
-    
+#pragma warning disable CS8618
     public App()
 #pragma warning restore CS8618
     {
         this.InitializeComponent();
 
-        var logFile = Path.Combine(AppConfiguration.UserFolder, "log.txt");
+        var appInitializer = new WinAppInitializer(this);
 
-        var seriLogger = new LoggerConfiguration()
-                        .MinimumLevel.Verbose()
-                        .WriteTo.Debug()
-                        .WriteTo.File(logFile, rollingInterval: RollingInterval.Hour)
-                        .CreateLogger();
-
-        _loggerFactory = new LoggerFactory().AddSerilog(seriLogger);
-        _logger = _loggerFactory.CreateLogger<App>();
-
-        var localAppFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-        var dpProvider = DataProtectionProvider.Create(
-            new DirectoryInfo( Path.Combine( localAppFolder, "ASP.NET", "DataProtection-Keys" ) ) );
-        _dataProtector = dpProvider.CreateProtector(nameof(WinAppTest));
-
-        var configPath = Path.Combine(AppConfiguration.UserFolder, "userConfig.json");
-
-        try
+        if( appInitializer.Initialize() )
         {
-            Services = new HostBuilder()
-                      .ConfigureHostConfiguration( builder => ParseUserConfigFile( configPath, builder ) )
-                      .ConfigureServices( ( hbc, s ) => ConfigureServices( hbc, s ) )
-                      .Build()
-                      .Services;
+            LoggerFactory = Services?.GetService<ILoggerFactory>();
+            MapControlViewModelLocator.Initialize(Services!);
         }
-        catch( CryptographicException crypto )
-        {
-            var logger = _loggerFactory.CreateLogger<App>();
-            logger.LogError( "Cryptographic error '{mesg}', deleting user configuration file '{path}'",
-                             crypto.Message,
-                             configPath );
-
-            File.Delete( configPath );
-
-            Exit();
-        }
-        catch( JsonException )
-        {
-            Exit();
-        }
-
-        MapControlViewModelLocator.Initialize( Services! );
+        else Exit();
     }
 
-    public IServiceProvider Services { get; }
-
-    // ReSharper disable once UnusedMethodReturnValue.Local
-    private IServiceCollection ConfigureServices( HostBuilderContext hbc, IServiceCollection services )
-    {
-        services.AddSingleton( _loggerFactory );
-        services.AddSingleton( _dataProtector );
-
-        services.AddSingleton( new ProjectionFactory( _loggerFactory ) );
-        services.AddSingleton( new CredentialsFactory( hbc.Configuration, _loggerFactory ) );
-        services.AddSingleton( new CredentialsDialogFactory( _loggerFactory ) );
-        services.AddSingleton( _appConfig! );
-
-        return services;
-    }
-
-    private void ParseUserConfigFile( string path, IConfigurationBuilder builder )
-    {
-        var fileExists = File.Exists( path );
-        if( !fileExists )
-        {
-            _logger.LogWarning( "Could not find user config file '{path}', creating default configuration", path );
-            _appConfig = new AppConfiguration() { UserConfigurationFilePath = path };
-
-            return;
-        }
-
-        var encrypted = JsonSerializer.Deserialize<AppConfiguration>( File.ReadAllText( path ) );
-
-        if( encrypted == null )
-        {
-            _logger.LogError( "Could not parse user config file '{path}'", path );
-            throw new JsonException( $"Could not parse user config file '{path}'" );
-        }
-
-        encrypted.UserConfigurationFilePath = path;
-        encrypted.UserConfigurationFileExists = File.Exists( path );
-
-        _appConfig = encrypted.Decrypt( _dataProtector );
-        _appConfig.AddToConfiguration( builder );
-        _appConfig.UserConfigurationFilePath = path;
-        _appConfig.UserConfigurationFileExists = true;
-    }
+    public MainWindow? MainWindow { get; private set; }
+    public IServiceProvider Services { get; set; }
+    public IDataProtector AppConfigProtector { get; set; }
+    public ILoggerFactory? LoggerFactory { get; }
+    public bool SaveConfigurationOnExit { get; set; } = true;
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        _mainWin = new MainWindow();
-        _mainWin.Activate();
+        MainWindow = new MainWindow();
+        MainWindow.Activate();
     }
 }

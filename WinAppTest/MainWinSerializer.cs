@@ -1,7 +1,7 @@
 ﻿#region copyright
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
-// AppConfiguration.cs
+// MainWinSerializer.cs
 //
 // This file is part of JumpForJoy Software's WinAppTest.
 // 
@@ -19,15 +19,21 @@
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using System.Text.Json;
+using Windows.Graphics;
 using J4JSoftware.WindowsUtilities;
+using Microsoft.UI.Xaml;
 
 namespace WinAppTest;
 
-public class AppConfiguration : WinUIConfigBase
+internal class MainWinSerializer : MainWinSerializerBase<AppConfiguration>
 {
-    public MapCredentials? Credentials { get; set; }
-    public string? MapProjection { get; set; }
-    public string? Center { get; set; }
-    public int Scale { get; set; }
-    public double Heading { get; set; }
+    public MainWinSerializer( Window mainWindow )
+        : base( mainWindow, CreateJsonOptions() )
+    {
+    }
+
+    internal static JsonSerializerOptions CreateJsonOptions() => new() { WriteIndented = true };
+
+    protected override RectInt32 GetDefaultRectangle() => new(100, 100, 1000, 1000);
 }

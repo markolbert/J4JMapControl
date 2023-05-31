@@ -19,45 +19,29 @@
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Windows.Devices.Display;
-using Windows.Devices.Enumeration;
-using Windows.Graphics;
 using Windows.System;
 using J4JSoftware.J4JMapLibrary;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using WinRT.Interop;
 using Windows.Storage;
 using J4JSoftware.J4JMapWinLibrary;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Configuration;
+using J4JSoftware.WindowsUtilities;
 
 namespace WinAppTest;
 
-/// <summary>
-/// An empty window that can be used on its own or navigated to within a Frame.
-/// </summary>
 public sealed partial class MainWindow
 {
-    private readonly IDataProtector _protector;
+    private readonly AppConfiguration _appConfig;
     private readonly ILogger? _logger;
-    private readonly AppConfiguration _appConfiguration;
-    private readonly JsonSerializerOptions _jsonOptions;
 
     private readonly PointOfInterest _sanCarlos;
     private readonly ObservableCollection<PointOfInterest> _ptsOfInterest;
@@ -65,30 +49,28 @@ public sealed partial class MainWindow
     private readonly ObservableCollection<RoutePoint> _route2 = new();
 
     private bool _scIncluded;
-    private bool _deleteOnSave;
 
+#pragma warning disable CS8618
     public MainWindow()
+#pragma warning restore CS8618
     {
-        var config = GetRequiredService<IConfiguration>();
-        var loggerFactory = GetRequiredService<ILoggerFactory>();
-        _protector = GetRequiredService<IDataProtector>();
-        _appConfiguration = GetRequiredService<AppConfiguration>();
+        InitializeComponent();
 
-        _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        _logger = App.Current.LoggerFactory?.CreateLogger<MainWindow>();
 
-        _logger = loggerFactory.CreateLogger<MainWindow>();
+        var winSerializer = new MainWinSerializer(this);
 
-        MapControlViewModelLocator.Initialize(config, loggerFactory);
+        var temp = App.Current.Services.GetService<AppConfiguration>();
+        if (temp== null)
+        {
+            _logger?.LogCritical("Could not retrieve instance of {type}", typeof(AppConfiguration));
+            App.Current.Exit();
+            return;
+        }
 
-        this.InitializeComponent();
+        _appConfig = temp;
 
-        var hWnd = WindowNative.GetWindowHandle( this );
-        var windowId = Win32Interop.GetWindowIdFromWindow( hWnd );
-        var appWindow = AppWindow.GetFromWindowId( windowId );
-
-        Task.Run( async () => await SizeWindow( appWindow ) );
-
-        this.Closed += ( _, _ ) => SaveConfiguration();
+        winSerializer.SetSizeAndPosition();
 
         _ptsOfInterest = new ObservableCollection<PointOfInterest>
         {
@@ -118,18 +100,18 @@ public sealed partial class MainWindow
         _sanCarlos = _ptsOfInterest[ 1 ];
         _scIncluded = true;
 
-        mapControl.FileSystemCachePath = Path.Combine(AppConfiguration.UserFolder, "map-cache");
+        mapControl.FileSystemCachePath = Path.Combine(WinUIConfigBase.UserFolder, "map-cache");
         UpdateStats();
 
         mapControl.NewCredentials += MapControlOnNewCredentials;
 
-        if( _appConfiguration.UserConfigurationFileExists )
+        if( _appConfig.UserConfigurationFileExists )
         {
-            mapControl.MapProjection = _appConfiguration.MapProjection;
-            mapControl.Center = _appConfiguration.Center ?? "0,0";
-            mapControl.Heading = _appConfiguration.Heading;
-            mapControl.MapScale = _appConfiguration.Scale;
-        }
+            mapControl.MapProjection = _appConfig.MapProjection;
+            mapControl.Center = _appConfig.Center ?? "0,0";
+            mapControl.Heading = _appConfig.Heading;
+            mapControl.MapScale = _appConfig.Scale;
+        }   
         else
         {
             mapControl.MapProjection = "BingMaps";
@@ -139,122 +121,32 @@ public sealed partial class MainWindow
         }
     }
 
-    private async Task SizeWindow( AppWindow appWindow )
-    {
-        var displayList = await DeviceInformation.FindAllAsync( DisplayMonitor.GetDeviceSelector() );
-
-        if( !displayList.Any() )
-            return;
-
-        var monitorInfo = await DisplayMonitor.FromInterfaceIdAsync( displayList[ 0 ].Id );
-
-        var winSize = new SizeInt32();
-
-        if( monitorInfo == null )
-        {
-            winSize.Width = 800;
-            winSize.Height = 1200;
-        }
-        else
-        {
-            winSize.Height = monitorInfo.NativeResolutionInRawPixels.Height;
-            winSize.Width = monitorInfo.NativeResolutionInRawPixels.Width;
-
-            var widthInInches = Convert.ToInt32(8 * monitorInfo.RawDpiX);
-            var heightInInches = Convert.ToInt32(12 * monitorInfo.RawDpiY);
-
-            winSize.Height = winSize.Height > heightInInches? heightInInches: winSize.Height;
-            winSize.Width = winSize.Width > widthInInches ? widthInInches: winSize.Width;
-        }
-
-        appWindow.Resize( winSize );
-    }
-
-    private T GetRequiredService<T>()
-        where T : class
-    {
-        //var retVal = J4JDeusEx.ServiceProvider.GetService<T>();
-        var retVal = App.Current.Services.GetService<T>();
-        if( retVal != null )
-            return retVal;
-
-        _logger?.LogCritical( "{service} is not available", typeof( T ) );
-        throw new ApplicationException($"Service {typeof(T)} is not available");
-    }
-
     private void MapControlOnNewCredentials( object? sender, NewCredentialsEventArgs e )
     {
-        _appConfiguration.Credentials ??= new MapCredentials();
-        _appConfiguration.MapProjection = e.ProjectionName;
+        _appConfig.Credentials ??= new MapCredentials();
+        _appConfig.MapProjection = e.ProjectionName;
 
-        foreach ( var credProp in e.Credentials
-                                   .CredentialProperties
-                                   .Where(x=>x.Value?.ToString() != null) )
+        switch( e.Credentials )
         {
-            switch( e.ProjectionName.ToLower() )
-            {
-                case "bingmaps":
-                    _appConfiguration.Credentials.BingCredentials ??= new BingCredentials();
-                    _appConfiguration.Credentials.BingCredentials.ApiKey = (string) credProp.Value!;
+            case BingCredentials bingCredentials:
+                _appConfig.Credentials.BingCredentials =bingCredentials;
+                break;
 
-                    break;
+            case GoogleCredentials googleCredentials:
+                _appConfig.Credentials.GoogleCredentials = googleCredentials;
+                break;
 
-                case "googlemaps":
-                    _appConfiguration.Credentials.GoogleCredentials ??= new GoogleCredentials();
+            case OpenStreetCredentials streetCredentials:
+                _appConfig.Credentials.OpenStreetCredentials = streetCredentials;
+                break;
 
-                    switch ( credProp.PropertyName )
-                    {
-                        case nameof(GoogleCredentials.ApiKey):
-                            _appConfiguration.Credentials.GoogleCredentials.ApiKey = (string)credProp.Value!;
-                            break;
+            case OpenTopoCredentials topoCredentials:
+                _appConfig.Credentials.OpenTopoCredentials= topoCredentials;
+                break;
 
-                        case nameof(GoogleCredentials.SignatureSecret):
-                            _appConfiguration.Credentials.GoogleCredentials.SignatureSecret = (string)credProp.Value!;
-                            break;
-                    }
-
-                    break;
-
-                case "openstreetmaps":
-                    _appConfiguration.Credentials.OpenStreetCredentials ??= new OpenStreetCredentials();
-                    _appConfiguration.Credentials.OpenStreetCredentials.UserAgent = (string) credProp.Value!;
-                    break;
-
-                case "opentopomaps":
-                    _appConfiguration.Credentials.OpenTopoCredentials ??= new OpenTopoCredentials();
-                    _appConfiguration.Credentials.OpenTopoCredentials.UserAgent = (string)credProp.Value!;
-                    break;
-            }
-        }
-    }
-
-    private void SaveConfiguration()
-    {
-        if (string.IsNullOrEmpty(_appConfiguration.UserConfigurationFilePath))
-            return;
-
-        if( _deleteOnSave )
-        {
-            File.Delete(_appConfiguration.UserConfigurationFilePath);
-            return;
-        }
-
-        _appConfiguration.Center = mapControl.Center;
-        _appConfiguration.MapProjection = mapControl.MapProjection;
-        _appConfiguration.Scale = Convert.ToInt32( mapControl.MapScale );
-        _appConfiguration.Heading = mapControl.Heading;
-
-        var encrypted = _appConfiguration.Encrypt( _protector );
-
-        try
-        {
-            var jsonText = JsonSerializer.Serialize( encrypted, _jsonOptions );
-
-            File.WriteAllText( _appConfiguration.UserConfigurationFilePath!, jsonText );
-        }
-        catch( Exception ex )
-        {
-            _logger?.LogError( "Failed to write configuration file, exception was '{exception}'", ex.Message );
+            default:
+                _logger?.LogError( "Unsupported credentials type '{type}'", e.Credentials.GetType() );
+                break;
         }
     }
 
@@ -386,6 +278,6 @@ public sealed partial class MainWindow
 
     private void DeleteOnSave_OnClick( object sender, RoutedEventArgs e )
     {
-        _deleteOnSave = deleteOnSaveChk.IsChecked ?? false;
+        App.Current.SaveConfigurationOnExit = deleteOnSaveChk.IsChecked ?? false;
     }
 }
