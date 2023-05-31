@@ -20,9 +20,7 @@
 #endregion
 
 using FluentAssertions;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MapLibTests;
 
@@ -46,7 +44,7 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[ projectionName, true ];
+        var credentials = CredentialsFactory[projectionName];
         credentials.Should().NotBeNull();
 
         projection!.SetCredentials( credentials! ).Should().Be( authenticated );
@@ -73,7 +71,7 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projectionName, true];
+        var credentials = CredentialsFactory[projectionName];
         credentials.Should().NotBeNull();
 
         projection!.SetCredentials(credentials!).Should().Be(authenticated);
@@ -103,7 +101,7 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projType, true];
+        var credentials = CredentialsFactory[projType];
         credentials.Should().NotBeNull();
 
         projection!.SetCredentials(credentials!).Should().Be(authenticated);
@@ -130,7 +128,7 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projType, true];
+        var credentials = CredentialsFactory[projType];
         credentials.Should().NotBeNull();
 
         projection!.SetCredentials(credentials!).Should().Be(authenticated);

@@ -20,9 +20,7 @@
 #endregion
 
 using FluentAssertions;
-using J4JSoftware.DeusEx;
 using J4JSoftware.J4JMapLibrary;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MapLibTests;
 
@@ -31,7 +29,7 @@ public class CredentialsTest : TestBase
     [ Fact ]
     public void Bing()
     {
-        var credentials = CredentialsFactory["BingMaps", true] as BingCredentials;
+        var credentials = CredentialsFactory["BingMaps"] as BingCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.ApiKey.Should().NotBeEmpty();
@@ -40,7 +38,7 @@ public class CredentialsTest : TestBase
     [Fact]
     public void Google()
     {
-        var credentials = CredentialsFactory["GoogleMaps", true] as GoogleCredentials;
+        var credentials = CredentialsFactory["GoogleMaps"] as GoogleCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.ApiKey.Should().NotBeEmpty();
@@ -50,7 +48,7 @@ public class CredentialsTest : TestBase
     [Fact]
     public void OpenStreetMaps()
     {
-        var credentials = CredentialsFactory["OpenStreetMaps", true] as OpenStreetCredentials;
+        var credentials = CredentialsFactory["OpenStreetMaps"] as OpenStreetCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.UserAgent.Should().NotBeEmpty();
@@ -59,7 +57,7 @@ public class CredentialsTest : TestBase
     [Fact]
     public void OpenTopoMaps()
     {
-        var credentials = CredentialsFactory["OpenTopoMaps", true] as OpenTopoCredentials;
+        var credentials = CredentialsFactory["OpenTopoMaps"] as OpenTopoCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.UserAgent.Should().NotBeEmpty();
