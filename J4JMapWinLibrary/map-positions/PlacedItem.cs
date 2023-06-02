@@ -1,6 +1,4 @@
-﻿using Windows.UI.ApplicationSettings;
-
-namespace J4JSoftware.J4JMapWinLibrary;
+﻿namespace J4JSoftware.J4JMapWinLibrary;
 
 public class PlacedItem : IPlacedItem, IPlacedItemInternal
 {

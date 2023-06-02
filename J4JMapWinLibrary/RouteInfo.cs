@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
@@ -29,21 +24,21 @@ public class RouteInfo : DependencyObject
     }
 
     public static readonly DependencyProperty MarkerProperty =
-        DependencyProperty.Register(nameof(Marker),
-                                    typeof(Shape),
-                                    typeof(J4JMapControl),
-                                    new PropertyMetadata(new Ellipse
-                                    {
-                                        Stroke = new SolidColorBrush(Colors.Black),
-                                        Fill = new SolidColorBrush(Colors.DarkGray),
-                                        Width = 3,
-                                        Height = 3
-                                    }));
+        DependencyProperty.Register( nameof( Marker ),
+                                     typeof( Shape ),
+                                     typeof( J4JMapControl ),
+                                     new PropertyMetadata( new Ellipse
+                                     {
+                                         Stroke = new SolidColorBrush( Colors.Black ),
+                                         Fill = new SolidColorBrush( Colors.DarkGray ),
+                                         Width = 3,
+                                         Height = 3
+                                     } ) );
 
     public Shape? Marker
     {
-        get => (Shape?)GetValue(MarkerProperty);
-        set => SetValue(MarkerProperty, value);
+        get => (Shape?) GetValue( MarkerProperty );
+        set => SetValue( MarkerProperty, value );
     }
 
     public static readonly DependencyProperty RouteNumberProperty =

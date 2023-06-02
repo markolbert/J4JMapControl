@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // file-cache.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -39,7 +41,8 @@ public sealed partial class J4JMapControl
         set
         {
             SetValue( FileSystemCachePathProperty, value );
-            _logger?.LogTrace("File system caching {text}", string.IsNullOrEmpty(value) ? "disabled": $"Enabled at {value}");
+            _logger?.LogTrace( "File system caching {text}",
+                               string.IsNullOrEmpty( value ) ? "disabled" : $"Enabled at {value}" );
 
             InitializeCaching();
         }
@@ -57,17 +60,17 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if (value <= 0)
+            if( value <= 0 )
             {
-                _logger?.LogWarning("Invalid file system cache entries limit {limit}, defaulting to {default}",
-                                    value,
-                                    DefaultFileSystemCacheEntries);
+                _logger?.LogWarning( "Invalid file system cache entries limit {limit}, defaulting to {default}",
+                                     value,
+                                     DefaultFileSystemCacheEntries );
 
                 value = DefaultFileSystemCacheEntries;
             }
 
             SetValue( FileSystemCacheEntriesProperty, value );
-            _logger?.LogTrace("File system cache limited to {entries} entries", value);
+            _logger?.LogTrace( "File system cache limited to {entries} entries", value );
 
             InitializeCaching();
         }
@@ -85,18 +88,17 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if (!TimeSpan.TryParse(value, out var retention))
+            if( !TimeSpan.TryParse( value, out var retention ) )
             {
-                _logger?.LogWarning(
-                    "Invalid file system cache retention period '{period}', defaulting to {default}",
-                    value,
-                    DefaultFileSystemCacheRetention);
+                _logger?.LogWarning( "Invalid file system cache retention period '{period}', defaulting to {default}",
+                                     value,
+                                     DefaultFileSystemCacheRetention );
 
                 value = DefaultFileSystemCacheRetention.ToString();
             }
-            
+
             SetValue( FileSystemCacheRetentionProperty, value );
-            _logger?.LogTrace("File system cache entries retained for up to {retention}", value);
+            _logger?.LogTrace( "File system cache entries retained for up to {retention}", value );
 
             InitializeCaching();
         }
@@ -113,17 +115,17 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if (value <= 0)
+            if( value <= 0 )
             {
-                _logger?.LogWarning("Invalid file system cache size limit {limit}, defaulting to {default}",
-                                    value,
-                                    DefaultFileSystemCacheSize);
+                _logger?.LogWarning( "Invalid file system cache size limit {limit}, defaulting to {default}",
+                                     value,
+                                     DefaultFileSystemCacheSize );
 
                 value = DefaultFileSystemCacheSize;
             }
 
             SetValue( FileSystemCacheSizeProperty, value );
-            _logger?.LogTrace("File system cache limited to {bytes} bytes", value);
+            _logger?.LogTrace( "File system cache limited to {bytes} bytes", value );
 
             InitializeCaching();
         }

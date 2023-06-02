@@ -23,13 +23,13 @@ public class PointsOfInterestPositions : MapPositions<J4JMapControl>
                                      x => x.PoILatLong,
                                      typeof( string ) );
 
-        DataSourceValidator.AddRule(nameof(J4JMapControl.PoILatitude),
-                                    x => x.PoILatitude,
-                                    typeof(string));
+        DataSourceValidator.AddRule( nameof( J4JMapControl.PoILatitude ),
+                                     x => x.PoILatitude,
+                                     typeof( string ) );
 
-        DataSourceValidator.AddRule(nameof(J4JMapControl.PoILongitude),
-                                    x => x.PoILongitude,
-                                    typeof(string));
+        DataSourceValidator.AddRule( nameof( J4JMapControl.PoILongitude ),
+                                     x => x.PoILongitude,
+                                     typeof( string ) );
     }
 
     protected override bool ItemIsValid( ValidationItem validationItem )

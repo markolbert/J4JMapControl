@@ -7,9 +7,10 @@ using System.Linq.Expressions;
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public class DataSourceValidator<TBindingSource>
-where TBindingSource : class
+    where TBindingSource : class
 {
     private readonly TBindingSource _bindingSource;
+
     private readonly Dictionary<string, DataSourceValidationRule<TBindingSource>> _rules =
         new( StringComparer.OrdinalIgnoreCase );
 
@@ -29,21 +30,25 @@ where TBindingSource : class
     )
     {
         if( _rules.ContainsKey( ruleName ) )
+        {
             throw new ArgumentException(
                 $"Duplicate {typeof( DataSourceValidationRule<TBindingSource> )} rule '{ruleName}'" );
+        }
 
         _rules.Add( ruleName,
                     new DataSourceValidationRule<TBindingSource>( ruleName,
-                                                                   _bindingSource,
+                                                                  _bindingSource,
                                                                   propertyNameBinder,
                                                                   propertyType ) );
     }
 
     public void AddRule( DataSourceValidationRule<TBindingSource> rule )
     {
-        if (_rules.ContainsKey(rule.RuleName))
+        if( _rules.ContainsKey( rule.RuleName ) )
+        {
             throw new ArgumentException(
-                $"Duplicate {typeof(DataSourceValidationRule<TBindingSource>)} rule '{rule.RuleName}'");
+                $"Duplicate {typeof( DataSourceValidationRule<TBindingSource> )} rule '{rule.RuleName}'" );
+        }
 
         _rules.Add( rule.RuleName, rule );
     }
@@ -68,8 +73,8 @@ where TBindingSource : class
         }
 
         processed = tempEnumerable.Cast<object?>()
-                                             .Select( x => new ValidationItem( x ) )
-                                             .ToList();
+                                  .Select( x => new ValidationItem( x ) )
+                                  .ToList();
 
         foreach( var kvp in _rules )
         {

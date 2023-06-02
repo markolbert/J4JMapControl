@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using J4JSoftware.J4JMapLibrary;
@@ -22,10 +21,10 @@ public class CredentialsDialogFactory
         _logger = loggerFactory?.CreateLogger<CredentialsDialogFactory>();
 
         var assemblyList = assemblies.ToList();
-        assemblyList.Add( this.GetType().Assembly );
+        assemblyList.Add( GetType().Assembly );
 
         var dlgTypes = assemblyList.SelectMany( x => x.GetTypes() )
-                                   .Where( t => t.IsAssignableTo(typeof( ContentDialog ))
+                                   .Where( t => t.IsAssignableTo( typeof( ContentDialog ) )
                                             && t.GetInterface( nameof( ICredentialsDialog ) ) != null
                                             && t.GetConstructors().Any( c => c.GetParameters().Length == 0 ) )
                                    .Select( t => new
@@ -39,7 +38,7 @@ public class CredentialsDialogFactory
         foreach( var dlgType in dlgTypes )
         {
             // find the projection type's name
-            if( Activator.CreateInstance( dlgType.CredentialsAttribute!.CredentialsType ) 
+            if( Activator.CreateInstance( dlgType.CredentialsAttribute!.CredentialsType )
                is not ICredentials credentials )
             {
                 _logger?.LogWarning( "Could not create instance of {credType}, skipping",
@@ -47,14 +46,14 @@ public class CredentialsDialogFactory
                 continue;
             }
 
-            if ( _credDialogTypes.ContainsKey( credentials.ProjectionName ) )
+            if( _credDialogTypes.ContainsKey( credentials.ProjectionName ) )
             {
                 _logger?.LogWarning( "Duplicate ContentDialog type {dlgType} for {credType}, skipping",
                                      dlgType.DialogType,
                                      dlgType.CredentialsAttribute.CredentialsType );
                 continue;
             }
-            
+
             _credDialogTypes.Add( credentials.ProjectionName, dlgType.DialogType );
         }
     }

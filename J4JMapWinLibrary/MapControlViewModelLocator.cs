@@ -55,15 +55,15 @@ public class MapControlViewModelLocator
     {
         LoggerFactory = loggerFactory;
 
-        ProjectionFactory = new ProjectionFactory(loggerFactory, inclDefaults);
-        ProjectionFactory.ScanAssemblies(assembliesToSearch);
+        ProjectionFactory = new ProjectionFactory( loggerFactory, inclDefaults );
+        ProjectionFactory.ScanAssemblies( assembliesToSearch );
         ProjectionFactory.InitializeFactory();
 
         CredentialsFactory = credentialsFactory;
-        CredentialsFactory.ScanAssemblies(assembliesToSearch);
+        CredentialsFactory.ScanAssemblies( assembliesToSearch );
         CredentialsFactory.InitializeFactory();
 
-        CredentialsDialogFactory = new CredentialsDialogFactory(loggerFactory, assembliesToSearch);
+        CredentialsDialogFactory = new CredentialsDialogFactory( loggerFactory, assembliesToSearch );
     }
 
     private MapControlViewModelLocator(

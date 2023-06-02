@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // projection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -54,7 +56,7 @@ public sealed partial class J4JMapControl
 
     public string? MapProjection
     {
-        get => (string?)GetValue(MapProjectionProperty);
+        get => (string?) GetValue( MapProjectionProperty );
 
         set
         {
@@ -62,7 +64,7 @@ public sealed partial class J4JMapControl
             if( GetValue( MapProjectionProperty ) != null && value == null )
             {
                 _logger?.LogWarning( "Trying to overwrite non-null {prop} with null value, rejecting change",
-                                    nameof( MapProjection ) );
+                                     nameof( MapProjection ) );
                 return;
             }
 
@@ -80,7 +82,7 @@ public sealed partial class J4JMapControl
         }
     }
 
-    private async Task InitializeProjectionAsync(CancellationToken ctx = default)
+    private async Task InitializeProjectionAsync( CancellationToken ctx = default )
     {
         if( string.IsNullOrEmpty( MapProjection ) || !IsLoaded )
             return;
@@ -90,9 +92,9 @@ public sealed partial class J4JMapControl
                            .ProjectionFactory
                            .CreateProjection( MapProjection );
 
-        if (newProjection == null )
+        if( newProjection == null )
         {
-            _logger?.LogCritical("Could not create projection '{proj}'", MapProjection);
+            _logger?.LogCritical( "Could not create projection '{proj}'", MapProjection );
             return;
         }
 
@@ -104,7 +106,7 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        if (_projection != null)
+        if( _projection != null )
         {
             _projection.LoadComplete -= ProjectionOnLoadComplete;
             _projection = null;
@@ -118,20 +120,20 @@ public sealed partial class J4JMapControl
         MapStyles = _projection.MapStyles.ToList();
         MapStyle = _projection.MapStyle ?? string.Empty;
 
-        if (!MapExtensions.TryParseToLatLong(Center, out var latitude, out var longitude))
-            _logger?.LogError("Could not parse Center ('{center}') to latitude/longitude, defaulting to 0/0", Center);
+        if( !MapExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
+            _logger?.LogError( "Could not parse Center ('{center}') to latitude/longitude, defaulting to 0/0", Center );
 
-        if (MapRegion != null)
+        if( MapRegion != null )
         {
             MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
             MapRegion.BuildUpdated -= MapRegionBuildUpdated;
         }
 
-        MapRegion = new MapRegion(_projection, MapControlViewModelLocator.Instance.LoggerFactory)
-                   .Center(latitude, longitude)
-                   .Scale((int)MapScale)
-                   .Heading((float)Heading)
-                   .Size( ( float) ActualHeight , ( float) ActualWidth );
+        MapRegion = new MapRegion( _projection, MapControlViewModelLocator.Instance.LoggerFactory )
+                   .Center( latitude, longitude )
+                   .Scale( (int) MapScale )
+                   .Heading( (float) Heading )
+                   .Size( (float) ActualHeight, (float) ActualWidth );
 
         MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
         MapRegion.BuildUpdated += MapRegionBuildUpdated;
@@ -148,7 +150,7 @@ public sealed partial class J4JMapControl
         CancellationToken ctx = default
     )
     {
-        var credDialogType = MapControlViewModelLocator.Instance!.CredentialsDialogFactory[MapProjection!];
+        var credDialogType = MapControlViewModelLocator.Instance!.CredentialsDialogFactory[ MapProjection! ];
 
         switch( credentials )
         {
@@ -176,10 +178,9 @@ public sealed partial class J4JMapControl
             if( projection.SetCredentials( credentials ) && await projection.AuthenticateAsync( ctx ) )
             {
                 ValidCredentials?.Invoke( this,
-                                          new ValidCredentialsEventArgs(
-                                              projection.Name,
-                                              credentials,
-                                              attemptNumber ) );
+                                          new ValidCredentialsEventArgs( projection.Name,
+                                                                         credentials,
+                                                                         attemptNumber ) );
                 return true;
             }
 
@@ -215,12 +216,13 @@ public sealed partial class J4JMapControl
         return (ICredentialsDialog) credDialog;
     }
 
-    private void ProjectionOnLoadComplete( object? sender, bool e ) => _dispatcherLoadImages.TryEnqueue(LoadMapImages);
+    private void ProjectionOnLoadComplete( object? sender, bool e ) =>
+        _dispatcherLoadImages.TryEnqueue( LoadMapImages );
 
-    public DependencyProperty MapStylesProperty = DependencyProperty.Register(nameof(MapStyles),
-                                                                              typeof(List<string>),
-                                                                              typeof(J4JMapControl),
-                                                                              new PropertyMetadata(null));
+    public DependencyProperty MapStylesProperty = DependencyProperty.Register( nameof( MapStyles ),
+                                                                               typeof( List<string> ),
+                                                                               typeof( J4JMapControl ),
+                                                                               new PropertyMetadata( null ) );
 
     public List<string> MapStyles
     {

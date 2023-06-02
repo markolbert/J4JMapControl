@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // movement.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -206,14 +208,14 @@ public sealed partial class J4JMapControl
         ReleasePointerCapture( e.Pointer );
     }
 
-    private void MapGridOnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    private void MapGridOnPointerWheelChanged( object sender, PointerRoutedEventArgs e )
     {
         e.Handled = true;
-        var point = e.GetCurrentPoint(this);
+        var point = e.GetCurrentPoint( this );
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
     }
 
-    private void OnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    private void OnDoubleTapped( object sender, DoubleTappedRoutedEventArgs e )
     {
         _throttleDoubleTap.Throttle( UpdateEventInterval, _ => CenterOnDoubleTap( e.GetPosition( this ) ) );
         e.Handled = true;
@@ -224,7 +226,7 @@ public sealed partial class J4JMapControl
         var xOffset = point.X - ActualWidth / 2;
         var yOffset = point.Y - ActualHeight / 2;
 
-        MapRegion!.Offset((float)xOffset, (float)yOffset);
+        MapRegion!.Offset( (float) xOffset, (float) yOffset );
     }
 
     public bool SetHeadingByText( string text )

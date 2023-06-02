@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-[CredentialsDialog(typeof(OpenStreetCredentials))]
+[ CredentialsDialog( typeof( OpenStreetCredentials ) ) ]
 public sealed partial class OpenStreetCredentialsDialog : ContentDialog, ICredentialsDialog
 {
     public OpenStreetCredentialsDialog()

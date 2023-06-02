@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-[CredentialsDialog(typeof(GoogleCredentials))]
+[ CredentialsDialog( typeof( GoogleCredentials ) ) ]
 public sealed partial class GoogleCredentialsDialog : ContentDialog, ICredentialsDialog
 {
     public GoogleCredentialsDialog()

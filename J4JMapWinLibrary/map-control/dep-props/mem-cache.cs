@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // mem-cache.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -69,7 +71,7 @@ public sealed partial class J4JMapControl
             }
 
             SetValue( MemoryCacheEntriesProperty, value );
-            _logger?.LogTrace("Memory cache to hold up to {entries} entries", value);
+            _logger?.LogTrace( "Memory cache to hold up to {entries} entries", value );
 
             InitializeCaching();
         }
@@ -89,16 +91,15 @@ public sealed partial class J4JMapControl
         {
             if( !TimeSpan.TryParse( value, out _ ) )
             {
-                _logger?.LogWarning(
-                    "Invalid memory cache retention period '{period}', defaulting to {default}",
-                    value,
-                    DefaultMemoryCacheRetention );
+                _logger?.LogWarning( "Invalid memory cache retention period '{period}', defaulting to {default}",
+                                     value,
+                                     DefaultMemoryCacheRetention );
 
                 value = DefaultMemoryCacheRetention.ToString();
             }
 
             SetValue( MemoryCacheRetentionProperty, value );
-            _logger?.LogTrace("Memory cache to retain items for {retention}", value);
+            _logger?.LogTrace( "Memory cache to retain items for {retention}", value );
 
             InitializeCaching();
         }
@@ -115,17 +116,17 @@ public sealed partial class J4JMapControl
 
         set
         {
-            if (value <= 0)
+            if( value <= 0 )
             {
-                _logger?.LogWarning("Invalid memory cache size {size}, defaulting to {default}",
-                                    value,
-                                    DefaultMemoryCacheSize);
+                _logger?.LogWarning( "Invalid memory cache size {size}, defaulting to {default}",
+                                     value,
+                                     DefaultMemoryCacheSize );
 
                 value = DefaultMemoryCacheEntries;
             }
 
             SetValue( MemoryCacheSizeProperty, value );
-            _logger?.LogTrace("Memory cache limited to {bytes} bytes", value);
+            _logger?.LogTrace( "Memory cache limited to {bytes} bytes", value );
 
             InitializeCaching();
         }
@@ -133,23 +134,21 @@ public sealed partial class J4JMapControl
 
     private void InitializeCaching()
     {
-        if (_projection is not ITiledProjection tiledProjection)
+        if( _projection is not ITiledProjection tiledProjection )
             return;
 
         tiledProjection.TileCaching.RemoveAllCaches();
 
         // always add the memory cache first
-        if (UseMemoryCache)
+        if( UseMemoryCache )
         {
             // should never happen, but...
-            if (!TimeSpan.TryParse(MemoryCacheRetention, out var memRetention))
+            if( !TimeSpan.TryParse( MemoryCacheRetention, out var memRetention ) )
                 memRetention = DefaultMemoryCacheRetention;
 
-            var memCache = new MemoryCache("In Memory", MapControlViewModelLocator.Instance!.LoggerFactory)
+            var memCache = new MemoryCache( "In Memory", MapControlViewModelLocator.Instance!.LoggerFactory )
             {
-                MaxBytes = MemoryCacheSize,
-                MaxEntries = MemoryCacheEntries,
-                RetentionPeriod = memRetention
+                MaxBytes = MemoryCacheSize, MaxEntries = MemoryCacheEntries, RetentionPeriod = memRetention
             };
 
             _logger?.LogTrace( "Enabling memory cache, max bytes {bytes}, max entries {entries}, {retention} retention",
@@ -157,17 +156,17 @@ public sealed partial class J4JMapControl
                                memCache.MaxEntries,
                                memCache.RetentionPeriod.ToString() );
 
-            tiledProjection.TileCaching.AddCache(memCache);
+            tiledProjection.TileCaching.AddCache( memCache );
         }
 
         if( string.IsNullOrEmpty( FileSystemCachePath ) )
             return;
 
         // should never happen, but...
-        if (!TimeSpan.TryParse(FileSystemCacheRetention, out var fileRetention))
-            fileRetention = TimeSpan.FromDays(1);
+        if( !TimeSpan.TryParse( FileSystemCacheRetention, out var fileRetention ) )
+            fileRetention = TimeSpan.FromDays( 1 );
 
-        var fileCache = new FileSystemCache("File System", MapControlViewModelLocator.Instance!.LoggerFactory)
+        var fileCache = new FileSystemCache( "File System", MapControlViewModelLocator.Instance!.LoggerFactory )
         {
             CacheDirectory = FileSystemCachePath,
             MaxBytes = FileSystemCacheSize,
@@ -175,12 +174,13 @@ public sealed partial class J4JMapControl
             RetentionPeriod = fileRetention
         };
 
-        _logger?.LogTrace("Enabling file system cache, max bytes {bytes}, max entries {entries}, {retention} retention",
-                          fileCache.MaxBytes,
-                          fileCache.MaxEntries,
-                          fileCache.RetentionPeriod.ToString());
+        _logger?.LogTrace(
+            "Enabling file system cache, max bytes {bytes}, max entries {entries}, {retention} retention",
+            fileCache.MaxBytes,
+            fileCache.MaxEntries,
+            fileCache.RetentionPeriod.ToString() );
 
-        tiledProjection.TileCaching.AddCache(fileCache);
+        tiledProjection.TileCaching.AddCache( fileCache );
     }
 
     public void ClearCache( int level = -1 )

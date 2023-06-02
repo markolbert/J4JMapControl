@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft Corporation and Contributors.
 // Licensed under the MIT License.
 
-using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml.Controls;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace J4JSoftware.J4JMapWinLibrary;
+
 public sealed partial class MessageBox : ContentDialog, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -19,7 +20,7 @@ public sealed partial class MessageBox : ContentDialog, INotifyPropertyChanged
 
     public MessageBox()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 
     public string TitleText
@@ -27,6 +28,7 @@ public sealed partial class MessageBox : ContentDialog, INotifyPropertyChanged
         get => _titleText;
         set => SetField( ref _titleText, value );
     }
+
     public string? Text
     {
         get => _text;
@@ -39,7 +41,7 @@ public sealed partial class MessageBox : ContentDialog, INotifyPropertyChanged
             return false;
 
         field = value;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( propertyName ) );
 
         return true;
     }

@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // minmax-scale.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using Microsoft.UI.Xaml;
@@ -46,10 +48,10 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register(nameof(MaxMapScale),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(20.0));
+    public DependencyProperty MaxMapScaleProperty = DependencyProperty.Register( nameof( MaxMapScale ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 20.0 ) );
 
     public double MaxMapScale
     {

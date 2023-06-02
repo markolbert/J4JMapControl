@@ -4,7 +4,6 @@ using Windows.UI;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -117,20 +116,20 @@ public class MapRoute : DependencyObject
     }
 
     public static readonly DependencyProperty PointVisibilityFieldProperty =
-        DependencyProperty.Register(nameof(PointVisibilityField),
-                                    typeof(string),
-                                    typeof(J4JMapControl),
-                                    new PropertyMetadata(null));
+        DependencyProperty.Register( nameof( PointVisibilityField ),
+                                     typeof( string ),
+                                     typeof( J4JMapControl ),
+                                     new PropertyMetadata( null ) );
 
     public string? PointVisibilityField
     {
-        get => (string?)GetValue(PointVisibilityFieldProperty);
+        get => (string?) GetValue( PointVisibilityFieldProperty );
 
         set
         {
-            SetValue(PointVisibilityFieldProperty, value);
+            SetValue( PointVisibilityFieldProperty, value );
 
-            if (RoutePositions == null)
+            if( RoutePositions == null )
                 InitializeRoutePositions();
             else RoutePositions.PositionVisibilityProperty = value;
         }
@@ -176,35 +175,35 @@ public class MapRoute : DependencyObject
         }
     }
 
-    public static readonly DependencyProperty StrokeWidthProperty = DependencyProperty.Register(nameof(StrokeWidth),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(DefaultStrokeWidth));
+    public static readonly DependencyProperty StrokeWidthProperty = DependencyProperty.Register( nameof( StrokeWidth ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( DefaultStrokeWidth ) );
 
     public double StrokeWidth
     {
-        get => (double)GetValue(StrokeWidthProperty);
+        get => (double) GetValue( StrokeWidthProperty );
 
         set
         {
             SetValue( StrokeWidthProperty, value );
-            _throttleRouteVisualChanges.Throttle(UpdateEventInterval, _ => Changed?.Invoke(this, EventArgs.Empty));
+            _throttleRouteVisualChanges.Throttle( UpdateEventInterval, _ => Changed?.Invoke( this, EventArgs.Empty ) );
         }
     }
 
-    public static readonly DependencyProperty ShowPointsProperty = DependencyProperty.Register(nameof(ShowPoints),
-        typeof(bool),
-        typeof(J4JMapControl),
-        new PropertyMetadata(false));
+    public static readonly DependencyProperty ShowPointsProperty = DependencyProperty.Register( nameof( ShowPoints ),
+        typeof( bool ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( false ) );
 
     public bool ShowPoints
     {
-        get => (bool)GetValue(ShowPointsProperty);
+        get => (bool) GetValue( ShowPointsProperty );
 
         set
         {
             SetValue( ShowPointsProperty, value );
-            _throttleRouteVisualChanges.Throttle(UpdateEventInterval, _ => Changed?.Invoke(this, EventArgs.Empty));
+            _throttleRouteVisualChanges.Throttle( UpdateEventInterval, _ => Changed?.Invoke( this, EventArgs.Empty ) );
         }
     }
 
@@ -216,12 +215,12 @@ public class MapRoute : DependencyObject
 
     public double StrokeOpacity
     {
-        get => (double)GetValue(StrokeOpacityProperty);
+        get => (double) GetValue( StrokeOpacityProperty );
 
         set
         {
             SetValue( StrokeOpacityProperty, value < 0 ? DefaultStrokeTransparency : value > 1 ? 1 : value );
-            _throttleRouteVisualChanges.Throttle(UpdateEventInterval, _ => Changed?.Invoke(this, EventArgs.Empty));
+            _throttleRouteVisualChanges.Throttle( UpdateEventInterval, _ => Changed?.Invoke( this, EventArgs.Empty ) );
         }
     }
 

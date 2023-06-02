@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // Extensions.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -26,7 +28,6 @@ using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -62,8 +63,8 @@ public static class Extensions
 
     public static Vector3 GetDisplayPosition( this MapRegion region, float latitude, float longitude )
     {
-        var mapPoint = new MapPoint(region);
-        mapPoint.SetLatLong(latitude, longitude);
+        var mapPoint = new MapPoint( region );
+        mapPoint.SetLatLong( latitude, longitude );
 
         var (displayX, displayY) = region.UpperLeft.GetUpperLeftCartesian();
 
@@ -74,11 +75,11 @@ public static class Extensions
         if( region.Rotation % 360 == 0 )
             return position;
 
-        var centerPoint = new System.Numerics.Vector3(region.RequestedWidth / 2, region.RequestedHeight / 2, 0);
+        var centerPoint = new Vector3( region.RequestedWidth / 2, region.RequestedHeight / 2, 0 );
 
         var transform =
-            Matrix4x4.CreateRotationZ(region.Rotation * MapConstants.RadiansPerDegree, centerPoint);
-        position = System.Numerics.Vector3.Transform(position, transform);
+            Matrix4x4.CreateRotationZ( region.Rotation * MapConstants.RadiansPerDegree, centerPoint );
+        position = Vector3.Transform( position, transform );
 
         return position;
     }

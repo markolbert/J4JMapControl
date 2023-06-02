@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
-[CredentialsDialog(typeof(BingCredentials))]
+[ CredentialsDialog( typeof( BingCredentials ) ) ]
 public sealed partial class BingCredentialsDialog : ContentDialog, ICredentialsDialog
 {
     public BingCredentialsDialog()

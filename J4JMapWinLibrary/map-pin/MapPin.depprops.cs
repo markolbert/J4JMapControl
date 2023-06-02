@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MapPin.depprops.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using Windows.UI;
@@ -34,12 +36,12 @@ public sealed partial class MapPin
 
     public double ArcRadius
     {
-        get => (double)GetValue(ArcRadiusProperty);
+        get => (double) GetValue( ArcRadiusProperty );
 
         set
         {
             value = value <= 0 ? 15 : value;
-            SetValue(ArcRadiusProperty, value);
+            SetValue( ArcRadiusProperty, value );
 
             InitializePin();
         }
@@ -53,12 +55,12 @@ public sealed partial class MapPin
 
     public double TailLength
     {
-        get => (double)GetValue(TailLengthProperty);
+        get => (double) GetValue( TailLengthProperty );
 
         set
         {
             value = value <= 0 ? 30 : value;
-            SetValue(TailLengthProperty, value);
+            SetValue( TailLengthProperty, value );
 
             InitializePin();
         }
@@ -71,8 +73,8 @@ public sealed partial class MapPin
 
     public Brush Fill
     {
-        get => (Brush)GetValue(FillProperty);
-        set => SetValue(FillProperty, value);
+        get => (Brush) GetValue( FillProperty );
+        set => SetValue( FillProperty, value );
     }
 
     public static readonly DependencyProperty StrokeProperty = DependencyProperty.Register( nameof( Stroke ),
@@ -87,10 +89,10 @@ public sealed partial class MapPin
     }
 
     public static readonly DependencyProperty StrokeThicknessProperty =
-        DependencyProperty.Register(nameof(StrokeThickness),
-                                    typeof(double),
-                                    typeof(MapPin),
-                                    new PropertyMetadata(0D));
+        DependencyProperty.Register( nameof( StrokeThickness ),
+                                     typeof( double ),
+                                     typeof( MapPin ),
+                                     new PropertyMetadata( 0D ) );
 
     public double StrokeThickness
     {

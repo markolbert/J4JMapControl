@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 namespace J4JSoftware.J4JMapWinLibrary;
 
 public class DataSourceValidationRule<TBindingSrc>
-where TBindingSrc : class
+    where TBindingSrc : class
 {
     private readonly TBindingSrc _bindingSrc;
     private readonly Func<TBindingSrc, string?> _propRetriever;
@@ -26,22 +26,19 @@ where TBindingSrc : class
     public string RuleName { get; }
     public Type PropertyType { get; init; }
 
-    public void ValidateDataSource(List<ValidationItem> toValidate )
+    public void ValidateDataSource( List<ValidationItem> toValidate )
     {
         toValidate.ForEach( x =>
         {
             if( x.ValidationResults.ContainsKey( RuleName ) )
                 x.ValidationResults[ RuleName ] = ValidationResult.Untested;
             else x.ValidationResults.Add( RuleName, ValidationResult.Untested );
-        });
+        } );
 
         var propName = _propRetriever( _bindingSrc );
         if( string.IsNullOrEmpty( propName ) )
         {
-            toValidate.ForEach(x =>
-            {
-                x.ValidationResults[ RuleName ] = ValidationResult.PropertyNameNotDefined;
-            });
+            toValidate.ForEach( x => { x.ValidationResults[ RuleName ] = ValidationResult.PropertyNameNotDefined; } );
 
             return;
         }
@@ -60,9 +57,11 @@ where TBindingSrc : class
                 if( propInfo == null )
                     validationState = ValidationResult.PropertyNotFound;
                 else
+                {
                     validationState = PropertyType == propInfo.PropertyType
                         ? ValidationResult.Validated
                         : ValidationResult.IncorrectPropertyType;
+                }
             }
 
             validationItem.ValidationResults[ RuleName ] = validationState;

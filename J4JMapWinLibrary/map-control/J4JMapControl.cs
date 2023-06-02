@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // J4JMapControl.cs
@@ -17,9 +18,11 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -35,7 +38,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using System.Collections.Generic;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -69,7 +71,8 @@ public sealed partial class J4JMapControl : Control
         MapProjections = MapControlViewModelLocator.Instance
                                                    .ProjectionFactory
                                                    .ProjectionNames
-                                                   .ToList() ?? new List<string>();
+                                                   .ToList()
+         ?? new List<string>();
 
         MapProjection = MapProjections.FirstOrDefault();
 
@@ -110,7 +113,7 @@ public sealed partial class J4JMapControl : Control
         _controlGrid = FindUiElement<Grid>( "ControlGrid" );
         _annotationsCanvas = FindUiElement<Canvas>( "AnnotationsCanvas" );
         _poiCanvas = FindUiElement<Canvas>( "PoICanvas" );
-        _routesCanvas = FindUiElement<Canvas>("RoutesCanvas");
+        _routesCanvas = FindUiElement<Canvas>( "RoutesCanvas" );
 
         _rotationCanvas = FindUiElement<Canvas>( "RotationCanvas" );
         _rotationPanel = FindUiElement<StackPanel>( "RotationPanel" );
@@ -150,7 +153,7 @@ public sealed partial class J4JMapControl : Control
 
     private void OnSizeChanged( object sender, SizeChangedEventArgs e )
     {
-        if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0)
+        if( e.NewSize.Width <= 0 || e.NewSize.Height <= 0 )
             return;
 
         _throttleSizeChanges.Throttle( UpdateEventInterval,
@@ -167,11 +170,16 @@ public sealed partial class J4JMapControl : Control
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        transforms.Children.Add( new TranslateTransform { X = MapRegion.ViewpointOffset.X, Y = MapRegion.ViewpointOffset.Y } );
+        transforms.Children.Add( new TranslateTransform
+        {
+            X = MapRegion.ViewpointOffset.X, Y = MapRegion.ViewpointOffset.Y
+        } );
 
         transforms.Children.Add( new RotateTransform
         {
-            Angle = MapRegion.Rotation, CenterX = ActualWidth / 2, CenterY = ActualHeight / 2
+            Angle = MapRegion.Rotation,
+            CenterX = ActualWidth / 2,
+            CenterY = ActualHeight / 2
         } );
 
         _mapGrid.RenderTransform = transforms;
@@ -184,7 +192,7 @@ public sealed partial class J4JMapControl : Control
 
         DefineColumns();
         DefineRows();
-        
+
         _mapGrid.Children.Clear();
 
         for( var row = 0; row < MapRegion!.TilesHigh; row++ )
@@ -223,12 +231,12 @@ public sealed partial class J4JMapControl : Control
 
         _annotationsCanvas.Children.Clear();
 
-        foreach (var element in Annotations)
+        foreach( var element in Annotations )
         {
-            if (!Location.InRegion(element, MapRegion))
+            if( !Location.InRegion( element, MapRegion ) )
                 continue;
 
-            _annotationsCanvas.Children.Add(element);
+            _annotationsCanvas.Children.Add( element );
         }
     }
 
@@ -255,7 +263,7 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeRoutes()
     {
-        if (_routesCanvas == null || MapRegion == null)
+        if( _routesCanvas == null || MapRegion == null )
             return;
 
         _routesCanvas.Children.Clear();
@@ -285,7 +293,7 @@ public sealed partial class J4JMapControl : Control
 
                 if( nextPt is not IPlacedElement nextPlaced || nextPlaced.VisualElement == null )
                 {
-                    if( route.ShowPoints)
+                    if( route.ShowPoints )
                         _routesCanvas.Children.Add( curPlaced.VisualElement );
 
                     continue;
@@ -298,11 +306,11 @@ public sealed partial class J4JMapControl : Control
 
                 var curElementSize = curPlaced.VisualElement == null
                     ? new Vector3()
-                    : new Vector3( (float)curPlaced.VisualElement.Width, (float)curPlaced.VisualElement.Height, 0 );
+                    : new Vector3( (float) curPlaced.VisualElement.Width, (float) curPlaced.VisualElement.Height, 0 );
 
                 var nextElementSize = nextPlaced.VisualElement == null
                     ? new Vector3()
-                    : new Vector3((float)nextPlaced.VisualElement.Width, (float)nextPlaced.VisualElement.Height, 0);
+                    : new Vector3( (float) nextPlaced.VisualElement.Width, (float) nextPlaced.VisualElement.Height, 0 );
 
                 var line = new Line
                 {
@@ -361,9 +369,9 @@ public sealed partial class J4JMapControl : Control
 
     protected override Size MeasureOverride( Size availableSize )
     {
-        availableSize = SizeIsValid(availableSize) ? availableSize : new Size(100,100);
+        availableSize = SizeIsValid( availableSize ) ? availableSize : new Size( 100, 100 );
 
-        if ( MapRegion == null || _projection == null )
+        if( MapRegion == null || _projection == null )
             return availableSize;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
@@ -382,10 +390,7 @@ public sealed partial class J4JMapControl : Control
     {
         finalSize = base.ArrangeOverride( finalSize );
 
-        Clip = new RectangleGeometry()
-        {
-            Rect = new Rect( new Point(), new Size( finalSize.Width, finalSize.Height ) )
-        };
+        Clip = new RectangleGeometry { Rect = new Rect( new Point(), new Size( finalSize.Width, finalSize.Height ) ) };
 
         ArrangeAnnotations();
 
@@ -409,12 +414,7 @@ public sealed partial class J4JMapControl : Control
 
     private async Task ShowMessageAsync( string message, string title )
     {
-        var mesgBox = new MessageBox
-        {
-            TitleText = title,
-            Text = message,
-            XamlRoot = XamlRoot
-        };
+        var mesgBox = new MessageBox { TitleText = title, Text = message, XamlRoot = XamlRoot };
 
         await mesgBox.ShowAsync();
     }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace J4JSoftware.J4JMapWinLibrary;
+﻿namespace J4JSoftware.J4JMapWinLibrary;
 
 public enum DataSourceValidationResult
 {

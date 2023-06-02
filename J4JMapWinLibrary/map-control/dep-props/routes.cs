@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // annotations.cs
@@ -17,12 +18,13 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
 using System.Collections.ObjectModel;
-using Microsoft.UI.Xaml;
 using J4JSoftware.WindowsUtilities;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace J4JSoftware.J4JMapWinLibrary;
@@ -41,7 +43,7 @@ public sealed partial class J4JMapControl
 
     public ObservableCollection<MapRoute> MapRoutes
     {
-        get => (ObservableCollection<MapRoute>)GetValue( MapRoutesProperty );
+        get => (ObservableCollection<MapRoute>) GetValue( MapRoutesProperty );
         set
         {
             foreach( var route in MapRoutes )
@@ -60,7 +62,6 @@ public sealed partial class J4JMapControl
 
     private void RouteChanged( object? sender, EventArgs e )
     {
-        _throttleRouteChanges.Throttle(UpdateEventInterval, _ => IncludeRoutes());
-
+        _throttleRouteChanges.Throttle( UpdateEventInterval, _ => IncludeRoutes() );
     }
 }

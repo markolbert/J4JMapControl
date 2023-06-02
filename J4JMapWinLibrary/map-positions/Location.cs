@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // Location.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using Windows.Foundation;
@@ -34,8 +36,8 @@ public class Location : DependencyObject
                                              typeof( Location ),
                                              new PropertyMetadata( null ) );
 
-    public static string GetLatLong(UIElement element) => (string)element.GetValue(LatLongProperty);
-    public static void SetLatLong(UIElement element, string value) => element.SetValue(LatLongProperty, value);
+    public static string GetLatLong( UIElement element ) => (string) element.GetValue( LatLongProperty );
+    public static void SetLatLong( UIElement element, string value ) => element.SetValue( LatLongProperty, value );
 
     public static readonly DependencyProperty LatitudeProperty =
         DependencyProperty.RegisterAttached( "Latitude",
@@ -43,23 +45,23 @@ public class Location : DependencyObject
                                              typeof( Location ),
                                              new PropertyMetadata( null ) );
 
-    public static string GetLatitude(UIElement element)=> (string) element.GetValue(LatitudeProperty);
-    public static void SetLatitude(UIElement element, string value) => element.SetValue(LatitudeProperty, value);
+    public static string GetLatitude( UIElement element ) => (string) element.GetValue( LatitudeProperty );
+    public static void SetLatitude( UIElement element, string value ) => element.SetValue( LatitudeProperty, value );
 
     public static readonly DependencyProperty LongitudeProperty =
-        DependencyProperty.RegisterAttached("Longitude",
-                                            typeof(string),
-                                            typeof(Location),
-                                            new PropertyMetadata(null));
+        DependencyProperty.RegisterAttached( "Longitude",
+                                             typeof( string ),
+                                             typeof( Location ),
+                                             new PropertyMetadata( null ) );
 
-    public static string GetLongitude(UIElement element) => (string)element.GetValue(LongitudeProperty);
-    public static void SetLongitude(UIElement element, string value) => element.SetValue(LongitudeProperty, value);
+    public static string GetLongitude( UIElement element ) => (string) element.GetValue( LongitudeProperty );
+    public static void SetLongitude( UIElement element, string value ) => element.SetValue( LongitudeProperty, value );
 
-    public static bool TryParseLatLong(UIElement element, out float latitude, out float longitude)
+    public static bool TryParseLatLong( UIElement element, out float latitude, out float longitude )
     {
         // LatitudeProperty and LongitudeProperty, if valid, win out over any LatLongProperty value
-        if( MapExtensions.TryParseToLatitude(GetLatitude(element), out latitude)
-           && MapExtensions.TryParseToLongitude(GetLongitude(element), out longitude))
+        if( MapExtensions.TryParseToLatitude( GetLatitude( element ), out latitude )
+        && MapExtensions.TryParseToLongitude( GetLongitude( element ), out longitude ) )
             return true;
 
         return MapExtensions.TryParseToLatLong( GetLatLong( element ), out latitude, out longitude );
@@ -71,9 +73,9 @@ public class Location : DependencyObject
                                              typeof( Location ),
                                              new PropertyMetadata( "0,0" ) );
 
-    public static string GetOffset(UIElement element) => (string)element.GetValue(OffsetProperty);
+    public static string GetOffset( UIElement element ) => (string) element.GetValue( OffsetProperty );
 
-    public static void SetOffset(UIElement element, string value) => element.SetValue(OffsetProperty, value);
+    public static void SetOffset( UIElement element, string value ) => element.SetValue( OffsetProperty, value );
 
     public static bool TryParseOffset( UIElement element, out Point offset )
     {
@@ -107,13 +109,13 @@ public class Location : DependencyObject
          && mapPoint.Y < upperLeftY + region.RequestedHeight + region.Projection.TileHeightWidth;
     }
 
-    public static bool InRegion(IPlacedItem item, MapRegion region)
+    public static bool InRegion( IPlacedItem item, MapRegion region )
     {
-        if (item.Latitude < -MapConstants.Wgs84MaxLatitude || item.Latitude > MapConstants.Wgs84MaxLatitude)
+        if( item.Latitude < -MapConstants.Wgs84MaxLatitude || item.Latitude > MapConstants.Wgs84MaxLatitude )
             return false;
 
-        var mapPoint = new MapPoint(region);
-        mapPoint.SetLatLong(item.Latitude, item.Longitude);
+        var mapPoint = new MapPoint( region );
+        mapPoint.SetLatLong( item.Latitude, item.Longitude );
 
         var (upperLeftX, upperLeftY) = region.UpperLeft.GetUpperLeftCartesian();
 

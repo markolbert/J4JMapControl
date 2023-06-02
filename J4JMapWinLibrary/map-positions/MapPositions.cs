@@ -1,11 +1,12 @@
 ﻿using System;
-using J4JSoftware.WindowsUtilities;
-using Microsoft.Extensions.Logging;
-using Microsoft.UI.Xaml;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.WindowsUtilities;
+using Microsoft.Extensions.Logging;
+using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -93,12 +94,12 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
 
         set
         {
-            if (_source is System.Collections.Specialized.INotifyCollectionChanged temp)
+            if( _source is INotifyCollectionChanged temp )
                 temp.CollectionChanged -= SourceCollectionChanged;
 
             _source = value;
 
-            if (_source is System.Collections.Specialized.INotifyCollectionChanged temp2)
+            if( _source is INotifyCollectionChanged temp2 )
                 temp2.CollectionChanged += SourceCollectionChanged;
 
             InitializeSource();
@@ -107,18 +108,15 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
 
     public List<ValidationItem> ProcessedItems { get; private set; } = new();
     public List<ValidationItem> ValidItems { get; private set; } = new();
-    public List<IPlacedItem> PlacedItems { get; private set; } = new();
+    public List<IPlacedItem> PlacedItems { get; } = new();
 
     private void SourceCollectionChanged(
         object? sender,
-        System.Collections.Specialized.NotifyCollectionChangedEventArgs e
+        NotifyCollectionChangedEventArgs e
     )
     {
         _throttleSourceChange.Throttle( _updateInterval,
-                                        _ =>
-                                        {
-                                            InitializeSource();
-                                        } );
+                                        _ => { InitializeSource(); } );
     }
 
     private void InitializeSource()
@@ -126,36 +124,40 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
         switch( DataSourceValidator.Validate( Source, out var processed ) )
         {
             case DataSourceValidationResult.SourceNotEnumerable:
-                Error?.Invoke(this, new ErrorEventArgs(LogLevel.Warning, $"Data source {_srcName} is not enumerable")  );
+                Error?.Invoke( this,
+                               new ErrorEventArgs( LogLevel.Warning, $"Data source {_srcName} is not enumerable" ) );
                 return;
 
             case DataSourceValidationResult.UndefinedSource:
-                Error?.Invoke(this, new ErrorEventArgs(LogLevel.Warning, $"Data source {_srcName} is not defined"));
+                Error?.Invoke( this, new ErrorEventArgs( LogLevel.Warning, $"Data source {_srcName} is not defined" ) );
                 return;
 
             case DataSourceValidationResult.Unprocessed:
-                Error?.Invoke(this, new ErrorEventArgs(LogLevel.Warning, $"Data source {_srcName} was not validated"));
+                Error?.Invoke( this,
+                               new ErrorEventArgs( LogLevel.Warning, $"Data source {_srcName} was not validated" ) );
                 return;
 
             case DataSourceValidationResult.Processed:
                 // no op; proceed, but warn of oddities
-                if( processed.Any(x=>x.ValidationResults.Any(y=>y.Value != ValidationResult.Validated)))
-                    Error?.Invoke(this, new ErrorEventArgs(LogLevel.Information, $"Data source {_srcName} was validated but errors were found"));
+                if( processed.Any( x => x.ValidationResults.Any( y => y.Value != ValidationResult.Validated ) ) )
+                    Error?.Invoke( this,
+                                   new ErrorEventArgs( LogLevel.Information,
+                                                       $"Data source {_srcName} was validated but errors were found" ) );
 
                 break;
         }
 
         // decouple property changed event handler from existing items
-        foreach (var validationItem in ProcessedItems )
+        foreach( var validationItem in ProcessedItems )
         {
-            if (validationItem.DataItem is INotifyPropertyChanged propChanged)
+            if( validationItem.DataItem is INotifyPropertyChanged propChanged )
                 propChanged.PropertyChanged -= ItemPropertyChanged;
         }
 
         // set up property changed event handler for valid items
-        foreach (var validationItem in processed)
+        foreach( var validationItem in processed )
         {
-            if (validationItem.DataItem is not INotifyPropertyChanged propChanged)
+            if( validationItem.DataItem is not INotifyPropertyChanged propChanged )
                 continue;
 
             propChanged.PropertyChanged += ItemPropertyChanged;
@@ -170,14 +172,11 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
 
         CreatePlacedItems();
 
-        SourceUpdated?.Invoke(this, EventArgs.Empty);
+        SourceUpdated?.Invoke( this, EventArgs.Empty );
     }
 
-    private void ItemPropertyChanged(object? sender, PropertyChangedEventArgs e) =>
-        _throttleItemChange.Throttle(_updateInterval, _ =>
-        {
-            InitializeSource();
-        });
+    private void ItemPropertyChanged( object? sender, PropertyChangedEventArgs e ) =>
+        _throttleItemChange.Throttle( _updateInterval, _ => { InitializeSource(); } );
 
     protected abstract bool ItemIsValid( ValidationItem validationItem );
     internal abstract IPlacedItemInternal? CreatePlacedItem( ValidationItem validationItem );
@@ -197,7 +196,9 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
 
             if( dataItem == null )
             {
-                Error?.Invoke(this, new ErrorEventArgs(LogLevel.Warning, $"Undefined data for item# {idx} in {_srcName}, no visual element created"));
+                Error?.Invoke( this,
+                               new ErrorEventArgs( LogLevel.Warning,
+                                                   $"Undefined data for item# {idx} in {_srcName}, no visual element created" ) );
                 continue;
             }
 
@@ -237,7 +238,7 @@ public abstract class MapPositions<TBindingSource> : DependencyObject
             }
 
             if( ( (IPlacedItem) placedItem ).LocationIsValid )
-                PlacedItems.Add( ( (IPlacedItem) placedItem ) );
+                PlacedItems.Add( (IPlacedItem) placedItem );
         }
     }
 }

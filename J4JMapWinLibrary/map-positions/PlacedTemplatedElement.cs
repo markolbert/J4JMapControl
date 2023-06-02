@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Shapes;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -7,7 +6,7 @@ public class PlacedTemplatedElement : PlacedItem, IPlacedElement
 {
     private readonly DataTemplate _template;
 
-    public PlacedTemplatedElement( 
+    public PlacedTemplatedElement(
         DataTemplate template
     )
     {

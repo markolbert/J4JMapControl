@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // region.cs
@@ -17,16 +18,15 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using J4JSoftware.J4JMapLibrary;
 using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Input;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -41,19 +41,19 @@ public sealed partial class J4JMapControl
 
     public string Center
     {
-        get => (string)GetValue(CenterProperty);
+        get => (string) GetValue( CenterProperty );
 
         set
         {
-            SetValue(CenterProperty, value);
+            SetValue( CenterProperty, value );
 
-            if (!MapExtensions.TryParseToLatLong(value, out var latitude, out var longitude))
+            if( !MapExtensions.TryParseToLatLong( value, out var latitude, out var longitude ) )
             {
-                _logger?.LogError("Could not parse center '{center}' to latitude/longitude, defaulting to (0,0)",
-                                  value);
+                _logger?.LogError( "Could not parse center '{center}' to latitude/longitude, defaulting to (0,0)",
+                                   value );
             }
 
-            MapRegion?.Center(latitude, longitude);
+            MapRegion?.Center( latitude, longitude );
         }
     }
 
@@ -64,15 +64,15 @@ public sealed partial class J4JMapControl
 
     public double Heading
     {
-        get => (double)GetValue(HeadingProperty);
+        get => (double) GetValue( HeadingProperty );
 
         set
         {
-            MapRegion?.Heading((float)value);
+            MapRegion?.Heading( (float) value );
 
             // we call SetValue after updating MapRegion so that
             // modulus 360 logic can be applied
-            SetValue(HeadingProperty, MapRegion?.Heading ?? value);
+            SetValue( HeadingProperty, MapRegion?.Heading ?? value );
 
             PositionCompassRose();
         }
@@ -103,10 +103,10 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public DependencyProperty MapStyleProperty = DependencyProperty.Register(nameof(MapStyle),
-                                                                             typeof(string),
-                                                                             typeof(J4JMapControl),
-                                                                             new PropertyMetadata(null));
+    public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
+                                                                              typeof( string ),
+                                                                              typeof( J4JMapControl ),
+                                                                              new PropertyMetadata( null ) );
 
     public string? MapStyle
     {

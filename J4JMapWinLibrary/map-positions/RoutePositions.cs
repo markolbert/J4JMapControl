@@ -15,7 +15,7 @@ public class RoutePositions : MapPositions<MapRoute>
         string routeName,
         MapRoute route,
         Expression<Func<MapRoute, DataTemplate?>> templateBinder,
-    int updateInterval = J4JMapControl.DefaultUpdateEventInterval
+        int updateInterval = J4JMapControl.DefaultUpdateEventInterval
     )
         : base( route,
                 routeName,
@@ -23,26 +23,26 @@ public class RoutePositions : MapPositions<MapRoute>
     {
         _templateFunc = templateBinder.Compile();
 
-        DataSourceValidator.AddRule(nameof(MapRoute.LatLongField),
-                                    x => x.LatLongField,
-                                    typeof(string));
+        DataSourceValidator.AddRule( nameof( MapRoute.LatLongField ),
+                                     x => x.LatLongField,
+                                     typeof( string ) );
 
-        DataSourceValidator.AddRule(nameof(MapRoute.LatitudeField),
-                                    x => x.LatitudeField,
-                                    typeof(string));
+        DataSourceValidator.AddRule( nameof( MapRoute.LatitudeField ),
+                                     x => x.LatitudeField,
+                                     typeof( string ) );
 
-        DataSourceValidator.AddRule(nameof(MapRoute.LongitudeField),
-                                    x => x.LongitudeField,
-                                    typeof(string));
+        DataSourceValidator.AddRule( nameof( MapRoute.LongitudeField ),
+                                     x => x.LongitudeField,
+                                     typeof( string ) );
     }
 
-    protected override bool ItemIsValid(ValidationItem validationItem)
+    protected override bool ItemIsValid( ValidationItem validationItem )
     {
-        if (validationItem.ValidationResults[nameof(MapRoute.LatitudeField)] == ValidationResult.Validated
-         && validationItem.ValidationResults[nameof(MapRoute.LongitudeField)] == ValidationResult.Validated)
+        if( validationItem.ValidationResults[ nameof( MapRoute.LatitudeField ) ] == ValidationResult.Validated
+        && validationItem.ValidationResults[ nameof( MapRoute.LongitudeField ) ] == ValidationResult.Validated )
             return true;
 
-        return validationItem.ValidationResults[nameof(MapRoute.LatLongField)]
+        return validationItem.ValidationResults[ nameof( MapRoute.LatLongField ) ]
          == ValidationResult.Validated;
     }
 
@@ -71,14 +71,16 @@ public class RoutePositions : MapPositions<MapRoute>
         var template = _templateFunc( BindingSource );
 
         if( template == null )
+        {
             return new PlacedElement( new Ellipse
             {
                 Width = BindingSource.StrokeWidth,
                 Height = BindingSource.StrokeWidth,
                 Fill = new SolidColorBrush( BindingSource.StrokeColor ),
                 Opacity = BindingSource.StrokeOpacity,
-                Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed,
+                Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed
             } );
+        }
 
         var retVal = new PlacedTemplatedElement( template );
 

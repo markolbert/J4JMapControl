@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // controls.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapWinLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -26,7 +28,6 @@ using J4JSoftware.WindowsUtilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using WinRT;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
@@ -42,18 +43,18 @@ public sealed partial class J4JMapControl
 
     public bool ControlVisibility
     {
-        get => (bool)GetValue(ControlVisibilityProperty);
-        set => SetValue(ControlVisibilityProperty, value);
+        get => (bool) GetValue( ControlVisibilityProperty );
+        set => SetValue( ControlVisibilityProperty, value );
     }
 
-    public DependencyProperty MaxControlHeightProperty = DependencyProperty.Register(nameof(MaxControlHeight),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(double.MaxValue));
+    public DependencyProperty MaxControlHeightProperty = DependencyProperty.Register( nameof( MaxControlHeight ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( double.MaxValue ) );
 
     public double MaxControlHeight
     {
-        get => (double)GetValue(MaxControlHeightProperty);
+        get => (double) GetValue( MaxControlHeightProperty );
 
         set
         {
@@ -70,8 +71,8 @@ public sealed partial class J4JMapControl
 
     public HorizontalAlignment HorizontalControlAlignment
     {
-        get => (HorizontalAlignment)GetValue(HorizontalControlAlignmentProperty);
-        set => SetValue(HorizontalControlAlignmentProperty, value);
+        get => (HorizontalAlignment) GetValue( HorizontalControlAlignmentProperty );
+        set => SetValue( HorizontalControlAlignmentProperty, value );
     }
 
     public DependencyProperty VerticalControlAlignmentProperty = DependencyProperty.Register(
@@ -86,10 +87,10 @@ public sealed partial class J4JMapControl
         set => SetValue( VerticalControlAlignmentProperty, value );
     }
 
-    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register(nameof(CompassRoseImage),
-        typeof(BitmapImage),
-        typeof(J4JMapControl),
-        new PropertyMetadata(GetDefaultCompassRoseImage()));
+    public static DependencyProperty CompassRoseImageProperty = DependencyProperty.Register( nameof( CompassRoseImage ),
+        typeof( BitmapImage ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( GetDefaultCompassRoseImage() ) );
 
     public BitmapImage CompassRoseImage
     {
@@ -98,10 +99,10 @@ public sealed partial class J4JMapControl
     }
 
     public DependencyProperty CompassRoseHeightWidthProperty = DependencyProperty.Register(
-        nameof(CompassRoseHeightWidth),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(100D));
+        nameof( CompassRoseHeightWidth ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 100D ) );
 
     public double CompassRoseHeightWidth
     {
@@ -109,7 +110,7 @@ public sealed partial class J4JMapControl
         set
         {
             SetValue( CompassRoseHeightWidthProperty, value );
-            SetControlGridSizes( new Size( this.ActualWidth, this.ActualHeight ) );
+            SetControlGridSizes( new Size( ActualWidth, ActualHeight ) );
         }
     }
 
@@ -125,10 +126,10 @@ public sealed partial class J4JMapControl
     }
 
     public DependencyProperty ControlBackgroundOpacityProperty = DependencyProperty.Register(
-        nameof(ControlBackgroundOpacity),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(0.6));
+        nameof( ControlBackgroundOpacity ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0.6 ) );
 
     public double ControlBackgroundOpacity
     {
@@ -137,26 +138,26 @@ public sealed partial class J4JMapControl
     }
 
     public DependencyProperty ControlVerticalMarginProperty = DependencyProperty.Register(
-        nameof(ControlVerticalMargin),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(5D));
+        nameof( ControlVerticalMargin ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 5D ) );
 
     public double ControlVerticalMargin
     {
-        get => (double)GetValue(ControlVerticalMarginProperty);
+        get => (double) GetValue( ControlVerticalMarginProperty );
 
         set
         {
-            SetValue(ControlVerticalMarginProperty, value);
-            SetMapControlMargins(value);
+            SetValue( ControlVerticalMarginProperty, value );
+            SetMapControlMargins( value );
         }
     }
 
-    public DependencyProperty LargeMapScaleChangeProperty = DependencyProperty.Register(nameof(LargeMapScaleChange),
-        typeof(double),
-        typeof(J4JMapControl),
-        new PropertyMetadata(0.6));
+    public DependencyProperty LargeMapScaleChangeProperty = DependencyProperty.Register( nameof( LargeMapScaleChange ),
+        typeof( double ),
+        typeof( J4JMapControl ),
+        new PropertyMetadata( 0.6 ) );
 
     public double LargeMapScaleChange
     {
