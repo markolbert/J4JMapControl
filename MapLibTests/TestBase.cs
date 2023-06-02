@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // TestBase.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using FluentAssertions;
@@ -32,8 +34,7 @@ namespace MapLibTests;
 
 public class TestBase
 {
-    public static readonly string[] ProjectionNames =
-        new[] { "BingMaps", "OpenStreetMaps", "OpenTopoMaps", "GoogleMaps" };
+    public static readonly string[] ProjectionNames = { "BingMaps", "OpenStreetMaps", "OpenTopoMaps", "GoogleMaps" };
 
     protected TestBase()
     {
@@ -109,33 +110,32 @@ public class TestBase
 
     protected IProjection? CreateAndAuthenticateProjection( string projName )
     {
-        var retVal = ProjectionFactory.CreateProjection(projName);
-        if ( retVal == null )
+        var retVal = ProjectionFactory.CreateProjection( projName );
+        if( retVal == null )
             return retVal;
 
-        var credentials = CredentialsFactory[projName];
+        var credentials = CredentialsFactory[ projName ];
         if( credentials == null )
             return retVal;
 
-        retVal.SetCredentials(credentials);
+        retVal.SetCredentials( credentials );
         retVal.Authenticate();
 
         return retVal;
     }
 
-    protected static string GetCheckImagesFolder(string projectionName)
+    protected static string GetCheckImagesFolder( string projectionName )
     {
         var retVal = Environment.CurrentDirectory;
 
-        for (var idx = 0; idx < 3; idx++)
+        for( var idx = 0; idx < 3; idx++ )
         {
-            retVal = Path.GetDirectoryName(retVal)!;
+            retVal = Path.GetDirectoryName( retVal )!;
         }
 
-        retVal = Path.Combine(retVal, "check-images", projectionName);
-        Directory.CreateDirectory(retVal);
+        retVal = Path.Combine( retVal, "check-images", projectionName );
+        Directory.CreateDirectory( retVal );
 
         return retVal;
     }
-
 }

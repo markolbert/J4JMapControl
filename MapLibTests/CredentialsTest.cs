@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // CredentialsTest.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using FluentAssertions;
@@ -29,38 +31,37 @@ public class CredentialsTest : TestBase
     [ Fact ]
     public void Bing()
     {
-        var credentials = CredentialsFactory["BingMaps"] as BingCredentials;
+        var credentials = CredentialsFactory[ "BingMaps" ] as BingCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.ApiKey.Should().NotBeEmpty();
     }
 
-    [Fact]
+    [ Fact ]
     public void Google()
     {
-        var credentials = CredentialsFactory["GoogleMaps"] as GoogleCredentials;
+        var credentials = CredentialsFactory[ "GoogleMaps" ] as GoogleCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.ApiKey.Should().NotBeEmpty();
         credentials!.SignatureSecret.Should().NotBeEmpty();
     }
 
-    [Fact]
+    [ Fact ]
     public void OpenStreetMaps()
     {
-        var credentials = CredentialsFactory["OpenStreetMaps"] as OpenStreetCredentials;
+        var credentials = CredentialsFactory[ "OpenStreetMaps" ] as OpenStreetCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.UserAgent.Should().NotBeEmpty();
     }
 
-    [Fact]
+    [ Fact ]
     public void OpenTopoMaps()
     {
-        var credentials = CredentialsFactory["OpenTopoMaps"] as OpenTopoCredentials;
+        var credentials = CredentialsFactory[ "OpenTopoMaps" ] as OpenTopoCredentials;
         credentials.Should().NotBeNull();
 
         credentials!.UserAgent.Should().NotBeEmpty();
     }
-
 }

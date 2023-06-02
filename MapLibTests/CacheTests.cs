@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // CacheTests.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using FluentAssertions;
@@ -40,7 +42,7 @@ public class CacheTests : TestBase
         cache.Should().NotBeNull();
         cache!.MaxEntries = maxCached;
 
-        projection!.TileCaching.AddCache( cache);
+        projection!.TileCaching.AddCache( cache );
 
         var maxTile = projection.GetTileRange( scale ).Maximum;
 
@@ -50,15 +52,15 @@ public class CacheTests : TestBase
             {
                 await projection.GetMapTileAsync( xTile, yTile, scale );
 
-                if (maxCached > 0)
-                    cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);
+                if( maxCached > 0 )
+                    cache.Stats.Entries.Should().BeLessOrEqualTo( maxCached );
             }
         }
     }
 
-    [Theory]
-    [InlineData(4, 0 )]
-    [InlineData(4, 30 )]
+    [ Theory ]
+    [ InlineData( 4, 0 ) ]
+    [ InlineData( 4, 30 ) ]
     public async Task FileSystemCacheCount( int scale, int maxCached )
     {
         var cache = Host.Services.GetService<FileSystemCache>();
@@ -69,7 +71,7 @@ public class CacheTests : TestBase
 
         foreach( var fileName in Directory.GetFiles( cache.CacheDirectory,
                                                      "*.*",
-                                                     new EnumerationOptions()
+                                                     new EnumerationOptions
                                                      {
                                                          IgnoreInaccessible = true, RecurseSubdirectories = true
                                                      } ) )
@@ -77,21 +79,21 @@ public class CacheTests : TestBase
             File.Delete( fileName );
         }
 
-        var projection = CreateAndAuthenticateProjection("BingMaps") as BingMapsProjection;
+        var projection = CreateAndAuthenticateProjection( "BingMaps" ) as BingMapsProjection;
         projection.Should().NotBeNull();
 
-        projection!.TileCaching.AddCache(cache);
+        projection!.TileCaching.AddCache( cache );
 
         var maxTile = projection.GetTileRange( scale ).Maximum;
 
-        for (var xTile = 0; xTile <= maxTile; xTile++)
+        for( var xTile = 0; xTile <= maxTile; xTile++ )
         {
-            for (var yTile = 0; yTile <= maxTile; yTile++)
+            for( var yTile = 0; yTile <= maxTile; yTile++ )
             {
-                await projection.GetMapTileAsync(xTile, yTile, scale);
+                await projection.GetMapTileAsync( xTile, yTile, scale );
 
                 if( maxCached > 0 )
-                    cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);
+                    cache.Stats.Entries.Should().BeLessOrEqualTo( maxCached );
             }
         }
     }

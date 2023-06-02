@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // CheckImages.cs
@@ -17,10 +18,11 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
-using J4JSoftware.J4JMapLibrary;
 using FluentAssertions;
+using J4JSoftware.J4JMapLibrary;
 
 namespace MapLibTests;
 
@@ -42,7 +44,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapBlock.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapBlock) );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync( mapBlock ) );
     }
 
     [ Theory ]
@@ -61,7 +63,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapBlock.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapBlock) );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync( mapBlock ) );
     }
 
     [ Theory ]
@@ -80,7 +82,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapBlock.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapBlock) );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync( mapBlock ) );
     }
 
     [ Theory ]
@@ -99,7 +101,7 @@ public class CheckImages : TestBase
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
                                      $"{mapBlock.FragmentId}{projection.ImageFileExtension}" );
 
-        await CompareImageFileAsync( filePath, await projection.GetImageAsync(mapBlock) );
+        await CompareImageFileAsync( filePath, await projection.GetImageAsync( mapBlock ) );
     }
 
     private async Task CompareImageFileAsync( string filePath, byte[]? imageData )

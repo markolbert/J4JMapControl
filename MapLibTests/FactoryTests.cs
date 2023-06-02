@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // FactoryTests.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using FluentAssertions;
@@ -27,11 +29,11 @@ namespace MapLibTests;
 public class FactoryTests : TestBase
 {
     [ Theory ]
-    [InlineData("BingMaps", true, true)]
-    [InlineData("OpenStreetMaps", true, true)]
-    [InlineData("OpenTopoMaps", true, true)]
-    [InlineData("GoogleMaps", true, true)]
-    [InlineData("UnknownMaps", false, false)]
+    [ InlineData( "BingMaps", true, true ) ]
+    [ InlineData( "OpenStreetMaps", true, true ) ]
+    [ InlineData( "OpenTopoMaps", true, true ) ]
+    [ InlineData( "GoogleMaps", true, true ) ]
+    [ InlineData( "UnknownMaps", false, false ) ]
     public void CreateProjectionFromName( string projectionName, bool projCreated, bool authenticated )
     {
         var projection = ProjectionFactory.CreateProjection( projectionName );
@@ -44,7 +46,7 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projectionName];
+        var credentials = CredentialsFactory[ projectionName ];
         credentials.Should().NotBeNull();
 
         projection!.SetCredentials( credentials! ).Should().Be( authenticated );
@@ -53,17 +55,17 @@ public class FactoryTests : TestBase
             projection.Authenticate().Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("BingMaps", true, true)]
-    [InlineData("OpenStreetMaps", true, true)]
-    [InlineData("OpenTopoMaps", true, true)]
-    [InlineData("GoogleMaps", true, true)]
-    [InlineData("UnknownMaps", false, false)]
-    public async Task CreateProjectionFromNameAsync(string projectionName, bool projCreated, bool authenticated )
+    [ Theory ]
+    [ InlineData( "BingMaps", true, true ) ]
+    [ InlineData( "OpenStreetMaps", true, true ) ]
+    [ InlineData( "OpenTopoMaps", true, true ) ]
+    [ InlineData( "GoogleMaps", true, true ) ]
+    [ InlineData( "UnknownMaps", false, false ) ]
+    public async Task CreateProjectionFromNameAsync( string projectionName, bool projCreated, bool authenticated )
     {
-        var projection = ProjectionFactory.CreateProjection(projectionName);
+        var projection = ProjectionFactory.CreateProjection( projectionName );
 
-        if (!projCreated)
+        if( !projCreated )
         {
             projection.Should().BeNull();
             return;
@@ -71,10 +73,10 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projectionName];
+        var credentials = CredentialsFactory[ projectionName ];
         credentials.Should().NotBeNull();
 
-        projection!.SetCredentials(credentials!).Should().Be(authenticated);
+        projection!.SetCredentials( credentials! ).Should().Be( authenticated );
 
         if( !authenticated )
             return;
@@ -83,17 +85,17 @@ public class FactoryTests : TestBase
         authResult.Should().Be( authenticated );
     }
 
-    [Theory]
-    [InlineData(typeof(BingMapsProjection), true, true)]
-    [InlineData(typeof(OpenStreetMapsProjection), true, true)]
-    [InlineData(typeof(OpenTopoMapsProjection), true, true)]
-    [InlineData(typeof(GoogleMapsProjection), true, true)]
-    [InlineData(typeof(string), false, false)]
-    public void CreateProjectionFromType(Type projType, bool projCreated, bool authenticated)
+    [ Theory ]
+    [ InlineData( typeof( BingMapsProjection ), true, true ) ]
+    [ InlineData( typeof( OpenStreetMapsProjection ), true, true ) ]
+    [ InlineData( typeof( OpenTopoMapsProjection ), true, true ) ]
+    [ InlineData( typeof( GoogleMapsProjection ), true, true ) ]
+    [ InlineData( typeof( string ), false, false ) ]
+    public void CreateProjectionFromType( Type projType, bool projCreated, bool authenticated )
     {
-        var projection = ProjectionFactory.CreateProjection(projType);
+        var projection = ProjectionFactory.CreateProjection( projType );
 
-        if (!projCreated)
+        if( !projCreated )
         {
             projection.Should().BeNull();
             return;
@@ -101,26 +103,26 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projType];
+        var credentials = CredentialsFactory[ projType ];
         credentials.Should().NotBeNull();
 
-        projection!.SetCredentials(credentials!).Should().Be(authenticated);
+        projection!.SetCredentials( credentials! ).Should().Be( authenticated );
 
-        if (authenticated)
+        if( authenticated )
             projection.Authenticate().Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData(typeof(BingMapsProjection), true, true)]
-    [InlineData(typeof(OpenStreetMapsProjection), true, true)]
-    [InlineData(typeof(OpenTopoMapsProjection), true, true)]
-    [InlineData(typeof(GoogleMapsProjection), true, true)]
-    [InlineData(typeof(string), false, false)]
-    public async Task CreateProjectionFromTypeAsync(Type projType, bool projCreated, bool authenticated)
+    [ Theory ]
+    [ InlineData( typeof( BingMapsProjection ), true, true ) ]
+    [ InlineData( typeof( OpenStreetMapsProjection ), true, true ) ]
+    [ InlineData( typeof( OpenTopoMapsProjection ), true, true ) ]
+    [ InlineData( typeof( GoogleMapsProjection ), true, true ) ]
+    [ InlineData( typeof( string ), false, false ) ]
+    public async Task CreateProjectionFromTypeAsync( Type projType, bool projCreated, bool authenticated )
     {
-        var projection = ProjectionFactory.CreateProjection(projType);
+        var projection = ProjectionFactory.CreateProjection( projType );
 
-        if (!projCreated)
+        if( !projCreated )
         {
             projection.Should().BeNull();
             return;
@@ -128,26 +130,26 @@ public class FactoryTests : TestBase
 
         projection.Should().NotBeNull();
 
-        var credentials = CredentialsFactory[projType];
+        var credentials = CredentialsFactory[ projType ];
         credentials.Should().NotBeNull();
 
-        projection!.SetCredentials(credentials!).Should().Be(authenticated);
+        projection!.SetCredentials( credentials! ).Should().Be( authenticated );
 
-        if (!authenticated)
+        if( !authenticated )
             return;
 
         var authResult = await projection.AuthenticateAsync();
-        authResult.Should().Be(authenticated);
+        authResult.Should().Be( authenticated );
     }
 
-    [Theory]
-    [InlineData("BingMaps",".jpg")]
-    [InlineData("OpenStreetMaps", ".png")]
-    [InlineData("OpenTopoMaps", ".png")]
-    [InlineData("GoogleMaps", ".png")]
-    public void CheckImageFileExtension(string projectionName, string fileExtension)
+    [ Theory ]
+    [ InlineData( "BingMaps", ".jpg" ) ]
+    [ InlineData( "OpenStreetMaps", ".png" ) ]
+    [ InlineData( "OpenTopoMaps", ".png" ) ]
+    [ InlineData( "GoogleMaps", ".png" ) ]
+    public void CheckImageFileExtension( string projectionName, string fileExtension )
     {
-        var projection = CreateAndAuthenticateProjection(projectionName);
+        var projection = CreateAndAuthenticateProjection( projectionName );
         projection.Should().NotBeNull();
         projection!.ImageFileExtension.Should().BeEquivalentTo( fileExtension );
     }

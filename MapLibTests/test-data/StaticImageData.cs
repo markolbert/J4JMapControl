@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // StaticImageData.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Collections;
@@ -34,9 +36,9 @@ public class StaticImageData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { new Region(0,0,0, 256, 256) };
-        yield return new object[] { new Region(0,0,12, 256, 256) };
-        yield return new object[] { new Region( 37, -122, 12, 256, 256) };
+        yield return new object[] { new Region( 0, 0, 0, 256, 256 ) };
+        yield return new object[] { new Region( 0, 0, 12, 256, 256 ) };
+        yield return new object[] { new Region( 37, -122, 12, 256, 256 ) };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

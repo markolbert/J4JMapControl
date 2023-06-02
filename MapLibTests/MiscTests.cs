@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MiscTests.cs
@@ -17,16 +18,16 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with MapLibTests. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
-using J4JSoftware.J4JMapLibrary;
 using FluentAssertions;
+using J4JSoftware.J4JMapLibrary;
 
 namespace MapLibTests;
 
 public class MiscTests
 {
-
     [ Theory ]
     [ InlineData( "0", 1, 0, 0 ) ]
     [ InlineData( "01", 2, 1, 0 ) ]
