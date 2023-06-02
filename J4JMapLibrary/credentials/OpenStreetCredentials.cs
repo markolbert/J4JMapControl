@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // OpenStreetCredentials.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -26,13 +28,13 @@ public class OpenStreetCredentials : Credentials
     private string _userAgent = string.Empty;
 
     public OpenStreetCredentials()
-        : base(typeof( OpenStreetMapsProjection ))
+        : base( typeof( OpenStreetMapsProjection ) )
     {
     }
 
     public string UserAgent
     {
         get => _userAgent;
-        set => SetField(ref _userAgent, value);
+        set => SetField( ref _userAgent, value );
     }
 }

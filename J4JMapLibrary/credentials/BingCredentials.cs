@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // BingCredentials.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using J4JSoftware.EncryptedConfiguration;
@@ -32,7 +34,7 @@ public class BingCredentials : Credentials
     {
     }
 
-    [EncryptedProperty]
+    [ EncryptedProperty ]
     public string ApiKey
     {
         get => _apiKey;

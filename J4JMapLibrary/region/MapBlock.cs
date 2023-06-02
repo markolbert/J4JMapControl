@@ -1,7 +1,7 @@
 ﻿#pragma warning disable CS8618
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
-public class MapBlock 
+public class MapBlock
 {
     protected static string GetStyleKey( IProjection projection ) =>
         projection.MapStyle == null

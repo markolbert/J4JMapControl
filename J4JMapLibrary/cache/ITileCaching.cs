@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // ITileCaching.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Collections.ObjectModel;
@@ -24,7 +26,7 @@ using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface ITileCaching 
+public interface ITileCaching
 {
     ReadOnlyCollection<CacheInfo> Caches { get; }
     ReadOnlyCollection<CacheStats> CacheStats { get; }
@@ -38,6 +40,6 @@ public interface ITileCaching
     bool RemoveCache( int level );
     void RemoveAllCaches();
 
-    Task<int> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default);
+    Task<int> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default );
     Task UpdateCaches( MapBlock mapBlock, int foundLevel, CancellationToken ctx = default );
 }

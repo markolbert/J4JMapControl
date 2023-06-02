@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MapPoint.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -98,7 +100,7 @@ public class MapPoint
 
         _suppressUpdate = true;
 
-        var heightWidth = (double) _projection.GetHeightWidth(_scale);
+        var heightWidth = (double) _projection.GetHeightWidth( _scale );
 
         var scaledX = X / heightWidth - 0.5;
         var scaledY = 0.5 - Y / heightWidth;
@@ -132,7 +134,7 @@ public class MapPoint
 
         _suppressUpdate = true;
 
-        var heightWidth = _projection.GetHeightWidth(_scale);
+        var heightWidth = _projection.GetHeightWidth( _scale );
 
         // x == 0 is the left hand edge of the projection (the x/y origin is in
         // the upper left corner)

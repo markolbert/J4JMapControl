@@ -19,25 +19,25 @@ public abstract class CredentialsFactoryBase : ICredentialsFactory
         _logger = loggerFactory?.CreateLogger<CredentialsFactoryBase>();
     }
 
-    public CredentialsFactoryBase ScanAssemblies(params Type[] types) =>
-        ScanAssemblies(types.Distinct().Select(t => t.Assembly).ToArray());
+    public CredentialsFactoryBase ScanAssemblies( params Type[] types ) =>
+        ScanAssemblies( types.Distinct().Select( t => t.Assembly ).ToArray() );
 
-    public CredentialsFactoryBase ScanAssemblies(params Assembly[] assemblies)
+    public CredentialsFactoryBase ScanAssemblies( params Assembly[] assemblies )
     {
-        _assemblies.AddRange(assemblies);
+        _assemblies.AddRange( assemblies );
         return this;
     }
 
     public bool InitializeFactory()
     {
-        if (_includeDefaults)
-            _assemblies.Add(typeof(ProjectionFactory).Assembly);
-        if (_includeDefaults)
-            _assemblies.Add(typeof(ProjectionFactory).Assembly);
+        if( _includeDefaults )
+            _assemblies.Add( typeof( ProjectionFactory ).Assembly );
+        if( _includeDefaults )
+            _assemblies.Add( typeof( ProjectionFactory ).Assembly );
 
         var toScan = _assemblies.Distinct().ToList();
 
-        ProcessCredentialTypes(toScan);
+        ProcessCredentialTypes( toScan );
 
         return _credentials.Any();
     }
@@ -71,16 +71,19 @@ public abstract class CredentialsFactoryBase : ICredentialsFactory
             }
 
             if( !_credentials.TryAdd( credentials.ProjectionName, credentials ) )
+            {
                 _logger?.LogWarning( "Multiple credential objects found for {projName}, ignoring all but first",
                                      credentials.ProjectionName );
+            }
         }
     }
 
-    public ICredentials? this[ string projName ] => !_credentials.TryGetValue( projName, out var retVal ) ? null : retVal;
+    public ICredentials? this[ string projName ] =>
+        !_credentials.TryGetValue( projName, out var retVal ) ? null : retVal;
 
     protected abstract ICredentials? CreateCredentials( Type credType );
 
-    public ICredentials? this[Type projType]
+    public ICredentials? this[ Type projType ]
     {
         get
         {

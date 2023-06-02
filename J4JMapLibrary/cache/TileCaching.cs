@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // TileCaching.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Collections.ObjectModel;
@@ -48,11 +50,11 @@ public class TileCaching : ITileCaching
     }
 
 
-    public async Task<int> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default)
+    public async Task<int> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
         var levelFound = -1;
 
-        foreach (var info in _infoCollection.OrderBy(x => x.Level))
+        foreach( var info in _infoCollection.OrderBy( x => x.Level ) )
         {
             if( !await info.Cache.LoadImageAsync( mapBlock, ctx ) )
                 continue;
@@ -64,7 +66,7 @@ public class TileCaching : ITileCaching
         return levelFound;
     }
 
-    public async Task UpdateCaches(MapBlock mapBlock, int foundLevel, CancellationToken ctx = default)
+    public async Task UpdateCaches( MapBlock mapBlock, int foundLevel, CancellationToken ctx = default )
     {
         foreach( var info in _infoCollection.Where( x => x.Level < foundLevel ) )
         {
@@ -104,11 +106,11 @@ public class TileCaching : ITileCaching
 
     public bool RemoveCache( int level )
     {
-        var info = _infoCollection.FirstOrDefault(x => x.Level == level);
-        if (info == null)
+        var info = _infoCollection.FirstOrDefault( x => x.Level == level );
+        if( info == null )
             return false;
 
-        _infoCollection.Remove(info);
+        _infoCollection.Remove( info );
         return true;
     }
 

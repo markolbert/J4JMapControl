@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MapRegionFluentExtensions.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -83,7 +85,7 @@ public static class MapRegionFluentExtensions
         return region;
     }
 
-    public static MapRegion.MapRegion MapStyle(this MapRegion.MapRegion region, string? value)
+    public static MapRegion.MapRegion MapStyle( this MapRegion.MapRegion region, string? value )
     {
         region.MapStyle = value;
         return region;

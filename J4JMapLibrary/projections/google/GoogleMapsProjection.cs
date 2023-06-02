@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // GoogleMapsProjection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Security.Cryptography;
@@ -103,15 +105,15 @@ public sealed class GoogleMapsProjection : StaticProjection
         var testBlock = StaticBlock.CreateBlock( this, 0, 0, 0 );
         if( testBlock == null )
         {
-            Logger?.LogError("Could not create test {type}", typeof(StaticBlock));
+            Logger?.LogError( "Could not create test {type}", typeof( StaticBlock ) );
             return false;
         }
 
         _pendingInitializtion = true;
-        
+
         var testBytes = await GetImageAsync( testBlock, ctx );
         Initialized = testBytes != null;
-        
+
         _pendingInitializtion = false;
 
         if( !Initialized )

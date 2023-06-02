@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // OpenTopoMapsProjection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -45,14 +47,14 @@ public sealed class OpenTopoMapsProjection : TiledProjection
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
-    protected override bool ValidateCredentials(object credentials)
+    protected override bool ValidateCredentials( object credentials )
     {
-        if (credentials is OpenTopoCredentials)
+        if( credentials is OpenTopoCredentials )
             return true;
 
-        Logger?.LogError("Expected a {correct} but got a {incorrect} instead",
-                         typeof(OpenTopoCredentials),
-                         credentials.GetType());
+        Logger?.LogError( "Expected a {correct} but got a {incorrect} instead",
+                          typeof( OpenTopoCredentials ),
+                          credentials.GetType() );
 
         return false;
     }
@@ -67,10 +69,10 @@ public sealed class OpenTopoMapsProjection : TiledProjection
         UserAgent = ( (OpenTopoCredentials) Credentials! ).UserAgent;
 
         // user agent must be unique, but this is all we can do to check it
-        Initialized = !string.IsNullOrEmpty(UserAgent);
+        Initialized = !string.IsNullOrEmpty( UserAgent );
 
-        if (!Initialized)
-            Logger?.LogError("Empty or undefined user agent value");
+        if( !Initialized )
+            Logger?.LogError( "Empty or undefined user agent value" );
 
         return Initialized;
     }
@@ -79,19 +81,19 @@ public sealed class OpenTopoMapsProjection : TiledProjection
     {
         if( !Initialized )
         {
-            Logger?.LogError("Projection not initialized");
+            Logger?.LogError( "Projection not initialized" );
             return null;
         }
 
-        if (mapBlock is not TileBlock castBlock)
+        if( mapBlock is not TileBlock castBlock )
         {
-            Logger?.LogError("Expected a {type} but got a {badType}", typeof(TileBlock), mapBlock.GetType());
+            Logger?.LogError( "Expected a {type} but got a {badType}", typeof( TileBlock ), mapBlock.GetType() );
             return null;
         }
 
-        if ( string.IsNullOrEmpty( UserAgent ) )
+        if( string.IsNullOrEmpty( UserAgent ) )
         {
-            Logger?.LogError("Undefined or empty User-Agent");
+            Logger?.LogError( "Undefined or empty User-Agent" );
             return null;
         }
 

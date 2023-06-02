@@ -23,15 +23,15 @@ public class StaticBlock : MapBlock
 
     public static StaticBlock? CreateBlock( IProjection projection, int xTile, int yTile, int scale )
     {
-        if (projection.GetProjectionType() != ProjectionType.Static)
+        if( projection.GetProjectionType() != ProjectionType.Static )
             return null;
 
         // determine the center point of the tile
         var upperLeftX = xTile * projection.TileHeightWidth;
         var upperLeftY = yTile * projection.TileHeightWidth;
-        var centerPoint = new MapPoint(projection, scale);
-        centerPoint.SetCartesian(upperLeftX + projection.TileHeightWidth / 2,
-                                 upperLeftY + projection.TileHeightWidth / 2);
+        var centerPoint = new MapPoint( projection, scale );
+        centerPoint.SetCartesian( upperLeftX + projection.TileHeightWidth / 2,
+                                  upperLeftY + projection.TileHeightWidth / 2 );
 
         var heightWidth = (float) projection.TileHeightWidth;
 

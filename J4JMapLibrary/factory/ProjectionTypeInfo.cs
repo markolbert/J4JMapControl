@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // ProjectionTypeInfo.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Reflection;
@@ -80,7 +82,9 @@ internal record ProjectionTypeInfo
 
             if( ctorParameters.Count == requiredCount )
                 ConstructorInfo.Add( new ProjectionCtorInfo( supportsCaching, ctorParameters ) );
-            else _logger?.LogWarning( "Found unsupported public constructor taking {0} parameters", ctorParameters.Count );
+            else
+                _logger?.LogWarning( "Found unsupported public constructor taking {0} parameters",
+                                     ctorParameters.Count );
         }
     }
 }

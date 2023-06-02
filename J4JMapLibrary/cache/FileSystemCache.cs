@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // FileSystemCache.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -55,11 +57,11 @@ public class FileSystemCache : CacheBase
             {
                 var dirInfo = Directory.CreateDirectory( value );
                 _cacheDir = dirInfo.FullName;
-                Stats.Reload(GetFiles());
+                Stats.Reload( GetFiles() );
             }
             catch
             {
-                Logger?.LogError("Cache path '{0}' is not accessible", value);
+                Logger?.LogError( "Cache path '{0}' is not accessible", value );
             }
         }
     }
@@ -68,7 +70,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.LogError("Caching directory is undefined");
+            Logger?.LogError( "Caching directory is undefined" );
             return;
         }
 
@@ -99,7 +101,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.LogError("Caching directory is undefined");
+            Logger?.LogError( "Caching directory is undefined" );
             return;
         }
 
@@ -150,7 +152,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.LogError("Caching directory is undefined");
+            Logger?.LogError( "Caching directory is undefined" );
             return false;
         }
 
@@ -168,13 +170,13 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.LogError("Caching directory is undefined");
+            Logger?.LogError( "Caching directory is undefined" );
             return false;
         }
 
         if( mapBlock.ImageData == null )
         {
-            Logger?.LogError("Map tile contains no image data");
+            Logger?.LogError( "Map tile contains no image data" );
             return false;
         }
 
@@ -182,8 +184,8 @@ public class FileSystemCache : CacheBase
         var filePath = Path.Combine( _cacheDir, fileName );
 
         if( File.Exists( filePath ) )
-            Logger?.LogWarning("Replacing file system cache entry '{0}'", mapBlock.FragmentId);
-        else Logger?.LogTrace("Added file system cache entry '{fragmentId}'", mapBlock.FragmentId);
+            Logger?.LogWarning( "Replacing file system cache entry '{0}'", mapBlock.FragmentId );
+        else Logger?.LogTrace( "Added file system cache entry '{fragmentId}'", mapBlock.FragmentId );
 
         try
         {
@@ -211,7 +213,7 @@ public class FileSystemCache : CacheBase
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
-            Logger?.LogError("Caching directory is undefined");
+            Logger?.LogError( "Caching directory is undefined" );
             yield break;
         }
 
@@ -227,13 +229,13 @@ public class FileSystemCache : CacheBase
 
             if( parts.Length != 2 )
             {
-                Logger?.LogError("Unable to parse cached filename '{0}'", fileName);
+                Logger?.LogError( "Unable to parse cached filename '{0}'", fileName );
                 continue;
             }
 
             if( !MapExtensions.TryParseQuadKey( parts[ 1 ], out _ ) )
             {
-                Logger?.LogError("Could not deconstruct quadkey for file '{0}'", fileName);
+                Logger?.LogError( "Could not deconstruct quadkey for file '{0}'", fileName );
                 continue;
             }
 

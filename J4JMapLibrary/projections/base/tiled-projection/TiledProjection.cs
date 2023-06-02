@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // TiledProjection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -46,7 +48,7 @@ public abstract class TiledProjection : Projection, ITiledProjection
     {
         if( !Initialized )
         {
-            Logger?.LogError("Projection is not initialized");
+            Logger?.LogError( "Projection is not initialized" );
             return 0;
         }
 
@@ -75,7 +77,7 @@ public abstract class TiledProjection : Projection, ITiledProjection
         if( retVal == null )
             return null;
 
-        await LoadImageAsync(retVal, ctx);
+        await LoadImageAsync( retVal, ctx );
 
         return retVal;
     }
@@ -100,7 +102,7 @@ public abstract class TiledProjection : Projection, ITiledProjection
         return true;
     }
 
-    public override async Task<bool> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default)
+    public override async Task<bool> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
         var cacheLevel = -1;
 

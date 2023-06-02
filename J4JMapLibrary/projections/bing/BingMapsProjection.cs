@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // BingMapsProjection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Net;
@@ -56,7 +58,7 @@ public sealed class BingMapsProjection : TiledProjection
             else
             {
                 if( !BingMapsCultureCodes.Default.ContainsKey( value ) )
-                    Logger?.LogError("Invalid or unsupported culture code '{code}'", value);
+                    Logger?.LogError( "Invalid or unsupported culture code '{code}'", value );
                 else _cultureCode = value;
             }
         }
@@ -70,7 +72,7 @@ public sealed class BingMapsProjection : TiledProjection
     {
         base.OnMapStyleChanged();
 
-        if( MapStyle == null || !Enum.TryParse<BingMapStyle>(MapStyle, true, out var result))
+        if( MapStyle == null || !Enum.TryParse<BingMapStyle>( MapStyle, true, out var result ) )
         {
             // this will cause OnMapStyleChanged() to be raised again...
             MapStyle = BingMapStyle.RoadOnDemand.ToString();
@@ -87,12 +89,12 @@ public sealed class BingMapsProjection : TiledProjection
 
     protected override bool ValidateCredentials( object credentials )
     {
-        if (credentials is BingCredentials)
+        if( credentials is BingCredentials )
             return true;
 
-        Logger?.LogError("Expected a {correct} but got a {incorrect} instead",
-                         typeof(BingCredentials),
-                         credentials.GetType());
+        Logger?.LogError( "Expected a {correct} but got a {incorrect} instead",
+                          typeof( BingCredentials ),
+                          credentials.GetType() );
 
         return false;
     }
@@ -105,7 +107,7 @@ public sealed class BingMapsProjection : TiledProjection
 
         Initialized = false;
 
-        ApiKey = ((BingCredentials)Credentials!).ApiKey;
+        ApiKey = ( (BingCredentials) Credentials! ).ApiKey;
 
         var replacements = new Dictionary<string, string>
         {
@@ -145,8 +147,8 @@ public sealed class BingMapsProjection : TiledProjection
 #endif
 
             Logger?.LogError( "Could not retrieve Bing Maps Metadata from {uriText}, message was '{mesg}'",
-                          uriText,
-                          ex.Message );
+                              uriText,
+                              ex.Message );
             return false;
         }
 
@@ -173,7 +175,7 @@ public sealed class BingMapsProjection : TiledProjection
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             Metadata = JsonSerializer.Deserialize<BingImageryMetadata>( respText, options );
-            Logger?.LogTrace("Bing Maps metadata retrieved");
+            Logger?.LogTrace( "Bing Maps metadata retrieved" );
         }
         catch( Exception ex )
         {
@@ -202,7 +204,7 @@ public sealed class BingMapsProjection : TiledProjection
     {
         if( !Initialized )
         {
-            Logger?.LogError("Projection not initialized");
+            Logger?.LogError( "Projection not initialized" );
             return null;
         }
 

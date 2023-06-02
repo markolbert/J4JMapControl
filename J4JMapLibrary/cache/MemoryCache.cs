@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MemoryCache.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -106,7 +108,7 @@ public class MemoryCache : CacheBase
     {
         if( mapBlock.ImageData == null )
         {
-            Logger?.LogError("Map tile contains no image data");
+            Logger?.LogError( "Map tile contains no image data" );
             return false;
         }
 
@@ -120,12 +122,12 @@ public class MemoryCache : CacheBase
         else
         {
             _cached.Add( mapBlock.FragmentId, cacheEntry );
-            Logger?.LogTrace("Added memory cache entry '{fragmentId}'", cacheEntry.MapBlock.FragmentId);
+            Logger?.LogTrace( "Added memory cache entry '{fragmentId}'", cacheEntry.MapBlock.FragmentId );
         }
 
-        Stats.RecordEntry(mapBlock.ImageData);
+        Stats.RecordEntry( mapBlock.ImageData );
 
-        if ( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
+        if( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();
 
         return true;

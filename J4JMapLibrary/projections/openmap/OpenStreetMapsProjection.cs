@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // OpenStreetMapsProjection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using J4JSoftware.J4JMapLibrary.MapRegion;
@@ -44,14 +46,14 @@ public sealed class OpenStreetMapsProjection : TiledProjection
     public string RetrievalUrl { get; }
     public string UserAgent { get; private set; } = string.Empty;
 
-    protected override bool ValidateCredentials(object credentials)
+    protected override bool ValidateCredentials( object credentials )
     {
-        if (credentials is OpenStreetCredentials)
+        if( credentials is OpenStreetCredentials )
             return true;
 
-        Logger?.LogError("Expected a {correct} but got a {incorrect} instead",
-                         typeof(OpenStreetCredentials),
-                         credentials.GetType());
+        Logger?.LogError( "Expected a {correct} but got a {incorrect} instead",
+                          typeof( OpenStreetCredentials ),
+                          credentials.GetType() );
 
         return false;
     }
@@ -69,7 +71,7 @@ public sealed class OpenStreetMapsProjection : TiledProjection
         Initialized = !string.IsNullOrEmpty( UserAgent );
 
         if( !Initialized )
-            Logger?.LogError("Empty or undefined user agent value");
+            Logger?.LogError( "Empty or undefined user agent value" );
 
         return Initialized;
     }
@@ -82,15 +84,15 @@ public sealed class OpenStreetMapsProjection : TiledProjection
             return null;
         }
 
-        if (mapBlock is not TileBlock castBlock)
+        if( mapBlock is not TileBlock castBlock )
         {
-            Logger?.LogError("Expected a {type} but got a {badType}", typeof(TileBlock), mapBlock.GetType());
+            Logger?.LogError( "Expected a {type} but got a {badType}", typeof( TileBlock ), mapBlock.GetType() );
             return null;
         }
 
-        if ( string.IsNullOrEmpty( UserAgent ) )
+        if( string.IsNullOrEmpty( UserAgent ) )
         {
-            Logger?.LogError("Undefined or empty User-Agent");
+            Logger?.LogError( "Undefined or empty User-Agent" );
             return null;
         }
 

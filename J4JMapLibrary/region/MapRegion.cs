@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MapRegion.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Collections;
@@ -314,7 +316,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
 
     private void UpdateEmpty()
     {
-        UpperLeft = new TileCoordinates(this, int.MinValue, int.MinValue );
+        UpperLeft = new TileCoordinates( this, int.MinValue, int.MinValue );
         TilesWide = 0;
         TilesHigh = 0;
         BoundingBox = Rectangle2D.Empty;
@@ -322,7 +324,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
 
     private void UpdateStaticRegion( Rectangle2D oldBoundingBox )
     {
-        UpperLeft = new TileCoordinates(this,0, 0 );
+        UpperLeft = new TileCoordinates( this, 0, 0 );
         TilesWide = 1;
         TilesHigh = 1;
 
@@ -334,7 +336,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
 
         var block = StaticBlock.CreateBlock( this );
         if( block == null )
-            Logger?.LogError("Could not create {type}", typeof(StaticBlock));
+            Logger?.LogError( "Could not create {type}", typeof( StaticBlock ) );
 
         MapBlocks.Add( new PositionedMapBlock( 0, 0, block ) );
 
@@ -353,11 +355,11 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
         var rawColumns = maxXTile - minXTile + 1;
         var rawRows = maxYTile - minYTile + 1;
 
-        var rawBlocks = new MapBlock?[rawColumns, rawRows];
+        var rawBlocks = new MapBlock?[ rawColumns, rawRows ];
 
-        for (var xTile = minXTile; xTile <= maxXTile; xTile++)
+        for( var xTile = minXTile; xTile <= maxXTile; xTile++ )
         {
-            for (var yTile = minYTile; yTile <= maxYTile; yTile++)
+            for( var yTile = minYTile; yTile <= maxYTile; yTile++ )
             {
                 rawBlocks[ xTile - minXTile, yTile - minYTile ] = TileBlock.CreateBlock( this, xTile, yTile );
             }
@@ -366,17 +368,17 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
         // identify rows which have at least some tiles in the projection
         var rowsToExclude = new List<int>();
 
-        for (var row = 0; row < rawRows; row++)
+        for( var row = 0; row < rawRows; row++ )
         {
             var inProjection = false;
 
-            for (var column = 0; column < rawColumns; column++)
+            for( var column = 0; column < rawColumns; column++ )
             {
-                inProjection |= rawBlocks[column, row] != null;
+                inProjection |= rawBlocks[ column, row ] != null;
             }
 
-            if (!inProjection)
-                rowsToExclude.Add(row);
+            if( !inProjection )
+                rowsToExclude.Add( row );
         }
 
         TilesHigh = rawRows - rowsToExclude.Count;
@@ -384,17 +386,17 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
         // identify columns which have at least some tiles in the projection
         var columnsToExclude = new List<int>();
 
-        for (var column = 0; column < rawColumns; column++)
+        for( var column = 0; column < rawColumns; column++ )
         {
             var inProjection = false;
 
-            for (var row = 0; row < rawRows; row++)
+            for( var row = 0; row < rawRows; row++ )
             {
-                inProjection |= rawBlocks[column, row] != null;
+                inProjection |= rawBlocks[ column, row ] != null;
             }
 
-            if (!inProjection)
-                columnsToExclude.Add(column);
+            if( !inProjection )
+                columnsToExclude.Add( column );
         }
 
         TilesWide = rawColumns - columnsToExclude.Count;
@@ -403,17 +405,17 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
 
         var finalRow = -1;
 
-        for (var row = 0; row < rawRows; row++)
+        for( var row = 0; row < rawRows; row++ )
         {
-            if (rowsToExclude.Contains(row))
+            if( rowsToExclude.Contains( row ) )
                 continue;
 
             finalRow++;
             var finalColumn = -1;
 
-            for (var column = 0; column < rawColumns; column++)
+            for( var column = 0; column < rawColumns; column++ )
             {
-                if (columnsToExclude.Contains(column))
+                if( columnsToExclude.Contains( column ) )
                     continue;
 
                 finalColumn++;
@@ -422,7 +424,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
             }
         }
 
-        UpperLeft = new TileCoordinates(this, minXTile, minYTile );
+        UpperLeft = new TileCoordinates( this, minXTile, minYTile );
 
         var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
 

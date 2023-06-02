@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // Projection.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with J4JMapLibrary. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Collections.ObjectModel;
@@ -30,7 +32,7 @@ namespace J4JSoftware.J4JMapLibrary;
 public abstract class Projection : IProjection
 {
     public const int DefaultMaxRequestLatency = 500;
-    
+
     private readonly List<string> _mapStyles;
 
     private float _maxLat = MapConstants.Wgs84MaxLatitude;
@@ -268,9 +270,9 @@ public abstract class Projection : IProjection
         }
     }
 
-    public virtual async Task<bool> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default)
+    public virtual async Task<bool> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
-        mapBlock.ImageData = await GetImageAsync(mapBlock, ctx);
+        mapBlock.ImageData = await GetImageAsync( mapBlock, ctx );
         return mapBlock.ImageData != null;
     }
 
@@ -367,7 +369,7 @@ public abstract class Projection : IProjection
 
     public static bool operator==( Projection? left, Projection? right ) => Equals( left, right );
 
-    public static bool operator!=(Projection? left, Projection? right) => !Equals( left, right );
+    public static bool operator!=( Projection? left, Projection? right ) => !Equals( left, right );
 
     public bool Equals( IProjection? other ) =>
         other != null
