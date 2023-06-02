@@ -67,16 +67,16 @@ public class MemoryCache : CacheBase
             }
         }
 
-        if( MaxBytes <= 0 || _cached.Sum( x => x.Value.Tile.ImageBytes ) <= MaxBytes )
+        if( MaxBytes <= 0 || _cached.Sum( x => x.Value.MapBlock.ImageBytes ) <= MaxBytes )
         {
             Stats.Reload( this );
             return;
         }
 
-        var entriesByLargest = _cached.OrderByDescending( x => x.Value.Tile.ImageBytes )
+        var entriesByLargest = _cached.OrderByDescending( x => x.Value.MapBlock.ImageBytes )
                                       .ToList();
 
-        while( MaxBytes >= 0 && entriesByLargest.Sum( x => x.Value.Tile.ImageBytes ) > MaxBytes )
+        while( MaxBytes >= 0 && entriesByLargest.Sum( x => x.Value.MapBlock.ImageBytes ) > MaxBytes )
         {
             _cached.Remove( entriesByLargest.First().Key );
             entriesByLargest.RemoveAt( 0 );
@@ -88,46 +88,42 @@ public class MemoryCache : CacheBase
 #pragma warning disable CS1998
     protected override async Task<bool> LoadImageDataInternalAsync(
 #pragma warning restore CS1998
-        MapTile mapTile,
+        MapBlock mapBlock,
         CancellationToken ctx = default
     )
     {
-        // shouldn't ever happen, but...
-        if( string.IsNullOrEmpty( mapTile.QuadKey ) )
+        if( !_cached.TryGetValue( mapBlock.FragmentId, out var cachedTile ) )
             return false;
 
-        if( !_cached.TryGetValue( mapTile.FragmentId, out var cachedTile ) )
-            return false;
+        mapBlock.ImageData = cachedTile.MapBlock.ImageData;
 
-        mapTile.ImageData = cachedTile.Tile.ImageData;
-
-        return mapTile.ImageData != null;
+        return mapBlock.ImageData != null;
     }
 
 #pragma warning disable CS1998
-    public override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
+    public override async Task<bool> AddEntryAsync( MapBlock mapBlock, CancellationToken ctx = default )
 #pragma warning restore CS1998
     {
-        if( mapTile.ImageData == null )
+        if( mapBlock.ImageData == null )
         {
             Logger?.LogError("Map tile contains no image data");
             return false;
         }
 
-        var cacheEntry = new CachedTile( mapTile.ImageBytes, DateTime.UtcNow, DateTime.UtcNow, mapTile );
+        var cacheEntry = new CachedTile( mapBlock.ImageBytes, DateTime.UtcNow, DateTime.UtcNow, mapBlock );
 
-        if( _cached.ContainsKey( mapTile.FragmentId ) )
+        if( _cached.ContainsKey( mapBlock.FragmentId ) )
         {
-            Logger?.LogWarning( "Replacing memory cache entry '{fragmentId}'", cacheEntry.Tile.FragmentId );
-            _cached[ mapTile.FragmentId ] = cacheEntry;
+            Logger?.LogWarning( "Replacing memory cache entry '{fragmentId}'", cacheEntry.MapBlock.FragmentId );
+            _cached[ mapBlock.FragmentId ] = cacheEntry;
         }
         else
         {
-            _cached.Add( mapTile.FragmentId, cacheEntry );
-            Logger?.LogTrace("Added memory cache entry '{fragmentId}'", cacheEntry.Tile.FragmentId);
+            _cached.Add( mapBlock.FragmentId, cacheEntry );
+            Logger?.LogTrace("Added memory cache entry '{fragmentId}'", cacheEntry.MapBlock.FragmentId);
         }
 
-        Stats.RecordEntry(mapTile.ImageData);
+        Stats.RecordEntry(mapBlock.ImageData);
 
         if ( ( MaxEntries > 0 && Stats.Entries > MaxEntries ) || ( MaxBytes > 0 && Stats.Bytes > MaxBytes ) )
             PurgeExpired();

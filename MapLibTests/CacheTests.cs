@@ -48,7 +48,7 @@ public class CacheTests : TestBase
         {
             for( var yTile = 0; yTile <= maxTile; yTile++ )
             {
-                await projection.GetMapTileWraparoundAsync( xTile, yTile, scale );
+                await projection.GetMapTileAsync( xTile, yTile, scale );
 
                 if (maxCached > 0)
                     cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);
@@ -88,7 +88,7 @@ public class CacheTests : TestBase
         {
             for (var yTile = 0; yTile <= maxTile; yTile++)
             {
-                await projection.GetMapTileWraparoundAsync(xTile, yTile, scale);
+                await projection.GetMapTileAsync(xTile, yTile, scale);
 
                 if( maxCached > 0 )
                     cache.Stats.Entries.Should().BeLessOrEqualTo(maxCached);

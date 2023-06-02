@@ -204,7 +204,7 @@ public sealed class BingMapsProjection : TiledProjection
         return Initialized;
     }
 
-    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapBlock mapBlock )
     {
         if( !Initialized )
         {
@@ -212,9 +212,9 @@ public sealed class BingMapsProjection : TiledProjection
             return null;
         }
 
-        if( !mapTile.InProjection )
+        if( mapBlock is not TileBlock castBlock )
         {
-            Logger?.LogError("MapTile not in the projection");
+            Logger?.LogError( "Expected a {type} but got a {badType}", typeof( TileBlock ), mapBlock.GetType() );
             return null;
         }
 
@@ -227,7 +227,7 @@ public sealed class BingMapsProjection : TiledProjection
         var replacements = new Dictionary<string, string>
         {
             { "{subdomain}", subDomain },
-            { "{quadkey}", mapTile.QuadKey },
+            { "{quadkey}", castBlock.QuadKey },
             { "{culture}", _cultureCode ?? string.Empty }
         };
 

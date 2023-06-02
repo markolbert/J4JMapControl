@@ -38,6 +38,6 @@ public interface ITileCaching
     bool RemoveCache( int level );
     void RemoveAllCaches();
 
-    Task<int> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default);
-    Task UpdateCaches( MapTile mapTile, int foundLevel, CancellationToken ctx = default );
+    Task<int> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default);
+    Task UpdateCaches( MapBlock mapBlock, int foundLevel, CancellationToken ctx = default );
 }

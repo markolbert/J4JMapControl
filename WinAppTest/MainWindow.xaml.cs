@@ -103,7 +103,7 @@ public sealed partial class MainWindow
         mapControl.FileSystemCachePath = Path.Combine(WinUIConfigBase.UserFolder, "map-cache");
         UpdateStats();
 
-        mapControl.NewCredentials += MapControlOnNewCredentials;
+        mapControl.ValidCredentials += MapControlOnNewCredentials;
 
         if( _appConfig.UserConfigurationFileExists )
         {
@@ -121,7 +121,7 @@ public sealed partial class MainWindow
         }
     }
 
-    private void MapControlOnNewCredentials( object? sender, NewCredentialsEventArgs e )
+    private void MapControlOnNewCredentials( object? sender, ValidCredentialsEventArgs e )
     {
         _appConfig.Credentials ??= new MapCredentials();
         _appConfig.MapProjection = e.ProjectionName;

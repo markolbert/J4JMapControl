@@ -61,7 +61,7 @@ public abstract class TiledProjection : Projection, ITiledProjection
     public string ScaleDescription( float latitude, int scale, float dotsPerInch ) =>
         $"1 : {GroundResolution( latitude, scale ) * dotsPerInch / MapConstants.MetersPerInch}";
 
-    public override async Task<MapTile> GetMapTileWraparoundAsync(
+    public override async Task<MapBlock?> GetMapTileAsync(
         int xTile,
         int yTile,
         int scale,
@@ -69,23 +69,12 @@ public abstract class TiledProjection : Projection, ITiledProjection
     )
     {
         var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
+        region.Update();
 
-        var retVal = new MapTile( region, yTile ).SetXRelative( xTile );
-        await LoadImageAsync( retVal, ctx );
+        var retVal = TileBlock.CreateBlock( region, xTile, yTile );
+        if( retVal == null )
+            return null;
 
-        return retVal;
-    }
-
-    public override async Task<MapTile> GetMapTileAbsoluteAsync(
-        int xTile,
-        int yTile,
-        int scale,
-        CancellationToken ctx = default
-    )
-    {
-        var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
-
-        var retVal = new MapTile( region, yTile ).SetXAbsolute( xTile );
         await LoadImageAsync(retVal, ctx);
 
         return retVal;
@@ -103,38 +92,32 @@ public abstract class TiledProjection : Projection, ITiledProjection
         CancellationToken ctx = default
     )
     {
-        foreach( var mapTile in region )
+        foreach( var positionedBlock in region.Where( b => b.MapBlock != null ) )
         {
-            await LoadImageAsync( mapTile, ctx );
+            await LoadImageAsync( positionedBlock.MapBlock!, ctx );
         }
 
         return true;
     }
 
-    public override async Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
+    public override async Task<bool> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default)
     {
-        if (!mapTile.InProjection)
-        {
-            mapTile.ImageData = null;
-            return true;
-        }
-
         var cacheLevel = -1;
 
         if( TileCaching.Caches.Any() )
-            cacheLevel = await TileCaching.LoadImageAsync( mapTile, ctx );
+            cacheLevel = await TileCaching.LoadImageAsync( mapBlock, ctx );
 
         if( cacheLevel < 0 )
         {
-            mapTile.ImageData = await GetImageAsync( mapTile, ctx );
+            mapBlock.ImageData = await GetImageAsync( mapBlock, ctx );
 
             // indicate that we have to update all caches
             cacheLevel = int.MaxValue;
         }
 
         if( TileCaching.Caches.Any() )
-            await TileCaching.UpdateCaches( mapTile, cacheLevel, ctx );
+            await TileCaching.UpdateCaches( mapBlock, cacheLevel, ctx );
 
-        return mapTile.ImageData != null;
+        return mapBlock.ImageData != null;
     }
 }

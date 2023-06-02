@@ -67,7 +67,7 @@ public sealed partial class J4JMapControl : Control
         DefaultStyleKey = typeof( J4JMapControl );
 
         MapProjections = MapControlViewModelLocator.Instance
-                                                  ?.ProjectionFactory
+                                                   .ProjectionFactory
                                                    .ProjectionNames
                                                    .ToList() ?? new List<string>();
 
@@ -187,26 +187,33 @@ public sealed partial class J4JMapControl : Control
 
         _mapGrid.Children.Clear();
 
-        foreach( var mapTile in MapRegion! )
+        for( var row = 0; row < MapRegion!.TilesHigh; row++ )
         {
-            var newImage = new Image { Height = mapTile.Height, Width = mapTile.Width };
-            Grid.SetColumn( newImage, mapTile.Column );
-            Grid.SetRow( newImage, mapTile.Row );
-
-            if( mapTile is { InProjection: true, ImageData: not null } )
+            for( var column = 0; column < MapRegion.TilesWide; column++ )
             {
-                var memStream = new MemoryStream( mapTile.ImageData );
+                var mapTile = MapRegion[ column, row ];
+                if( mapTile == null )
+                    continue;
 
-                var bitmapImage = new BitmapImage();
-                bitmapImage.SetSource( memStream.AsRandomAccessStream() );
+                var newImage = new Image { Height = mapTile.Height, Width = mapTile.Width };
+                Grid.SetColumn( newImage, column );
+                Grid.SetRow( newImage, row );
 
-                newImage.Source = bitmapImage;
+                if( mapTile is { ImageData: not null } )
+                {
+                    var memStream = new MemoryStream( mapTile.ImageData );
+
+                    var bitmapImage = new BitmapImage();
+                    bitmapImage.SetSource( memStream.AsRandomAccessStream() );
+
+                    newImage.Source = bitmapImage;
+                }
+
+                _mapGrid.Children.Add( newImage );
             }
 
-            _mapGrid.Children.Add( newImage );
+            InvalidateArrange();
         }
-
-        InvalidateArrange();
     }
 
     private void IncludeAnnotations()

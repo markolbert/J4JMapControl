@@ -32,7 +32,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="check-images\BingMaps\" />
 	  <Folder Include="check-images\GoogleMaps\" />
+	  <Folder Include="check-images\OpenStreetMaps\" />
+	  <Folder Include="check-images\OpenTopoMaps\" />
 	</ItemGroup>
 
 </Project>

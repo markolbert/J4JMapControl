@@ -68,27 +68,34 @@ public class TileTests : TestBase
         var numTiles = region.TilesHigh * region.TilesWide;
         numTiles.Should().BeGreaterThan( 0 );
 
-        region.Min( t => t.X ).Should().Be( minTileX );
-        region.Min( t => t.Y ).Should().Be( minTileY );
-        region.Max( t => t.X ).Should().Be( maxTileX );
-        region.Max( t => t.Y ).Should().Be( maxTileY );
+        region.Min( b => b.MapBlock?.X ?? int.MinValue ).Should().Be( minTileX );
+        region.Min( b => b.MapBlock?.Y ?? int.MinValue ).Should().Be( minTileY );
+        region.Max( b => b.MapBlock?.X ?? int.MaxValue ).Should().Be( maxTileX );
+        region.Max( b => b.MapBlock?.Y ?? int.MaxValue ).Should().Be( maxTileY );
 
-        foreach( var tile in region.Where( t => t.InProjection ) )
+        foreach( var positionedBlock in region )
         {
-            tile.ImageBytes.Should().BePositive();
+            positionedBlock.MapBlock?.ImageBytes.Should().BePositive();
         }
     }
 
     [ Theory ]
-    [ InlineData( 0, 4, 2, 0, 0 ) ]
-    [ InlineData( 0, 4, 2, -1, 3 ) ]
-    [ InlineData( 0, 4, 2, -2, 2 ) ]
-    [ InlineData( 0, 3, 2, -2, 2 ) ]
-    [ InlineData( 0, 3, 2, -1, 3 ) ]
-    [ InlineData( 0, 4, 2, 15, -1 ) ]
-    [ InlineData( 0, 3, 2, 15, -1 ) ]
-    [ InlineData( 1, 2, 2, -15, -1 ) ]
-    public void AbsoluteTile( int regionStart, int regionWidth, int scale, int relativeX, int absoluteX )
+    [ InlineData( 0, 4, 2, false, 0, 0 ) ]
+    [ InlineData( 0, 4, 2, false, -1, 3 ) ]
+    [ InlineData( 0, 4, 2, false, -2, 2 ) ]
+    [ InlineData( 0, 3, 2, false, -2, 2 ) ]
+    [ InlineData( 0, 3, 2, false, -1, 3 ) ]
+    [ InlineData( 0, 4, 2, true, 15, -1 ) ]
+    [ InlineData( 0, 3, 2, true, 15, -1 ) ]
+    [ InlineData( 1, 2, 2, true, -15, -1 ) ]
+    public void AbsoluteTile(
+        int regionStart,
+        int regionWidth,
+        int scale,
+        bool blockIsNull,
+        int relativeX,
+        int absoluteX
+    )
     {
         var projection = CreateAndAuthenticateProjection( "BingMaps" );
         projection.Should().NotBeNull();
@@ -96,20 +103,26 @@ public class TileTests : TestBase
 
         var width = regionWidth * projection.TileHeightWidth;
 
-        var region = new MapRegion(projection, LoggerFactory)
-                    .Size(projection.TileHeightWidth, width)
-                    .Scale(scale);
+        var region = new MapRegion( projection, LoggerFactory )
+                    .Size( projection.TileHeightWidth, width )
+                    .Scale( scale );
 
         // since y tile is always 0, center is halfway down the first row
-        var center = new MapPoint(region);
+        var center = new MapPoint( region );
         center.SetCartesian( regionStart * projection.TileHeightWidth + width / 2, projection.TileHeightWidth / 2 );
 
         region.Center( center.Latitude, center.Longitude )
-                    .Update();
+              .Update();
 
-        var mapTile = new MapTile( region, 0 ).SetXRelative( relativeX );
+        var mapBlock = TileBlock.CreateBlock( region, relativeX, 0 );
 
-        mapTile.X.Should().Be( absoluteX );
-        mapTile.Y.Should().Be( 0 );
+        if( blockIsNull )
+            mapBlock.Should().BeNull();
+        else
+        {
+            mapBlock.Should().NotBeNull();
+            mapBlock!.X.Should().Be( absoluteX );
+            mapBlock.Y.Should().Be( 0 );
+        }
     }
 }

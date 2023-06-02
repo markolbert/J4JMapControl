@@ -23,17 +23,26 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public class MapPoint
 {
+    private IProjection _projection;
+    private int _scale;
     private bool _suppressUpdate;
     public EventHandler? Changed;
 
     public MapPoint(
         MapRegion.MapRegion region
     )
+        : this( region.Projection, region.Scale )
     {
-        Region = region;
     }
 
-    public MapRegion.MapRegion Region { get; private set; }
+    public MapPoint(
+        IProjection projection,
+        int scale
+    )
+    {
+        _projection = projection;
+        _scale = scale;
+    }
 
     public float X { get; private set; }
     public float Y { get; private set; }
@@ -45,7 +54,8 @@ public class MapPoint
     {
         var retVal = (MapPoint) MemberwiseClone();
         retVal.Changed = null;
-        retVal.Region = Region;
+        retVal._projection = _projection;
+        retVal._scale = _scale;
 
         return retVal;
     }
@@ -57,13 +67,13 @@ public class MapPoint
 
         if( x.HasValue )
         {
-            var xRange = Region.Projection.GetXYRange( Region.Scale );
+            var xRange = _projection.GetXYRange( _scale );
             X = xRange.ConformValueToRange( x.Value, $"{GetType().Name} X" );
         }
 
         if( y.HasValue )
         {
-            var yRange = Region.Projection.GetXYRange( Region.Scale );
+            var yRange = _projection.GetXYRange( _scale );
             Y = yRange.ConformValueToRange( y.Value, $"{GetType().Name} Y" );
         }
 
@@ -81,24 +91,6 @@ public class MapPoint
         SetCartesian( x, y );
     }
 
-    //public void Rotate( float angle )
-    //{
-    //    angle = angle % 360;
-
-    //    if( angle == 0 )
-    //        return;
-
-    //    var curPoint = new Vector3( X, Y, 0 );
-
-    //    var heightWidth = (float) Region.Projection.GetHeightWidth(Region.Scale);
-    //    var centerPoint = new Vector3( heightWidth / 2, heightWidth / 2, 0 );
-
-    //    var transform = Matrix4x4.CreateRotationZ( angle * MapConstants.RadiansPerDegree, centerPoint );
-    //    var rotatedPoint = Vector3.Transform( curPoint, transform );
-
-    //    SetCartesian( rotatedPoint.X, rotatedPoint.Y );
-    //}
-
     private void UpdateLatLong()
     {
         if( _suppressUpdate )
@@ -106,7 +98,7 @@ public class MapPoint
 
         _suppressUpdate = true;
 
-        var heightWidth = (double) Region.Projection.GetHeightWidth( Region.Scale );
+        var heightWidth = (double) _projection.GetHeightWidth(_scale);
 
         var scaledX = X / heightWidth - 0.5;
         var scaledY = 0.5 - Y / heightWidth;
@@ -125,10 +117,10 @@ public class MapPoint
             return;
 
         if( latitude.HasValue )
-            Latitude = Region.Projection.LatitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
+            Latitude = _projection.LatitudeRange.ConformValueToRange( latitude.Value, "Latitude" );
 
         if( longitude.HasValue )
-            Longitude = Region.Projection.LongitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
+            Longitude = _projection.LongitudeRange.ConformValueToRange( longitude.Value, "Longitude" );
 
         UpdateCartesian();
     }
@@ -140,7 +132,7 @@ public class MapPoint
 
         _suppressUpdate = true;
 
-        var heightWidth = Region.Projection.GetHeightWidth( Region.Scale );
+        var heightWidth = _projection.GetHeightWidth(_scale);
 
         // x == 0 is the left hand edge of the projection (the x/y origin is in
         // the upper left corner)

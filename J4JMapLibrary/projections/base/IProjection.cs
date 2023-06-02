@@ -66,15 +66,15 @@ public interface IProjection : IEquatable<IProjection>
     bool Authenticate();
     Task<bool> AuthenticateAsync( CancellationToken ctx = default );
 
-    Task<MapTile> GetMapTileWraparoundAsync( int x, int y, int scale, CancellationToken ctx = default );
-    Task<MapTile> GetMapTileAbsoluteAsync( int x, int y, int scale, CancellationToken ctx = default );
+    //Task<MapTile> GetMapTileWraparoundAsync( int x, int y, int scale, CancellationToken ctx = default );
+    Task<MapBlock?> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default );
 
     Task<bool> LoadRegionAsync(
         MapRegion.MapRegion region,
         CancellationToken ctx = default
     );
 
-    Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default );
+    Task<byte[]?> GetImageAsync( MapBlock mapBlock, CancellationToken ctx = default );
 
-    Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default );
+    Task<bool> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default );
 }

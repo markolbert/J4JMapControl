@@ -74,7 +74,7 @@ public sealed class OpenStreetMapsProjection : TiledProjection
         return Initialized;
     }
 
-    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapBlock mapBlock )
     {
         if( !Initialized )
         {
@@ -82,13 +82,13 @@ public sealed class OpenStreetMapsProjection : TiledProjection
             return null;
         }
 
-        if( !mapTile.InProjection )
+        if (mapBlock is not TileBlock castBlock)
         {
-            Logger?.LogError("MapTile not in the projection");
+            Logger?.LogError("Expected a {type} but got a {badType}", typeof(TileBlock), mapBlock.GetType());
             return null;
         }
 
-        if( string.IsNullOrEmpty( UserAgent ) )
+        if ( string.IsNullOrEmpty( UserAgent ) )
         {
             Logger?.LogError("Undefined or empty User-Agent");
             return null;
@@ -96,9 +96,9 @@ public sealed class OpenStreetMapsProjection : TiledProjection
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", mapTile.Region.Scale.ToString() },
-            { "{x}", mapTile.X.ToString() },
-            { "{y}", mapTile.Y.ToString() }
+            { "{zoom}", castBlock.Scale.ToString() },
+            { "{x}", castBlock.X.ToString() },
+            { "{y}", castBlock.Y.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

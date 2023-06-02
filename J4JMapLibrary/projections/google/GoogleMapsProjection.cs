@@ -100,9 +100,16 @@ public sealed class GoogleMapsProjection : StaticProjection
         // the only way to check Google credentials is to try and retrieve a map image
         // sadly, that can fail for reasons other than invalid credentials
         // we also have to temporarily override the initialized check
+        var testBlock = StaticBlock.CreateBlock( this, 0, 0, 0 );
+        if( testBlock == null )
+        {
+            Logger?.LogError("Could not create test {type}", typeof(StaticBlock));
+            return false;
+        }
+
         _pendingInitializtion = true;
         
-        var testBytes = await GetImageAsync( MapTile.CreateStaticMapTile( this, 0, 0, 0, LoggerFactory ), ctx );
+        var testBytes = await GetImageAsync( testBlock, ctx );
         Initialized = testBytes != null;
         
         _pendingInitializtion = false;
@@ -113,7 +120,7 @@ public sealed class GoogleMapsProjection : StaticProjection
         return Initialized;
     }
 
-    protected override HttpRequestMessage? CreateMessage( MapTile mapTile )
+    protected override HttpRequestMessage? CreateMessage( MapBlock mapBlock )
     {
         if( !_pendingInitializtion && !Initialized )
         {
@@ -121,14 +128,20 @@ public sealed class GoogleMapsProjection : StaticProjection
             return null;
         }
 
-        var height = (int) Math.Round( mapTile.Region.BoundingBox.Height );
-        var width = (int) Math.Round( mapTile.Region.BoundingBox.Width );
+        if( mapBlock is not StaticBlock castBlock )
+        {
+            Logger?.LogError( "Expected a {type} but got a {wrongType}", typeof( StaticBlock ), mapBlock.GetType() );
+            return null;
+        }
+
+        var height = (int) Math.Round( mapBlock.Height );
+        var width = (int) Math.Round( mapBlock.Width );
 
         var replacements = new Dictionary<string, string>
         {
-            { "{center}", $"{mapTile.Region.CenterLatitude}, {mapTile.Region.CenterLongitude}" },
+            { "{center}", $"{castBlock.CenterLatitude}, {castBlock.CenterLongitude}" },
             { "{format}", ImageFormat.ToString() },
-            { "{zoom}", mapTile.Region.Scale.ToString() },
+            { "{zoom}", castBlock.Scale.ToString() },
             { "{size}", $"{width}x{height}" },
             { "{apikey}", ApiKey },
             { "{maptype}", MapStyle!.ToLower() }

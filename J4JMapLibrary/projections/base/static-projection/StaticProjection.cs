@@ -34,28 +34,19 @@ public abstract class StaticProjection : Projection
     {
     }
 
-    // there's only ever one valid tile in a static projection (0,0)
-    // so these next two methods are the same for static projections
-    public override async Task<MapTile> GetMapTileWraparoundAsync(
+    public override async Task<MapBlock?> GetMapTileAsync(
         int x,
         int y,
         int scale,
         CancellationToken ctx = default
     )
     {
-        var retVal = MapTile.CreateStaticMapTile( this, x, y, scale, LoggerFactory );
-        await LoadImageAsync( retVal, ctx );
+        var retVal = StaticBlock.CreateBlock( this, x, y, scale );
+        if( retVal != null )
+            await LoadImageAsync( retVal, ctx );
 
         return retVal;
     }
-
-    public override async Task<MapTile> GetMapTileAbsoluteAsync(
-        int x,
-        int y,
-        int scale,
-        CancellationToken ctx = default
-    ) =>
-        await GetMapTileWraparoundAsync( x, y, scale, ctx );
 
     protected override async Task<bool> LoadRegionInternalAsync(
         MapRegion.MapRegion region,
@@ -63,7 +54,12 @@ public abstract class StaticProjection : Projection
     )
     {
         if( region.IsDefined )
-            return await LoadImageAsync( region.MapTiles[ 0, 0 ], ctx );
+        {
+            var mapBlock = region.MapBlocks.FirstOrDefault()?.MapBlock;
+
+            if( mapBlock != null )
+                return await LoadImageAsync( mapBlock, ctx );
+        }
 
         Logger?.LogError( "Undefined static MapRegion" );
         return false;

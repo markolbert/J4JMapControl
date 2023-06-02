@@ -146,7 +146,7 @@ public class FileSystemCache : CacheBase
         Stats.Reload( files );
     }
 
-    protected override async Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default )
+    protected override async Task<bool> LoadImageDataInternalAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
@@ -154,17 +154,17 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
-        var filePath = Path.Combine( _cacheDir, $"{mapTile.FragmentId}{mapTile.Region.Projection.ImageFileExtension}" );
+        var filePath = Path.Combine( _cacheDir, $"{mapBlock.FragmentId}{mapBlock.Projection.ImageFileExtension}" );
 
         if( !File.Exists( filePath ) )
             return false;
 
-        mapTile.ImageData = await File.ReadAllBytesAsync( filePath, ctx );
+        mapBlock.ImageData = await File.ReadAllBytesAsync( filePath, ctx );
 
-        return mapTile.ImageBytes > 0;
+        return mapBlock.ImageBytes > 0;
     }
 
-    public override async Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default )
+    public override async Task<bool> AddEntryAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
         if( string.IsNullOrEmpty( _cacheDir ) )
         {
@@ -172,26 +172,26 @@ public class FileSystemCache : CacheBase
             return false;
         }
 
-        if( mapTile.ImageData == null )
+        if( mapBlock.ImageData == null )
         {
             Logger?.LogError("Map tile contains no image data");
             return false;
         }
 
-        var fileName = $"{mapTile.FragmentId}{mapTile.Region.Projection.ImageFileExtension}";
+        var fileName = $"{mapBlock.FragmentId}{mapBlock.Projection.ImageFileExtension}";
         var filePath = Path.Combine( _cacheDir, fileName );
 
         if( File.Exists( filePath ) )
-            Logger?.LogWarning("Replacing file system cache entry '{0}'", mapTile.FragmentId);
-        else Logger?.LogTrace("Added file system cache entry '{fragmentId}'", mapTile.FragmentId);
+            Logger?.LogWarning("Replacing file system cache entry '{0}'", mapBlock.FragmentId);
+        else Logger?.LogTrace("Added file system cache entry '{fragmentId}'", mapBlock.FragmentId);
 
         try
         {
             await using var imgFile = File.Create( filePath );
-            await imgFile.WriteAsync( mapTile.ImageData, ctx );
+            await imgFile.WriteAsync( mapBlock.ImageData, ctx );
             imgFile.Close();
 
-            Stats.RecordEntry( mapTile.ImageData );
+            Stats.RecordEntry( mapBlock.ImageData );
         }
         catch( Exception ex )
         {

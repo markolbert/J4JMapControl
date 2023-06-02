@@ -50,28 +50,25 @@ public abstract class CacheBase : ITileCache
     public abstract void Clear();
     public abstract void PurgeExpired();
 
-    public async Task<bool> LoadImageAsync( MapTile mapTile, CancellationToken ctx = default )
+    public async Task<bool> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
-        if( !mapTile.InProjection )
-            return false;
-
-        if( await LoadImageDataInternalAsync( mapTile, ctx ) )
+        if( await LoadImageDataInternalAsync( mapBlock, ctx ) )
             return true;
 
         Logger?.LogTrace( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
                           GetType(),
-                          mapTile.Region.Projection.Name,
-                          mapTile.X,
-                          mapTile.Y );
+                          mapBlock.Projection.Name,
+                          mapBlock.X,
+                          mapBlock.Y );
 
         return false;
     }
 
-    public abstract Task<bool> AddEntryAsync( MapTile mapTile, CancellationToken ctx = default );
+    public abstract Task<bool> AddEntryAsync( MapBlock mapBlock, CancellationToken ctx = default );
 
     public abstract IEnumerator<CachedEntry> GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    protected abstract Task<bool> LoadImageDataInternalAsync( MapTile mapTile, CancellationToken ctx = default );
+    protected abstract Task<bool> LoadImageDataInternalAsync( MapBlock mapBlock, CancellationToken ctx = default );
 }

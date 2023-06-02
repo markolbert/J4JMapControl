@@ -25,5 +25,5 @@ namespace J4JSoftware.J4JMapLibrary;
 
 public record CachedEntry( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc );
 
-public record CachedTile( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc, MapTile Tile )
+public record CachedTile( long ImageBytes, DateTime CreatedUtc, DateTime LastAccessedUtc, MapBlock MapBlock )
     : CachedEntry( ImageBytes, CreatedUtc, LastAccessedUtc );

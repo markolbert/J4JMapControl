@@ -48,13 +48,13 @@ public class TileCaching : ITileCaching
     }
 
 
-    public async Task<int> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
+    public async Task<int> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default)
     {
         var levelFound = -1;
 
         foreach (var info in _infoCollection.OrderBy(x => x.Level))
         {
-            if( !await info.Cache.LoadImageAsync( mapTile, ctx ) )
+            if( !await info.Cache.LoadImageAsync( mapBlock, ctx ) )
                 continue;
 
             levelFound = info.Level;
@@ -64,11 +64,11 @@ public class TileCaching : ITileCaching
         return levelFound;
     }
 
-    public async Task UpdateCaches(MapTile mapTile, int foundLevel, CancellationToken ctx = default)
+    public async Task UpdateCaches(MapBlock mapBlock, int foundLevel, CancellationToken ctx = default)
     {
         foreach( var info in _infoCollection.Where( x => x.Level < foundLevel ) )
         {
-            await info.Cache.AddEntryAsync( mapTile, ctx );
+            await info.Cache.AddEntryAsync( mapBlock, ctx );
         }
     }
 

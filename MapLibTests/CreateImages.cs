@@ -27,37 +27,95 @@ namespace MapLibTests;
 
 public class CreateImages : TestBase
 {
-    [ Theory ]
+    [Theory]
     [ClassData(typeof(TileImageData))]
-    public async Task Create( TileImageData.Tile data )
+    public async Task BingMaps( TileImageData.Tile data )
     {
-        await WriteImageFileAsync("BingMaps", data);
-        await WriteImageFileAsync("GoogleMaps", data);
-        await WriteImageFileAsync("OpenStreetMaps", data);
-        await WriteImageFileAsync("OpenTopoMaps", data);
-    }
-
-    private async Task WriteImageFileAsync( string projName, TileImageData.Tile data )
-    {
-        var projection = CreateAndAuthenticateProjection( projName );
+        var projection = CreateAndAuthenticateProjection("BingMaps");
         projection.Should().NotBeNull();
 
         var mapRegion = new MapRegion(projection!, LoggerFactory)
                        .Scale(data.Scale)
                        .Update();
 
-        var mapTile = projName == "GoogleMaps"
-            ? MapTile.CreateStaticMapTile( projection!, data.TileX, data.TileY, data.Scale, LoggerFactory )
-            : new MapTile( mapRegion, data.TileY ).SetXAbsolute( data.TileX );
+        var mapBlock = TileBlock.CreateBlock(mapRegion, data.TileX, data.TileY);
+        mapBlock.Should().NotBeNull();
 
-        var loaded = await projection!.LoadImageAsync(mapTile);
+        var loaded = await projection!.LoadImageAsync(mapBlock!);
         loaded.Should().BeTrue();
-        mapTile.ImageBytes.Should().BePositive();
-        mapTile.ImageData.Should().NotBeNull();
+        mapBlock!.ImageBytes.Should().BePositive();
+        mapBlock.ImageData.Should().NotBeNull();
 
+        await WriteImageFileAsync( projection, mapBlock );
+    }
+
+    [Theory]
+    [ClassData(typeof(TileImageData))]
+    public async Task OpenStreetMaps(TileImageData.Tile data)
+    {
+        var projection = CreateAndAuthenticateProjection("OpenStreetMaps");
+        projection.Should().NotBeNull();
+
+        var mapRegion = new MapRegion(projection!, LoggerFactory)
+                       .Scale(data.Scale)
+                       .Update();
+
+        var mapBlock = TileBlock.CreateBlock(mapRegion, data.TileX, data.TileY);
+        mapBlock.Should().NotBeNull();
+
+        var loaded = await projection!.LoadImageAsync(mapBlock!);
+        loaded.Should().BeTrue();
+        mapBlock!.ImageBytes.Should().BePositive();
+        mapBlock.ImageData.Should().NotBeNull();
+
+        await WriteImageFileAsync(projection, mapBlock);
+    }
+
+    [Theory]
+    [ClassData(typeof(TileImageData))]
+    public async Task TopoMaps(TileImageData.Tile data)
+    {
+        var projection = CreateAndAuthenticateProjection("OpenTopoMaps");
+        projection.Should().NotBeNull();
+
+        var mapRegion = new MapRegion(projection!, LoggerFactory)
+                       .Scale(data.Scale)
+                       .Update();
+
+        var mapBlock = TileBlock.CreateBlock(mapRegion, data.TileX, data.TileY);
+        mapBlock.Should().NotBeNull();
+
+        var loaded = await projection!.LoadImageAsync(mapBlock!);
+        loaded.Should().BeTrue();
+        mapBlock!.ImageBytes.Should().BePositive();
+        mapBlock.ImageData.Should().NotBeNull();
+
+        await WriteImageFileAsync(projection, mapBlock);
+    }
+
+    [Theory]
+    [ClassData(typeof(TileImageData))]
+    public async Task GoogleMaps(TileImageData.Tile data)
+    {
+        var projection = CreateAndAuthenticateProjection("GoogleMaps");
+        projection.Should().NotBeNull();
+
+        var mapBlock = StaticBlock.CreateBlock(projection!, data.TileX, data.TileY, data.Scale);
+        mapBlock.Should().NotBeNull();
+
+        var loaded = await projection!.LoadImageAsync(mapBlock!);
+        loaded.Should().BeTrue();
+        mapBlock!.ImageBytes.Should().BePositive();
+        mapBlock.ImageData.Should().NotBeNull();
+
+        await WriteImageFileAsync(projection, mapBlock);
+    }
+
+    private async Task WriteImageFileAsync( IProjection projection, MapBlock mapBlock )
+    {
         var filePath = Path.Combine( GetCheckImagesFolder( projection.Name ),
-                                     $"{mapTile.FragmentId}{projection.ImageFileExtension}" );
+                                     $"{mapBlock.FragmentId}{projection.ImageFileExtension}" );
 
-        await File.WriteAllBytesAsync( filePath, mapTile.ImageData! );
+        await File.WriteAllBytesAsync( filePath, mapBlock.ImageData! );
     }
 }

@@ -142,16 +142,9 @@ public abstract class Projection : IProjection
     {
     }
 
-    protected abstract HttpRequestMessage? CreateMessage( MapTile mapTile );
+    protected abstract HttpRequestMessage? CreateMessage( MapBlock mapBlock );
 
-    public abstract Task<MapTile> GetMapTileWraparoundAsync(
-        int x,
-        int y,
-        int scale,
-        CancellationToken ctx = default
-    );
-
-    public abstract Task<MapTile> GetMapTileAbsoluteAsync(
+    public abstract Task<MapBlock?> GetMapTileAsync(
         int x,
         int y,
         int scale,
@@ -203,17 +196,14 @@ public abstract class Projection : IProjection
         CancellationToken ctx = default
     );
 
-    public async Task<byte[]?> GetImageAsync( MapTile mapTile, CancellationToken ctx = default )
+    public async Task<byte[]?> GetImageAsync( MapBlock mapBlock, CancellationToken ctx = default )
     {
-        if( !mapTile.InProjection )
-            return null;
-
         Logger?.LogTrace( "Beginning image retrieval from web" );
 
-        var request = CreateMessage( mapTile );
+        var request = CreateMessage( mapBlock );
         if( request == null )
         {
-            Logger?.LogError( "Could not create HttpRequestMessage for mapTile ({fragmentId})", mapTile.FragmentId );
+            Logger?.LogError( "Could not create HttpRequestMessage for mapBlock ({fragmentId})", mapBlock.FragmentId );
             return null;
         }
 
@@ -278,10 +268,10 @@ public abstract class Projection : IProjection
         }
     }
 
-    public virtual async Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default)
+    public virtual async Task<bool> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default)
     {
-        mapTile.ImageData = await GetImageAsync(mapTile, ctx);
-        return mapTile.ImageData != null;
+        mapBlock.ImageData = await GetImageAsync(mapBlock, ctx);
+        return mapBlock.ImageData != null;
     }
 
     #region Scale

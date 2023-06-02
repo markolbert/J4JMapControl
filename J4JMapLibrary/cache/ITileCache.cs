@@ -29,6 +29,6 @@ public interface ITileCache : IEnumerable<CachedEntry>
     CacheStats Stats { get; }
     void Clear();
     void PurgeExpired();
-    Task<bool> LoadImageAsync(MapTile mapTile, CancellationToken ctx = default);
-    Task<bool> AddEntryAsync(MapTile mapTile, CancellationToken ctx = default);
+    Task<bool> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default );
+    Task<bool> AddEntryAsync( MapBlock mapBlock, CancellationToken ctx = default );
 }
