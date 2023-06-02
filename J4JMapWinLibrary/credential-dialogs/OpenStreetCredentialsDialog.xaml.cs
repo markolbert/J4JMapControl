@@ -11,12 +11,6 @@ public sealed partial class OpenStreetCredentialsDialog : ContentDialog, ICreden
 {
     public OpenStreetCredentialsDialog()
     {
-        //if (MapControlViewModelLocator.Instance == null)
-        //    throw new NullReferenceException($"{typeof(MapControlViewModelLocator)} was not initialized");
-
-        //var temp = MapControlViewModelLocator.Instance.CredentialsFactory[ typeof( OpenStreetMapsProjection ), false ];
-        //if( temp is not OpenStreetCredentials credentials )
-        //    throw new NullReferenceException($"{typeof(OpenStreetCredentials)} could not be created");
         InitializeComponent();
     }
 

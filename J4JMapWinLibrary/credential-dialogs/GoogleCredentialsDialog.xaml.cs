@@ -11,14 +11,6 @@ public sealed partial class GoogleCredentialsDialog : ContentDialog, ICredential
 {
     public GoogleCredentialsDialog()
     {
-        //if (MapControlViewModelLocator.Instance == null)
-        //    throw new NullReferenceException($"{typeof(MapControlViewModelLocator)} was not initialized");
-
-        //var temp = MapControlViewModelLocator.Instance.CredentialsFactory[ typeof( GoogleMapsProjection ), false ];
-        //if( temp is not GoogleCredentials credentials )
-        //    throw new NullReferenceException($"{typeof(GoogleCredentials)} could not be created");
-
-        //_credentials = credentials;
         InitializeComponent();
     }
 

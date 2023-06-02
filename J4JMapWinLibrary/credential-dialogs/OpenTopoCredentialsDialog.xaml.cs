@@ -11,12 +11,6 @@ public sealed partial class OpenTopoCredentialsDialog : ContentDialog, ICredenti
 {
     public OpenTopoCredentialsDialog()
     {
-        //if (MapControlViewModelLocator.Instance == null)
-        //    throw new NullReferenceException($"{typeof(MapControlViewModelLocator)} was not initialized");
-
-        //var temp = MapControlViewModelLocator.Instance.CredentialsFactory[ typeof( OpenTopoMapsProjection ), false ];
-        //if( temp is not OpenTopoCredentials credentials )
-        //    throw new NullReferenceException($"{typeof(OpenTopoCredentials)} could not be created");
         InitializeComponent();
     }
 

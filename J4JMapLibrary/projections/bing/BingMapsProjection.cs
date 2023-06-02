@@ -191,13 +191,7 @@ public sealed class BingMapsProjection : TiledProjection
         MaxScale = Metadata.PrimaryResource.ZoomMax;
         TileHeightWidth = Metadata.PrimaryResource.ImageHeight;
 
-        // this used to be required...
-        //var urlText = Metadata.PrimaryResource.ImageUrl.Replace("{subdomain}", "subdomain")
-        //                           .Replace("{quadkey}", "0")
-        //                           .Replace("{culture}", null);
-
-        //var extUri = new Uri(urlText);
-        ImageFileExtension = ".jpg"; // Path.GetExtension(extUri.LocalPath);
+        ImageFileExtension = ".jpg";
 
         Initialized = true;
 

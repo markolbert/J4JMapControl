@@ -238,22 +238,6 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
         ConfigurationChanged?.Invoke( this, EventArgs.Empty );
     }
 
-    public int WrapXOffsetWithinProjection( int offsetX )
-    {
-        var retVal = UpperLeft.X + offsetX;
-
-        if( retVal < 0 )
-            retVal += MaximumTiles;
-
-        if( retVal < 0 )
-            retVal = -1;
-
-        if( retVal >= MaximumTiles )
-            retVal = -1;
-
-        return retVal;
-    }
-
     public MapRegion Update()
     {
         RegionChange = MapRegionChange.NoChange;

@@ -49,10 +49,6 @@ internal static class InternalExtensions
         return sb.ToString();
     }
 
-    //internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name, T multiplier )
-    //    where T : struct, IComparable, INumber<T> =>
-    //    ConformValueToRangeInternal( toCheck, range.Minimum * multiplier, range.Maximum * multiplier, name );
-
     internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name )
         where T : struct, IComparable
     {
