@@ -24,6 +24,8 @@ public class TileBlock : MapBlock
         {
             Projection = region.Projection,
             Scale = region.Scale,
+            Height=region.TileHeight,
+            Width=region.TileWidth,
             X = x,
             Y = y,
             QuadKey = quadKey,
