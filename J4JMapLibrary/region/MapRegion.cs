@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary.MapRegion;
 
-public class MapRegion : IEnumerable<MapTile>
+public class MapRegion : IEnumerable<PositionedMapBlock>
 {
     public event EventHandler? ConfigurationChanged;
     public event EventHandler<MapRegionChange>? BuildUpdated;
@@ -164,7 +164,7 @@ public class MapRegion : IEnumerable<MapTile>
 
     public Rectangle2D BoundingBox { get; private set; }
     public int MaximumTiles { get; private set; }
-    public Tile UpperLeft { get; private set; }
+    public TileCoordinates UpperLeft { get; private set; }
     public int TilesWide { get; private set; }
     public int TilesHigh { get; private set; }
 
@@ -184,33 +184,22 @@ public class MapRegion : IEnumerable<MapTile>
             _ => throw new InvalidEnumArgumentException( $"Unsupported {typeof( ProjectionType )} '{ProjectionType}'" )
         };
 
-    public MapTile[ , ] MapTiles { get; private set; } = new MapTile[ 0, 0 ];
+    public List<PositionedMapBlock> MapBlocks { get; } = new();
 
-    public MapTile? this[ int xRelative, int yRelative ]
-    {
-        get
-        {
-            if( xRelative < 0 || yRelative < 0 || xRelative >= TilesWide || yRelative >= TilesHigh )
-                return null;
-
-            return MapTiles[ xRelative, yRelative ];
-        }
-    }
+    public MapBlock? this[ int column, int row ] =>
+        MapBlocks.FirstOrDefault( b => b.Row == row && b.Column == column )?.MapBlock;
 
     public bool IsDefined { get; private set; }
     public MapRegionChange RegionChange { get; private set; }
 
-    public IEnumerator<MapTile> GetEnumerator()
+    public IEnumerator<PositionedMapBlock> GetEnumerator()
     {
         if( !IsDefined )
             yield break;
 
-        for( var row = 0; row < TilesHigh; row++ )
+        foreach( var positionedBlock in MapBlocks.OrderBy( b => b.Row ).ThenBy( b => b.Column ) )
         {
-            for( var column = 0; column < TilesWide; column++ )
-            {
-                yield return MapTiles[ row, column ];
-            }
+            yield return positionedBlock;
         }
     }
 
@@ -325,8 +314,8 @@ public class MapRegion : IEnumerable<MapTile>
         BoundingBox = box.BoundingBox;
 
         if( Projection is ITiledProjection )
-            UpdateTiledDimensions( oldUpperLeft, oldWide, oldHigh );
-        else UpdateStaticDimensions( oldBoundingBox );
+            UpdateTiledRegion( oldUpperLeft, oldWide, oldHigh );
+        else UpdateStaticRegion( oldBoundingBox );
 
         IsDefined = true;
 
@@ -341,15 +330,15 @@ public class MapRegion : IEnumerable<MapTile>
 
     private void UpdateEmpty()
     {
-        UpperLeft = new Tile( this, int.MinValue, int.MinValue );
+        UpperLeft = new TileCoordinates(this, int.MinValue, int.MinValue );
         TilesWide = 0;
         TilesHigh = 0;
         BoundingBox = Rectangle2D.Empty;
     }
 
-    private void UpdateStaticDimensions( Rectangle2D oldBoundingBox )
+    private void UpdateStaticRegion( Rectangle2D oldBoundingBox )
     {
-        UpperLeft = new Tile( this, 0, 0 );
+        UpperLeft = new TileCoordinates(this,0, 0 );
         TilesWide = 1;
         TilesHigh = 1;
 
@@ -357,26 +346,99 @@ public class MapRegion : IEnumerable<MapTile>
                                        -( BoundingBox.Height - RequestedHeight ) / 2,
                                        0 );
 
-        MapTiles = new MapTile[ 1, 1 ];
-        MapTiles[ 0, 0 ] = new MapTile( this, 0 )
-                          .SetXAbsolute( 0 )
-                          .SetRowColumn( 0, 0 );
+        MapBlocks.Clear();
+
+        var block = StaticBlock.CreateBlock( this );
+        if( block == null )
+            Logger?.LogError("Could not create {type}", typeof(StaticBlock));
+
+        MapBlocks.Add( new PositionedMapBlock( 0, 0, block ) );
 
         RegionChange = BoundingBox.Equals( oldBoundingBox ) && !MapStyleChanged()
             ? MapRegionChange.OffsetChanged
             : MapRegionChange.LoadRequired;
     }
 
-    private void UpdateTiledDimensions( Tile oldUpperLeft, int oldWide, int oldHigh )
+    private void UpdateTiledRegion( TileCoordinates oldUpperLeft, int oldWide, int oldHigh )
     {
         var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
         var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) - 1 );
         var minYTile = RoundTile( BoundingBox.Min( c => c.Y ) );
         var maxYTile = RoundTile( BoundingBox.Max( c => c.Y ) - 1 );
 
-        UpperLeft = new Tile( this, minXTile, minYTile );
-        TilesWide = maxXTile - minXTile + 1;
-        TilesHigh = maxYTile - minYTile + 1;
+        var rawColumns = maxXTile - minXTile + 1;
+        var rawRows = maxYTile - minYTile + 1;
+
+        var rawBlocks = new MapBlock?[rawColumns, rawRows];
+
+        for (var xTile = minXTile; xTile <= maxXTile; xTile++)
+        {
+            for (var yTile = minYTile; yTile <= maxYTile; yTile++)
+            {
+                rawBlocks[ xTile - minXTile, yTile - minYTile ] = TileBlock.CreateBlock( this, xTile, yTile );
+            }
+        }
+
+        // identify rows which have at least some tiles in the projection
+        var rowsToExclude = new List<int>();
+
+        for (var row = 0; row < rawRows; row++)
+        {
+            var inProjection = false;
+
+            for (var column = 0; column < rawColumns; column++)
+            {
+                inProjection |= rawBlocks[column, row] != null;
+            }
+
+            if (!inProjection)
+                rowsToExclude.Add(row);
+        }
+
+        TilesHigh = rawRows - rowsToExclude.Count;
+
+        // identify columns which have at least some tiles in the projection
+        var columnsToExclude = new List<int>();
+
+        for (var column = 0; column < rawColumns; column++)
+        {
+            var inProjection = false;
+
+            for (var row = 0; row < rawRows; row++)
+            {
+                inProjection |= rawBlocks[column, row] != null;
+            }
+
+            if (!inProjection)
+                columnsToExclude.Add(column);
+        }
+
+        TilesWide = rawColumns - columnsToExclude.Count;
+
+        MapBlocks.Clear();
+
+        var finalRow = -1;
+
+        for (var row = 0; row < rawRows; row++)
+        {
+            if (rowsToExclude.Contains(row))
+                continue;
+
+            finalRow++;
+            var finalColumn = -1;
+
+            for (var column = 0; column < rawColumns; column++)
+            {
+                if (columnsToExclude.Contains(column))
+                    continue;
+
+                finalColumn++;
+
+                MapBlocks.Add( new PositionedMapBlock( finalRow, finalColumn, rawBlocks[ column, row ] ) );
+            }
+        }
+
+        UpperLeft = new TileCoordinates(this, minXTile, minYTile );
 
         var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
 
@@ -384,18 +446,6 @@ public class MapRegion : IEnumerable<MapTile>
         var yOffset = Center.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
 
         ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
-
-        MapTiles = new MapTile[ TilesHigh, TilesWide ];
-
-        for( var row = 0; row < TilesHigh; row++ )
-        {
-            for( var column = 0; column < TilesWide; column++ )
-            {
-                MapTiles[ row, column ] = new MapTile( this, UpperLeft.Y + row )
-                                         .SetXRelative( column )
-                                         .SetRowColumn( row, column );
-            }
-        }
 
         RegionChange = UpperLeft == oldUpperLeft
          && Scale == _oldScale
@@ -421,7 +471,5 @@ public class MapRegion : IEnumerable<MapTile>
     {
         var tile = Math.Round( value ) / Projection.TileHeightWidth;
         return (int) Math.Floor( tile );
-
-        //return tile < 0 ? (int) Math.Floor( tile ) : (int) Math.Ceiling( tile );
     }
 }
