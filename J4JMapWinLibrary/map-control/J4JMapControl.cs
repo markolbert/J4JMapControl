@@ -184,7 +184,7 @@ public sealed partial class J4JMapControl : Control
 
         DefineColumns();
         DefineRows();
-
+        
         _mapGrid.Children.Clear();
 
         for( var row = 0; row < MapRegion!.TilesHigh; row++ )
@@ -211,9 +211,9 @@ public sealed partial class J4JMapControl : Control
 
                 _mapGrid.Children.Add( newImage );
             }
-
-            InvalidateArrange();
         }
+
+        InvalidateArrange();
     }
 
     private void IncludeAnnotations()
