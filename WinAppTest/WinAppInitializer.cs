@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // WinAppInitializer.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.IO;
@@ -31,33 +33,32 @@ namespace WinAppTest;
 
 internal class WinAppInitializer : WinAppInitializerBase<AppConfiguration>
 {
-    public WinAppInitializer( 
+    public WinAppInitializer(
         IWinApp winApp
-        )
+    )
         : base( winApp )
     {
     }
 
     protected override LoggerConfiguration GetSerilogConfiguration()
     {
-        var logFile = Path.Combine(WinUIConfigBase.UserFolder, "log.txt");
+        var logFile = Path.Combine( WinUIConfigBase.UserFolder, "log.txt" );
 
         return new LoggerConfiguration()
               .MinimumLevel.Verbose()
               .WriteTo.Debug()
-              .WriteTo.File(logFile, rollingInterval: RollingInterval.Hour);
+              .WriteTo.File( logFile, rollingInterval: RollingInterval.Hour );
     }
 
-    protected override IServiceCollection ConfigureServices(HostBuilderContext hbc, IServiceCollection services)
+    protected override IServiceCollection ConfigureServices( HostBuilderContext hbc, IServiceCollection services )
     {
-        base.ConfigureServices(hbc, services);
+        base.ConfigureServices( hbc, services );
 
-        services.AddSingleton(new ProjectionFactory(LoggerFactory));
-        
-        services.AddSingleton<ICredentialsFactory, CredentialsFactory>(
-            s => new CredentialsFactory(AppConfig!));
+        services.AddSingleton( new ProjectionFactory( LoggerFactory ) );
 
-        services.AddSingleton(new CredentialsDialogFactory(LoggerFactory));
+        services.AddSingleton<ICredentialsFactory, CredentialsFactory>( s => new CredentialsFactory( AppConfig! ) );
+
+        services.AddSingleton( new CredentialsDialogFactory( LoggerFactory ) );
 
         return services;
     }

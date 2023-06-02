@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MainWinSerializer.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Text.Json;
@@ -35,5 +37,5 @@ internal class MainWinSerializer : MainWinSerializerBase<AppConfiguration>
 
     internal static JsonSerializerOptions CreateJsonOptions() => new() { WriteIndented = true };
 
-    protected override RectInt32 GetDefaultRectangle() => new(100, 100, 1000, 1000);
+    protected override RectInt32 GetDefaultRectangle() => new( 100, 100, 1000, 1000 );
 }

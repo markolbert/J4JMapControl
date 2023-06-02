@@ -1,4 +1,5 @@
 #region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // MainWindow.xaml.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -24,17 +26,17 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.System;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.J4JMapWinLibrary;
+using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Windows.Storage;
-using J4JSoftware.J4JMapWinLibrary;
-using J4JSoftware.WindowsUtilities;
 
 namespace WinAppTest;
 
@@ -58,12 +60,12 @@ public sealed partial class MainWindow
 
         _logger = App.Current.LoggerFactory?.CreateLogger<MainWindow>();
 
-        var winSerializer = new MainWinSerializer(this);
+        var winSerializer = new MainWinSerializer( this );
 
         var temp = App.Current.Services.GetService<AppConfiguration>();
-        if (temp== null)
+        if( temp == null )
         {
-            _logger?.LogCritical("Could not retrieve instance of {type}", typeof(AppConfiguration));
+            _logger?.LogCritical( "Could not retrieve instance of {type}", typeof( AppConfiguration ) );
             App.Current.Exit();
             return;
         }
@@ -74,19 +76,19 @@ public sealed partial class MainWindow
 
         _ptsOfInterest = new ObservableCollection<PointOfInterest>
         {
-            new PointOfInterest
+            new()
             {
                 Location = "37.5202N, 122.2758W",
                 Text = "Belmont",
                 Brush = new SolidColorBrush( Colors.BlanchedAlmond )
             },
-            new PointOfInterest
+            new()
             {
                 Location = "37.5072N, 122.2605W",
                 Text = "San Carlos",
                 Brush = new SolidColorBrush( Colors.Gold )
             },
-            new PointOfInterest
+            new()
             {
                 Location = "37.4848N, 122.2281W",
                 Text = "Redwood City",
@@ -100,7 +102,7 @@ public sealed partial class MainWindow
         _sanCarlos = _ptsOfInterest[ 1 ];
         _scIncluded = true;
 
-        mapControl.FileSystemCachePath = Path.Combine(WinUIConfigBase.UserFolder, "map-cache");
+        mapControl.FileSystemCachePath = Path.Combine( WinUIConfigBase.UserFolder, "map-cache" );
         UpdateStats();
 
         mapControl.ValidCredentials += MapControlOnNewCredentials;
@@ -111,7 +113,7 @@ public sealed partial class MainWindow
             mapControl.Center = _appConfig.Center ?? "0,0";
             mapControl.Heading = _appConfig.Heading;
             mapControl.MapScale = _appConfig.Scale;
-        }   
+        }
         else
         {
             mapControl.MapProjection = "BingMaps";
@@ -129,7 +131,7 @@ public sealed partial class MainWindow
         switch( e.Credentials )
         {
             case BingCredentials bingCredentials:
-                _appConfig.Credentials.BingCredentials =bingCredentials;
+                _appConfig.Credentials.BingCredentials = bingCredentials;
                 break;
 
             case GoogleCredentials googleCredentials:
@@ -141,7 +143,7 @@ public sealed partial class MainWindow
                 break;
 
             case OpenTopoCredentials topoCredentials:
-                _appConfig.Credentials.OpenTopoCredentials= topoCredentials;
+                _appConfig.Credentials.OpenTopoCredentials = topoCredentials;
                 break;
 
             default:
@@ -231,12 +233,12 @@ public sealed partial class MainWindow
         if( e.Key != VirtualKey.Enter )
             return;
 
-        if (string.IsNullOrEmpty(headingText.Text))
+        if( string.IsNullOrEmpty( headingText.Text ) )
             return;
 
         e.Handled = true;
 
-        mapControl.SetHeadingByText(headingText.Text);
+        mapControl.SetHeadingByText( headingText.Text );
         headingText.Text = string.Empty;
     }
 
@@ -254,7 +256,7 @@ public sealed partial class MainWindow
         }
     }
 
-    private void AddDeleteSanCarlosLabel(object sender, RoutedEventArgs e)
+    private void AddDeleteSanCarlosLabel( object sender, RoutedEventArgs e )
     {
         if( _scIncluded )
         {
@@ -272,7 +274,7 @@ public sealed partial class MainWindow
 
     private async void ShowCredentialsDialog( object sender, RoutedEventArgs e )
     {
-        var bingDlg = new BingCredentialsDialog { XamlRoot = this.Content.XamlRoot };
+        var bingDlg = new BingCredentialsDialog { XamlRoot = Content.XamlRoot };
         await bingDlg.ShowAsync();
     }
 

@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // CredentialsFactory.cs
@@ -17,6 +18,7 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System;
@@ -40,12 +42,12 @@ internal class CredentialsFactory : CredentialsFactoryBase
         if( credType == typeof( BingCredentials ) )
             return _config.Credentials?.BingCredentials;
 
-        if (credType == typeof(GoogleCredentials))
+        if( credType == typeof( GoogleCredentials ) )
             return _config.Credentials?.GoogleCredentials;
 
-        if (credType == typeof(OpenStreetCredentials))
+        if( credType == typeof( OpenStreetCredentials ) )
             return _config.Credentials?.OpenStreetCredentials;
 
-        return credType == typeof(OpenTopoCredentials) ? _config.Credentials?.OpenTopoCredentials : null;
+        return credType == typeof( OpenTopoCredentials ) ? _config.Credentials?.OpenTopoCredentials : null;
     }
 }

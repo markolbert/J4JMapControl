@@ -26,14 +26,14 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
     xmlns:local="using:WinAppTest">
     <Application.Resources>
         <ResourceDictionary>
-            
+
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Other app resources here -->
-            <local:ColorToBrush x:Key="ColorToBrushConverter"/>
+            <local:ColorToBrush x:Key="ColorToBrushConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

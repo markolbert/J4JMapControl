@@ -1,4 +1,5 @@
 ﻿#region copyright
+
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
 // PointOfInterest.cs
@@ -17,12 +18,12 @@
 // 
 // You should have received a copy of the GNU General Public License along 
 // with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
+
 #endregion
 
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Windows.UI;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 
@@ -34,7 +35,7 @@ public class PointOfInterest : INotifyPropertyChanged
 
     private string _location = "0E, 0N";
     private string _text = string.Empty;
-    private SolidColorBrush _brush = new SolidColorBrush( Colors.Black );
+    private SolidColorBrush _brush = new( Colors.Black );
 
     public string Location
     {

@@ -26,37 +26,37 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
     xmlns:map="using:J4JSoftware.J4JMapWinLibrary"
     xmlns:local="using:WinAppTest"
     xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
-    xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid x:Name="appGrid" 
-          HorizontalAlignment="Center" 
+    <Grid x:Name="appGrid"
+          HorizontalAlignment="Center"
           VerticalAlignment="Center">
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <map:J4JMapControl x:Name="mapControl" 
+        <map:J4JMapControl x:Name="mapControl"
                            Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"
                            Margin="5"
                            MaxControlHeight="500"
@@ -74,49 +74,51 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
                             map:Location.LatLong="{x:Bind Location}">
                         <TextBlock Text="{x:Bind Text}"
                                    FontWeight="Bold"
-                                   FontSize="15"/>
+                                   FontSize="15" />
                     </Border>
                 </DataTemplate>
             </map:J4JMapControl.PointsOfInterestTemplate>
 
             <map:J4JMapControl.Annotations>
-                
+
                 <map:MapPin ArcRadius="15"
-                            TailLength="30"                      
-                            map:Location.LatLong="37.5072N,122.2605W" 
+                            TailLength="30"
+                            map:Location.LatLong="37.5072N,122.2605W"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Bottom" />
 
-                 <!--this shouldn't show up--> 
-                <Rectangle Width="50" Height="50" Fill="Green"/>
+                <!--this shouldn't show up-->
+                <Rectangle Width="50" Height="50" Fill="Green" />
 
             </map:J4JMapControl.Annotations>
 
             <map:J4JMapControl.MapRoutes>
-                <map:MapRoute RouteName="Route1" 
-                              LatitudeField="Latitude" 
-                              LongitudeField="Longitude" 
+                <map:MapRoute RouteName="Route1"
+                              LatitudeField="Latitude"
+                              LongitudeField="Longitude"
                               StrokeColor="Red"
                               ShowPoints="True"
                               PointVisibilityField="Visible"
-                              DataSource="{x:Bind _route1}"/>
+                              DataSource="{x:Bind _route1}" />
 
-                <map:MapRoute RouteName="Route2" 
-                              LatitudeField="Latitude" 
-                              LongitudeField="Longitude" 
+                <map:MapRoute RouteName="Route2"
+                              LatitudeField="Latitude"
+                              LongitudeField="Longitude"
                               StrokeColor="Green"
                               ShowPoints="True"
                               PointVisibilityField="Visible"
-                              DataSource="{x:Bind _route2}"/>
+                              DataSource="{x:Bind _route2}" />
             </map:J4JMapControl.MapRoutes>
 
         </map:J4JMapControl>
 
         <TextBlock Grid.Column="0" Grid.Row="1"
                    Margin="5"
-                   VerticalAlignment="Center">MapStyle</TextBlock>
+                   VerticalAlignment="Center">
+            MapStyle
+        </TextBlock>
 
-        <ComboBox x:Name="mapProjection" 
+        <ComboBox x:Name="mapProjection"
                   Grid.Column="1" Grid.Row="1"
                   Margin="5"
                   ItemsSource="{Binding ElementName=mapControl, Path=MapProjections}"
@@ -124,9 +126,9 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 
             <interactivity:Interaction.Behaviors>
                 <core:EventTriggerBehavior EventName="SelectionChanged">
-                    <core:ChangePropertyAction TargetObject="{Binding ElementName=mapControl}" 
+                    <core:ChangePropertyAction TargetObject="{Binding ElementName=mapControl}"
                                                PropertyName="MapProjection"
-                                               Value="{Binding ElementName=mapProjection, Path=SelectedValue }"/>
+                                               Value="{Binding ElementName=mapProjection, Path=SelectedValue }" />
                 </core:EventTriggerBehavior>
             </interactivity:Interaction.Behaviors>
 
@@ -134,9 +136,11 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 
         <TextBlock Grid.Column="0" Grid.Row="2"
                    Margin="5"
-                   VerticalAlignment="Center">MapStyle</TextBlock>
+                   VerticalAlignment="Center">
+            MapStyle
+        </TextBlock>
 
-        <ComboBox x:Name="mapStyle" 
+        <ComboBox x:Name="mapStyle"
                   Grid.Column="1" Grid.Row="2"
                   Margin="5"
                   ItemsSource="{Binding ElementName=mapControl, Path=MapStyles}"
@@ -144,9 +148,9 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 
             <interactivity:Interaction.Behaviors>
                 <core:EventTriggerBehavior EventName="SelectionChanged">
-                    <core:ChangePropertyAction TargetObject="{Binding ElementName=mapControl}" 
+                    <core:ChangePropertyAction TargetObject="{Binding ElementName=mapControl}"
                                                PropertyName="MapStyle"
-                                               Value="{Binding ElementName=mapStyle, Path=SelectedValue }"/>
+                                               Value="{Binding ElementName=mapStyle, Path=SelectedValue }" />
                 </core:EventTriggerBehavior>
             </interactivity:Interaction.Behaviors>
 
@@ -154,53 +158,61 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 
         <TextBlock Grid.Column="0" Grid.Row="3"
                    Margin="5"
-                   VerticalAlignment="Center">Map Scale</TextBlock>
+                   VerticalAlignment="Center">
+            Map Scale
+        </TextBlock>
 
         <NumberBox x:Name="numberBoxScale"
                    Grid.Column="1" Grid.Row="3"
                    Margin="5"
                    HorizontalAlignment="Left"
-                   Minimum="{Binding ElementName=mapControl, Path=MinMapScale}" 
+                   Minimum="{Binding ElementName=mapControl, Path=MinMapScale}"
                    Maximum="{Binding ElementName=mapControl, Path=MaxMapScale}"
                    SpinButtonPlacementMode="Inline"
                    SmallChange="1"
                    LargeChange="5"
-                   Value="16"/>
+                   Value="16" />
 
         <TextBlock Grid.Column="0" Grid.Row="4"
                    Margin="5"
-                   VerticalAlignment="Center">Heading (0 == North)</TextBlock>
+                   VerticalAlignment="Center">
+            Heading (0 == North)
+        </TextBlock>
 
         <NumberBox x:Name="numberBoxHeading"
                    Margin="5"
                    Grid.Column="1" Grid.Row="4"
                    HorizontalAlignment="Left"
-                   Minimum="0" 
+                   Minimum="0"
                    Maximum="360"
                    SpinButtonPlacementMode="Inline"
                    SmallChange="1"
                    LargeChange="15"
-                   Value="0"/>
+                   Value="0" />
 
         <TextBlock Grid.Column="0" Grid.Row="5"
                    Margin="5"
-                   VerticalAlignment="Center">Set Heading by Text</TextBlock>
+                   VerticalAlignment="Center">
+            Set Heading by Text
+        </TextBlock>
 
-        <TextBox x:Name="headingText" 
+        <TextBox x:Name="headingText"
                  Grid.Column="1" Grid.Row="5"
                  Margin="5"
                  KeyUp="TextHeadingKeyUp"
-                 LostFocus="TextHeadingLostFocus"/>
+                 LostFocus="TextHeadingLostFocus" />
 
         <Button Grid.Column="0" Grid.Row="6"
                 Margin="5"
-                Click="StatsClick">Get Cache Stats</Button>
+                Click="StatsClick">
+            Get Cache Stats
+        </Button>
 
-        <toolkit:DataGrid x:Name="cacheGrid" 
+        <toolkit:DataGrid x:Name="cacheGrid"
                           Grid.Column="1" Grid.Row="6" Grid.ColumnSpan="2"
                           Margin="5"
                           ItemsSource="{x:Bind CacheStats}"
-                          AutoGenerateColumns="True"/>
+                          AutoGenerateColumns="True" />
 
         <StackPanel Grid.Column="0" Grid.Row="7" Grid.ColumnSpan="3"
                     Orientation="Horizontal"
@@ -212,17 +224,23 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
 
         <TextBlock Grid.Column="0" Grid.Row="8"
                    Margin="5"
-                   VerticalAlignment="Center">Test Labels</TextBlock>
+                   VerticalAlignment="Center">
+            Test Labels
+        </TextBlock>
 
-        <Button x:Name="changeNameButton" 
+        <Button x:Name="changeNameButton"
                 Grid.Column="1" Grid.Row="8"
                 Margin="5"
-                Click="ChangeSanCarlosLabel">Switch to City</Button>
+                Click="ChangeSanCarlosLabel">
+            Switch to City
+        </Button>
 
-        <Button x:Name="addDeleteButton" 
+        <Button x:Name="addDeleteButton"
                 Grid.Column="2" Grid.Row="8"
                 Margin="5"
-                Click="AddDeleteSanCarlosLabel">Hide San Carlos</Button>
+                Click="AddDeleteSanCarlosLabel">
+            Hide San Carlos
+        </Button>
 
         <Button Grid.Column="0" Grid.Row="9" Grid.ColumnSpan="3"
                 Margin="5"
@@ -231,7 +249,7 @@ with WinAppTest. If not, see <https://www.gnu.org/licenses/>.
             Show Credentials Dialog
         </Button>
 
-        <CheckBox x:Name="deleteOnSaveChk" 
+        <CheckBox x:Name="deleteOnSaveChk"
                   Grid.Column="1" Grid.Row="10" Grid.ColumnSpan="2"
                   Margin="5"
                   VerticalAlignment="Center"
