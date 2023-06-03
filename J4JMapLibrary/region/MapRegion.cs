@@ -337,8 +337,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
         var block = StaticBlock.CreateBlock( this );
         if( block == null )
             Logger?.LogError( "Could not create {type}", typeof( StaticBlock ) );
-
-        MapBlocks.Add( new PositionedMapBlock( 0, 0, block ) );
+        else MapBlocks.Add( new PositionedMapBlock( 0, 0, block ) );
 
         RegionChange = BoundingBox.Equals( oldBoundingBox ) && !MapStyleChanged()
             ? MapRegionChange.OffsetChanged
@@ -415,12 +414,20 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
 
             for( var column = 0; column < rawColumns; column++ )
             {
-                if( columnsToExclude.Contains( column ) )
+                if( columnsToExclude.Contains( column ))
+                    continue;
+
+                var curBlock = rawBlocks[ column, row ];
+
+                if (curBlock == null)
+                    continue;
+
+                if (MapBlocks.Any(b => b.MapBlock.X == curBlock.X && b.MapBlock.Y == curBlock.Y))
                     continue;
 
                 finalColumn++;
 
-                MapBlocks.Add( new PositionedMapBlock( finalRow, finalColumn, rawBlocks[ column, row ] ) );
+                MapBlocks.Add( new PositionedMapBlock( finalRow, finalColumn, curBlock ) );
             }
         }
 
