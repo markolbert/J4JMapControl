@@ -151,8 +151,9 @@ public sealed partial class J4JMapControl
     )
     {
         var credDialogType = MapControlViewModelLocator.Instance!.CredentialsDialogFactory[ MapProjection! ];
+        var attemptNumber = 0;
 
-        switch( credentials )
+        switch ( credentials )
         {
             case null when credDialogType == null:
                 _logger?.LogError( "Could not find credentials dialog for {projection}", MapProjection );
@@ -166,12 +167,13 @@ public sealed partial class J4JMapControl
                 if( credentials == null )
                     return false;
 
+                attemptNumber++;
+
                 break;
             }
         }
 
         var cancelOnFailure = false;
-        var attemptNumber = 0;
 
         while( true )
         {
