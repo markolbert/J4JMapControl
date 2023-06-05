@@ -48,9 +48,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
     private float _xOffset;
     private float _yOffset;
 
-#pragma warning disable CS8618
     public MapRegion(
-#pragma warning restore CS8618
         IProjection projection,
         ILoggerFactory? loggerFactory = null
     )
@@ -61,6 +59,11 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
         Projection = projection;
         ProjectionType = Projection.GetProjectionType();
         _mapStyle = projection.MapStyle;
+
+        Center = new MapPoint(Projection, Projection.MinScale);
+        BoundingBox = Rectangle2D.Empty;
+        VisibleBox = Rectangle2D.Empty;
+        UpperLeft = new TileCoordinates(this, 0, 0);
 
         Scale = projection.MinScale;
         MaximumTiles = projection.GetNumTiles( Scale );
@@ -165,6 +168,7 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
     }
 
     public Rectangle2D BoundingBox { get; private set; }
+    public Rectangle2D VisibleBox { get; private set; }
     public int MaximumTiles { get; private set; }
     public TileCoordinates UpperLeft { get; private set; }
     public int TilesWide { get; private set; }
@@ -346,99 +350,49 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
 
     private void UpdateTiledRegion( TileCoordinates oldUpperLeft, int oldWide, int oldHigh )
     {
-        var minXTile = RoundTile( BoundingBox.Min( c => c.X ) );
-        var maxXTile = RoundTile( BoundingBox.Max( c => c.X ) - 1 );
-        var minYTile = RoundTile( BoundingBox.Min( c => c.Y ) );
-        var maxYTile = RoundTile( BoundingBox.Max( c => c.Y ) - 1 );
+        // we determine the tiles we need to acquire by starting with the center point
+        // and working our way out horizontally and vertically. In the vertical direction we 
+        // stop as soon as we pass the edge of the projection. In the horizontal direction we
+        // wrap around, if necessary, but don't duplicate tiles on both sides.
+        var projHeightWidth = Projection.GetHeightWidth(Scale);
+        var numTiles = Projection.GetNumTiles(Scale);
 
-        var rawColumns = maxXTile - minXTile + 1;
-        var rawRows = maxYTile - minYTile + 1;
+        var maxHeight = BoundingBox.Height > projHeightWidth ? projHeightWidth : BoundingBox.Height;
+        var maxWidth = BoundingBox.Width > projHeightWidth ? projHeightWidth : BoundingBox.Width;
 
-        var rawBlocks = new MapBlock?[ rawColumns, rawRows ];
+        VisibleBox = new Rectangle2D(maxHeight, maxWidth);
 
-        for( var xTile = minXTile; xTile <= maxXTile; xTile++ )
-        {
-            for( var yTile = minYTile; yTile <= maxYTile; yTile++ )
-            {
-                rawBlocks[ xTile - minXTile, yTile - minYTile ] = TileBlock.CreateBlock( this, xTile, yTile );
-            }
-        }
+        var left = Center.X - maxWidth / 2;
+        var right = Center.X + maxWidth / 2;
+        var top = Center.Y - maxHeight / 2;
+        var bottom = Center.Y + maxHeight / 2;
 
-        // identify rows which have at least some tiles in the projection
-        var rowsToExclude = new List<int>();
+        var leftTile = (int)Math.Floor(left / TileWidth);
+        var rightTile = (int) Math.Ceiling(right / TileWidth);
 
-        for( var row = 0; row < rawRows; row++ )
-        {
-            var inProjection = false;
+        var topTile = (int) Math.Floor(top / TileHeight);
+        topTile = topTile < 0 ? 0 : topTile;
 
-            for( var column = 0; column < rawColumns; column++ )
-            {
-                inProjection |= rawBlocks[ column, row ] != null;
-            }
+        var bottomTile = (int) Math.Ceiling(bottom / TileHeight);
+        bottomTile = bottomTile >= numTiles ? numTiles - 1 : bottomTile;
 
-            if( !inProjection )
-                rowsToExclude.Add( row );
-        }
-
-        TilesHigh = rawRows - rowsToExclude.Count;
-
-        // identify columns which have at least some tiles in the projection
-        var columnsToExclude = new List<int>();
-
-        for( var column = 0; column < rawColumns; column++ )
-        {
-            var inProjection = false;
-
-            for( var row = 0; row < rawRows; row++ )
-            {
-                inProjection |= rawBlocks[ column, row ] != null;
-            }
-
-            if( !inProjection )
-                columnsToExclude.Add( column );
-        }
-
-        TilesWide = rawColumns - columnsToExclude.Count;
+        TilesWide = rightTile - leftTile + 1;
+        TilesHigh = bottomTile - topTile + 1;
 
         MapBlocks.Clear();
 
-        var finalRow = -1;
-
-        for( var row = 0; row < rawRows; row++ )
+        for (var row = topTile; row <= bottomTile; row++)
         {
-            if( rowsToExclude.Contains( row ) )
-                continue;
-
-            finalRow++;
-            var finalColumn = -1;
-
-            for( var column = 0; column < rawColumns; column++ )
+            for (var column = leftTile; column <=rightTile; column++)
             {
-                if( columnsToExclude.Contains( column ))
-                    continue;
-
-                var curBlock = rawBlocks[ column, row ];
-
-                if (curBlock == null)
-                    continue;
-
-                if (MapBlocks.Any(b => b.MapBlock.X == curBlock.X && b.MapBlock.Y == curBlock.Y))
-                    continue;
-
-                finalColumn++;
-
-                MapBlocks.Add( new PositionedMapBlock( finalRow, finalColumn, curBlock ) );
+                var curBlock = TileBlock.CreateBlock(this, column, row);
+                if (curBlock != null)
+                    MapBlocks.Add(new PositionedMapBlock(row - topTile, column-leftTile, curBlock));
             }
         }
 
-        UpperLeft = new TileCoordinates( this, minXTile, minYTile );
-
-        var tileHeightWidth = ( (ITiledProjection) Projection ).TileHeightWidth;
-
-        var xOffset = Center.X - RequestedWidth / 2 - UpperLeft.X * tileHeightWidth;
-        var yOffset = Center.Y - RequestedHeight / 2 - UpperLeft.Y * tileHeightWidth;
-
-        ViewpointOffset = new Vector3( -xOffset, -yOffset, 0 );
+        UpperLeft = new TileCoordinates(this, MapBlocks.Min(b => b.MapBlock.X), MapBlocks.Min(b => b.MapBlock.Y));
+        ViewpointOffset = new Vector3(leftTile * TileWidth-left, topTile * TileHeight - top, 0 );
 
         RegionChange = UpperLeft == oldUpperLeft
          && Scale == _oldScale
@@ -458,11 +412,5 @@ public class MapRegion : IEnumerable<PositionedMapBlock>
             return Projection.IsStyleSupported( _mapStyle );
 
         return true;
-    }
-
-    private int RoundTile( float value )
-    {
-        var tile = Math.Round( value ) / Projection.TileHeightWidth;
-        return (int) Math.Floor( tile );
     }
 }
