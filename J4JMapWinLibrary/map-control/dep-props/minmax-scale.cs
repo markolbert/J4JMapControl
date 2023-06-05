@@ -68,4 +68,13 @@ public sealed partial class J4JMapControl
                 MapScale = value;
         }
     }
+
+    public DependencyProperty StretchStyleProperty = DependencyProperty.Register(nameof(StretchStyle),
+        typeof(MapStretchStyle), typeof(J4JMapControl), new PropertyMetadata(MapStretchStyle.None));
+
+    public MapStretchStyle StretchStyle
+    {
+        get => (MapStretchStyle) GetValue( StretchStyleProperty );
+        set => SetValue( StretchStyleProperty, value );
+    }
 }
