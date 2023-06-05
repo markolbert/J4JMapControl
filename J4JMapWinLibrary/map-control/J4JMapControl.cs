@@ -22,7 +22,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -69,10 +68,9 @@ public sealed partial class J4JMapControl : Control
         DefaultStyleKey = typeof( J4JMapControl );
 
         MapProjections = MapControlViewModelLocator.Instance
-                                                   .ProjectionFactory
-                                                   .ProjectionNames
-                                                   .ToList()
-         ?? new List<string>();
+            .ProjectionFactory
+            .ProjectionNames
+            .ToList();
 
         MapProjection = MapProjections.FirstOrDefault();
 
@@ -174,6 +172,28 @@ public sealed partial class J4JMapControl : Control
         {
             X = MapRegion.ViewpointOffset.X, Y = MapRegion.ViewpointOffset.Y
         } );
+
+        if (MapRegion.VisibleBox.Width < ActualWidth || MapRegion.VisibleBox.Height < ActualHeight)
+        {
+            var heightScale = ActualHeight / MapRegion.VisibleBox.Height;
+            var widthScale = ActualWidth / MapRegion.VisibleBox.Width;
+
+            var (scaleFactorWidth, scaleFactorHeight) = StretchStyle switch
+            {
+                MapStretchStyle.FitHeight => (1d, heightScale),
+                MapStretchStyle.FitWidth => (widthScale, 1d),
+                MapStretchStyle.PreserveAspectRatio => heightScale < widthScale ? (heightScale, heightScale) : (widthScale, widthScale),
+                _ => (1d, 1d)
+            };
+
+            transforms.Children.Add(new ScaleTransform
+            {
+                CenterX = ActualWidth/2,
+                CenterY = ActualHeight/2,
+                ScaleX = scaleFactorWidth,
+                ScaleY = scaleFactorHeight
+            });
+        }
 
         transforms.Children.Add( new RotateTransform
         {
@@ -390,7 +410,10 @@ public sealed partial class J4JMapControl : Control
     {
         finalSize = base.ArrangeOverride( finalSize );
 
-        Clip = new RectangleGeometry { Rect = new Rect( new Point(), new Size( finalSize.Width, finalSize.Height ) ) };
+        if( MapRegion == null )
+            return finalSize;
+
+        Clip = new RectangleGeometry { Rect = new Rect( new Point(), new Size( MapRegion.VisibleBox.Width, MapRegion.VisibleBox.Height ) ) };
 
         ArrangeAnnotations();
 
