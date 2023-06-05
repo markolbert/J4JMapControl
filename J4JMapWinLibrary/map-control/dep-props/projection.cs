@@ -43,7 +43,6 @@ public sealed partial class J4JMapControl
     private readonly DispatcherQueue _dispatcherLoadImages = DispatcherQueue.GetForCurrentThread();
     private readonly DispatcherQueue _dispatcherChangeProjection = DispatcherQueue.GetForCurrentThread();
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
-    private readonly ThrottleDispatcher _throttleProjChanges = new();
 
     private IProjection? _projection;
 
