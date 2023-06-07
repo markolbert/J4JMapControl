@@ -211,8 +211,12 @@ public sealed partial class J4JMapControl
     private void MapGridOnPointerWheelChanged( object sender, PointerRoutedEventArgs e )
     {
         e.Handled = true;
+
         var point = e.GetCurrentPoint( this );
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
+        
+        var adjSize = AdjustSizeForViewToRegionScaling( new Size(ActualSize.X, ActualSize.Y) );
+        MapRegion?.Size( adjSize.Height, adjSize.Width );
     }
 
     private void OnDoubleTapped( object sender, DoubleTappedRoutedEventArgs e )

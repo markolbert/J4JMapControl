@@ -40,6 +40,7 @@ using Microsoft.UI.Xaml.Shapes;
 
 namespace J4JSoftware.J4JMapWinLibrary;
 
+
 public sealed partial class J4JMapControl : Control
 {
     private const int DefaultMemoryCacheSize = 1000000;
@@ -154,10 +155,50 @@ public sealed partial class J4JMapControl : Control
         if( e.NewSize.Width <= 0 || e.NewSize.Height <= 0 )
             return;
 
-        _throttleSizeChanges.Throttle( UpdateEventInterval,
-                                       _ => MapRegion?.Size( (float) e.NewSize.Height, (float) e.NewSize.Width ) );
+        _throttleSizeChanges.Throttle( UpdateEventInterval, _ =>
+        {
+            var adjSize = AdjustSizeForViewToRegionScaling(e.NewSize);
+            MapRegion?.Size( adjSize.Height, adjSize.Width );
+        } );
 
         _throttleSliderSizeChange.Throttle( UpdateEventInterval, _ => SetControlGridSizes( e.NewSize ) );
+    }
+
+    private (float Height, float Width) AdjustSizeForViewToRegionScaling( Size newSize )
+    {
+        if( MapRegion == null )
+            return ( (float) newSize.Height, (float) newSize.Width );
+
+        var scalingFactors = GetRegionToViewScalingFactors( newSize );
+
+        return scalingFactors != null
+            ? ( scalingFactors.Value.Height * (float) newSize.Height,
+                scalingFactors.Value.Width * (float) newSize.Width )
+            : ( (float) newSize.Height, (float) newSize.Width );
+    }
+
+    private (float Height, float Width)? GetRegionToViewScalingFactors( Size size )
+    {
+        if( MapRegion == null || StretchStyle == MapStretchStyle.None )
+            return null;
+
+        var projWidthHeight = MapRegion.Projection.GetHeightWidth((int)MapScale);
+
+        if( projWidthHeight >= size.Height && projWidthHeight >= size.Width )
+            return null;
+
+        var heightScale = projWidthHeight / (float) size.Height;
+        var widthScale = projWidthHeight / (float) size.Width;
+
+        return StretchStyle switch
+        {
+            MapStretchStyle.FitHeight => ( 1f, heightScale  ),
+            MapStretchStyle.FitWidth => ( widthScale, 1f ),
+            MapStretchStyle.PreserveAspectRatio => heightScale < widthScale
+                ? ( heightScale , heightScale  )
+                : ( widthScale ,widthScale  ),
+            _ => null
+        };
     }
 
     private void SetImagePanelTransforms()
@@ -168,32 +209,26 @@ public sealed partial class J4JMapControl : Control
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        transforms.Children.Add( new TranslateTransform
+        var scalingFactors = GetRegionToViewScalingFactors( new Size( ActualWidth, ActualHeight ) );
+
+        if( scalingFactors != null )
         {
-            X = MapRegion.ViewpointOffset.X, Y = MapRegion.ViewpointOffset.Y
-        } );
-
-        if (MapRegion.VisibleBox.Width < ActualWidth || MapRegion.VisibleBox.Height < ActualHeight)
-        {
-            var heightScale = ActualHeight / MapRegion.VisibleBox.Height;
-            var widthScale = ActualWidth / MapRegion.VisibleBox.Width;
-
-            var (scaleFactorWidth, scaleFactorHeight) = StretchStyle switch
-            {
-                MapStretchStyle.FitHeight => (1d, heightScale),
-                MapStretchStyle.FitWidth => (widthScale, 1d),
-                MapStretchStyle.PreserveAspectRatio => heightScale < widthScale ? (heightScale, heightScale) : (widthScale, widthScale),
-                _ => (1d, 1d)
-            };
-
             transforms.Children.Add(new ScaleTransform
             {
-                CenterX = ActualWidth/2,
-                CenterY = ActualHeight/2,
-                ScaleX = scaleFactorWidth,
-                ScaleY = scaleFactorHeight
+                ScaleX = 1 / scalingFactors.Value.Width,
+                ScaleY = 1 / scalingFactors.Value.Height
             });
         }
+
+        transforms.Children.Add( new TranslateTransform
+        {
+            X = scalingFactors == null
+                ? MapRegion.ViewpointOffset.X
+                : MapRegion.ViewpointOffset.X / scalingFactors.Value.Width,
+            Y = scalingFactors == null
+                ? MapRegion.ViewpointOffset.Y
+                : MapRegion.ViewpointOffset.Y / scalingFactors.Value.Height
+        } );
 
         transforms.Children.Add( new RotateTransform
         {
@@ -413,7 +448,12 @@ public sealed partial class J4JMapControl : Control
         if( MapRegion == null )
             return finalSize;
 
-        Clip = new RectangleGeometry { Rect = new Rect( new Point(), new Size( MapRegion.VisibleBox.Width, MapRegion.VisibleBox.Height ) ) };
+        Clip = GetRegionToViewScalingFactors( new Size( ActualWidth, ActualHeight ) ) != null
+            ? new RectangleGeometry { Rect = new Rect( new Point(), new Size( ActualWidth, ActualHeight ) ) }
+            : new RectangleGeometry
+            {
+                Rect = new Rect( new Point(), new Size( MapRegion.VisibleBox.Width, MapRegion.VisibleBox.Height ) )
+            };
 
         ArrangeAnnotations();
 
