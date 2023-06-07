@@ -69,8 +69,11 @@ public class MapPoint
 
         if( x.HasValue )
         {
-            var xRange = _projection.GetXYRange( _scale );
-            X = xRange.ConformValueToRange( x.Value, $"{GetType().Name} X" );
+            // handle potential wrap-around
+            var maxX = _projection.GetHeightWidth( _scale );
+
+            X = x.Value % maxX;
+            X += X < 0 ? maxX : 0;
         }
 
         if( y.HasValue )
