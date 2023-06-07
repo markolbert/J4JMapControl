@@ -17,14 +17,15 @@
 		<VersionPrefix>0.9.3</VersionPrefix>
 		<AppDesignerFolder>dep-props</AppDesignerFolder>
 	</PropertyGroup>
-	<ItemGroup>
-	  <None Remove="credential-dialogs\BingCredentialsDialog.xaml" />
-	  <None Remove="credential-dialogs\GoogleCredentialsDialog.xaml" />
-	  <None Remove="credential-dialogs\OpenStreetCredentialsDialog.xaml" />
-	  <None Remove="credential-dialogs\OpenTopoCredentialsDialog.xaml" />
-	  <None Remove="MessageBox.xaml" />
-	</ItemGroup>
 	
+	<ItemGroup>
+		<None Remove="credential-dialogs\BingCredentialsDialog.xaml" />
+		<None Remove="credential-dialogs\GoogleCredentialsDialog.xaml" />
+		<None Remove="credential-dialogs\OpenStreetCredentialsDialog.xaml" />
+		<None Remove="credential-dialogs\OpenTopoCredentialsDialog.xaml" />
+		<None Remove="MessageBox.xaml" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
@@ -38,33 +39,33 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="media\rose.png">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
+		<Content Update="media\rose.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Page Update="credential-dialogs\OpenTopoCredentialsDialog.xaml">
-	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-	    <SubType>Designer</SubType>
-	  </Page>
-	  <Page Update="credential-dialogs\OpenStreetCredentialsDialog.xaml">
-	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-	    <SubType>Designer</SubType>
-	  </Page>
-	  <Page Update="credential-dialogs\GoogleCredentialsDialog.xaml">
-	    <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-	    <SubType>Designer</SubType>
-	  </Page>
-	  <Page Update="MessageBox.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </Page>
+		<Page Update="credential-dialogs\OpenTopoCredentialsDialog.xaml">
+			<XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+			<SubType>Designer</SubType>
+		</Page>
+		<Page Update="credential-dialogs\OpenStreetCredentialsDialog.xaml">
+			<XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+			<SubType>Designer</SubType>
+		</Page>
+		<Page Update="credential-dialogs\GoogleCredentialsDialog.xaml">
+			<XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+			<SubType>Designer</SubType>
+		</Page>
+		<Page Update="MessageBox.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Page Update="credential-dialogs\BingCredentialsDialog.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </Page>
+		<Page Update="credential-dialogs\BingCredentialsDialog.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</Page>
 	</ItemGroup>
 
 </Project>
