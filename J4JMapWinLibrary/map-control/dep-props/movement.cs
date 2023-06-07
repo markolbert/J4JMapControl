@@ -215,7 +215,7 @@ public sealed partial class J4JMapControl
         var point = e.GetCurrentPoint( this );
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
         
-        var adjSize = AdjustSizeForViewToRegionScaling( new Size(ActualSize.X, ActualSize.Y) );
+        var adjSize = AdjustSizeForViewToRegionScaling( ActualSize );
         MapRegion?.Size( adjSize.Height, adjSize.Width );
     }
 
@@ -227,10 +227,15 @@ public sealed partial class J4JMapControl
 
     private void CenterOnDoubleTap( Point point )
     {
-        var xOffset = point.X - ActualWidth / 2;
-        var yOffset = point.Y - ActualHeight / 2;
+        if( MapRegion == null )
+            return;
 
-        MapRegion!.Offset( (float) xOffset, (float) yOffset );
+        point = ViewPointToRegionPoint( point );
+
+        var xOffset = (float) point.X - MapRegion.RequestedWidth / 2;
+        var yOffset = (float) point.Y - MapRegion.RequestedHeight / 2;
+
+        MapRegion!.Offset( xOffset, yOffset );
     }
 
     public bool SetHeadingByText( string text )

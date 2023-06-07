@@ -26,6 +26,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
@@ -164,6 +165,9 @@ public sealed partial class J4JMapControl : Control
         _throttleSliderSizeChange.Throttle( UpdateEventInterval, _ => SetControlGridSizes( e.NewSize ) );
     }
 
+    private (float Height, float Width) AdjustSizeForViewToRegionScaling( Vector2 size ) =>
+        AdjustSizeForViewToRegionScaling( new Size( size.X, size.Y ) );
+
     private (float Height, float Width) AdjustSizeForViewToRegionScaling( Size newSize )
     {
         if( MapRegion == null )
@@ -176,6 +180,9 @@ public sealed partial class J4JMapControl : Control
                 scalingFactors.Value.Width * (float) newSize.Width )
             : ( (float) newSize.Height, (float) newSize.Width );
     }
+
+    private (float Height, float Width)? GetRegionToViewScalingFactors( Vector2 size ) =>
+        GetRegionToViewScalingFactors( new Size( size.X, size.Y ) );
 
     private (float Height, float Width)? GetRegionToViewScalingFactors( Size size )
     {
@@ -199,6 +206,18 @@ public sealed partial class J4JMapControl : Control
                 : ( widthScale ,widthScale  ),
             _ => null
         };
+    }
+
+    private Point ViewPointToRegionPoint( Point point )
+    {
+        if( MapRegion == null || StretchStyle == MapStretchStyle.None )
+            return point;
+
+        var scalingFactors = GetRegionToViewScalingFactors( ActualSize );
+
+        return scalingFactors == null
+            ? point
+            : new Point( point.X * scalingFactors.Value.Width, point.Y * scalingFactors.Value.Height );
     }
 
     private void SetImagePanelTransforms()
