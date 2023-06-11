@@ -161,6 +161,7 @@ public sealed partial class J4JMapControl
 
     private void ProcessTranslation( Point point )
     {
+        point = ViewPointToRegionPoint(point);
         _lastTranslationPoint ??= point;
 
         var xDelta = _lastTranslationPoint.Value.X - point.X;
