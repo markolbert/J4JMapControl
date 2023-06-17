@@ -24,6 +24,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Numerics;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
@@ -43,6 +44,8 @@ public sealed partial class J4JMapControl
 {
     private readonly MovementProcessor _movementProcessor;
     private readonly ThrottleDispatcher _throttleDoubleTap = new();
+
+    private Vector3 _cumlTranslation;
 
     private Line? _baseLine;
     private Image? _compassRose;
@@ -145,7 +148,7 @@ public sealed partial class J4JMapControl
         _rotationCanvas!.Visibility = Visibility.Visible;
 
         // this will trigger an update of the map display
-        Heading += deltaRotation;
+        MapHeading += deltaRotation;
     }
 
     private void PositionCompassRose()
@@ -155,26 +158,27 @@ public sealed partial class J4JMapControl
 
         _compassRose.RenderTransform = new RotateTransform
         {
-            Angle = 360 - Heading, CenterX = _compassRose.ActualWidth / 2, CenterY = _compassRose.ActualHeight / 2
+            Angle = 360 - MapHeading, CenterX = _compassRose.ActualWidth / 2, CenterY = _compassRose.ActualHeight / 2
         };
     }
 
     private void ProcessTranslation( Point point )
     {
+        if( RegionView == null )
+            return;
+
         point = ViewPointToRegionPoint(point);
         _lastTranslationPoint ??= point;
 
-        var xDelta = _lastTranslationPoint.Value.X - point.X;
-        var yDelta = _lastTranslationPoint.Value.Y - point.Y;
+        var xIncremental = _lastTranslationPoint.Value.X - point.X;
+        var yIncremental = _lastTranslationPoint.Value.Y - point.Y;
 
-        if( Math.Abs( xDelta ) < 5 && Math.Abs( yDelta ) < 5 )
+        _cumlTranslation += new Vector3( (float) xIncremental, (float) yIncremental, 0f );
+
+        if( Math.Abs( xIncremental ) < 1 && Math.Abs( xIncremental ) < 1 )
             return;
 
-        MapRegion!.Offset( (float) xDelta, (float) yDelta );
-        MapRegion!.Update();
-
-        SetValue( CenterProperty,
-                  MapExtensions.ConvertToLatLongText( MapRegion.CenterLatitude, MapRegion.CenterLongitude ) );
+        UpdateDisplay();
     }
 
     private void OnPointerPressed( object sender, PointerRoutedEventArgs e )
@@ -206,6 +210,19 @@ public sealed partial class J4JMapControl
         e.Handled = true;
         _movementProcessor.Enabled = false;
 
+        // reload based on new center point
+        if( _projection != null )
+        {
+            var centerPt = new MapPoint( _projection, (int) MapScale );
+
+            centerPt.SetLatLong( _centerLatitude, _centerLongitude );
+            centerPt.OffsetCartesian( _cumlTranslation.X, _cumlTranslation.Y );
+
+            Center = MapExtensions.ConvertToLatLongText( centerPt.Latitude, centerPt.Longitude );
+        }
+
+        _cumlTranslation=Vector3.Zero;
+
         ReleasePointerCapture( e.Pointer );
     }
 
@@ -215,9 +232,10 @@ public sealed partial class J4JMapControl
 
         var point = e.GetCurrentPoint( this );
         MapScale += point.Properties.MouseWheelDelta < 0 ? -1 : 1;
-        
-        var adjSize = AdjustSizeForViewToRegionScaling( ActualSize );
-        MapRegion?.Size( adjSize.Height, adjSize.Width );
+
+        _throttleRegionChanges.Throttle( UpdateEventInterval,
+                                         async _ => await LoadRegion( ActualSize.X, ActualSize.Y ) );
+
     }
 
     private void OnDoubleTapped( object sender, DoubleTappedRoutedEventArgs e )
@@ -228,22 +246,27 @@ public sealed partial class J4JMapControl
 
     private void CenterOnDoubleTap( Point point )
     {
-        if( MapRegion == null )
+        if( RegionView == null || _projection == null )
             return;
 
         point = ViewPointToRegionPoint( point );
 
-        var xOffset = (float) point.X - MapRegion.RequestedWidth / 2;
-        var yOffset = (float) point.Y - MapRegion.RequestedHeight / 2;
+        var xOffset = (float) ( point.X - ActualWidth / 2 );
+        var yOffset = (float) ( point.Y - ActualHeight / 2 );
 
-        MapRegion!.Offset( xOffset, yOffset );
+        var centerPt = new MapPoint( _projection, (int) MapScale );
+
+        centerPt.SetLatLong( _centerLatitude, _centerLongitude );
+        centerPt.OffsetCartesian( xOffset, yOffset );
+
+        Center = MapExtensions.ConvertToLatLongText( centerPt.Latitude, centerPt.Longitude );
     }
 
     public bool SetHeadingByText( string text )
     {
         if( MapExtensions.TryParseHeading( text, out var heading ) )
         {
-            Heading = heading;
+            MapHeading = heading;
             return true;
         }
 
