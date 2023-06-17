@@ -405,6 +405,7 @@ public sealed partial class J4JMapControl : Control
         }
 
         _mapGrid.Translation = _cumlTranslation;
+        _mapGrid.Rotation = _cumlRotation;
 
         InvalidateArrange();
     }
@@ -422,6 +423,9 @@ public sealed partial class J4JMapControl : Control
                 continue;
 
             element.Translation = _cumlTranslation;
+
+            element.CenterPoint = CenterPoint;
+            element.Rotation = _cumlRotation;
 
             _annotationsCanvas.Children.Add( element );
         }
@@ -443,6 +447,9 @@ public sealed partial class J4JMapControl : Control
 
             var elementOffset = RegionView.GetDisplayPosition( poiItem.Latitude, poiItem.Longitude ) + _cumlTranslation;
             poiItem.VisualElement.PositionRelativeToPoint( elementOffset );
+
+            poiItem.VisualElement.Rotation = _cumlRotation;
+            poiItem.VisualElement.CenterPoint = CenterPoint;
 
             _poiCanvas.Children.Add( poiItem.VisualElement );
         }

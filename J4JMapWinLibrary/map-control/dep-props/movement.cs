@@ -50,6 +50,7 @@ public sealed partial class J4JMapControl
     private Line? _baseLine;
     private Image? _compassRose;
     private float? _firstRotationAngle;
+    private float _cumlRotation;
     private Point? _firstRotationPoint;
     private TextBlock? _headingText;
     private Point? _lastTranslationPoint;
@@ -127,7 +128,7 @@ public sealed partial class J4JMapControl
         _firstRotationAngle ??= (float) this.AngleFromCenter( point );
 
         var curAngle = (float) this.AngleFromCenter( point );
-        var deltaRotation = curAngle - _firstRotationAngle.Value;
+        _cumlRotation = curAngle - _firstRotationAngle.Value;
 
         _baseLine!.X1 = ActualWidth / 2;
         _baseLine.Y1 = ActualHeight / 2;
@@ -141,14 +142,13 @@ public sealed partial class J4JMapControl
 
         Canvas.SetLeft( _rotationPanel, point.X + 5 );
         Canvas.SetTop( _rotationPanel, point.Y + 5 );
-        _rotationText!.Text = $"Rotated {deltaRotation:F0}";
+        _rotationText!.Text = $"Rotated {_cumlRotation:F0}";
 
-        _headingText!.Text = $"Heading {Heading + deltaRotation:F0}";
+        _headingText!.Text = $"Heading {MapHeading + _cumlRotation:F0}";
 
         _rotationCanvas!.Visibility = Visibility.Visible;
 
-        // this will trigger an update of the map display
-        MapHeading += deltaRotation;
+        UpdateDisplay();
     }
 
     private void PositionCompassRose()
@@ -221,9 +221,16 @@ public sealed partial class J4JMapControl
             Center = MapExtensions.ConvertToLatLongText( centerPt.Latitude, centerPt.Longitude );
         }
 
+        if( _cumlRotation != 0 )
+            MapHeading += _cumlRotation;
+
         _cumlTranslation=Vector3.Zero;
+        _cumlRotation = 0f;
 
         ReleasePointerCapture( e.Pointer );
+
+        _throttleRegionChanges.Throttle(UpdateEventInterval,
+                                        async _ => await LoadRegion(ActualSize.X, ActualSize.Y));
     }
 
     private void MapGridOnPointerWheelChanged( object sender, PointerRoutedEventArgs e )
