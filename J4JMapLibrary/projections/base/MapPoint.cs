@@ -30,12 +30,12 @@ public class MapPoint
     private bool _suppressUpdate;
     public EventHandler? Changed;
 
-    public MapPoint(
-        MapRegion.MapRegion region
-    )
-        : this( region.Projection, region.Scale )
-    {
-    }
+    //public MapPoint(
+    //    MapRegion region
+    //)
+    //    : this( region.Projection, region.Scale )
+    //{
+    //}
 
     public MapPoint(
         IProjection projection,
@@ -79,7 +79,7 @@ public class MapPoint
         if( y.HasValue )
         {
             var yRange = _projection.GetXYRange( _scale );
-            Y = yRange.ConformValueToRange( y.Value, $"{GetType().Name} Y" );
+            Y = yRange.ConformValueToRange( y.Value, $"{GetType().Name} Row" );
         }
 
         UpdateLatLong();
@@ -143,7 +143,7 @@ public class MapPoint
         // the upper left corner)
         var x = (int) Math.Round( heightWidth * ( Longitude / 360 + 0.5 ) );
 
-        // another way of calculating Y...leave as comment for testing
+        // another way of calculating Row...leave as comment for testing
         //var latRadians = Latitude * MapConstants.RadiansPerDegree;
         //var sinRatio = ( 1 + Math.Sin( latRadians ) ) / ( 1 - Math.Sin( latRadians ) );
         //var lnLat = Math.Log( sinRatio );
