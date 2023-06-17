@@ -1,3 +1,3 @@
-﻿namespace J4JSoftware.J4JMapLibrary.MapRegion;
+﻿namespace J4JSoftware.J4JMapLibrary;
 
-public record PositionedMapBlock( int Row, int Column, MapBlock MapBlock );
+public record PositionedMapBlock( int Row, int Column, TileBlock MapBlock );
