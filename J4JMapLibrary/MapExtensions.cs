@@ -26,11 +26,15 @@ using System.Text.RegularExpressions;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public static class MapExtensions
+public static partial class MapExtensions
 {
     private static readonly char[] ValidQuadKeyCharacters = { '0', '1', '2', '3' };
-    private static readonly Regex LatLongRegEx = new( "^\\s*((-?[0-9]*\\.?)?[0-9]+)(\\D*)$", RegexOptions.Compiled );
-    private static readonly string[] CardinalDirections = { "N", "North", "S", "South", "E", "East", "W", "West" };
+
+    [GeneratedRegex(
+        "^\\s*((-?[0-9]*\\.?)?[0-9]+)(\\D*)$",
+        RegexOptions.CultureInvariant,
+        matchTimeoutMilliseconds: 1000)]
+    private static partial Regex GetLatLongRegEx(); //= new( "^\\s*((-?[0-9]*\\.?)?[0-9]+)(\\D*)$", RegexOptions.Compiled );
 
     public static ProjectionType GetProjectionType( this IProjection projection ) =>
         projection.GetType().GetInterface( nameof( ITiledProjection ) ) == null
@@ -157,7 +161,7 @@ public static class MapExtensions
         if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var results = LatLongRegEx.Matches( text );
+        var results =  GetLatLongRegEx().Matches( text );
         if( !results.Any() )
             return false;
 
@@ -183,7 +187,7 @@ public static class MapExtensions
         if( string.IsNullOrEmpty( text ) )
             return false;
 
-        var results = LatLongRegEx.Matches( text );
+        var results = GetLatLongRegEx().Matches( text );
         if( !results.Any() )
             return false;
 
