@@ -23,7 +23,6 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -102,12 +101,7 @@ public sealed class GoogleMapsProjection : StaticProjection
         // the only way to check Google credentials is to try and retrieve a map image
         // sadly, that can fail for reasons other than invalid credentials
         // we also have to temporarily override the initialized check
-        var testBlock = StaticBlock.CreateBlock( this, 0, 0, 0 );
-        if( testBlock == null )
-        {
-            Logger?.LogError( "Could not create test {type}", typeof( StaticBlock ) );
-            return false;
-        }
+        var testBlock = new StaticBlock( this, 0,0,0 );
 
         _pendingInitializtion = true;
 
@@ -141,7 +135,7 @@ public sealed class GoogleMapsProjection : StaticProjection
 
         var replacements = new Dictionary<string, string>
         {
-            { "{center}", $"{castBlock.CenterLatitude}, {castBlock.CenterLongitude}" },
+            { "{center}", $"{castBlock.CenterPoint.Latitude}, {castBlock.CenterPoint.Longitude}" },
             { "{format}", ImageFormat.ToString() },
             { "{zoom}", castBlock.Scale.ToString() },
             { "{size}", $"{width}x{height}" },

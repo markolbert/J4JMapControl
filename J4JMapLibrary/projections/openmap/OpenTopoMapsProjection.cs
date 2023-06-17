@@ -85,7 +85,7 @@ public sealed class OpenTopoMapsProjection : TiledProjection
             return null;
         }
 
-        if( mapBlock is not TileBlock castBlock )
+        if( mapBlock is not TileBlock tileBlock )
         {
             Logger?.LogError( "Expected a {type} but got a {badType}", typeof( TileBlock ), mapBlock.GetType() );
             return null;
@@ -99,9 +99,9 @@ public sealed class OpenTopoMapsProjection : TiledProjection
 
         var replacements = new Dictionary<string, string>
         {
-            { "{zoom}", castBlock.Scale.ToString() },
-            { "{x}", castBlock.X.ToString() },
-            { "{y}", castBlock.Y.ToString() }
+            { "{zoom}", tileBlock.Scale.ToString() },
+            { "{x}", tileBlock.ProjectionCoordinates.Column.ToString() },
+            { "{y}", tileBlock.ProjectionCoordinates.Row.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

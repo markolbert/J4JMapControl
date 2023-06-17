@@ -21,7 +21,6 @@
 
 #endregion
 
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -70,13 +69,7 @@ public abstract class TiledProjection : Projection, ITiledProjection
         CancellationToken ctx = default
     )
     {
-        var region = new MapRegion.MapRegion( this, LoggerFactory ) { Scale = scale };
-        region.Update();
-
-        var retVal = TileBlock.CreateBlock( region, xTile, yTile );
-        if( retVal == null )
-            return null;
-
+        var retVal = new TileBlock( this, scale, xTile, yTile );
         await LoadImageAsync( retVal, ctx );
 
         return retVal;
@@ -89,14 +82,14 @@ public abstract class TiledProjection : Projection, ITiledProjection
         return !string.IsNullOrEmpty( Name );
     }
 
-    protected override async Task<bool> LoadRegionInternalAsync(
-        MapRegion.MapRegion region,
+    protected override async Task<bool> LoadBlocksInternalAsync(
+        IEnumerable<MapBlock> blocks,
         CancellationToken ctx = default
     )
     {
-        foreach( var positionedBlock in region.Where( b => b.MapBlock != null ) )
+        foreach( var block in blocks )
         {
-            await LoadImageAsync( positionedBlock.MapBlock!, ctx );
+            await LoadImageAsync( block, ctx );
         }
 
         return true;

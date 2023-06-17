@@ -23,7 +23,6 @@
 
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
@@ -90,7 +89,7 @@ public class Location : DependencyObject
         return true;
     }
 
-    public static bool InRegion( FrameworkElement element, MapRegion region )
+    public static bool InRegion( FrameworkElement element, IRegionView region )
     {
         if( !TryParseLatLong( element, out var latitude, out var longitude ) )
             return false;
@@ -98,30 +97,30 @@ public class Location : DependencyObject
         if( latitude < -MapConstants.Wgs84MaxLatitude || latitude > MapConstants.Wgs84MaxLatitude )
             return false;
 
-        var mapPoint = new MapPoint( region );
+        var mapPoint = new MapPoint( region.Projection, region.AdjustedRegion.Scale );
         mapPoint.SetLatLong( latitude, longitude );
 
-        var (upperLeftX, upperLeftY) = region.UpperLeft.GetUpperLeftCartesian();
+        var (upperLeftX, upperLeftY) = region.GetUpperLeftCartesian();
 
         return mapPoint.X >= upperLeftX
-         && mapPoint.X < upperLeftX + region.RequestedWidth + region.Projection.TileHeightWidth
+         && mapPoint.X < upperLeftX + region.AdjustedRegion.Width + region.Projection.TileHeightWidth
          && mapPoint.Y >= upperLeftY
-         && mapPoint.Y < upperLeftY + region.RequestedHeight + region.Projection.TileHeightWidth;
+         && mapPoint.Y < upperLeftY + region.AdjustedRegion.Height + region.Projection.TileHeightWidth;
     }
 
-    public static bool InRegion( IPlacedItem item, MapRegion region )
+    public static bool InRegion( IPlacedItem item, IRegionView region )
     {
         if( item.Latitude < -MapConstants.Wgs84MaxLatitude || item.Latitude > MapConstants.Wgs84MaxLatitude )
             return false;
 
-        var mapPoint = new MapPoint( region );
+        var mapPoint = new MapPoint(region.Projection, region.AdjustedRegion.Scale);
         mapPoint.SetLatLong( item.Latitude, item.Longitude );
 
-        var (upperLeftX, upperLeftY) = region.UpperLeft.GetUpperLeftCartesian();
+        var (upperLeftX, upperLeftY) = region.GetUpperLeftCartesian();
 
         return mapPoint.X >= upperLeftX
-         && mapPoint.X < upperLeftX + region.RequestedWidth + region.Projection.TileHeightWidth
+         && mapPoint.X < upperLeftX + region.AdjustedRegion.Width + region.Projection.TileHeightWidth
          && mapPoint.Y >= upperLeftY
-         && mapPoint.Y < upperLeftY + region.RequestedHeight + region.Projection.TileHeightWidth;
+         && mapPoint.Y < upperLeftY + region.AdjustedRegion.Height + region.Projection.TileHeightWidth;
     }
 }

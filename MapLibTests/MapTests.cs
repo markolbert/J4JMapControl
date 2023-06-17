@@ -23,7 +23,6 @@
 
 using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
@@ -105,13 +104,8 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion( projection, LoggerFactory )
-                    .Scale( scale )
-                    .Update();
-
-        var mapBlock = TileBlock.CreateBlock( region, xTile, yTile );
-        mapBlock.Should().NotBeNull();
-        mapBlock!.QuadKey.Should().Be( quadKey );
+        var mapBlock = new TileBlock( projection, scale,xTile, yTile );
+        mapBlock.QuadKey.Should().Be( quadKey );
     }
 
     [ Theory ]
@@ -146,13 +140,8 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion( projection, LoggerFactory )
-                    .Scale( scale )
-                    .Update();
-
-        var mapBlock = TileBlock.CreateBlock( region, xTile, yTile );
-        mapBlock.Should().NotBeNull();
-        mapBlock!.QuadKey.Should().Be( quadKey );
+        var mapBlock = new TileBlock(projection, scale, xTile, yTile);
+        mapBlock.QuadKey.Should().Be( quadKey );
     }
 
     [ Theory ]
@@ -187,12 +176,7 @@ public class MapTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion( projection, LoggerFactory )
-                    .Scale( scale )
-                    .Update();
-
-        var mapBlock = TileBlock.CreateBlock( region, xTile, yTile );
-        mapBlock.Should().NotBeNull();
-        mapBlock!.QuadKey.Should().Be( quadKey );
+        var mapBlock = new TileBlock(projection, scale, xTile, yTile);
+        mapBlock.QuadKey.Should().Be( quadKey );
     }
 }

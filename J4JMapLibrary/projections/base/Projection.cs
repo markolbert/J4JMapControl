@@ -24,7 +24,6 @@
 using System.Collections.ObjectModel;
 using System.Net;
 using System.Reflection;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -70,8 +69,6 @@ public abstract class Projection : IProjection
     protected ILoggerFactory? LoggerFactory { get; }
 
     protected object? Credentials { get; private set; }
-
-    public event EventHandler<bool>? LoadComplete;
 
     public string Name { get; } = string.Empty;
     public bool Initialized { get; protected set; }
@@ -176,7 +173,7 @@ public abstract class Projection : IProjection
         return false;
     }
 
-    public async Task<bool> LoadRegionAsync( MapRegion.MapRegion region, CancellationToken ctx = default )
+    public async Task<bool> LoadBlocksAsync( IEnumerable<MapBlock> blocks, CancellationToken ctx = default )
     {
         if( !Initialized )
         {
@@ -184,17 +181,13 @@ public abstract class Projection : IProjection
             return false;
         }
 
-        // only reload if we have to
-        var retVal = region.RegionChange != MapRegionChange.LoadRequired
-         || await LoadRegionInternalAsync( region, ctx );
-
-        LoadComplete?.Invoke( this, retVal );
+        var retVal = await LoadBlocksInternalAsync( blocks, ctx );
 
         return retVal;
     }
 
-    protected abstract Task<bool> LoadRegionInternalAsync(
-        MapRegion.MapRegion region,
+    protected abstract Task<bool> LoadBlocksInternalAsync(
+        IEnumerable<MapBlock> blocks,
         CancellationToken ctx = default
     );
 

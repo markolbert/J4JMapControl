@@ -23,11 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Dispatching;
@@ -105,14 +105,7 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        if( _projection != null )
-        {
-            _projection.LoadComplete -= ProjectionOnLoadComplete;
-            _projection = null;
-        }
-
         _projection = newProjection;
-        _projection.LoadComplete += ProjectionOnLoadComplete;
 
         InitializeCaching();
 
@@ -120,28 +113,66 @@ public sealed partial class J4JMapControl
         MapStyle = _projection.MapStyle ?? string.Empty;
 
         if( !MapExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            _logger?.LogError( "Could not parse Center ('{center}') to latitude/longitude, defaulting to 0/0", Center );
+            _logger?.LogError( "Could not parse CenterPoint ('{center}') to latitude/longitude, defaulting to 0/0", Center );
 
-        if( MapRegion != null )
+        if( RegionView != null )
         {
-            MapRegion.ConfigurationChanged -= MapRegionConfigurationChanged;
-            MapRegion.BuildUpdated -= MapRegionBuildUpdated;
+            //RegionView.ImagesLoaded -= OnImagesLoaded;
+            RegionView.PropertyChanged -= RegionViewOnPropertyChanged;
         }
 
-        MapRegion = new MapRegion( _projection, MapControlViewModelLocator.Instance.LoggerFactory )
-                   .Center( latitude, longitude )
-                   .Scale( (int) MapScale )
-                   .Heading( (float) Heading )
-                   .Size( (float) ActualHeight, (float) ActualWidth );
+        RegionView = _projection switch
+        {
+            ITiledProjection tiledProj => new TiledRegionView( tiledProj ),
+            StaticProjection staticProj => new StaticRegionView( staticProj ),
+            _ => null
+        };
 
-        MapRegion.ConfigurationChanged += MapRegionConfigurationChanged;
-        MapRegion.BuildUpdated += MapRegionBuildUpdated;
+        if( RegionView == null )
+        {
+            _logger?.LogError( "Unsupported {projType} '{type}'", typeof( IProjection ), _projection.GetType() );
+            return;
+        }
+
+        //RegionView.ImagesLoaded += OnImagesLoaded;
+        RegionView.PropertyChanged += RegionViewOnPropertyChanged;
 
         MinMapScale = _projection.MinScale;
         MaxMapScale = _projection.MaxScale;
-
-        MapRegion.Update();
     }
+
+    private void RegionViewOnPropertyChanged( object? sender, PropertyChangedEventArgs e )
+    {
+        switch( e.PropertyName )
+        {
+            case "Latitude":
+            case "Longitude":
+                if( RegionView?.Center != null )
+                {
+                    SetValue( CenterProperty,
+                           MapExtensions.ConvertToLatLongText( RegionView.Center.Latitude,
+                                                               RegionView.Center.Longitude ) );
+
+                    _centerLatitude = RegionView.Center.Latitude;
+                    _centerLongitude = RegionView.Center.Longitude;
+                }
+
+                break;
+
+            case "Scale":
+                if( RegionView != null )
+                    SetValue( MapScaleProperty, RegionView.AdjustedRegion.Scale );
+
+                break;
+        }
+    }
+
+    //private void OnImagesLoaded(object? sender, bool loaded)
+    //{
+    //    if (loaded)
+    //        _dispatcherLoadImages.TryEnqueue(UpdateDisplay);
+    //    else _logger?.LogError("Failed to load region view images");
+    //}
 
     private async Task<bool> AuthenticateProjection(
         IProjection projection,
@@ -216,9 +247,6 @@ public sealed partial class J4JMapControl
 
         return (ICredentialsDialog) credDialog;
     }
-
-    private void ProjectionOnLoadComplete( object? sender, bool e ) =>
-        _dispatcherLoadImages.TryEnqueue( LoadMapImages );
 
     public DependencyProperty MapStylesProperty = DependencyProperty.Register( nameof( MapStyles ),
                                                                                typeof( List<string> ),

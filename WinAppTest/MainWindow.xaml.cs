@@ -111,7 +111,7 @@ public sealed partial class MainWindow
         {
             mapControl.MapProjection = _appConfig.MapProjection;
             mapControl.Center = _appConfig.Center ?? "0,0";
-            mapControl.Heading = _appConfig.Heading;
+            mapControl.MapHeading = _appConfig.Heading;
             mapControl.MapScale = _appConfig.Scale;
         }
         else

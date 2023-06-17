@@ -22,7 +22,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -44,14 +43,6 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl : Control
 {
-    private enum ProjectionSide
-    {
-        North,
-        South,
-        West,
-        East
-    }
-
     private const int DefaultMemoryCacheSize = 1000000;
     private const int DefaultMemoryCacheEntries = 500;
     private const int DefaultFileSystemCacheSize = 10000000;
@@ -63,7 +54,6 @@ public sealed partial class J4JMapControl : Control
 
     private readonly ILogger? _logger;
     private readonly ThrottleDispatcher _throttleScaleChanges = new();
-    private readonly ThrottleDispatcher _throttleSizeChanges = new();
 
     private Grid? _mapGrid;
     private int _updateInterval = DefaultUpdateEventInterval;
@@ -164,212 +154,204 @@ public sealed partial class J4JMapControl : Control
         if( e.NewSize.Width <= 0 || e.NewSize.Height <= 0 )
             return;
 
-        _throttleSizeChanges.Throttle( UpdateEventInterval, _ =>
-        {
-            var adjSize = AdjustSizeForViewToRegionScaling(e.NewSize);
-            MapRegion?.Size( adjSize.Height, adjSize.Width );
-        } );
+        _throttleRegionChanges.Throttle( UpdateEventInterval,
+                                         async _ => await LoadRegion( (float) e.NewSize.Height,
+                                                                      (float) e.NewSize.Width ) );
 
         _throttleSliderSizeChange.Throttle( UpdateEventInterval, _ => SetControlGridSizes( e.NewSize ) );
     }
 
-    private (float Height, float Width) AdjustSizeForViewToRegionScaling( Vector2 size ) =>
-        AdjustSizeForViewToRegionScaling( new Size( size.X, size.Y ) );
+    //private (float Height, float Width) AdjustSizeForViewToRegionScaling( Vector2 size ) =>
+    //    AdjustSizeForViewToRegionScaling( new Size( size.X, size.Y ) );
 
-    private (float Height, float Width) AdjustSizeForViewToRegionScaling( Size newSize )
-    {
-        if( MapRegion == null )
-            return ( (float) newSize.Height, (float) newSize.Width );
+    //private (float Height, float Width) AdjustSizeForViewToRegionScaling( Size newSize )
+    //{
+    //    if( RegionView == null )
+    //        return ( (float) newSize.Height, (float) newSize.Width );
 
-        var scalingFactors = GetRegionToViewScalingFactors( newSize );
+    //    var scalingFactors = GetRegionToViewScalingFactors( newSize );
 
-        return scalingFactors != null
-            ? ( scalingFactors.Value * (float) newSize.Height,
-                scalingFactors.Value * (float) newSize.Width )
-            : ( (float) newSize.Height, (float) newSize.Width );
-    }
+    //    return scalingFactors != null
+    //        ? ( scalingFactors.Value * (float) newSize.Height,
+    //            scalingFactors.Value * (float) newSize.Width )
+    //        : ( (float) newSize.Height, (float) newSize.Width );
+    //}
 
-    private float? GetRegionToViewScalingFactors( Vector2 size ) =>
-        GetRegionToViewScalingFactors( new Size( size.X, size.Y ) );
+    //private float? GetRegionToViewScalingFactors( Vector2 size ) =>
+    //    GetRegionToViewScalingFactors( new Size( size.X, size.Y ) );
 
-    private float? GetRegionToViewScalingFactors( Size size )
-    {
-        if( MapRegion == null || StretchStyle == MapStretchStyle.None
-           || size.Height == 0 || size.Width == 0 )
-            return null;
+    //private float? GetRegionToViewScalingFactors( Size size )
+    //{
+    //    if( RegionView == null || ShrinkStyle == ShrinkStyle.None
+    //       || size.Height == 0 || size.Width == 0 )
+    //        return null;
 
-        var center = new Vector3( MapRegion.Center.X, MapRegion.Center.Y, 0 );
+    //    var center = new Vector3( RegionView.Center.X, RegionView.Center.Y, 0 );
 
-        var projWidthHeight = MapRegion.Projection.GetHeightWidth((int)MapScale);
+    //    var projWidthHeight = RegionView.Projection.GetHeightWidth((int)MapScale);
 
-        var viewRect = new Rectangle2D( (float) size.Height,
-                                        (float) size.Width,
-                                        MapRegion.Rotation,
-                                        center );
+    //    var viewRect = new Rectangle2D( (float) size.Height,
+    //                                    (float) size.Width,
+    //                                    Region.Rotation,
+    //                                    center );
 
-        var northZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.North ) ?? float.PositiveInfinity;
-        var southZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.South ) ?? float.NegativeInfinity;
-        var westZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.West ) ?? float.PositiveInfinity;
-        var eastZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.East ) ?? float.NegativeInfinity;
+    //    var northZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.North ) ?? float.PositiveInfinity;
+    //    var southZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.South ) ?? float.NegativeInfinity;
+    //    var westZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.West ) ?? float.PositiveInfinity;
+    //    var eastZoom = GetCornerScalingFactor( viewRect, projWidthHeight, ProjectionSide.East ) ?? float.NegativeInfinity;
 
-        var zooms = CreateFiniteZooms(northZoom,southZoom, westZoom, eastZoom );
+    //    var zooms = CreateFiniteZooms(northZoom,southZoom, westZoom, eastZoom );
 
-        return StretchStyle switch
-        {
-            MapStretchStyle.FitHeight => northZoom < southZoom ? northZoom : southZoom,
-            MapStretchStyle.FitWidth => westZoom < eastZoom ? westZoom : eastZoom,
-            MapStretchStyle.PreserveAspectRatio => zooms.Min(),
-            MapStretchStyle.None => (float?) null,
-            _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( MapStretchStyle )} value '{StretchStyle}'" )
-        };
+    //    return ShrinkStyle switch
+    //    {
+    //        ShrinkStyle.MaximizeHeight => northZoom < southZoom ? northZoom : southZoom,
+    //        ShrinkStyle.MaximizeWidth => westZoom < eastZoom ? westZoom : eastZoom,
+    //        ShrinkStyle.PreserveAspectRatio => zooms.Min(),
+    //        ShrinkStyle.None => null,
+    //        _ => throw new InvalidEnumArgumentException(
+    //            $"Unsupported {typeof( ShrinkStyle )} value '{ShrinkStyle}'" )
+    //    };
 
-        //if( projWidthHeight >= size.Height && projWidthHeight >= size.Width )
-        //    return null;
+    //    //if( projWidthHeight >= size.Height && projWidthHeight >= size.Width )
+    //    //    return null;
 
-        //var heightScale = projWidthHeight / (float) size.Height;
-        //var widthScale = projWidthHeight / (float) size.Width;
+    //    //var heightScale = projWidthHeight / (float) size.Height;
+    //    //var widthScale = projWidthHeight / (float) size.Width;
 
-        //return StretchStyle switch
-        //{
-        //    MapStretchStyle.FitHeight => ( 1f, heightScale  ),
-        //    MapStretchStyle.FitWidth => ( widthScale, 1f ),
-        //    MapStretchStyle.PreserveAspectRatio => heightScale < widthScale
-        //        ? ( heightScale , heightScale  )
-        //        : ( widthScale ,widthScale  ),
-        //    _ => null
-        //};
-    }
+    //    //return ShrinkStyle switch
+    //    //{
+    //    //    MapStretchStyle.FitHeight => ( 1f, heightScale  ),
+    //    //    MapStretchStyle.FitWidth => ( widthScale, 1f ),
+    //    //    MapStretchStyle.PreserveAspectRatio => heightScale < widthScale
+    //    //        ? ( heightScale , heightScale  )
+    //    //        : ( widthScale ,widthScale  ),
+    //    //    _ => null
+    //    //};
+    //}
 
-    public List<float> CreateFiniteZooms( params float[] zooms ) => zooms.Where( float.IsFinite ).ToList();
+    //public List<float> CreateFiniteZooms( params float[] zooms ) => zooms.Where( float.IsFinite ).ToList();
 
-    private float? GetCornerScalingFactor( Rectangle2D viewRect, float projHeightWidth, ProjectionSide side )
-    {
-        if( viewRect.Height <= 0 || viewRect.Width <= 0 )
-            return null;
+    //private float? GetCornerScalingFactor( Rectangle2D viewRect, float projHeightWidth, ProjectionSide side )
+    //{
+    //    if( viewRect.Height <= 0 || viewRect.Width <= 0 )
+    //        return null;
 
-        Vector3? minMaxCorner = null;
-        var minMaxValue = side is ProjectionSide.North or ProjectionSide.West ? float.PositiveInfinity : float.NegativeInfinity;
+    //    Vector3? minMaxCorner = null;
+    //    var minMaxValue = side is ProjectionSide.North or ProjectionSide.West ? float.PositiveInfinity : float.NegativeInfinity;
 
-        foreach( var corner in viewRect )
-        {
-            var curValue = side switch
-            {
-                ProjectionSide.North => corner.Y,
-                ProjectionSide.West => corner.X,
-                ProjectionSide.South => corner.Y,
-                ProjectionSide.East => corner.X,
-                _ => throw new InvalidEnumArgumentException( $"Invalid {typeof( ProjectionSide )} value '{side}'" )
-            };
+    //    foreach( var corner in viewRect )
+    //    {
+    //        var curValue = side switch
+    //        {
+    //            ProjectionSide.North => corner.Y,
+    //            ProjectionSide.West => corner.X,
+    //            ProjectionSide.South => corner.Y,
+    //            ProjectionSide.East => corner.X,
+    //            _ => throw new InvalidEnumArgumentException( $"Invalid {typeof( ProjectionSide )} value '{side}'" )
+    //        };
 
-            // ReSharper disable once InvertIf
-            if( ( side is ProjectionSide.North or ProjectionSide.West && curValue < minMaxValue )
-            || ( side is ProjectionSide.South or ProjectionSide.East && curValue > minMaxValue ) )
-            {
-                minMaxValue = curValue;
-                minMaxCorner = corner;
-            }
-        }
+    //        // ReSharper disable once InvertIf
+    //        if( ( side is ProjectionSide.North or ProjectionSide.West && curValue < minMaxValue )
+    //        || ( side is ProjectionSide.South or ProjectionSide.East && curValue > minMaxValue ) )
+    //        {
+    //            minMaxValue = curValue;
+    //            minMaxCorner = corner;
+    //        }
+    //    }
 
-        // should never happen, but
-        if( minMaxCorner == null )
-        {
-            _logger?.LogWarning( "Could not find minMaxCorner" );
-            return null;
-        }
+    //    // should never happen, but
+    //    if( minMaxCorner == null )
+    //    {
+    //        _logger?.LogWarning( "Could not find minMaxCorner" );
+    //        return null;
+    //    }
 
-        var deltaCornerX = minMaxCorner.Value.X - viewRect.Center.X;
-        var deltaCornerY = minMaxCorner.Value.Y - viewRect.Center.Y;
-        var slope = deltaCornerY / deltaCornerX;
+    //    var deltaCornerX = minMaxCorner.Value.X - viewRect.Center.X;
+    //    var deltaCornerY = minMaxCorner.Value.Y - viewRect.Center.Y;
+    //    var slope = deltaCornerY / deltaCornerX;
 
-        var centerToCorner = (float) Math.Sqrt( deltaCornerX * deltaCornerX + deltaCornerY * deltaCornerY );
+    //    var centerToCorner = (float) Math.Sqrt( deltaCornerX * deltaCornerX + deltaCornerY * deltaCornerY );
 
-        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-        switch( side )
-        {
-            case ProjectionSide.North:
-            case ProjectionSide.South:
-                var yValue = side == ProjectionSide.North ? -viewRect.Center.Y : projHeightWidth - viewRect.Center.Y;
-                var xIntersect = viewRect.Center.X + yValue / slope;
+    //    // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+    //    switch( side )
+    //    {
+    //        case ProjectionSide.North:
+    //        case ProjectionSide.South:
+    //            var yValue = side == ProjectionSide.North ? -viewRect.Center.Y : projHeightWidth - viewRect.Center.Y;
+    //            var xIntersect = viewRect.Center.X + yValue / slope;
 
-                return Distance( viewRect.Center, new Vector3( xIntersect, yValue, 0 ) ) / centerToCorner;
+    //            return Distance( viewRect.Center, new Vector3( xIntersect, yValue, 0 ) ) / centerToCorner;
 
-            case ProjectionSide.West:
-            case ProjectionSide.East:
-                var xValue = side == ProjectionSide.West ? -viewRect.Center.X : projHeightWidth - viewRect.Center.X;
-                var yIntersect = viewRect.Center.Y + slope * xValue;
+    //        case ProjectionSide.West:
+    //        case ProjectionSide.East:
+    //            var xValue = side == ProjectionSide.West ? -viewRect.Center.X : projHeightWidth - viewRect.Center.X;
+    //            var yIntersect = viewRect.Center.Y + slope * xValue;
 
-                return Distance( viewRect.Center, new Vector3( xValue, yIntersect, 0 ) ) / centerToCorner;
-        }
+    //            return Distance( viewRect.Center, new Vector3( xValue, yIntersect, 0 ) ) / centerToCorner;
+    //    }
 
-        throw new InvalidEnumArgumentException( $"Invalid {typeof( ProjectionSide )} value '{side}'" );
-    }
+    //    throw new InvalidEnumArgumentException( $"Invalid {typeof( ProjectionSide )} value '{side}'" );
+    //}
 
-    private float Distance( Vector3 pt1, Vector3 pt2 )
-    {
-        var xDelta = pt2.X - pt1.X;
-        var yDelta = pt2.Y - pt1.Y;
-        var zDelta = pt2.Z - pt1.Z;
+    //private float Distance( Vector3 pt1, Vector3 pt2 )
+    //{
+    //    var xDelta = pt2.X - pt1.X;
+    //    var yDelta = pt2.Y - pt1.Y;
+    //    var zDelta = pt2.Z - pt1.Z;
 
-        return (float) Math.Sqrt( xDelta * xDelta + yDelta * yDelta + zDelta * zDelta );
-    }
+    //    return (float) Math.Sqrt( xDelta * xDelta + yDelta * yDelta + zDelta * zDelta );
+    //}
 
     private Point ViewPointToRegionPoint( Point point )
     {
-        if( MapRegion == null || StretchStyle == MapStretchStyle.None )
+        if( RegionView == null || ShrinkStyle == ShrinkStyle.None )
             return point;
 
-        var scalingFactors = GetRegionToViewScalingFactors( ActualSize );
-
-        return scalingFactors == null
-            ? point
-            : new Point( point.X * scalingFactors.Value, point.Y * scalingFactors.Value );
+        return Zoom == null 
+            ? point 
+            : new Point( point.X * Zoom.Value, point.Y * Zoom.Value );
     }
 
     private Point RegionPointToViewPoint(Point point)
     {
-        if (MapRegion == null || StretchStyle == MapStretchStyle.None)
+        if (RegionView == null || ShrinkStyle == ShrinkStyle.None)
             return point;
 
-        var scalingFactors = GetRegionToViewScalingFactors(ActualSize);
-
-        return scalingFactors == null
+        return Zoom == null
             ? point
-            : new Point(point.X / scalingFactors.Value, point.Y / scalingFactors.Value);
+            : new Point(point.X / Zoom.Value, point.Y / Zoom.Value);
     }
 
     private void SetImagePanelTransforms()
     {
-        if( _mapGrid == null || MapRegion == null )
+        if( _mapGrid == null || RegionView == null )
             return;
 
         // define the transform to move and rotate the grid
         var transforms = new TransformGroup();
 
-        var scalingFactors = GetRegionToViewScalingFactors( new Size( ActualWidth, ActualHeight ) );
-
-        if( scalingFactors != null )
+        if( Zoom != null )
         {
             transforms.Children.Add(new ScaleTransform
             {
-                ScaleX = 1 / scalingFactors.Value,
-                ScaleY = 1 / scalingFactors.Value
+                ScaleX = 1 / Zoom.Value,
+                ScaleY = 1 / Zoom.Value
             });
         }
 
         transforms.Children.Add( new TranslateTransform
         {
-            X = scalingFactors == null
-                ? MapRegion.ViewpointOffset.X
-                : MapRegion.ViewpointOffset.X / scalingFactors.Value,
-            Y = scalingFactors == null
-                ? MapRegion.ViewpointOffset.Y
-                : MapRegion.ViewpointOffset.Y / scalingFactors.Value
+            X = Zoom == null
+                ? RegionView.LoadedAreaOffset.X
+                : RegionView.LoadedAreaOffset.X / Zoom.Value,
+            Y = Zoom == null
+                ? RegionView.LoadedAreaOffset.Y
+                : RegionView.LoadedAreaOffset.Y / Zoom.Value
         } );
 
         transforms.Children.Add( new RotateTransform
         {
-            Angle = MapRegion.Rotation,
+            Angle = MapRotation,
             CenterX = ActualWidth / 2,
             CenterY = ActualHeight / 2
         } );
@@ -377,9 +359,18 @@ public sealed partial class J4JMapControl : Control
         _mapGrid.RenderTransform = transforms;
     }
 
+    private void UpdateDisplay()
+    {
+        LoadMapImages();
+        SetImagePanelTransforms();
+        IncludeAnnotations();
+        IncludePointsOfInterest();
+        IncludeRoutes();
+    }
+
     private void LoadMapImages()
     {
-        if( _mapGrid == null )
+        if( _mapGrid == null || RegionView == null || _loadedRegion == null )
             return;
 
         DefineColumns();
@@ -387,21 +378,21 @@ public sealed partial class J4JMapControl : Control
 
         _mapGrid.Children.Clear();
 
-        for( var row = 0; row < MapRegion!.TilesHigh; row++ )
+        for( var row = _loadedRegion.FirstRow; row <= _loadedRegion.LastRow; row++ )
         {
-            for( var column = 0; column < MapRegion.TilesWide; column++ )
+            for( var column = _loadedRegion.FirstColumn; column <= _loadedRegion.LastColumn; column++ )
             {
-                var mapTile = MapRegion[ column, row ];
-                if( mapTile == null )
+                var block = _loadedRegion.GetBlock(row, column);
+                if( block == null )
                     continue;
 
-                var newImage = new Image { Height = mapTile.Height, Width = mapTile.Width };
+                var newImage = new Image { Height = block.Height, Width = block.Width };
                 Grid.SetColumn( newImage, column );
                 Grid.SetRow( newImage, row );
 
-                if( mapTile is { ImageData: not null } )
+                if( block is { ImageData: not null } )
                 {
-                    var memStream = new MemoryStream( mapTile.ImageData );
+                    var memStream = new MemoryStream( block.ImageData );
 
                     var bitmapImage = new BitmapImage();
                     bitmapImage.SetSource( memStream.AsRandomAccessStream() );
@@ -413,20 +404,24 @@ public sealed partial class J4JMapControl : Control
             }
         }
 
+        _mapGrid.Translation = _cumlTranslation;
+
         InvalidateArrange();
     }
 
     private void IncludeAnnotations()
     {
-        if( _annotationsCanvas == null || MapRegion == null )
+        if( _annotationsCanvas == null || RegionView == null )
             return;
 
         _annotationsCanvas.Children.Clear();
 
         foreach( var element in Annotations )
         {
-            if( !Location.InRegion( element, MapRegion ) )
+            if( !Location.InRegion( element, RegionView ) )
                 continue;
+
+            element.Translation = _cumlTranslation;
 
             _annotationsCanvas.Children.Add( element );
         }
@@ -434,7 +429,7 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludePointsOfInterest()
     {
-        if( _poiCanvas == null || MapRegion == null )
+        if( _poiCanvas == null || RegionView == null )
             return;
 
         _poiCanvas.Children.Clear();
@@ -442,11 +437,11 @@ public sealed partial class J4JMapControl : Control
         foreach( var item in _pointsOfInterest.PlacedItems )
         {
             if( item is not PlacedTemplatedElement poiItem
-            || !Location.InRegion( item, MapRegion )
+            || !Location.InRegion( item, RegionView )
             || poiItem.VisualElement == null )
                 continue;
 
-            var elementOffset = MapRegion.GetDisplayPosition( poiItem.Latitude, poiItem.Longitude );
+            var elementOffset = RegionView.GetDisplayPosition( poiItem.Latitude, poiItem.Longitude ) + _cumlTranslation;
             poiItem.VisualElement.PositionRelativeToPoint( elementOffset );
 
             _poiCanvas.Children.Add( poiItem.VisualElement );
@@ -455,7 +450,7 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeRoutes()
     {
-        if( _routesCanvas == null || MapRegion == null )
+        if( _routesCanvas == null || RegionView == null )
             return;
 
         _routesCanvas.Children.Clear();
@@ -468,7 +463,7 @@ public sealed partial class J4JMapControl : Control
             for( var ptNum = 0; ptNum < route.RoutePositions.PlacedItems.Count; ptNum++ )
             {
                 var curPt = route.RoutePositions.PlacedItems[ ptNum ];
-                if( !Location.InRegion( curPt, MapRegion ) )
+                if( !Location.InRegion( curPt, RegionView ) )
                     continue;
 
                 var nextPt = ptNum >= route.RoutePositions.PlacedItems.Count - 1
@@ -478,7 +473,7 @@ public sealed partial class J4JMapControl : Control
                 if( curPt is not IPlacedElement curPlaced )
                     continue;
 
-                var curPtPosition = MapRegion.GetDisplayPosition( curPlaced.Latitude, curPlaced.Longitude );
+                var curPtPosition = RegionView.GetDisplayPosition( curPlaced.Latitude, curPlaced.Longitude ) + _cumlTranslation;
 
                 if( curPlaced.VisualElement != null )
                     curPtPosition = curPlaced.VisualElement.PositionRelativeToPoint( curPtPosition );
@@ -491,10 +486,10 @@ public sealed partial class J4JMapControl : Control
                     continue;
                 }
 
-                var nextPtPosition = MapRegion.GetDisplayPosition( nextPlaced.Latitude, nextPlaced.Longitude );
+                var nextPtPosition = RegionView.GetDisplayPosition( nextPlaced.Latitude, nextPlaced.Longitude );
 
                 if( nextPlaced.VisualElement != null )
-                    nextPtPosition = nextPlaced.VisualElement.PositionRelativeToPoint( nextPtPosition );
+                    nextPtPosition = nextPlaced.VisualElement.PositionRelativeToPoint( nextPtPosition ) + _cumlTranslation;
 
                 var curElementSize = curPlaced.VisualElement == null
                     ? new Vector3()
@@ -525,17 +520,20 @@ public sealed partial class J4JMapControl : Control
 
     private void DefineColumns()
     {
-        var cellWidth = MapRegion!.ProjectionType switch
+        if( RegionView == null )
+            return;
+
+        var cellWidth = RegionView.ProjectionType switch
         {
             ProjectionType.Static => GridLength.Auto,
-            ProjectionType.Tiled => new GridLength( MapRegion.TileWidth ),
+            ProjectionType.Tiled => new GridLength( RegionView.Projection.TileHeightWidth ),
             _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
+                $"Unsupported {typeof( ProjectionType )} value '{RegionView.ProjectionType}'" )
         };
 
         _mapGrid!.ColumnDefinitions.Clear();
 
-        for( var column = 0; column < MapRegion.TilesWide; column++ )
+        for( var column = 0; column < RegionView.TilesHighWide; column++ )
         {
             _mapGrid.ColumnDefinitions.Add( new ColumnDefinition { Width = cellWidth } );
         }
@@ -543,17 +541,20 @@ public sealed partial class J4JMapControl : Control
 
     private void DefineRows()
     {
-        var cellHeight = MapRegion!.ProjectionType switch
+        if( RegionView == null ) 
+            return;
+
+        var cellHeight = RegionView!.ProjectionType switch
         {
             ProjectionType.Static => GridLength.Auto,
-            ProjectionType.Tiled => new GridLength( MapRegion.TileHeight ),
+            ProjectionType.Tiled => new GridLength( RegionView.Projection.TileHeightWidth ),
             _ => throw new InvalidEnumArgumentException(
-                $"Unsupported {typeof( ProjectionType )} value '{MapRegion.ProjectionType}'" )
+                $"Unsupported {typeof( ProjectionType )} value '{RegionView.ProjectionType}'" )
         };
 
         _mapGrid!.RowDefinitions.Clear();
 
-        for( var row = 0; row < MapRegion.TilesHigh; row++ )
+        for( var row = 0; row < RegionView.TilesHighWide; row++ )
         {
             _mapGrid.RowDefinitions.Add( new RowDefinition { Height = cellHeight } );
         }
@@ -563,7 +564,7 @@ public sealed partial class J4JMapControl : Control
     {
         availableSize = SizeIsValid( availableSize ) ? availableSize : new Size( 100, 100 );
 
-        if( MapRegion == null || _projection == null )
+        if( RegionView == null || _projection == null )
             return availableSize;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
@@ -572,7 +573,7 @@ public sealed partial class J4JMapControl : Control
         return new Size( width, height );
     }
 
-    private bool SizeIsValid( Size toCheck ) =>
+    private static bool SizeIsValid( Size toCheck ) =>
         toCheck.Width != 0
      && toCheck.Height != 0
      && !double.IsPositiveInfinity( toCheck.Height )
@@ -582,14 +583,14 @@ public sealed partial class J4JMapControl : Control
     {
         finalSize = base.ArrangeOverride( finalSize );
 
-        if( MapRegion == null )
+        if( RegionView == null )
             return finalSize;
 
-        Clip = GetRegionToViewScalingFactors( new Size( ActualWidth, ActualHeight ) ) != null
+        Clip = Zoom != null
             ? new RectangleGeometry { Rect = new Rect( new Point(), new Size( ActualWidth, ActualHeight ) ) }
             : new RectangleGeometry
             {
-                Rect = new Rect( new Point(), new Size( MapRegion.VisibleBox.Width, MapRegion.VisibleBox.Height ) )
+                Rect = new Rect( new Point(), new Size( RegionView.LoadedArea.Width, RegionView.LoadedArea.Height ) )
             };
 
         ArrangeAnnotations();
@@ -599,16 +600,16 @@ public sealed partial class J4JMapControl : Control
 
     private void ArrangeAnnotations()
     {
-        if( _annotationsCanvas == null || MapRegion == null )
+        if( _annotationsCanvas == null || RegionView == null )
             return;
 
         foreach( var element in _annotationsCanvas.Children
                                                   .Where( x => x is FrameworkElement )
                                                   .Cast<FrameworkElement>() )
         {
-            Location.TryParseLatLong( element, out var latitude, out var longitude );
-
-            element.PositionRelativeToPoint( MapRegion.GetDisplayPosition( latitude, longitude ) );
+            if( Location.TryParseLatLong( element, out var latitude, out var longitude ) )
+                element.PositionRelativeToPoint(
+                    RegionView.GetDisplayPosition( latitude, longitude ) + _cumlTranslation );
         }
     }
 

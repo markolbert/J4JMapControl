@@ -23,7 +23,6 @@
 
 using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
@@ -47,37 +46,72 @@ public class TileTests : TestBase
         int height,
         int width,
         float heading,
-        int minTileX,
-        int minTileY,
-        int maxTileX,
-        int maxTileY
+        int minCol,
+        int minRow,
+        int maxCol,
+        int maxRow
     )
     {
         var projection = CreateAndAuthenticateProjection( projectionName );
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
-        var region = new MapRegion( projection, LoggerFactory )
-                    .Center( latitude, longitude )
-                    .Size( height, width )
-                    .Heading( heading )
-                    .Scale( scale )
-                    .Update();
+        var request = new Region
+        {
+            Height = height,
+            Width = width,
+            Latitude = latitude,
+            Longitude = longitude,
+            Heading = heading,
+            Scale = scale
+        };
 
-        var result = await projection.LoadRegionAsync( region );
-        result.Should().BeTrue();
+        var regionView = projection switch
+        {
+            ITiledProjection tiledProj => (IRegionView?)new TiledRegionView(tiledProj),
+            StaticProjection staticProj => new StaticRegionView(staticProj),
+            _ => null
+        };
 
-        var numTiles = region.TilesHigh * region.TilesWide;
+        regionView.Should().NotBeNull();
+
+        var result = await regionView!.LoadRegionAsync(request);
+        result.Succeeded.Should().BeTrue();
+
+        var numTiles = projection.GetNumTiles( scale );
+        numTiles *= numTiles;
         numTiles.Should().BeGreaterThan( 0 );
 
-        region.Min( b => b.MapBlock?.X ?? int.MinValue ).Should().Be( minTileX );
-        region.Min( b => b.MapBlock?.Y ?? int.MinValue ).Should().Be( minTileY );
-        region.Max( b => b.MapBlock?.X ?? int.MaxValue ).Should().Be( maxTileX );
-        region.Max( b => b.MapBlock?.Y ?? int.MaxValue ).Should().Be( maxTileY );
-
-        foreach( var positionedBlock in region )
+        switch( regionView )
         {
-            positionedBlock.MapBlock?.ImageBytes.Should().BePositive();
+            case TiledRegionView tiledView:
+                tiledView.PositionedBlocks.Min( b => b.MapBlock.ProjectionCoordinates.Column )
+                         .Should().Be( minCol );
+
+                tiledView.PositionedBlocks.Min(b => b.MapBlock.ProjectionCoordinates.Row)
+                         .Should().Be(minRow);
+
+                tiledView.PositionedBlocks.Max(b => b.MapBlock.ProjectionCoordinates.Column)
+                         .Should().Be(maxCol);
+
+                tiledView.PositionedBlocks.Max(b => b.MapBlock.ProjectionCoordinates.Row)
+                         .Should().Be(maxRow);
+
+                foreach( var block in tiledView.PositionedBlocks.Select( b => b.MapBlock ) )
+                {
+                    block.ImageBytes.Should().BePositive();
+                }
+
+                break;
+
+            case StaticRegionView staticView:
+                staticView.StaticBlock.Should().NotBeNull();
+                staticView.StaticBlock!.ImageBytes.Should().BePositive();
+                break;
+
+            default:
+                false.Should().BeTrue();
+                break;
         }
     }
 
@@ -90,41 +124,51 @@ public class TileTests : TestBase
     [ InlineData( 0, 4, 2, true, 15, -1 ) ]
     [ InlineData( 0, 3, 2, true, 15, -1 ) ]
     [ InlineData( 1, 2, 2, true, -15, -1 ) ]
-    public void AbsoluteTile(
+    public async Task AbsoluteTile(
         int regionStart,
         int regionWidth,
         int scale,
         bool blockIsNull,
-        int relativeX,
-        int absoluteX
+        int relativeCol,
+        int absoluteCol
     )
     {
-        var projection = CreateAndAuthenticateProjection( "BingMaps" );
+        var projection = CreateAndAuthenticateProjection( "BingMaps" ) as ITiledProjection;
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
         var width = regionWidth * projection.TileHeightWidth;
 
-        var region = new MapRegion( projection, LoggerFactory )
-                    .Size( projection.TileHeightWidth, width )
-                    .Scale( scale );
-
         // since y tile is always 0, center is halfway down the first row
-        var center = new MapPoint( region );
-        center.SetCartesian( regionStart * projection.TileHeightWidth + width / 2, projection.TileHeightWidth / 2 );
+        var center = new MapPoint(projection, scale);
+        center.SetCartesian(regionStart * projection.TileHeightWidth + width / 2, projection.TileHeightWidth / 2);
 
-        region.Center( center.Latitude, center.Longitude )
-              .Update();
+        var request = new Region
+        {
+            Height = projection.TileHeightWidth,
+            Width = projection.TileHeightWidth,
+            Latitude = center.Latitude,
+            Longitude = center.Longitude,
+            Heading = 0,
+            Scale = scale
+        };
 
-        var mapBlock = TileBlock.CreateBlock( region, relativeX, 0 );
+        var region = new TiledRegionView( projection );
+        var loaded = await region.LoadRegionAsync( request );
+        loaded.Succeeded.Should().BeTrue();
 
         if( blockIsNull )
-            mapBlock.Should().BeNull();
+            region.PositionedBlocks.Should().HaveCount( 0 );
         else
         {
-            mapBlock.Should().NotBeNull();
-            mapBlock!.X.Should().Be( absoluteX );
-            mapBlock.Y.Should().Be( 0 );
+            region.PositionedBlocks.Should().HaveCount( 1 );
+
+            var positionedBlock = region.PositionedBlocks[ 0 ];
+            positionedBlock.Column.Should().Be( relativeCol );
+            positionedBlock.Row.Should().Be( relativeCol );
+
+            positionedBlock.MapBlock.ProjectionCoordinates.Column.Should().Be( absoluteCol );
+            positionedBlock.MapBlock.ProjectionCoordinates.Row.Should().Be( 0 );
         }
     }
 }

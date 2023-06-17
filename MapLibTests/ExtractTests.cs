@@ -23,7 +23,6 @@
 
 using FluentAssertions;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace MapLibTests;
 
@@ -66,17 +65,33 @@ public class ExtractTests : TestBase
         projection!.Initialized.Should().BeTrue();
         projection.MaxRequestLatency = 0;
 
-        var region = new MapRegion( projection, LoggerFactory )
-                    .Center( latitude, longitude )
-                    .Heading( heading )
-                    .Size( height, width )
-                    .Scale( scale )
-                    .Update();
+        var regionView = projection switch
+        {
+            ITiledProjection tiledProj => (IRegionView?) new TiledRegionView( tiledProj ),
+            StaticProjection staticProj => new StaticRegionView( staticProj ),
+            _ => null
+        };
+        
+        regionView.Should().NotBeNull();
 
-        var result = await projection.LoadRegionAsync( region );
-        result.Should().BeTrue();
+        var request = new Region
+        {
+            Height = height,
+            Width = width,
+            Latitude = latitude,
+            Longitude = longitude,
+            Heading = heading,
+            Scale = scale
+        };
 
-        var numTiles = region.TilesHigh * region.TilesWide;
-        numTiles.Should().Be( numFragments );
+        var result = await regionView!.LoadRegionAsync( request );
+        result.Succeeded.Should().BeTrue();
+
+        if( projection is ITiledProjection )
+        {
+            var numTiles = projection.GetNumTiles( scale );
+            numTiles *= numTiles;
+            numTiles.Should().Be( numFragments );
+        }
     }
 }

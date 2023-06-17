@@ -21,6 +21,7 @@
 
 #endregion
 
+using J4JSoftware.VisualUtilities;
 using Microsoft.UI.Xaml;
 
 namespace J4JSoftware.J4JMapWinLibrary;
@@ -69,12 +70,12 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public DependencyProperty StretchStyleProperty = DependencyProperty.Register(nameof(StretchStyle),
-        typeof(MapStretchStyle), typeof(J4JMapControl), new PropertyMetadata(MapStretchStyle.None));
+    public DependencyProperty ShrinkStyleProperty = DependencyProperty.Register(nameof(ShrinkStyle),
+        typeof(ShrinkStyle), typeof(J4JMapControl), new PropertyMetadata(ShrinkStyle.None));
 
-    public MapStretchStyle StretchStyle
+    public ShrinkStyle ShrinkStyle
     {
-        get => (MapStretchStyle) GetValue( StretchStyleProperty );
-        set => SetValue( StretchStyleProperty, value );
+        get => (ShrinkStyle) GetValue( ShrinkStyleProperty );
+        set => SetValue( ShrinkStyleProperty, value );
     }
 }

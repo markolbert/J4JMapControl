@@ -21,10 +21,10 @@
 
 #endregion
 
-using System;
-using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
+using ABI.System.Numerics;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
@@ -32,7 +32,13 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    public MapRegion? MapRegion { get; private set; }
+    private float _centerLatitude;
+    private float _centerLongitude;
+    private ILoadedRegion? _loadedRegion;
+
+    public IRegionView? RegionView { get; private set; }
+
+    public float? Zoom { get; private set; }
 
     public DependencyProperty CenterProperty = DependencyProperty.Register( nameof( Center ),
                                                                             typeof( string ),
@@ -47,36 +53,29 @@ public sealed partial class J4JMapControl
         {
             SetValue( CenterProperty, value );
 
-            if( !MapExtensions.TryParseToLatLong( value, out var latitude, out var longitude ) )
-            {
+            if( !MapExtensions.TryParseToLatLong( value, out _centerLatitude, out _centerLongitude ) )
                 _logger?.LogError( "Could not parse center '{center}' to latitude/longitude, defaulting to (0,0)",
                                    value );
-            }
-
-            MapRegion?.Center( latitude, longitude );
         }
     }
 
-    public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( Heading ),
+    public DependencyProperty HeadingProperty = DependencyProperty.Register( nameof( MapHeading ),
                                                                              typeof( double ),
                                                                              typeof( J4JMapControl ),
                                                                              new PropertyMetadata( 0D ) );
 
-    public double Heading
+    public double MapHeading
     {
         get => (double) GetValue( HeadingProperty );
 
         set
         {
-            MapRegion?.Heading( (float) value );
-
-            // we call SetValue after updating MapRegion so that
-            // modulus 360 logic can be applied
-            SetValue( HeadingProperty, MapRegion?.Heading ?? value );
-
+            SetValue(HeadingProperty, value);
             PositionCompassRose();
         }
     }
+
+    public double MapRotation => ( 360 - MapHeading ) % 360;
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( double ),
@@ -95,12 +94,7 @@ public sealed partial class J4JMapControl
                     ? MaxMapScale
                     : retVal;
         }
-
-        set
-        {
-            SetValue( MapScaleProperty, value );
-            MapRegion?.Scale( (int) value );
-        }
+        set => SetValue( MapScaleProperty, value );
     }
 
     public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
@@ -111,44 +105,39 @@ public sealed partial class J4JMapControl
     public string? MapStyle
     {
         get => (string?) GetValue( MapStyleProperty );
-
-        set
-        {
-            SetValue( MapStyleProperty, value );
-            MapRegion?.MapStyle( value );
-        }
+        set => SetValue( MapStyleProperty, value );
     }
 
-    private async void MapRegionBuildUpdated( object? sender, MapRegionChange change )
+    private async Task LoadRegion( float height, float width, CancellationToken ctx = default )
     {
-        switch( change )
+        if( RegionView == null )
+            return;
+
+        var region = new Region
         {
-            case MapRegionChange.Empty:
-            case MapRegionChange.NoChange:
-                break;
+            Heading = (float) MapHeading,
+            Height = height,
+            Width = width,
+            Latitude = _centerLatitude,
+            Longitude = _centerLongitude,
+            MapStyle = MapStyle,
+            Scale = (int) MapScale,
+            ShrinkStyle = ShrinkStyle
+        };
 
-            case MapRegionChange.OffsetChanged:
-                SetImagePanelTransforms();
-                IncludeAnnotations();
-                IncludePointsOfInterest();
-                IncludeRoutes();
-                break;
+        Zoom = RegionView.GetZoom( region );
 
-            case MapRegionChange.LoadRequired:
-                await _projection!.LoadRegionAsync( MapRegion! );
-                SetImagePanelTransforms();
-                IncludeAnnotations();
-                IncludePointsOfInterest();
-                IncludeRoutes();
-                break;
-
-            default:
-                throw new InvalidEnumArgumentException( $"Unsupported {typeof( MapRegionChange )} value '{change}'" );
+        if( Zoom != null )
+        {
+            region.Height = Zoom.Value * region.Height;
+            region.Width = Zoom.Value * region.Width;
         }
-    }
 
-    private void MapRegionConfigurationChanged( object? sender, EventArgs e )
-    {
-        _throttleRegionChanges.Throttle( UpdateEventInterval, _ => MapRegion!.Update() );
+        _loadedRegion = await RegionView.LoadRegionAsync( region, ctx );
+
+        if( _loadedRegion.Succeeded )
+            UpdateDisplay();
+        else
+            _logger?.LogError( "Failed to load region from {regionView}", nameof( RegionView ) );
     }
 }

@@ -43,25 +43,21 @@ public abstract class StaticProjection : Projection
         CancellationToken ctx = default
     )
     {
-        var retVal = StaticBlock.CreateBlock( this, x, y, scale );
-        if( retVal != null )
-            await LoadImageAsync( retVal, ctx );
+        var retVal = new StaticBlock( this, x, y, scale );
+        await LoadImageAsync( retVal, ctx );
 
         return retVal;
     }
 
-    protected override async Task<bool> LoadRegionInternalAsync(
-        MapRegion.MapRegion region,
+    protected override async Task<bool> LoadBlocksInternalAsync(
+        IEnumerable<MapBlock> blocks,
         CancellationToken ctx = default
     )
     {
-        if( region.IsDefined )
-        {
-            var mapBlock = region.MapBlocks.FirstOrDefault()?.MapBlock;
+        var mapBlock = blocks.FirstOrDefault();
 
-            if( mapBlock != null )
-                return await LoadImageAsync( mapBlock, ctx );
-        }
+        if( mapBlock != null )
+            return await LoadImageAsync( mapBlock, ctx );
 
         Logger?.LogError( "Undefined static MapRegion" );
         return false;

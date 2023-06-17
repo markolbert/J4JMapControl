@@ -25,8 +25,6 @@ using System;
 using System.Numerics;
 using Windows.Foundation;
 using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.J4JMapLibrary.MapRegion;
-using J4JSoftware.VisualUtilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -62,24 +60,23 @@ public static class Extensions
         Math.Atan2( origin.Y - point.Y, point.X - origin.X )
       * MapConstants.DegreesPerRadian;
 
-    public static Vector3 GetDisplayPosition( this MapRegion region, float latitude, float longitude )
+    public static Vector3 GetDisplayPosition( this IRegionView region, float latitude, float longitude )
     {
-        var mapPoint = new MapPoint( region );
+        var mapPoint = new MapPoint( region.Projection, region.AdjustedRegion.Scale );
         mapPoint.SetLatLong( latitude, longitude );
 
-        var (displayX, displayY) = region.UpperLeft.GetUpperLeftCartesian();
+        var (displayX, displayY) = region.GetUpperLeftCartesian();
 
-        var position = region.ViewpointOffset;
+        var position = region.LoadedAreaOffset;
         position.X += mapPoint.X - displayX;
         position.Y += mapPoint.Y - displayY;
 
-        if( region.Rotation % 360 == 0 )
+        if( region.AdjustedRegion.Rotation % 360 == 0 )
             return position;
 
-        var centerPoint = new Vector3( region.RequestedWidth / 2, region.RequestedHeight / 2, 0 );
-
         var transform =
-            Matrix4x4.CreateRotationZ( region.Rotation * MapConstants.RadiansPerDegree, centerPoint );
+            Matrix4x4.CreateRotationZ( region.AdjustedRegion.Rotation * MapConstants.RadiansPerDegree,
+                                       region.LoadedArea.Center );
         position = Vector3.Transform( position, transform );
 
         return position;

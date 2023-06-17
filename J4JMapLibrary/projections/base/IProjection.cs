@@ -56,8 +56,6 @@ public interface IProjection : IEquatable<IProjection>
     string Copyright { get; }
     Uri? CopyrightUri { get; }
 
-    event EventHandler<bool>? LoadComplete;
-
     int GetHeightWidth( int scale );
 
     MinMax<float> GetXYRange( int scale );
@@ -70,8 +68,8 @@ public interface IProjection : IEquatable<IProjection>
 
     Task<MapBlock?> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default );
 
-    Task<bool> LoadRegionAsync(
-        MapRegion.MapRegion region,
+    Task<bool> LoadBlocksAsync(
+        IEnumerable<MapBlock> blocks,
         CancellationToken ctx = default
     );
 

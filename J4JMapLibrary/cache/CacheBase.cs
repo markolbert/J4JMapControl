@@ -57,11 +57,10 @@ public abstract class CacheBase : ITileCache
         if( await LoadImageDataInternalAsync( mapBlock, ctx ) )
             return true;
 
-        Logger?.LogTrace( "{0} Failed to find {1} cache entry for mapFragment ({2}, {3})",
+        Logger?.LogTrace( "{type} Failed to find {name} cache entry for mapFragment {id}",
                           GetType(),
                           mapBlock.Projection.Name,
-                          mapBlock.X,
-                          mapBlock.Y );
+                          mapBlock.FragmentId );
 
         return false;
     }
