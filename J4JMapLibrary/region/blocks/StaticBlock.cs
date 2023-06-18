@@ -6,20 +6,18 @@ namespace J4JSoftware.J4JMapLibrary;
 public class StaticBlock : MapBlock
 {
     public StaticBlock(
-        IRegionView regionView
+        StaticProjection projection,
+        Region region
     )
-        : base( regionView.Projection, regionView.RequestedRegion.Scale )
+        : base( projection, region.Scale )
     {
-        if( regionView.ProjectionType != ProjectionType.Static )
-            throw new ArgumentException(
-                $"Expected an {typeof( IRegionView )} based on a {typeof( StaticProjection )} but received a {regionView.Projection.GetType()} instead" );
+        var area = region.Area ?? 
+            throw new ArgumentException( $"{typeof( Region )} does not contain a valid area" );
 
-        Height = regionView.LoadedArea.Height;
-        Width = regionView.LoadedArea.Width;
-        Bounds = regionView.LoadedArea;
-
-        CenterPoint = regionView.Center 
-         ?? throw new ArgumentException( $"{typeof(IRegionView)} is not defined");
+        Height = area.Height;
+        Width = area.Width;
+        Bounds = area;
+        CenterPoint = region.CenterPoint!;
 
         FragmentId =
             $"{MapExtensions.LatitudeToText( CenterPoint.Latitude )}-{MapExtensions.LongitudeToText( CenterPoint.Longitude )}-{Scale}{GetStyleKey( Projection )}-{Projection.TileHeightWidth}-{Projection.TileHeightWidth}";
