@@ -1,9 +1,13 @@
-﻿namespace J4JSoftware.J4JMapLibrary;
+﻿using System.Numerics;
+using J4JSoftware.VisualUtilities;
+
+namespace J4JSoftware.J4JMapLibrary;
 
 public interface ILoadedRegion
 {
-    bool Succeeded { get; }
+    bool ImagesLoaded { get; }
     float? Zoom { get; }
+    Vector3 Offset { get; }
 
     int FirstRow { get; }
     int LastRow { get; }
