@@ -60,28 +60,6 @@ public static class Extensions
         Math.Atan2( origin.Y - point.Y, point.X - origin.X )
       * MapConstants.DegreesPerRadian;
 
-    public static Vector3 GetDisplayPosition( this IRegionView region, float latitude, float longitude )
-    {
-        var mapPoint = new MapPoint( region.Projection, region.AdjustedRegion.Scale );
-        mapPoint.SetLatLong( latitude, longitude );
-
-        var (displayX, displayY) = region.GetUpperLeftCartesian();
-
-        var position = region.LoadedAreaOffset;
-        position.X += mapPoint.X - displayX;
-        position.Y += mapPoint.Y - displayY;
-
-        if( region.AdjustedRegion.Rotation % 360 == 0 )
-            return position;
-
-        var transform =
-            Matrix4x4.CreateRotationZ( region.AdjustedRegion.Rotation * MapConstants.RadiansPerDegree,
-                                       region.LoadedArea.Center );
-        position = Vector3.Transform( position, transform );
-
-        return position;
-    }
-
     public static Vector3 PositionRelativeToPoint( this FrameworkElement element, Vector3 position )
     {
         position.X += (float) ( element.HorizontalAlignment switch
