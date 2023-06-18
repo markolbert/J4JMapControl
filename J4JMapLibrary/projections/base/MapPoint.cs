@@ -21,21 +21,39 @@
 
 #endregion
 
+// ReSharper disable NonReadonlyMemberInGetHashCode
 namespace J4JSoftware.J4JMapLibrary;
 
 public class MapPoint
 {
+    protected bool Equals( MapPoint other ) =>
+        X.Equals( other.X )
+     && Y.Equals( other.Y )
+     && Latitude.Equals( other.Latitude )
+     && Longitude.Equals( other.Longitude );
+
+    public override bool Equals( object? obj )
+    {
+        if( ReferenceEquals( null, obj ) )
+            return false;
+        if( ReferenceEquals( this, obj ) )
+            return true;
+        if( obj.GetType() != this.GetType() )
+            return false;
+
+        return Equals( (MapPoint) obj );
+    }
+
+    public override int GetHashCode() => HashCode.Combine( X, Y, Latitude, Longitude );
+
+    public static bool operator==( MapPoint? left, MapPoint? right ) => Equals( left, right );
+
+    public static bool operator!=( MapPoint? left, MapPoint? right ) => !Equals( left, right );
+
     private IProjection _projection;
     private int _scale;
     private bool _suppressUpdate;
     public EventHandler? Changed;
-
-    //public MapPoint(
-    //    MapRegion region
-    //)
-    //    : this( region.Projection, region.Scale )
-    //{
-    //}
 
     public MapPoint(
         IProjection projection,
