@@ -56,12 +56,14 @@ public class TileTests : TestBase
         projection.Should().NotBeNull();
         projection!.Initialized.Should().BeTrue();
 
+        var center = new MapPoint(projection, scale);
+        center.SetLatLong(latitude, longitude);
+
         var request = new Region
         {
             Height = height,
             Width = width,
-            Latitude = latitude,
-            Longitude = longitude,
+            CenterPoint = center,
             Heading = heading,
             Scale = scale
         };
@@ -76,37 +78,38 @@ public class TileTests : TestBase
         regionView.Should().NotBeNull();
 
         var result = await regionView!.LoadRegionAsync(request);
-        result.Succeeded.Should().BeTrue();
+        result.Should().NotBeNull();
+        result!.ImagesLoaded.Should().BeTrue();
 
         var numTiles = projection.GetNumTiles( scale );
         numTiles *= numTiles;
         numTiles.Should().BeGreaterThan( 0 );
 
-        switch( regionView )
+        switch( result )
         {
-            case TiledRegionView tiledView:
-                tiledView.PositionedBlocks.Min( b => b.MapBlock.ProjectionCoordinates.Column )
+            case LoadedTiledRegion tiledRegion:
+                tiledRegion.Blocks.Min( b => b.MapBlock.ProjectionCoordinates.Column )
                          .Should().Be( minCol );
 
-                tiledView.PositionedBlocks.Min(b => b.MapBlock.ProjectionCoordinates.Row)
+                tiledRegion.Blocks.Min(b => b.MapBlock.ProjectionCoordinates.Row)
                          .Should().Be(minRow);
 
-                tiledView.PositionedBlocks.Max(b => b.MapBlock.ProjectionCoordinates.Column)
+                tiledRegion.Blocks.Max(b => b.MapBlock.ProjectionCoordinates.Column)
                          .Should().Be(maxCol);
 
-                tiledView.PositionedBlocks.Max(b => b.MapBlock.ProjectionCoordinates.Row)
+                tiledRegion.Blocks.Max(b => b.MapBlock.ProjectionCoordinates.Row)
                          .Should().Be(maxRow);
 
-                foreach( var block in tiledView.PositionedBlocks.Select( b => b.MapBlock ) )
+                foreach( var block in tiledRegion.Blocks.Select( b => b.MapBlock ) )
                 {
                     block.ImageBytes.Should().BePositive();
                 }
 
                 break;
 
-            case StaticRegionView staticView:
-                staticView.StaticBlock.Should().NotBeNull();
-                staticView.StaticBlock!.ImageBytes.Should().BePositive();
+            case LoadedStaticRegion staticRegion:
+                staticRegion.Block.Should().NotBeNull();
+                staticRegion.Block!.ImageBytes.Should().BePositive();
                 break;
 
             default:
@@ -147,23 +150,23 @@ public class TileTests : TestBase
         {
             Height = projection.TileHeightWidth,
             Width = projection.TileHeightWidth,
-            Latitude = center.Latitude,
-            Longitude = center.Longitude,
+            CenterPoint = center,
             Heading = 0,
             Scale = scale
         };
 
         var region = new TiledRegionView( projection );
-        var loaded = await region.LoadRegionAsync( request );
-        loaded.Succeeded.Should().BeTrue();
+        var loaded = await region.LoadRegionAsync( request ) as LoadedTiledRegion;
+        loaded.Should().NotBeNull();
+        loaded!.ImagesLoaded.Should().BeTrue();
 
         if( blockIsNull )
-            region.PositionedBlocks.Should().HaveCount( 0 );
+            loaded.Blocks.Should().HaveCount( 0 );
         else
         {
-            region.PositionedBlocks.Should().HaveCount( 1 );
+            loaded.Blocks.Should().HaveCount( 1 );
 
-            var positionedBlock = region.PositionedBlocks[ 0 ];
+            var positionedBlock = loaded.Blocks[ 0 ];
             positionedBlock.Column.Should().Be( relativeCol );
             positionedBlock.Row.Should().Be( relativeCol );
 

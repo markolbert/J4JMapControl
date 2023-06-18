@@ -79,10 +79,10 @@ public class CreateImages : TestBase
 
         var loaded = await regionView.LoadRegionAsync( request ) as LoadedTiledRegion;
         loaded.Should().NotBeNull();
-        loaded!.Succeeded.Should().BeTrue();
-        regionView.PositionedBlocks.Should().HaveCount(1);
+        loaded!.ImagesLoaded.Should().BeTrue();
+        loaded.Blocks.Should().HaveCount(1);
 
-        return regionView.PositionedBlocks[0].MapBlock;
+        return loaded.Blocks[0].MapBlock;
     }
 
     private async Task<MapBlock> GetMapBlockAsync( StaticProjection projection, TileImageData.Tile data )
@@ -92,7 +92,7 @@ public class CreateImages : TestBase
 
         var loaded = await regionView.LoadRegionAsync( request ) as LoadedStaticRegion;
         loaded.Should().NotBeNull();
-        loaded!.Succeeded.Should().BeTrue();
+        loaded!.ImagesLoaded.Should().BeTrue();
         
         loaded.Block.Should().NotBeNull();
         return loaded.Block!;

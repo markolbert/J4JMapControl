@@ -74,18 +74,21 @@ public class ExtractTests : TestBase
         
         regionView.Should().NotBeNull();
 
+        var center = new MapPoint( projection, scale );
+        center.SetLatLong( latitude, longitude );
+
         var request = new Region
         {
             Height = height,
             Width = width,
-            Latitude = latitude,
-            Longitude = longitude,
+            CenterPoint = center,
             Heading = heading,
             Scale = scale
         };
 
         var result = await regionView!.LoadRegionAsync( request );
-        result.Succeeded.Should().BeTrue();
+        result.Should().NotBeNull();
+        result!.ImagesLoaded.Should().BeTrue();
 
         if( projection is ITiledProjection )
         {
