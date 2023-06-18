@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +39,6 @@ public sealed partial class J4JMapControl
 {
     public event EventHandler<ValidCredentialsEventArgs>? ValidCredentials;
 
-    private readonly DispatcherQueue _dispatcherLoadImages = DispatcherQueue.GetForCurrentThread();
     private readonly DispatcherQueue _dispatcherChangeProjection = DispatcherQueue.GetForCurrentThread();
     private readonly ThrottleDispatcher _throttleRegionChanges = new();
 
@@ -107,19 +105,22 @@ public sealed partial class J4JMapControl
 
         _projection = newProjection;
 
+        // make sure certain values are consistent with the new projection
+        var scale = MapScale;
+        MapScale = scale;
+
+        if( MapExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
+            SetMapCenterPoint( latitude, longitude );
+        else
+            _logger?.LogError( "Could not parse CenterPoint ('{center}') to latitude/longitude, defaulting to 0/0",
+                               Center );
+
+        SetMapRectangle();
+        
         InitializeCaching();
 
         MapStyles = _projection.MapStyles.ToList();
         MapStyle = _projection.MapStyle ?? string.Empty;
-
-        if( !MapExtensions.TryParseToLatLong( Center, out var latitude, out var longitude ) )
-            _logger?.LogError( "Could not parse CenterPoint ('{center}') to latitude/longitude, defaulting to 0/0", Center );
-
-        if( RegionView != null )
-        {
-            //RegionView.ImagesLoaded -= OnImagesLoaded;
-            RegionView.PropertyChanged -= RegionViewOnPropertyChanged;
-        }
 
         RegionView = _projection switch
         {
@@ -134,45 +135,9 @@ public sealed partial class J4JMapControl
             return;
         }
 
-        //RegionView.ImagesLoaded += OnImagesLoaded;
-        RegionView.PropertyChanged += RegionViewOnPropertyChanged;
-
         MinMapScale = _projection.MinScale;
         MaxMapScale = _projection.MaxScale;
     }
-
-    private void RegionViewOnPropertyChanged( object? sender, PropertyChangedEventArgs e )
-    {
-        switch( e.PropertyName )
-        {
-            case "Latitude":
-            case "Longitude":
-                if( RegionView?.Center != null )
-                {
-                    SetValue( CenterProperty,
-                           MapExtensions.ConvertToLatLongText( RegionView.Center.Latitude,
-                                                               RegionView.Center.Longitude ) );
-
-                    _centerLatitude = RegionView.Center.Latitude;
-                    _centerLongitude = RegionView.Center.Longitude;
-                }
-
-                break;
-
-            case "Scale":
-                if( RegionView != null )
-                    SetValue( MapScaleProperty, RegionView.AdjustedRegion.Scale );
-
-                break;
-        }
-    }
-
-    //private void OnImagesLoaded(object? sender, bool loaded)
-    //{
-    //    if (loaded)
-    //        _dispatcherLoadImages.TryEnqueue(UpdateDisplay);
-    //    else _logger?.LogError("Failed to load region view images");
-    //}
 
     private async Task<bool> AuthenticateProjection(
         IProjection projection,

@@ -211,14 +211,10 @@ public sealed partial class J4JMapControl
         _movementProcessor.Enabled = false;
 
         // reload based on new center point
-        if( _projection != null )
+        if( MapCenterPoint!= null )
         {
-            var centerPt = new MapPoint( _projection, (int) MapScale );
-
-            centerPt.SetLatLong( _centerLatitude, _centerLongitude );
-            centerPt.OffsetCartesian( _cumlTranslation.X, _cumlTranslation.Y );
-
-            Center = MapExtensions.ConvertToLatLongText( centerPt.Latitude, centerPt.Longitude );
+            MapCenterPoint.OffsetCartesian(_cumlTranslation.X, _cumlTranslation.Y);
+            Center = MapExtensions.ConvertToLatLongText( MapCenterPoint.Latitude, MapCenterPoint.Longitude );
         }
 
         if( _cumlRotation != 0 )
@@ -253,7 +249,7 @@ public sealed partial class J4JMapControl
 
     private void CenterOnDoubleTap( Point point )
     {
-        if( RegionView == null || _projection == null )
+        if( RegionView == null || MapCenterPoint == null )
             return;
 
         point = ViewPointToRegionPoint( point );
@@ -261,12 +257,8 @@ public sealed partial class J4JMapControl
         var xOffset = (float) ( point.X - ActualWidth / 2 );
         var yOffset = (float) ( point.Y - ActualHeight / 2 );
 
-        var centerPt = new MapPoint( _projection, (int) MapScale );
-
-        centerPt.SetLatLong( _centerLatitude, _centerLongitude );
-        centerPt.OffsetCartesian( xOffset, yOffset );
-
-        Center = MapExtensions.ConvertToLatLongText( centerPt.Latitude, centerPt.Longitude );
+        MapCenterPoint.OffsetCartesian( xOffset, yOffset );
+        Center = MapExtensions.ConvertToLatLongText( MapCenterPoint.Latitude, MapCenterPoint.Longitude );
     }
 
     public bool SetHeadingByText( string text )

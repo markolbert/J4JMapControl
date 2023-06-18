@@ -21,10 +21,12 @@
 
 #endregion
 
+using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using ABI.System.Numerics;
 using J4JSoftware.J4JMapLibrary;
+using J4JSoftware.VisualUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
@@ -32,8 +34,6 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    private float _centerLatitude;
-    private float _centerLongitude;
     private ILoadedRegion? _loadedRegion;
 
     public IRegionView? RegionView { get; private set; }
@@ -51,11 +51,52 @@ public sealed partial class J4JMapControl
 
         set
         {
+            if( !MapExtensions.TryParseToLatLong( value, out var latitude, out var longitude ) )
+            {
+                _logger?.LogError( "Could not parse center '{center}' to latitude/longitude, ignoring", value );
+                return;
+            }
+
             SetValue( CenterProperty, value );
 
-            if( !MapExtensions.TryParseToLatLong( value, out _centerLatitude, out _centerLongitude ) )
-                _logger?.LogError( "Could not parse center '{center}' to latitude/longitude, defaulting to (0,0)",
-                                   value );
+            SetMapCenterPoint( latitude, longitude );
+            SetMapRectangle();
+        }
+    }
+
+    private void SetMapCenterPoint( float latitude, float longitude )
+    {
+        if( _projection == null )
+        {
+            MapCenterPoint = null;
+            return;
+        }
+
+        MapCenterPoint = new MapPoint( _projection, (int) MapScale );
+        MapCenterPoint.SetLatLong( latitude, longitude );
+    }
+
+    public MapPoint? MapCenterPoint { get; private set; }
+
+    public Rectangle2D? MapRectangle { get; private set; }
+    public Vector3 MapUpperLeft { get; private set; }
+
+    private void SetMapRectangle()
+    {
+        if( MapCenterPoint == null )
+        {
+            MapRectangle = null;
+            MapUpperLeft = Vector3.Zero;
+        }
+        else
+        {
+            MapRectangle = new Rectangle2D( ActualSize.Y,
+                                            ActualSize.X,
+                                            MapRotation,
+                                            new Vector3( MapCenterPoint.X, MapCenterPoint.Y, 0 ),
+                                            CoordinateSystem2D.Display );
+
+            MapUpperLeft = MapRectangle.OrderByDescending(c => c.X).ThenBy(c => c.Y).First();
         }
     }
 
@@ -75,7 +116,7 @@ public sealed partial class J4JMapControl
         }
     }
 
-    public double MapRotation => ( 360 - MapHeading ) % 360;
+    public float MapRotation => ( 360 - (float) MapHeading ) % 360;
 
     public DependencyProperty MapScaleProperty = DependencyProperty.Register( nameof( MapScale ),
                                                                               typeof( double ),
@@ -94,7 +135,22 @@ public sealed partial class J4JMapControl
                     ? MaxMapScale
                     : retVal;
         }
-        set => SetValue( MapScaleProperty, value );
+
+        set
+        {
+            var castValue = (int) value;
+
+            if( _projection != null )
+                castValue = _projection.ScaleRange.ConformValueToRange( castValue, "MapScale" );
+
+            SetValue( MapScaleProperty, castValue );
+
+            if( MapCenterPoint == null )
+                return;
+
+            SetMapCenterPoint( MapCenterPoint.Latitude, MapCenterPoint.Longitude );
+            SetMapRectangle();
+        }
     }
 
     public DependencyProperty MapStyleProperty = DependencyProperty.Register( nameof( MapStyle ),
@@ -110,7 +166,7 @@ public sealed partial class J4JMapControl
 
     private async Task LoadRegion( float height, float width, CancellationToken ctx = default )
     {
-        if( RegionView == null )
+        if( RegionView == null || MapCenterPoint == null )
             return;
 
         var region = new Region
@@ -118,8 +174,7 @@ public sealed partial class J4JMapControl
             Heading = (float) MapHeading,
             Height = height,
             Width = width,
-            Latitude = _centerLatitude,
-            Longitude = _centerLongitude,
+            CenterPoint = MapCenterPoint,
             MapStyle = MapStyle,
             Scale = (int) MapScale,
             ShrinkStyle = ShrinkStyle
@@ -135,7 +190,7 @@ public sealed partial class J4JMapControl
 
         _loadedRegion = await RegionView.LoadRegionAsync( region, ctx );
 
-        if( _loadedRegion.Succeeded )
+        if( _loadedRegion?.ImagesLoaded ?? false )
             UpdateDisplay();
         else
             _logger?.LogError( "Failed to load region from {regionView}", nameof( RegionView ) );
