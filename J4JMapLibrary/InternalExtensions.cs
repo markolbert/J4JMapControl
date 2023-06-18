@@ -51,31 +51,6 @@ internal static class InternalExtensions
         return sb.ToString();
     }
 
-    internal static T ConformValueToRange<T>( this MinMax<T> range, T toCheck, string name )
-        where T : struct, IComparable
-    {
-        if( toCheck.CompareTo( range.Minimum ) < 0 )
-            return range.Minimum;
-
-        if( toCheck.CompareTo( range.Maximum ) <= 0 )
-            return toCheck;
-
-        return range.Maximum;
-    }
-
-    internal static bool InRange<T>( this MinMax<T> range, T toCheck )
-        where T : struct, IComparable =>
-        toCheck.CompareTo( range.Minimum ) >= 0 && toCheck.CompareTo( range.Maximum ) <= 0;
-
-    internal static int CompareTo<T>( this MinMax<T> range, T toCheck )
-        where T : struct, IComparable
-    {
-        if( toCheck.CompareTo( range.Minimum ) < 0 )
-            return -1;
-
-        return toCheck.CompareTo( range.Maximum ) > 0 ? 1 : 0;
-    }
-
     internal static Vector3[] ApplyTransform( this Vector3[] points, Matrix4x4 transform )
     {
         var retVal = new Vector3[ points.Length ];

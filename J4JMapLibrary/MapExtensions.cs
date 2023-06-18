@@ -23,6 +23,7 @@
 
 using System.Text;
 using System.Text.RegularExpressions;
+using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -206,7 +207,11 @@ public static partial class MapExtensions
         return true;
     }
 
-    public static bool TryParseToLatLong( string? text, out float latitude, out float longitude )
+    public static bool TryParseToLatLong(
+        string? text,
+        out float latitude,
+        out float longitude
+    )
     {
         latitude = 0;
         longitude = 0;
@@ -257,4 +262,39 @@ public static partial class MapExtensions
 
         return !double.IsNaN( heading );
     }
+
+    public static (float X, float Y) GetUpperLeftCartesian( this Rectangle2D rect )
+    {
+        var upperLeft = rect.OrderByDescending(c => c.X)
+                                  .ThenByDescending(c => c.Y)
+                                  .FirstOrDefault();
+
+        return (upperLeft.X, upperLeft.Y);
+    }
+
+    public static T ConformValueToRange<T>(this MinMax<T> range, T toCheck, string name)
+        where T : struct, IComparable
+    {
+        if (toCheck.CompareTo(range.Minimum) < 0)
+            return range.Minimum;
+
+        if (toCheck.CompareTo(range.Maximum) <= 0)
+            return toCheck;
+
+        return range.Maximum;
+    }
+
+    public static bool InRange<T>(this MinMax<T> range, T toCheck)
+        where T : struct, IComparable =>
+        toCheck.CompareTo(range.Minimum) >= 0 && toCheck.CompareTo(range.Maximum) <= 0;
+
+    public static int CompareTo<T>(this MinMax<T> range, T toCheck)
+        where T : struct, IComparable
+    {
+        if (toCheck.CompareTo(range.Minimum) < 0)
+            return -1;
+
+        return toCheck.CompareTo(range.Maximum) > 0 ? 1 : 0;
+    }
+
 }
