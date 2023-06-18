@@ -88,39 +88,4 @@ public class Location : DependencyObject
         offset = temp!.Value;
         return true;
     }
-
-    public static bool InRegion( FrameworkElement element, IRegionView region )
-    {
-        if( !TryParseLatLong( element, out var latitude, out var longitude ) )
-            return false;
-
-        if( latitude < -MapConstants.Wgs84MaxLatitude || latitude > MapConstants.Wgs84MaxLatitude )
-            return false;
-
-        var mapPoint = new MapPoint( region.Projection, region.AdjustedRegion.Scale );
-        mapPoint.SetLatLong( latitude, longitude );
-
-        var (upperLeftX, upperLeftY) = region.GetUpperLeftCartesian();
-
-        return mapPoint.X >= upperLeftX
-         && mapPoint.X < upperLeftX + region.AdjustedRegion.Width + region.Projection.TileHeightWidth
-         && mapPoint.Y >= upperLeftY
-         && mapPoint.Y < upperLeftY + region.AdjustedRegion.Height + region.Projection.TileHeightWidth;
-    }
-
-    public static bool InRegion( IPlacedItem item, IRegionView region )
-    {
-        if( item.Latitude < -MapConstants.Wgs84MaxLatitude || item.Latitude > MapConstants.Wgs84MaxLatitude )
-            return false;
-
-        var mapPoint = new MapPoint(region.Projection, region.AdjustedRegion.Scale);
-        mapPoint.SetLatLong( item.Latitude, item.Longitude );
-
-        var (upperLeftX, upperLeftY) = region.GetUpperLeftCartesian();
-
-        return mapPoint.X >= upperLeftX
-         && mapPoint.X < upperLeftX + region.AdjustedRegion.Width + region.Projection.TileHeightWidth
-         && mapPoint.Y >= upperLeftY
-         && mapPoint.Y < upperLeftY + region.AdjustedRegion.Height + region.Projection.TileHeightWidth;
-    }
 }
