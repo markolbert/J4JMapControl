@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using J4JSoftware.VisualUtilities;
+﻿using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -12,27 +11,28 @@ public class StaticRegionView : RegionView<StaticProjection>
     {
     }
 
-    public StaticBlock? StaticBlock { get; private set; }
-
-    protected override async Task<ILoadedRegion> LoadRegionInternalAsync(
-        Rectangle2D requestedArea,
-        CancellationToken ctx
+    public override async Task<ILoadedRegion?> LoadRegionAsync(
+        Region region,
+        CancellationToken ctx = default( CancellationToken )
     )
     {
-        if( Center == null )
-            return LoadedStaticRegion.Empty;
+        var area = region.Area;
+        if( area == null )
+            return null;
 
-        var heightWidth = Projection.GetHeightWidth( RequestedRegion.Scale );
+        var heightWidth = Projection.GetHeightWidth( region.Scale );
+
         var projRectangle = new Rectangle2D( heightWidth, heightWidth, coordinateSystem: CoordinateSystem2D.Display );
-        var shrinkResult = projRectangle.ShrinkToFit( requestedArea, RequestedRegion.ShrinkStyle );
+        var shrinkResult = projRectangle.ShrinkToFit( area, region.ShrinkStyle );
 
-        LoadedArea = shrinkResult.Rectangle;
+        var retVal = new LoadedStaticRegion
+        {
+            Zoom = shrinkResult.Zoom, Block = new StaticBlock( (StaticProjection) Projection, region )
+        };
 
-        StaticBlock = new StaticBlock( this );
+        retVal.ImagesLoaded = await ( (StaticProjection) Projection ).LoadImageAsync( retVal.Block, ctx );
+        OnImagesLoaded( retVal.ImagesLoaded );
 
-        var loaded = await ( (StaticProjection) Projection ).LoadImageAsync( StaticBlock, ctx );
-        OnImagesLoaded( loaded );
-
-        return new LoadedStaticRegion( shrinkResult.Zoom, StaticBlock );
+        return retVal;
     }
 }

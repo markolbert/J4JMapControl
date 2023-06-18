@@ -12,43 +12,47 @@ public class TiledRegionView : RegionView<ITiledProjection>
     {
     }
 
-    public List<PositionedMapBlock> PositionedBlocks { get; } = new();
-
-    protected override async Task<ILoadedRegion> LoadRegionInternalAsync(
-        Rectangle2D requestedArea,
-        CancellationToken ctx
+    public override async Task<ILoadedRegion?> LoadRegionAsync(
+        Region region,
+        CancellationToken ctx = default( CancellationToken )
     )
     {
-        if( Center == null )
-            return LoadedTiledRegion.Empty;
+        var retVal = DefineBlocksAndOffset( region );
+        if( retVal == null )
+            return null;
 
-        var zoom = DefineBlocksAndOffset( requestedArea );
+        retVal.ImagesLoaded = await Projection.LoadBlocksAsync( retVal.Blocks
+                                                                   .Select( b => b.MapBlock ), ctx );
+        
+        OnImagesLoaded( retVal.ImagesLoaded );
 
-        var loaded = await Projection.LoadBlocksAsync( PositionedBlocks.Select( b => b.MapBlock ), ctx );
-        OnImagesLoaded( loaded );
-
-        return new LoadedTiledRegion( zoom, loaded ? PositionedBlocks : null );
+        return retVal;
     }
 
-    private float? DefineBlocksAndOffset( Rectangle2D requestedArea )
+    private LoadedTiledRegion? DefineBlocksAndOffset( Region region )
     {
-        var heightWidth = Projection.GetHeightWidth( RequestedRegion.Scale );
+        var area = region.Area;
+        if( area == null )
+            return null;
+
+        var heightWidth = Projection.GetHeightWidth( region.Scale );
         var projRectangle = new Rectangle2D( heightWidth, heightWidth, coordinateSystem: CoordinateSystem2D.Display );
 
-        var shrinkResult = projRectangle.ShrinkToFit( requestedArea, RequestedRegion.ShrinkStyle );
-        LoadedArea = shrinkResult.Rectangle;
+        var shrinkResult = projRectangle.ShrinkToFit( area, region.ShrinkStyle );
 
-        var tilesHighWide = Projection.GetNumTiles( RequestedRegion.Scale );
+        var tilesHighWide = Projection.GetNumTiles( region.Scale );
 
-        var top = LoadedArea.Min( c => c.Y );
+        var top = shrinkResult.Rectangle.Min( c => c.Y );
         var firstRow = (int) Math.Floor( top / Projection.TileHeightWidth );
-        var lastRow = (int) Math.Ceiling( LoadedArea.Max( c => c.Y ) / Projection.TileHeightWidth );
+        var lastRow = (int) Math.Ceiling( shrinkResult.Rectangle.Max( c => c.Y ) / Projection.TileHeightWidth );
 
-        var left = LoadedArea.Min( c => c.X );
+        var left = shrinkResult.Rectangle.Min( c => c.X );
         var firstCol = (int) Math.Floor( left / Projection.TileHeightWidth );
-        var lastCol = (int) Math.Ceiling( LoadedArea.Max( c => c.X ) / Projection.TileHeightWidth );
+        var lastCol = (int) Math.Ceiling( shrinkResult.Rectangle.Max( c => c.X ) / Projection.TileHeightWidth );
 
-        var centerCol = (int) Math.Ceiling( Center!.X / Projection.TileHeightWidth );
+        var centerCol = (int) Math.Ceiling( region.CenterPoint!.X / Projection.TileHeightWidth );
+
+        var retVal = new LoadedTiledRegion { Zoom = shrinkResult.Zoom };
 
         for( var row = firstRow; row <= lastRow; row++ )
         {
@@ -75,24 +79,20 @@ public class TiledRegionView : RegionView<ITiledProjection>
                     }
                 }
 
-                PositionedBlocks.Add( new PositionedMapBlock( row,
-                                                              srcCol,
-                                                              new TileBlock( (ITiledProjection) Projection,
-                                                                             RequestedRegion.Scale,
-                                                                             col,
-                                                                             row ) ) );
+                retVal.Blocks.Add( new PositionedMapBlock( row,
+                                                           srcCol,
+                                                           new TileBlock( (ITiledProjection) Projection,
+                                                                          region.Scale,
+                                                                          col,
+                                                                          row ) ) );
             }
         }
 
-        if( PositionedBlocks.Any() )
-        {
-            var topFirstIncludedRow = PositionedBlocks.MinBy( b => b.Row )!.Row * Projection.TileHeightWidth;
-            var leftFirstIncludedCol = PositionedBlocks.MinBy( b => b.Column )!.Column * Projection.TileHeightWidth;
+        var topFirstIncludedRow = retVal.Blocks.MinBy( b => b.Row )!.Row * Projection.TileHeightWidth;
+        var leftFirstIncludedCol = retVal.Blocks.MinBy( b => b.Column )!.Column * Projection.TileHeightWidth;
 
-            LoadedAreaOffset = new Vector3( topFirstIncludedRow - top, leftFirstIncludedCol - left, 0 );
-        }
-        else LoadedAreaOffset = new Vector3();
+        retVal.Offset = new Vector3( topFirstIncludedRow - top, leftFirstIncludedCol - left, 0 );
 
-        return shrinkResult.Zoom;
+        return retVal;
     }
 }
