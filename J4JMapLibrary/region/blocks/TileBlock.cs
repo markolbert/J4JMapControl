@@ -37,8 +37,8 @@ public class TileBlock : MapBlock
                                                        0 ),
                                   coordinateSystem: CoordinateSystem2D.Display );
 
+        QuadKey = GetQuadKey(projection, scale, column, row);
         FragmentId = $"{Projection.Name}{StyleKey}-{QuadKey}";
-        QuadKey = GetQuadKey( projection, scale, column, row );
     }
 
     public TileCoordinates ProjectionCoordinates { get; } = new();
