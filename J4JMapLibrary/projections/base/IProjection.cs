@@ -22,19 +22,19 @@
 #endregion
 
 using System.Collections.ObjectModel;
-using J4JSoftware.J4JMapLibrary.MapRegion;
 
 namespace J4JSoftware.J4JMapLibrary;
 
 public interface IProjection : IEquatable<IProjection>
 {
+    public event EventHandler<bool>? RegionProcessed;
+
     string Name { get; }
-
     bool Initialized { get; }
-
-    int MinScale { get; }
-    int MaxScale { get; }
-    MinMax<int> ScaleRange { get; }
+    int MaxRequestLatency { get; set; }
+    string ImageFileExtension { get; }
+    string Copyright { get; }
+    Uri? CopyrightUri { get; }
 
     float MaxLatitude { get; }
     float MinLatitude { get; }
@@ -44,36 +44,39 @@ public interface IProjection : IEquatable<IProjection>
     float MinLongitude { get; }
     MinMax<float> LongitudeRange { get; }
 
+    int MinScale { get; }
+    int MaxScale { get; }
+    MinMax<int> ScaleRange { get; }
+
+    MinMax<float> GetXYRange(int scale);
+    MinMax<int> GetTileRange(int scale);
+
+    int TileHeightWidth { get; }
+    int GetHeightWidth(int scale);
+    int GetNumTiles(int scale);
+
     bool SupportsStyles { get; }
     string? MapStyle { get; set; }
     ReadOnlyCollection<string> MapStyles { get; }
     bool IsStyleSupported( string style );
 
-    int MaxRequestLatency { get; set; }
-    int TileHeightWidth { get; }
-    string ImageFileExtension { get; }
-
-    string Copyright { get; }
-    Uri? CopyrightUri { get; }
-
-    int GetHeightWidth( int scale );
-
-    MinMax<float> GetXYRange( int scale );
-    MinMax<int> GetTileRange( int scale );
-    int GetNumTiles( int scale );
-
     bool SetCredentials( object credentials );
     bool Authenticate();
     Task<bool> AuthenticateAsync( CancellationToken ctx = default );
 
+    float? GetRegionZoom(Region requestedRegion);
+
     Task<MapBlock?> GetMapTileAsync( int x, int y, int scale, CancellationToken ctx = default );
+    Task<byte[]?> GetImageAsync(MapBlock mapBlock, CancellationToken ctx = default);
+    Task<bool> LoadImageAsync(MapBlock mapBlock, CancellationToken ctx = default);
+
+    Task<IMapRegion?> LoadRegionAsync(
+        Region region,
+        CancellationToken ctx = default(CancellationToken)
+    );
 
     Task<bool> LoadBlocksAsync(
         IEnumerable<MapBlock> blocks,
         CancellationToken ctx = default
     );
-
-    Task<byte[]?> GetImageAsync( MapBlock mapBlock, CancellationToken ctx = default );
-
-    Task<bool> LoadImageAsync( MapBlock mapBlock, CancellationToken ctx = default );
 }

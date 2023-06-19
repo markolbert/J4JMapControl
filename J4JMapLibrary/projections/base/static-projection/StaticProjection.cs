@@ -21,7 +21,7 @@
 
 #endregion
 
-using J4JSoftware.J4JMapLibrary.MapRegion;
+using J4JSoftware.VisualUtilities;
 using Microsoft.Extensions.Logging;
 
 namespace J4JSoftware.J4JMapLibrary;
@@ -45,6 +45,28 @@ public abstract class StaticProjection : Projection
     {
         var retVal = new StaticBlock( this, x, y, scale );
         await LoadImageAsync( retVal, ctx );
+
+        return retVal;
+    }
+
+    public override async Task<IMapRegion?> LoadRegionAsync(
+        Region region,
+        CancellationToken ctx = default( CancellationToken )
+    )
+    {
+        var area = region.Area;
+        if( area == null )
+            return null;
+
+        var heightWidth = GetHeightWidth( region.Scale );
+
+        var projRectangle = new Rectangle2D( heightWidth, heightWidth, coordinateSystem: CoordinateSystem2D.Display );
+        var shrinkResult = projRectangle.ShrinkToFit( area, region.ShrinkStyle );
+
+        var retVal = new StaticMapRegion { Zoom = shrinkResult.Zoom, Block = new StaticBlock( this, region ) };
+
+        retVal.ImagesLoaded = await LoadImageAsync( retVal.Block, ctx );
+        OnRegionProcessed( retVal.ImagesLoaded );
 
         return retVal;
     }
