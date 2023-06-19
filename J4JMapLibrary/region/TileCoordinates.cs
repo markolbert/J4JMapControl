@@ -1,4 +1,4 @@
-﻿namespace J4JSoftware.J4JMapLibrary.MapRegion;
+﻿namespace J4JSoftware.J4JMapLibrary;
 
 public class TileCoordinates
 {
