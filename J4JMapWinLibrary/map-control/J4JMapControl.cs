@@ -22,19 +22,15 @@
 #endregion
 
 using System;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using J4JSoftware.J4JMapLibrary;
-using J4JSoftware.VisualUtilities;
 using J4JSoftware.WindowsUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
@@ -121,7 +117,7 @@ public sealed partial class J4JMapControl : Control
 
     private void SetImagePanelTransforms()
     {
-        if( _mapGrid == null || _loadedRegion == null )
+        if( _mapGrid == null || _mapRegion == null )
             return;
 
         // define the transform to move and rotate the grid
@@ -139,11 +135,11 @@ public sealed partial class J4JMapControl : Control
         transforms.Children.Add( new TranslateTransform
         {
             X = Zoom == null
-                ? _loadedRegion.Offset.X
-                : _loadedRegion.Offset.X / Zoom.Value,
+                ? _mapRegion.Offset.X
+                : _mapRegion.Offset.X / Zoom.Value,
             Y = Zoom == null
-                ? _loadedRegion.Offset.Y
-                : _loadedRegion.Offset.Y / Zoom.Value
+                ? _mapRegion.Offset.Y
+                : _mapRegion.Offset.Y / Zoom.Value
         } );
 
         transforms.Children.Add( new RotateTransform
@@ -170,7 +166,7 @@ public sealed partial class J4JMapControl : Control
 
     private void LoadMapImages()
     {
-        if( _mapGrid == null || RegionView == null || _loadedRegion == null )
+        if( _mapGrid == null || _mapRegion == null )
             return;
 
         DefineColumns();
@@ -178,11 +174,11 @@ public sealed partial class J4JMapControl : Control
 
         _mapGrid.Children.Clear();
 
-        for( var row = _loadedRegion.FirstRow; row <= _loadedRegion.LastRow; row++ )
+        for( var row = _mapRegion.FirstRow; row <= _mapRegion.LastRow; row++ )
         {
-            for( var column = _loadedRegion.FirstColumn; column <= _loadedRegion.LastColumn; column++ )
+            for( var column = _mapRegion.FirstColumn; column <= _mapRegion.LastColumn; column++ )
             {
-                var block = _loadedRegion.GetBlock(row, column);
+                var block = _mapRegion.GetBlock(row, column);
                 if( block == null )
                     continue;
 
@@ -212,7 +208,7 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeAnnotations()
     {
-        if( _annotationsCanvas == null || RegionView == null )
+        if( _annotationsCanvas == null )
             return;
 
         _annotationsCanvas.Children.Clear();
@@ -233,7 +229,7 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludePointsOfInterest()
     {
-        if( _poiCanvas == null || RegionView == null )
+        if( _poiCanvas == null )
             return;
 
         _poiCanvas.Children.Clear();
@@ -259,7 +255,7 @@ public sealed partial class J4JMapControl : Control
 
     private void IncludeRoutes()
     {
-        if( _routesCanvas == null || RegionView == null )
+        if( _routesCanvas == null )
             return;
 
         _routesCanvas.Children.Clear();
@@ -332,7 +328,7 @@ public sealed partial class J4JMapControl : Control
     {
         availableSize = SizeIsValid( availableSize ) ? availableSize : new Size( 100, 100 );
 
-        if( RegionView == null || _projection == null )
+        if( _projection == null )
             return availableSize;
 
         var height = Height < availableSize.Height ? Height : availableSize.Height;
@@ -362,7 +358,7 @@ public sealed partial class J4JMapControl : Control
 
     private void ArrangeAnnotations()
     {
-        if( _annotationsCanvas == null || RegionView == null )
+        if( _annotationsCanvas == null )
             return;
 
         foreach( var element in _annotationsCanvas.Children

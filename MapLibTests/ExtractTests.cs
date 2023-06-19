@@ -65,15 +65,6 @@ public class ExtractTests : TestBase
         projection!.Initialized.Should().BeTrue();
         projection.MaxRequestLatency = 0;
 
-        var regionView = projection switch
-        {
-            ITiledProjection tiledProj => (IRegionView?) new TiledRegionView( tiledProj ),
-            StaticProjection staticProj => new StaticRegionView( staticProj ),
-            _ => null
-        };
-        
-        regionView.Should().NotBeNull();
-
         var center = new MapPoint( projection, scale );
         center.SetLatLong( latitude, longitude );
 
@@ -86,7 +77,7 @@ public class ExtractTests : TestBase
             Scale = scale
         };
 
-        var result = await regionView!.LoadRegionAsync( request );
+        var result = await projection.LoadRegionAsync( request );
         result.Should().NotBeNull();
         result!.ImagesLoaded.Should().BeTrue();
 

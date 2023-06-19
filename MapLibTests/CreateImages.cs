@@ -75,9 +75,8 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
     private static async Task<MapBlock> GetMapBlockAsync(ITiledProjection projection, TileImageData.Tile data)
     {
         var request = Region.FromTileCoordinates(projection, data.TileX, data.TileY, data.Scale);
-        var regionView = new TiledRegionView( projection );
 
-        var loaded = await regionView.LoadRegionAsync( request ) as LoadedTiledRegion;
+        var loaded = await projection.LoadRegionAsync( request ) as TiledMapRegion;
         loaded.Should().NotBeNull();
         loaded!.ImagesLoaded.Should().BeTrue();
         loaded.Blocks.Should().HaveCount(1);
@@ -88,9 +87,8 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
     private static async Task<MapBlock> GetMapBlockAsync( StaticProjection projection, TileImageData.Tile data )
     {
         var request = Region.FromTileCoordinates( projection, data.TileX, data.TileY, data.Scale );
-        var regionView = new StaticRegionView( projection );
 
-        var loaded = await regionView.LoadRegionAsync( request ) as LoadedStaticRegion;
+        var loaded = await projection.LoadRegionAsync( request ) as StaticMapRegion;
         loaded.Should().NotBeNull();
         loaded!.ImagesLoaded.Should().BeTrue();
         

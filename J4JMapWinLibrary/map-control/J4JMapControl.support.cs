@@ -25,7 +25,7 @@ public sealed partial class J4JMapControl
 
     private Point ViewPointToRegionPoint(Point point)
     {
-        if (RegionView == null || ShrinkStyle == ShrinkStyle.None)
+        if ( ShrinkStyle == ShrinkStyle.None)
             return point;
 
         return Zoom == null
@@ -35,7 +35,7 @@ public sealed partial class J4JMapControl
 
     private Point RegionPointToViewPoint(Point point)
     {
-        if (RegionView == null || ShrinkStyle == ShrinkStyle.None)
+        if (ShrinkStyle == ShrinkStyle.None)
             return point;
 
         return Zoom == null
@@ -82,7 +82,7 @@ public sealed partial class J4JMapControl
 
     private void DefineColumns()
     {
-        if (_loadedRegion == null)
+        if (_mapRegion == null)
             return;
 
         var cellWidth = _projection switch
@@ -95,7 +95,7 @@ public sealed partial class J4JMapControl
 
         _mapGrid!.ColumnDefinitions.Clear();
 
-        var tilesWide = _loadedRegion.LastColumn - _loadedRegion.FirstColumn + 1;
+        var tilesWide = _mapRegion.LastColumn - _mapRegion.FirstColumn + 1;
 
         for (var column = 0; column < tilesWide; column++)
         {
@@ -105,7 +105,7 @@ public sealed partial class J4JMapControl
 
     private void DefineRows()
     {
-        if (_loadedRegion == null)
+        if (_mapRegion == null)
             return;
 
         var cellHeight = _projection switch
@@ -118,7 +118,7 @@ public sealed partial class J4JMapControl
 
         _mapGrid!.RowDefinitions.Clear();
 
-        var tilesHigh = _loadedRegion.LastRow - _loadedRegion.FirstRow + 1;
+        var tilesHigh = _mapRegion.LastRow - _mapRegion.FirstRow + 1;
 
         for (var row = 0; row < tilesHigh; row++)
         {
@@ -134,13 +134,13 @@ public sealed partial class J4JMapControl
 
     private Vector3 GetDisplayPosition(float latitude, float longitude)
     {
-        if (_projection == null || _loadedRegion == null || MapCenterPoint == null)
+        if (_projection == null || _mapRegion == null || MapCenterPoint == null)
             return Vector3.Zero;
 
         var mapPoint = new MapPoint(_projection, (int)MapScale);
         mapPoint.SetLatLong(latitude, longitude);
 
-        var position = _loadedRegion.Offset;
+        var position = _mapRegion.Offset;
         position.X += mapPoint.X - MapUpperLeft.X;
         position.Y += mapPoint.Y - MapUpperLeft.Y;
 

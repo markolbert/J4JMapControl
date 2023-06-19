@@ -122,19 +122,6 @@ public sealed partial class J4JMapControl
         MapStyles = _projection.MapStyles.ToList();
         MapStyle = _projection.MapStyle ?? string.Empty;
 
-        RegionView = _projection switch
-        {
-            ITiledProjection tiledProj => new TiledRegionView( tiledProj ),
-            StaticProjection staticProj => new StaticRegionView( staticProj ),
-            _ => null
-        };
-
-        if( RegionView == null )
-        {
-            _logger?.LogError( "Unsupported {projType} '{type}'", typeof( IProjection ), _projection.GetType() );
-            return;
-        }
-
         MinMapScale = _projection.MinScale;
         MaxMapScale = _projection.MaxScale;
     }

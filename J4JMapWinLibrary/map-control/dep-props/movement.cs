@@ -164,9 +164,6 @@ public sealed partial class J4JMapControl
 
     private void ProcessTranslation( Point point )
     {
-        if( RegionView == null )
-            return;
-
         point = ViewPointToRegionPoint(point);
         _lastTranslationPoint ??= point;
 
@@ -249,7 +246,7 @@ public sealed partial class J4JMapControl
 
     private void CenterOnDoubleTap( Point point )
     {
-        if( RegionView == null || MapCenterPoint == null )
+        if( MapCenterPoint == null )
             return;
 
         point = ViewPointToRegionPoint( point );

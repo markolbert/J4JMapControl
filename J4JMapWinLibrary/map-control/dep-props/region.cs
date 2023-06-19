@@ -34,9 +34,7 @@ namespace J4JSoftware.J4JMapWinLibrary;
 
 public sealed partial class J4JMapControl
 {
-    private ILoadedRegion? _loadedRegion;
-
-    public IRegionView? RegionView { get; private set; }
+    private IMapRegion? _mapRegion;
 
     public float? Zoom { get; private set; }
 
@@ -166,7 +164,7 @@ public sealed partial class J4JMapControl
 
     private async Task LoadRegion( float height, float width, CancellationToken ctx = default )
     {
-        if( RegionView == null || MapCenterPoint == null )
+        if( _projection == null || MapCenterPoint == null )
             return;
 
         var region = new Region
@@ -180,7 +178,7 @@ public sealed partial class J4JMapControl
             ShrinkStyle = ShrinkStyle
         };
 
-        Zoom = RegionView.GetZoom( region );
+        Zoom = _projection.GetRegionZoom( region );
 
         if( Zoom != null )
         {
@@ -188,11 +186,10 @@ public sealed partial class J4JMapControl
             region.Width = Zoom.Value * region.Width;
         }
 
-        _loadedRegion = await RegionView.LoadRegionAsync( region, ctx );
+        _mapRegion = await _projection.LoadRegionAsync( region, ctx );
 
-        if( _loadedRegion?.ImagesLoaded ?? false )
+        if( _mapRegion?.ImagesLoaded ?? false )
             UpdateDisplay();
-        else
-            _logger?.LogError( "Failed to load region from {regionView}", nameof( RegionView ) );
+        else _logger?.LogError( "Failed to load region" );
     }
 }

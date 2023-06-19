@@ -68,16 +68,7 @@ public class TileTests : TestBase
             Scale = scale
         };
 
-        var regionView = projection switch
-        {
-            ITiledProjection tiledProj => (IRegionView?)new TiledRegionView(tiledProj),
-            StaticProjection staticProj => new StaticRegionView(staticProj),
-            _ => null
-        };
-
-        regionView.Should().NotBeNull();
-
-        var result = await regionView!.LoadRegionAsync(request);
+        var result = await projection.LoadRegionAsync(request);
         result.Should().NotBeNull();
         result!.ImagesLoaded.Should().BeTrue();
 
@@ -87,7 +78,7 @@ public class TileTests : TestBase
 
         switch( result )
         {
-            case LoadedTiledRegion tiledRegion:
+            case TiledMapRegion tiledRegion:
                 tiledRegion.Blocks.Min( b => b.MapBlock.ProjectionCoordinates.Column )
                          .Should().Be( minCol );
 
@@ -107,7 +98,7 @@ public class TileTests : TestBase
 
                 break;
 
-            case LoadedStaticRegion staticRegion:
+            case StaticMapRegion staticRegion:
                 staticRegion.Block.Should().NotBeNull();
                 staticRegion.Block!.ImageBytes.Should().BePositive();
                 break;
@@ -155,8 +146,7 @@ public class TileTests : TestBase
             Scale = scale
         };
 
-        var region = new TiledRegionView( projection );
-        var loaded = await region.LoadRegionAsync( request ) as LoadedTiledRegion;
+        var loaded = await projection.LoadRegionAsync( request ) as TiledMapRegion;
         loaded.Should().NotBeNull();
         loaded!.ImagesLoaded.Should().BeTrue();
 
