@@ -1,4 +1,6 @@
-﻿namespace J4JSoftware.J4JMapLibrary;
+﻿using System.Collections;
+
+namespace J4JSoftware.J4JMapLibrary;
 
 public class LoadedTiledRegion : LoadedRegion, ILoadedRegion
 {
@@ -35,4 +37,15 @@ public class LoadedTiledRegion : LoadedRegion, ILoadedRegion
         Blocks.FirstOrDefault( b => b.Row == row && b.Column == column )?.MapBlock;
 
     MapBlock? ILoadedRegion.GetBlock( int row, int column ) => this[ row, column ];
+
+    public IEnumerator<MapBlock> GetEnumerator()
+    {
+        foreach( var positionedBlock in Blocks.OrderBy( b => b.Row )
+                                              .ThenBy( b => b.Column ) )
+        {
+            yield return positionedBlock.MapBlock;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

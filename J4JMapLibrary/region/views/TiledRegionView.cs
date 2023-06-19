@@ -44,11 +44,11 @@ public class TiledRegionView : RegionView<ITiledProjection>
 
         var top = shrinkResult.Rectangle.Min( c => c.Y );
         var firstRow = (int) Math.Floor( top / Projection.TileHeightWidth );
-        var lastRow = (int) Math.Ceiling( shrinkResult.Rectangle.Max( c => c.Y ) / Projection.TileHeightWidth );
+        var lastRow = (int) Math.Ceiling( shrinkResult.Rectangle.Max( c => c.Y ) / Projection.TileHeightWidth ) - 1;
 
         var left = shrinkResult.Rectangle.Min( c => c.X );
         var firstCol = (int) Math.Floor( left / Projection.TileHeightWidth );
-        var lastCol = (int) Math.Ceiling( shrinkResult.Rectangle.Max( c => c.X ) / Projection.TileHeightWidth );
+        var lastCol = (int) Math.Ceiling( shrinkResult.Rectangle.Max( c => c.X ) / Projection.TileHeightWidth ) - 1;
 
         var centerCol = (int) Math.Ceiling( region.CenterPoint!.X / Projection.TileHeightWidth );
 

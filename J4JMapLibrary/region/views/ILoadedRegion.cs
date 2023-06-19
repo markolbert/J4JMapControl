@@ -1,9 +1,8 @@
 ﻿using System.Numerics;
-using J4JSoftware.VisualUtilities;
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface ILoadedRegion
+public interface ILoadedRegion : IEnumerable<MapBlock>
 {
     bool ImagesLoaded { get; }
     float? Zoom { get; }
