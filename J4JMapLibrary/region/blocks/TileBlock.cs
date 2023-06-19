@@ -14,7 +14,7 @@ public class TileBlock : MapBlock
     )
         : base( projection, scale )
     {
-        var maxTiles = projection.GetNumTiles( scale );
+        var maxTiles = projection.GetNumTiles( Scale );
         if( row < 0 || row >= maxTiles )
             throw new ArgumentException( $"Row ({row}) exceeds the maximum allowed ({maxTiles - 1})" );
 
@@ -26,7 +26,7 @@ public class TileBlock : MapBlock
         ProjectionCoordinates.Column = column;
         ProjectionCoordinates.Row = row;
 
-        var heightWidth = projection.GetHeightWidth(scale);
+        var heightWidth = projection.GetHeightWidth(Scale);
         var halfHw = heightWidth / 2;
 
         Bounds = new Rectangle2D( heightWidth,
@@ -36,7 +36,7 @@ public class TileBlock : MapBlock
                                                        0 ),
                                   coordinateSystem: CoordinateSystem2D.Display );
 
-        QuadKey = GetQuadKey(projection, scale, column, row);
+        QuadKey = GetQuadKey(projection, Scale, column, row);
         FragmentId = $"{Projection.Name}{StyleKey}-{QuadKey}";
     }
 

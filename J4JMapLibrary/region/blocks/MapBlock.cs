@@ -18,7 +18,7 @@ public class MapBlock
         )
     {
         Projection = projection ;
-        Scale = scale ;
+        Scale = projection.ScaleRange.ConformValueToRange( scale, "MapBlock" );
     }
 
     public IProjection Projection { get; }
