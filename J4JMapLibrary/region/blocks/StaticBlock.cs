@@ -31,8 +31,8 @@ public class StaticBlock : MapBlock
     )
         : base( projection, scale )
     {
-        Height = projection.GetHeightWidth( scale );
-        Width = projection.GetHeightWidth( scale );
+        Height = projection.TileHeightWidth;
+        Width = Height;
 
         // determine the center point of the tile
         var upperLeftX = column * projection.TileHeightWidth;
