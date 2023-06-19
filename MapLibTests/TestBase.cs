@@ -34,7 +34,7 @@ namespace MapLibTests;
 
 public class TestBase
 {
-    public static readonly string[] ProjectionNames = { "BingMaps", "OpenStreetMaps", "OpenTopoMaps", "GoogleMaps" };
+    protected readonly string[] ProjectionNames;
 
     protected TestBase()
     {
@@ -54,6 +54,8 @@ public class TestBase
 
         ProjectionFactory = Host.Services.GetRequiredService<ProjectionFactory>();
         CredentialsFactory = Host.Services.GetRequiredService<ICredentialsFactory>();
+
+        ProjectionNames = ProjectionFactory.ProjectionNames.ToArray();
     }
 
     protected IHost Host { get; }

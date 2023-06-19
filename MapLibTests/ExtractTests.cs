@@ -90,11 +90,7 @@ public class ExtractTests : TestBase
         result.Should().NotBeNull();
         result!.ImagesLoaded.Should().BeTrue();
 
-        if( projection is ITiledProjection )
-        {
-            var numTiles = projection.GetNumTiles( scale );
-            numTiles *= numTiles;
-            numTiles.Should().Be( numFragments );
-        }
+        var numBlocks = result.Count();
+        numBlocks.Should().Be( numFragments );
     }
 }
