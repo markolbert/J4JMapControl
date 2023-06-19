@@ -2,7 +2,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public interface ILoadedRegion : IEnumerable<MapBlock>
+public interface IMapRegion : IEnumerable<MapBlock>
 {
     bool ImagesLoaded { get; }
     float? Zoom { get; }

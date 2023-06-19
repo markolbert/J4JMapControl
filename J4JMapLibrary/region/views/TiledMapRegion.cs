@@ -2,7 +2,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public class LoadedTiledRegion : LoadedRegion, ILoadedRegion
+public class TiledMapRegion : MapRegion, IMapRegion
 {
     private List<PositionedMapBlock> _blocks = new();
 
@@ -36,7 +36,7 @@ public class LoadedTiledRegion : LoadedRegion, ILoadedRegion
     public TileBlock? this[ int row, int column ] =>
         Blocks.FirstOrDefault( b => b.Row == row && b.Column == column )?.MapBlock;
 
-    MapBlock? ILoadedRegion.GetBlock( int row, int column ) => this[ row, column ];
+    MapBlock? IMapRegion.GetBlock( int row, int column ) => this[ row, column ];
 
     public IEnumerator<MapBlock> GetEnumerator()
     {

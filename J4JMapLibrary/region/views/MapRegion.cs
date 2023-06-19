@@ -2,7 +2,7 @@
 
 namespace J4JSoftware.J4JMapLibrary;
 
-public abstract class LoadedRegion
+public abstract class MapRegion
 {
     public bool ImagesLoaded { get; internal set; }
 
