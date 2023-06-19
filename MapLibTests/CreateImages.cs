@@ -26,7 +26,7 @@ using J4JSoftware.J4JMapLibrary;
 
 namespace MapLibTests;
 
-public class CreateImages : TestBase
+public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
 {
     [ Theory ]
     [ ClassData( typeof( TileImageData ) ) ]
@@ -72,7 +72,7 @@ public class CreateImages : TestBase
         await WriteImageFileAsync(projection!, mapBlock);
     }
 
-    private async Task<MapBlock> GetMapBlockAsync(ITiledProjection projection, TileImageData.Tile data)
+    private static async Task<MapBlock> GetMapBlockAsync(ITiledProjection projection, TileImageData.Tile data)
     {
         var request = Region.FromTileCoordinates(projection, data.TileX, data.TileY, data.Scale);
         var regionView = new TiledRegionView( projection );
@@ -85,7 +85,7 @@ public class CreateImages : TestBase
         return loaded.Blocks[0].MapBlock;
     }
 
-    private async Task<MapBlock> GetMapBlockAsync( StaticProjection projection, TileImageData.Tile data )
+    private static async Task<MapBlock> GetMapBlockAsync( StaticProjection projection, TileImageData.Tile data )
     {
         var request = Region.FromTileCoordinates( projection, data.TileX, data.TileY, data.Scale );
         var regionView = new StaticRegionView( projection );
@@ -98,7 +98,7 @@ public class CreateImages : TestBase
         return loaded.Block!;
     }
 
-    private async Task WriteImageFileAsync( IProjection projection, MapBlock mapBlock )
+    private static async Task WriteImageFileAsync( IProjection projection, MapBlock mapBlock )
     {
         mapBlock.ImageBytes.Should().BePositive();
         mapBlock.ImageData.Should().NotBeNull();
