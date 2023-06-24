@@ -2,7 +2,7 @@
 
 // Copyright (c) 2021, 2022, 2023 Mark A. Olbert 
 // https://www.JumpForJoySoftware.com
-// StaticImageData.cs
+// TileImage.cs
 //
 // This file is part of JumpForJoy Software's MapLibTests.
 // 
@@ -22,23 +22,18 @@
 #endregion
 
 using System.Collections;
-using J4JSoftware.J4JMapLibrary;
 
 namespace MapLibTests;
 
-public class StaticImageData : IEnumerable<object[]>
+public class TileImage : IEnumerable<object[]>
 {
-    public record Region( float Latitude, float Longitude, int Scale, float Height, float Width )
-    {
-        public string FragmentId =>
-            $"{MapExtensions.LatitudeToText( Latitude )}-{MapExtensions.LongitudeToText( Longitude )}-{Scale}-{Height}-{Width}";
-    }
+    public record Tile( int Scale, int TileX, int TileY );
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { new Region( 0, 0, 0, 256, 256 ) };
-        yield return new object[] { new Region( 0, 0, 12, 256, 256 ) };
-        yield return new object[] { new Region( 37, -122, 12, 256, 256 ) };
+        yield return new object[] { new Tile( 1, 0, 0 ) };
+        yield return new object[] { new Tile( 2, 0, 0 ) };
+        yield return new object[] { new Tile( 5, 27, 27 ) };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

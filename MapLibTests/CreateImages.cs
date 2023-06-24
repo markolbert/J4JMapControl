@@ -29,8 +29,8 @@ namespace MapLibTests;
 public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
 {
     [ Theory ]
-    [ ClassData( typeof( TileImageData ) ) ]
-    public async Task BingMaps( TileImageData.Tile data )
+    [ ClassData( typeof( TileImage ) ) ]
+    public async Task BingMaps( TileImage.Tile data )
     {
         var projection = CreateAndAuthenticateProjection( "BingMaps" ) as ITiledProjection;
         projection.Should().NotBeNull();
@@ -40,8 +40,8 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
     }
 
     [ Theory ]
-    [ ClassData( typeof( TileImageData ) ) ]
-    public async Task OpenStreetMaps( TileImageData.Tile data )
+    [ ClassData( typeof( TileImage ) ) ]
+    public async Task OpenStreetMaps( TileImage.Tile data )
     {
         var projection = CreateAndAuthenticateProjection( "OpenStreetMaps" ) as ITiledProjection;
         projection.Should().NotBeNull();
@@ -51,8 +51,8 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
     }
 
     [ Theory ]
-    [ ClassData( typeof( TileImageData ) ) ]
-    public async Task TopoMaps( TileImageData.Tile data )
+    [ ClassData( typeof( TileImage ) ) ]
+    public async Task TopoMaps( TileImage.Tile data )
     {
         var projection = CreateAndAuthenticateProjection( "OpenTopoMaps" ) as ITiledProjection;
         projection.Should().NotBeNull();
@@ -62,8 +62,8 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
     }
 
     [ Theory ]
-    [ ClassData( typeof( TileImageData ) ) ]
-    public async Task GoogleMaps( TileImageData.Tile data )
+    [ ClassData( typeof( TileImage ) ) ]
+    public async Task GoogleMaps( TileImage.Tile data )
     {
         var projection = CreateAndAuthenticateProjection( "GoogleMaps" ) as StaticProjection;
         projection.Should().NotBeNull();
@@ -72,7 +72,7 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
         await WriteImageFileAsync(projection!, mapBlock);
     }
 
-    private static async Task<MapBlock> GetMapBlockAsync(ITiledProjection projection, TileImageData.Tile data)
+    private static async Task<MapBlock> GetMapBlockAsync(ITiledProjection projection, TileImage.Tile data)
     {
         var request = Region.FromTileCoordinates(projection, data.TileX, data.TileY, data.Scale);
 
@@ -84,7 +84,7 @@ public class CreateImages : TestBase, IClassFixture<ClearImageFiles>
         return loaded.Blocks[0].MapBlock;
     }
 
-    private static async Task<MapBlock> GetMapBlockAsync( StaticProjection projection, TileImageData.Tile data )
+    private static async Task<MapBlock> GetMapBlockAsync( StaticProjection projection, TileImage.Tile data )
     {
         var request = Region.FromTileCoordinates( projection, data.TileX, data.TileY, data.Scale );
 
