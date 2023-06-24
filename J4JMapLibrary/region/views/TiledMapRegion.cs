@@ -16,11 +16,11 @@ public class TiledMapRegion : MapRegion, IMapRegion
 
             if( _blocks.Any() )
             {
-                FirstRow = _blocks.Min(b => b.Row);
-                LastRow = _blocks.Max(b => b.Row);
+                FirstRow = _blocks.Min(b => b.RegionRow);
+                LastRow = _blocks.Max(b => b.RegionRow);
 
-                FirstColumn = _blocks.Min(b => b.Column);
-                LastColumn = _blocks.Max(b => b.Column);
+                FirstColumn = _blocks.Min(b => b.RegionColumn);
+                LastColumn = _blocks.Max(b => b.RegionColumn);
             }
             else
             {
@@ -34,14 +34,14 @@ public class TiledMapRegion : MapRegion, IMapRegion
     }
 
     public TileBlock? this[ int row, int column ] =>
-        Blocks.FirstOrDefault( b => b.Row == row && b.Column == column )?.MapBlock;
+        Blocks.FirstOrDefault( b => b.RegionRow == row && b.RegionColumn == column )?.MapBlock;
 
     MapBlock? IMapRegion.GetBlock( int row, int column ) => this[ row, column ];
 
     public IEnumerator<MapBlock> GetEnumerator()
     {
-        foreach( var positionedBlock in Blocks.OrderBy( b => b.Row )
-                                              .ThenBy( b => b.Column ) )
+        foreach( var positionedBlock in Blocks.OrderBy( b => b.RegionRow )
+                                              .ThenBy( b => b.RegionColumn ) )
         {
             yield return positionedBlock.MapBlock;
         }

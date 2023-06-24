@@ -99,8 +99,8 @@ public sealed class OpenTopoMapsProjection : TiledProjection
         var replacements = new Dictionary<string, string>
         {
             { "{zoom}", tileBlock.Scale.ToString() },
-            { "{x}", tileBlock.ProjectionCoordinates.Column.ToString() },
-            { "{y}", tileBlock.ProjectionCoordinates.Row.ToString() }
+            { "{x}", tileBlock.AbsoluteColumn.ToString() },
+            { "{y}", tileBlock.AbsoluteRow.ToString() }
         };
 
         var uriText = InternalExtensions.ReplaceParameters( RetrievalUrl, replacements );

@@ -24,6 +24,7 @@
 using J4JSoftware.VisualUtilities;
 using Microsoft.Extensions.Logging;
 using System.Numerics;
+using System.Runtime.ConstrainedExecution;
 
 namespace J4JSoftware.J4JMapLibrary;
 
@@ -42,7 +43,7 @@ public abstract class TiledProjection : Projection, ITiledProjection
     public int HeightWidthInTiles( int scale )
     {
         scale = ScaleRange.ConformValueToRange( scale, "HeightWidthInTiles scale factor" );
-        return InternalExtensions.Pow( 2, scale );
+        return MapExtensions.Pow( 2, scale );
     }
 
     public float GroundResolution( float latitude, int scale )
@@ -147,15 +148,23 @@ public abstract class TiledProjection : Projection, ITiledProjection
 
         var tilesHighWide = GetNumTiles(region.Scale);
 
-        var top = shrinkResult.Rectangle.Min(c => c.Y);
+        var top = area.Min(c => c.Y);
         var firstRow = (int)Math.Floor(top / TileHeightWidth);
-        var lastRow = (int)Math.Ceiling(shrinkResult.Rectangle.Max(c => c.Y) / TileHeightWidth) - 1;
+        var lastRow = (int)Math.Ceiling(area.Max(c => c.Y) / TileHeightWidth) - 1;
 
-        var left = shrinkResult.Rectangle.Min(c => c.X);
+        var left = area.Min(c => c.X);
         var firstCol = (int)Math.Floor(left / TileHeightWidth);
-        var lastCol = (int)Math.Ceiling(shrinkResult.Rectangle.Max(c => c.X) / TileHeightWidth) - 1;
+        var lastCol = (int)Math.Ceiling(area.Max(c => c.X) / TileHeightWidth) - 1;
 
-        var centerCol = (int)Math.Ceiling(region.CenterPoint!.X / TileHeightWidth);
+        var centerCol = (int) Math.Floor( region.CenterPoint!.X / TileHeightWidth );
+
+        var excessColumns = lastCol - firstCol + 1 - tilesHighWide;
+        if (excessColumns > 0)
+        {
+            var halfExcessColumns = (int)Math.Floor(excessColumns / 2f);
+            firstCol += halfExcessColumns;
+            lastCol -= halfExcessColumns;
+        }
 
         var retVal = new TiledMapRegion { Zoom = shrinkResult.Zoom };
 
@@ -164,39 +173,39 @@ public abstract class TiledProjection : Projection, ITiledProjection
             if (row < 0 || row >= tilesHighWide)
                 continue;
 
-            for (var col = firstCol; col <= lastCol; col++)
+            for (var regionCol = firstCol; regionCol <= lastCol; regionCol++)
             {
-                var srcCol = col;
+                var absoluteCol = regionCol < 0 ? regionCol +tilesHighWide : regionCol;
 
-                if (col < 0)
-                {
-                    srcCol = col + tilesHighWide;
-                    if (srcCol < 0 || srcCol >= centerCol)
-                        continue;
-                }
-                else
-                {
-                    if (col >= tilesHighWide)
-                    {
-                        srcCol = col - tilesHighWide;
-                        if (srcCol >= tilesHighWide || srcCol <= centerCol)
-                            continue;
-                    }
-                }
+                //if (regionCol < 0)
+                //{
+                //    absoluteCol = regionCol + tilesHighWide;
+                //    if (absoluteCol < 0 || absoluteCol <= centerCol)
+                //        continue;
+                //}
+                //else
+                //{
+                //    if (regionCol >= tilesHighWide)
+                //    {
+                //        absoluteCol = regionCol - tilesHighWide;
+                //        if (absoluteCol >= tilesHighWide || absoluteCol >= centerCol)
+                //            continue;
+                //    }
+                //}
 
                 retVal.Blocks.Add(new PositionedMapBlock(row,
-                                                           srcCol,
+                                                           regionCol,
                                                            new TileBlock(this,
                                                                           region.Scale,
-                                                                          col,
+                                                                          absoluteCol,
                                                                           row)));
             }
         }
 
-        var topFirstIncludedRow = retVal.Blocks.MinBy(b => b.Row)!.Row * TileHeightWidth;
-        var leftFirstIncludedCol = retVal.Blocks.MinBy(b => b.Column)!.Column * TileHeightWidth;
+        var topFirstIncludedRow = retVal.Blocks.MinBy(b => b.RegionRow)!.RegionRow * TileHeightWidth;
+        var leftFirstIncludedCol = retVal.Blocks.MinBy(b => b.RegionColumn)!.RegionColumn * TileHeightWidth;
 
-        retVal.Offset = new Vector3(topFirstIncludedRow - top, leftFirstIncludedCol - left, 0);
+        retVal.Offset = new Vector3(leftFirstIncludedCol - left, topFirstIncludedRow - top, 0);
 
         return retVal;
     }

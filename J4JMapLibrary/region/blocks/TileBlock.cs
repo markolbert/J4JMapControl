@@ -23,8 +23,8 @@ public class TileBlock : MapBlock
 
         Height = projection.TileHeightWidth;
         Width = Height;
-        ProjectionCoordinates.Column = column;
-        ProjectionCoordinates.Row = row;
+        AbsoluteColumn = column;
+        AbsoluteRow = row;
 
         var heightWidth = projection.GetHeightWidth(Scale);
         var halfHw = heightWidth / 2;
@@ -40,7 +40,8 @@ public class TileBlock : MapBlock
         FragmentId = $"{Projection.Name}{StyleKey}-{QuadKey}";
     }
 
-    public TileCoordinates ProjectionCoordinates { get; } = new();
+    public int AbsoluteColumn { get; }
+    public int AbsoluteRow { get; }
 
     public string QuadKey { get; }
 
