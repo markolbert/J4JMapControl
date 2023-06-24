@@ -28,13 +28,6 @@ namespace J4JSoftware.J4JMapLibrary;
 
 internal static class InternalExtensions
 {
-    // thanx to 3dGrabber for this
-    // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
-    internal static int Pow( int numBase, int exp ) =>
-        Enumerable
-           .Repeat( numBase, Math.Abs( exp ) )
-           .Aggregate( 1, ( a, b ) => exp < 0 ? a / b : a * b );
-
     // key value matching is case sensitive
     internal static string ReplaceParameters(
         string template,

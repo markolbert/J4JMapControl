@@ -37,6 +37,13 @@ public static partial class MapExtensions
         matchTimeoutMilliseconds: 1000)]
     private static partial Regex GetLatLongRegEx(); //= new( "^\\s*((-?[0-9]*\\.?)?[0-9]+)(\\D*)$", RegexOptions.Compiled );
 
+    // thanx to 3dGrabber for this
+    // https://stackoverflow.com/questions/383587/how-do-you-do-integer-exponentiation-in-c
+    public static int Pow(int numBase, int exp) =>
+        Enumerable
+           .Repeat(numBase, Math.Abs(exp))
+           .Aggregate(1, (a, b) => exp < 0 ? a / b : a * b);
+
     public static ProjectionType GetProjectionType( this IProjection projection ) =>
         projection.GetType().GetInterface( nameof( ITiledProjection ) ) == null
             ? ProjectionType.Static
