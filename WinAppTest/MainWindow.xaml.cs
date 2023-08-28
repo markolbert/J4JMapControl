@@ -103,7 +103,7 @@ public sealed partial class MainWindow
         mapControl.FileSystemCachePath = Path.Combine(WinUIConfigBase.UserFolder, "map-cache");
         UpdateStats();
 
-        mapControl.NewCredentials += MapControlOnNewCredentials;
+        //mapControl.NewCredentials += MapControlOnNewCredentials;
 
         if( _appConfig.UserConfigurationFileExists )
         {
@@ -121,34 +121,34 @@ public sealed partial class MainWindow
         }
     }
 
-    private void MapControlOnNewCredentials( object? sender, NewCredentialsEventArgs e )
-    {
-        _appConfig.Credentials ??= new MapCredentials();
-        _appConfig.MapProjection = e.ProjectionName;
+    //private void MapControlOnNewCredentials( object? sender, NewCredentialsEventArgs e )
+    //{
+    //    _appConfig.Credentials ??= new MapCredentials();
+    //    _appConfig.MapProjection = e.ProjectionName;
 
-        switch( e.Credentials )
-        {
-            case BingCredentials bingCredentials:
-                _appConfig.Credentials.BingCredentials =bingCredentials;
-                break;
+    //    switch( e.Credentials )
+    //    {
+    //        case BingCredentials bingCredentials:
+    //            _appConfig.Credentials.BingCredentials =bingCredentials;
+    //            break;
 
-            case GoogleCredentials googleCredentials:
-                _appConfig.Credentials.GoogleCredentials = googleCredentials;
-                break;
+    //        case GoogleCredentials googleCredentials:
+    //            _appConfig.Credentials.GoogleCredentials = googleCredentials;
+    //            break;
 
-            case OpenStreetCredentials streetCredentials:
-                _appConfig.Credentials.OpenStreetCredentials = streetCredentials;
-                break;
+    //        case OpenStreetCredentials streetCredentials:
+    //            _appConfig.Credentials.OpenStreetCredentials = streetCredentials;
+    //            break;
 
-            case OpenTopoCredentials topoCredentials:
-                _appConfig.Credentials.OpenTopoCredentials= topoCredentials;
-                break;
+    //        case OpenTopoCredentials topoCredentials:
+    //            _appConfig.Credentials.OpenTopoCredentials= topoCredentials;
+    //            break;
 
-            default:
-                _logger?.LogError( "Unsupported credentials type '{type}'", e.Credentials.GetType() );
-                break;
-        }
-    }
+    //        default:
+    //            _logger?.LogError( "Unsupported credentials type '{type}'", e.Credentials.GetType() );
+    //            break;
+    //    }
+    //}
 
     private async Task LoadRouteFileAsync( string fileName, ObservableCollection<RoutePoint> routePoints )
     {
