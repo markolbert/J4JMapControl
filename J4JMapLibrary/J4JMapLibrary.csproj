@@ -26,8 +26,4 @@
 	  <PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\..\ProgrammingUtilities\EncryptedConfiguration\EncryptedConfiguration.csproj" />
-	</ItemGroup>
-
 </Project>
